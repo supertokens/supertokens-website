@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "browser-tabs-lock": "1.0.7"
+    "axios": "0.18.0",
+    "browser-tabs-lock": "1.0.9"
   },
   "devDependencies": {},
   "scripts": {
