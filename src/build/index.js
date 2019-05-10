@@ -37,10 +37,10 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL) {
                 if (getIDFromCookie() === undefined) {
                     return { result: "SESSION_EXPIRED" };
                 }
-                return { result: "SESSION_REFRESHED", response };
+                return { result: "SESSION_REFRESHED", apiResponse: response };
             }
-            catch (err) {
-                // we consume error for clean interface. 
+            catch (error) {
+                return { result: "API_ERROR", error };
             }
             finally {
                 lock.releaseLock("REFRESH_TOKEN_USE");
