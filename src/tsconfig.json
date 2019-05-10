@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ES2016",
+        "noImplicitAny": true,
+        "allowSyntheticDefaultImports": true,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "jsx": "react",
+        "module": "ES6",
+        "outDir": "./build",
+        "moduleResolution": "node"
+    },
+    "include": [
+        "ts/**/*",
+        "ts/node_modules"
+    ],
+    "compileOnSave": true
+}
