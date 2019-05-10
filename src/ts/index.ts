@@ -12,7 +12,8 @@ async function apiCall(REFRESH_TOKEN_URL: string): Promise<any> {
 
 export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string):
     Promise<{ result: "SESSION_EXPIRED" } |
-    { result: "SESSION_REFRESHED", response: any } |
+    { result: "SESSION_REFRESHED", apiResponse: any } |
+    { result: "API_ERROR", error: any } |
     { result: "RETRY" }> {
     let preLockID = getIDFromCookie();
     if (preLockID === undefined) {
@@ -32,9 +33,9 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string):
             if (getIDFromCookie() === undefined) {  // removed by server. So we logout
                 return { result: "SESSION_EXPIRED" };
             }
-            return { result: "SESSION_REFRESHED", response };
-        } catch (err) {
-            // we consume error for clean interface. 
+            return { result: "SESSION_REFRESHED", apiResponse: response };
+        } catch (error) {
+            return { result: "API_ERROR", error };
         } finally {
             lock.releaseLock("REFRESH_TOKEN_USE");
         }
