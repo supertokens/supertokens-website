@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Lock from 'browser-tabs-lock';
 
-const ID_COOKIE_NAME = "id-cookie-for-refresh-token"
+const ID_COOKIE_NAME = "id-refresh-token"
 
 // You can modify the API call below as you like.
 // But be sure to use await
