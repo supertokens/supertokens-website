@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import axios from 'axios';
 import Lock from 'browser-tabs-lock';
-const ID_COOKIE_NAME = "id-cookie-for-refresh-token";
+const ID_COOKIE_NAME = "sIdRefreshToken";
 // You can modify the API call below as you like.
 // But be sure to use await
 function apiCall(REFRESH_TOKEN_URL) {
