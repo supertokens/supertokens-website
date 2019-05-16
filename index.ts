@@ -9,11 +9,7 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
         throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
     }
     if (preRequestIdToken === undefined) {
-        if (getIDFromCookie() === undefined) {
-            throw Error("no auth cookies set");
-        } else {
-            return true;
-        }
+        return getIDFromCookie() !== undefined;
     }
     let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken);
     if (result.result === "SESSION_EXPIRED") {
@@ -23,7 +19,7 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
     }
     return true;
 }
-export class AuthHttpRequest {
+export default class AuthHttpRequest {
 
     private static REFRESH_TOKEN_URL: string | undefined;
     private static UNAUTHORISED_STATUS_CODE = 440;
@@ -35,6 +31,7 @@ export class AuthHttpRequest {
     }
 
     static doRequest = async (axiosCall: () => axiosType.AxiosPromise<any>) => {
+        let throwError = false;
         while (true) {
             const preRequestIdToken = getIDFromCookie();
             try {
@@ -51,6 +48,7 @@ export class AuthHttpRequest {
                 if (err.response !== undefined && err.response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
                     let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
                     if (!retry) {
+                        throwError = true;
                         break;
                     }
                 } else {
@@ -59,13 +57,20 @@ export class AuthHttpRequest {
             }
         }
         // if it comes here, means we breaked. which happens only if we have logged out.
-        throw {
-            response: {
+        if (throwError) {
+            throw {
+                response: {
+                    status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
+                    data: AuthHttpRequest.SESSION_EXPIRED
+                },
+                message: AuthHttpRequest.SESSION_EXPIRED
+            };
+        } else {
+            return {
                 status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
                 data: AuthHttpRequest.SESSION_EXPIRED
-            },
-            message: AuthHttpRequest.SESSION_EXPIRED
-        };
+            };
+        }
     }
 
     static get = async (url: string, config?: axiosType.AxiosRequestConfig) => {

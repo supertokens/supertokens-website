@@ -15,12 +15,7 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
             throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
         }
         if (preRequestIdToken === undefined) {
-            if (getIDFromCookie() === undefined) {
-                throw Error("no auth cookies set");
-            }
-            else {
-                return true;
-            }
+            return getIDFromCookie() !== undefined;
         }
         let result = yield onUnauthorisedResponse(refreshAPI, preRequestIdToken);
         if (result.result === "SESSION_EXPIRED") {
@@ -32,7 +27,7 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
         return true;
     });
 }
-export class AuthHttpRequest {
+export default class AuthHttpRequest {
     static init(REFRESH_TOKEN_URL, UNAUTHORISED_STATUS_CODE) {
         AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
         AuthHttpRequest.UNAUTHORISED_STATUS_CODE = UNAUTHORISED_STATUS_CODE;
@@ -41,6 +36,7 @@ export class AuthHttpRequest {
 AuthHttpRequest.UNAUTHORISED_STATUS_CODE = 440;
 AuthHttpRequest.SESSION_EXPIRED = "Session expired";
 AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, function* () {
+    let throwError = false;
     while (true) {
         const preRequestIdToken = getIDFromCookie();
         try {
@@ -59,6 +55,7 @@ AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, funct
             if (err.response !== undefined && err.response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
                 let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
                 if (!retry) {
+                    throwError = true;
                     break;
                 }
             }
@@ -68,13 +65,21 @@ AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, funct
         }
     }
     // if it comes here, means we breaked. which happens only if we have logged out.
-    throw {
-        response: {
+    if (throwError) {
+        throw {
+            response: {
+                status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
+                data: AuthHttpRequest.SESSION_EXPIRED
+            },
+            message: AuthHttpRequest.SESSION_EXPIRED
+        };
+    }
+    else {
+        return {
             status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
             data: AuthHttpRequest.SESSION_EXPIRED
-        },
-        message: AuthHttpRequest.SESSION_EXPIRED
-    };
+        };
+    }
 });
 AuthHttpRequest.get = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest(() => axios.get(url, config));
