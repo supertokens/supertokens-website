@@ -1,1 +1,1 @@
-export { onUnauthorisedResponse } from './src/build/index';
+export { onUnauthorisedResponse } from "./build";

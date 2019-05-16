@@ -11,8 +11,8 @@
         "moduleResolution": "node"
     },
     "include": [
-        "ts/**/*",
-        "ts/node_modules"
+        "./**/*",
+        "./node_modules"
     ],
     "compileOnSave": true
 }
