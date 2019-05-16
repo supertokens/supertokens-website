@@ -3,8 +3,6 @@ import * as axiosType from 'axios';
 
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
 
-// TODO: see about cancellation!
-
 // returns true if retry, else false is session has expired completely.
 async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean> {
     if (refreshAPI === undefined) {
@@ -12,7 +10,7 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
     }
     if (preRequestIdToken === undefined) {
         if (getIDFromCookie() === undefined) {
-            throw Error("no cookies set?");
+            throw Error("no auth cookies set");
         } else {
             return true;
         }

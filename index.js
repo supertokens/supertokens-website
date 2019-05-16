@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import axios from 'axios';
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
-// TODO: see about cancellation!
 // returns true if retry, else false is session has expired completely.
 function handleUnauthorised(refreshAPI, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -17,7 +16,7 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
         }
         if (preRequestIdToken === undefined) {
             if (getIDFromCookie() === undefined) {
-                throw Error("no cookies set?");
+                throw Error("no auth cookies set");
             }
             else {
                 return true;
