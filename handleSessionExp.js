@@ -17,12 +17,8 @@ function apiCall(REFRESH_TOKEN_URL) {
         return response;
     });
 }
-export function onUnauthorisedResponse(REFRESH_TOKEN_URL) {
+export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
-        let preLockID = getIDFromCookie();
-        if (preLockID === undefined) {
-            return { result: "SESSION_EXPIRED" };
-        }
         let lock = new Lock();
         if (yield lock.acquireLock("REFRESH_TOKEN_USE", 5000)) {
             try {
@@ -30,7 +26,7 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL) {
                 if (postLockID === undefined) {
                     return { result: "SESSION_EXPIRED" };
                 }
-                if (postLockID !== preLockID) {
+                if (postLockID !== preRequestIdToken) {
                     return { result: "RETRY" };
                 }
                 let response = yield apiCall(REFRESH_TOKEN_URL);
@@ -54,7 +50,7 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL) {
         }
     });
 }
-function getIDFromCookie() {
+export function getIDFromCookie() {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
     if (parts.length === 2) {

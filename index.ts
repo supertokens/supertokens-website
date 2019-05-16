@@ -1,60 +1,88 @@
 import axios from 'axios';
-import Lock from 'browser-tabs-lock';
+import * as axiosType from 'axios';
 
-const ID_COOKIE_NAME = "sIdRefreshToken"
+import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
 
-// You can modify the API call below as you like.
-// But be sure to use await
-async function apiCall(REFRESH_TOKEN_URL: string): Promise<any> {
-    let response = await axios.post(REFRESH_TOKEN_URL, {});
-    return response;
-}
+// TODO: see about cancellation!
 
-export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string):
-    Promise<{ result: "SESSION_EXPIRED" } |
-    { result: "SESSION_REFRESHED", apiResponse: any } |
-    { result: "API_ERROR", error: any } |
-    { result: "RETRY" }> {
-    let preLockID = getIDFromCookie();
-    if (preLockID === undefined) {
-        return { result: "SESSION_EXPIRED" };
+// returns true if retry, else false is session has expired completely.
+async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean> {
+    if (refreshAPI === undefined) {
+        throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
     }
-    let lock = new Lock();
-    if (await lock.acquireLock("REFRESH_TOKEN_USE", 5000)) { // to sync across tabs.
-        try {
-            let postLockID = getIDFromCookie();
-            if (postLockID === undefined) {
-                return { result: "SESSION_EXPIRED" };
-            }
-            if (postLockID !== preLockID) {
-                return { result: "RETRY" };
-            }
-            let response = await apiCall(REFRESH_TOKEN_URL);
-            if (getIDFromCookie() === undefined) {  // removed by server. So we logout
-                return { result: "SESSION_EXPIRED" };
-            }
-            return { result: "SESSION_REFRESHED", apiResponse: response };
-        } catch (error) {
-            return { result: "API_ERROR", error };
-        } finally {
-            lock.releaseLock("REFRESH_TOKEN_USE");
+    if (preRequestIdToken === undefined) {
+        if (getIDFromCookie() === undefined) {
+            throw Error("no cookies set?");
+        } else {
+            return true;
         }
     }
-    if (getIDFromCookie() === undefined) {  // removed by server. So we logout
-        return { result: "SESSION_EXPIRED" };
-    } else {
-        return { result: "RETRY" };
+    let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken);
+    if (result.result === "SESSION_EXPIRED") {
+        return false;
+    } else if (result.result === "API_ERROR") {
+        throw result.error;
     }
+    return true;
 }
+export class AuthHttpRequest {
 
-function getIDFromCookie(): string | undefined {
-    let value = "; " + document.cookie;
-    let parts = value.split("; " + ID_COOKIE_NAME + "=");
-    if (parts.length === 2) {
-        let last = parts.pop();
-        if (last !== undefined) {
-            return last.split(";").shift();
-        }
+    private static REFRESH_TOKEN_URL: string | undefined;
+    private static UNAUTHORISED_STATUS_CODE = 440;
+    static SESSION_EXPIRED = "Session expired";
+
+    static init(REFRESH_TOKEN_URL: string, UNAUTHORISED_STATUS_CODE: number) {
+        AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
+        AuthHttpRequest.UNAUTHORISED_STATUS_CODE = UNAUTHORISED_STATUS_CODE;
     }
-    return undefined;
+
+    static doRequest = async (axiosCall: () => axiosType.AxiosPromise<any>) => {
+        while (true) {
+            const preRequestIdToken = getIDFromCookie();
+            try {
+                let response = await axiosCall();
+                if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                    let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (!retry) {
+                        break;
+                    }
+                } else {
+                    return response;
+                }
+            } catch (err) {
+                if (err.response !== undefined && err.response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                    let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (!retry) {
+                        break;
+                    }
+                } else {
+                    throw err;
+                }
+            }
+        }
+        // if it comes here, means we breaked. which happens only if we have logged out.
+        throw {
+            response: {
+                status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
+                data: AuthHttpRequest.SESSION_EXPIRED
+            },
+            message: AuthHttpRequest.SESSION_EXPIRED
+        };
+    }
+
+    static get = async (url: string, config?: axiosType.AxiosRequestConfig) => {
+        return await AuthHttpRequest.doRequest(() => axios.get(url, config));
+    }
+
+    static post = async (url: string, data?: any, config?: axiosType.AxiosRequestConfig) => {
+        return await AuthHttpRequest.doRequest(() => axios.post(url, data, config));
+    }
+
+    static delete = async (url: string, config?: axiosType.AxiosRequestConfig) => {
+        return await AuthHttpRequest.doRequest(() => axios.delete(url, config));
+    }
+
+    static put = async (url: string, data?: any, config?: axiosType.AxiosRequestConfig) => {
+        return await AuthHttpRequest.doRequest(() => axios.put(url, data, config));
+    }
 }

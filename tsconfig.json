@@ -7,12 +7,7 @@
         "noImplicitThis": true,
         "jsx": "react",
         "module": "ES6",
-        "outDir": "./build",
         "moduleResolution": "node"
     },
-    "include": [
-        "./**/*",
-        "./node_modules"
-    ],
     "compileOnSave": true
 }
