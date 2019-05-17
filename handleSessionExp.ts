@@ -3,13 +3,6 @@ import Lock from 'browser-tabs-lock';
 
 const ID_COOKIE_NAME = "sIdRefreshToken"
 
-// You can modify the API call below as you like.
-// But be sure to use await
-async function apiCall(REFRESH_TOKEN_URL: string): Promise<any> {
-    let response = await axios.post(REFRESH_TOKEN_URL, {});
-    return response;
-}
-
 export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preRequestIdToken: string):
     Promise<{ result: "SESSION_EXPIRED" } |
     { result: "SESSION_REFRESHED", apiResponse: any } |
@@ -25,7 +18,7 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
             if (postLockID !== preRequestIdToken) {
                 return { result: "RETRY" };
             }
-            let response = await apiCall(REFRESH_TOKEN_URL);
+            let response = await axios.post(REFRESH_TOKEN_URL, {});
             if (getIDFromCookie() === undefined) {  // removed by server. So we logout
                 return { result: "SESSION_EXPIRED" };
             }
