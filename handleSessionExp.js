@@ -9,44 +9,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import axios from 'axios';
 import Lock from 'browser-tabs-lock';
 const ID_COOKIE_NAME = "sIdRefreshToken";
-// You can modify the API call below as you like.
-// But be sure to use await
-function apiCall(REFRESH_TOKEN_URL) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let response = yield axios.post(REFRESH_TOKEN_URL, {});
-        return response;
-    });
-}
 export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
         let lock = new Lock();
-        if (yield lock.acquireLock("REFRESH_TOKEN_USE", 5000)) {
-            try {
-                let postLockID = getIDFromCookie();
-                if (postLockID === undefined) {
-                    return { result: "SESSION_EXPIRED" };
+        while (true) {
+            if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
+                try {
+                    let postLockID = getIDFromCookie();
+                    if (postLockID === undefined) {
+                        return { result: "SESSION_EXPIRED" };
+                    }
+                    if (postLockID !== preRequestIdToken) {
+                        return { result: "RETRY" };
+                    }
+                    let response = yield axios.post(REFRESH_TOKEN_URL, {});
+                    if (getIDFromCookie() === undefined) {
+                        return { result: "SESSION_EXPIRED" };
+                    }
+                    return { result: "SESSION_REFRESHED", apiResponse: response };
                 }
-                if (postLockID !== preRequestIdToken) {
+                catch (error) {
+                    if (getIDFromCookie() === undefined) {
+                        return { result: "SESSION_EXPIRED" };
+                    }
+                    return { result: "API_ERROR", error };
+                }
+                finally {
+                    lock.releaseLock("REFRESH_TOKEN_USE");
+                }
+            }
+            let idCookieValie = getIDFromCookie();
+            if (idCookieValie === undefined) {
+                return { result: "SESSION_EXPIRED" };
+            }
+            else {
+                if (idCookieValie !== preRequestIdToken) {
                     return { result: "RETRY" };
                 }
-                let response = yield apiCall(REFRESH_TOKEN_URL);
-                if (getIDFromCookie() === undefined) {
-                    return { result: "SESSION_EXPIRED" };
-                }
-                return { result: "SESSION_REFRESHED", apiResponse: response };
             }
-            catch (error) {
-                return { result: "API_ERROR", error };
-            }
-            finally {
-                lock.releaseLock("REFRESH_TOKEN_USE");
-            }
-        }
-        if (getIDFromCookie() === undefined) {
-            return { result: "SESSION_EXPIRED" };
-        }
-        else {
-            return { result: "RETRY" };
         }
     });
 }
