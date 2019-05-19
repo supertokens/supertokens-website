@@ -24,6 +24,9 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
             }
             return { result: "SESSION_REFRESHED", apiResponse: response };
         } catch (error) {
+            if (getIDFromCookie() === undefined) {  // removed by server. So we logout
+                return { result: "SESSION_EXPIRED" };
+            }
             return { result: "API_ERROR", error };
         } finally {
             lock.releaseLock("REFRESH_TOKEN_USE");
