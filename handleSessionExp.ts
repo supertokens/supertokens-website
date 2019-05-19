@@ -9,33 +9,38 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
     { result: "API_ERROR", error: any } |
     { result: "RETRY" }> {
     let lock = new Lock();
-    if (await lock.acquireLock("REFRESH_TOKEN_USE", 5000)) { // to sync across tabs.
-        try {
-            let postLockID = getIDFromCookie();
-            if (postLockID === undefined) {
-                return { result: "SESSION_EXPIRED" };
+    while (true) {
+        if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) { // to sync across tabs.
+            try {
+                let postLockID = getIDFromCookie();
+                if (postLockID === undefined) {
+                    return { result: "SESSION_EXPIRED" };
+                }
+                if (postLockID !== preRequestIdToken) {
+                    return { result: "RETRY" };
+                }
+                let response = await axios.post(REFRESH_TOKEN_URL, {});
+                if (getIDFromCookie() === undefined) {  // removed by server. So we logout
+                    return { result: "SESSION_EXPIRED" };
+                }
+                return { result: "SESSION_REFRESHED", apiResponse: response };
+            } catch (error) {
+                if (getIDFromCookie() === undefined) {  // removed by server. So we logout
+                    return { result: "SESSION_EXPIRED" };
+                }
+                return { result: "API_ERROR", error };
+            } finally {
+                lock.releaseLock("REFRESH_TOKEN_USE");
             }
-            if (postLockID !== preRequestIdToken) {
+        }
+        let idCookieValie = getIDFromCookie();
+        if (idCookieValie === undefined) {  // removed by server. So we logout
+            return { result: "SESSION_EXPIRED" };
+        } else {
+            if (idCookieValie !== preRequestIdToken) {
                 return { result: "RETRY" };
             }
-            let response = await axios.post(REFRESH_TOKEN_URL, {});
-            if (getIDFromCookie() === undefined) {  // removed by server. So we logout
-                return { result: "SESSION_EXPIRED" };
-            }
-            return { result: "SESSION_REFRESHED", apiResponse: response };
-        } catch (error) {
-            if (getIDFromCookie() === undefined) {  // removed by server. So we logout
-                return { result: "SESSION_EXPIRED" };
-            }
-            return { result: "API_ERROR", error };
-        } finally {
-            lock.releaseLock("REFRESH_TOKEN_USE");
         }
-    }
-    if (getIDFromCookie() === undefined) {  // removed by server. So we logout
-        return { result: "SESSION_EXPIRED" };
-    } else {
-        return { result: "RETRY" };
     }
 }
 
