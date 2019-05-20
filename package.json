@@ -1,7 +1,7 @@
 {
   "name": "auth-website",
   "version": "0.0.1",
-  "description": "",
+  "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
     "axios": "0.18.0",
@@ -15,7 +15,20 @@
     "type": "git",
     "url": "git+https://github.com/supertokens/auth-website.git"
   },
-  "author": "",
+  "keywords": [
+    "auth",
+    "authentication",
+    "authorisation",
+    "supertokens",
+    "chrome",
+    "firefox",
+    "IE",
+    "safari"
+  ],
+  "contributors": [
+    "bhumilsarvaiya",
+    "rishabhpoddar"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/supertokens/auth-website/issues"
