@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "axios": "0.18.0",
-    "browser-tabs-lock": "1.1.3"
+    "browser-tabs-lock": "1.1.4"
   },
   "devDependencies": {},
   "scripts": {
@@ -13,12 +13,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vrai-labs/auth-website.git"
+    "url": "git+https://github.com/supertokens/auth-website.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/vrai-labs/auth-website/issues"
+    "url": "https://github.com/supertokens/auth-website/issues"
   },
-  "homepage": "https://github.com/vrai-labs/auth-website#readme"
+  "homepage": "https://github.com/supertokens/auth-website#readme"
 }
