@@ -3,7 +3,9 @@ import * as axiosType from 'axios';
 
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
 
-// returns true if retry, else false is session has expired completely.
+/**
+ * @description returns true if retry, else false is session has expired completely.
+ */
 async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean> {
     if (refreshAPI === undefined) {
         throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
@@ -19,6 +21,11 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
     }
     return true;
 }
+
+/**
+ * @class AuthHttpRequest
+ * @description wrapper for common http methods.
+ */
 export default class AuthHttpRequest {
 
     private static REFRESH_TOKEN_URL: string | undefined;
@@ -30,9 +37,17 @@ export default class AuthHttpRequest {
         AuthHttpRequest.UNAUTHORISED_STATUS_CODE = UNAUTHORISED_STATUS_CODE;
     }
 
+    /**
+     * @description sends the actual http request and returns a response if successful/
+     * If not successful due to session expiry reasons, it 
+     * attempts to call the refresh token API and if that is successful, calls this API again.
+     * @throws Error
+     */
     static doRequest = async (axiosCall: () => axiosType.AxiosPromise<any>) => {
         let throwError = false;
         while (true) {
+            // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
+            // to avoid race conditions
             const preRequestIdToken = getIDFromCookie();
             try {
                 let response = await axiosCall();

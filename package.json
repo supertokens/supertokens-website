@@ -1,6 +1,6 @@
 {
   "name": "auth-website",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -29,7 +29,7 @@
     "bhumilsarvaiya",
     "rishabhpoddar"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/supertokens/auth-website/issues"
   },
