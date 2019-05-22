@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/auth-website/blob/master/LICENSE)
 
-This is a library written in TypeScript that implements the frontend part of user session management for websites. You can use this to make http(s) API calls to your backend that require an authenticated user.
+This is a library written in TypeScript that implements the **frontend part of user session management for websites**. You can use this to make http(s) API calls to your backend that require an authenticated user.
 
 Features:
 - When you make an API call, and if the access token has expired, this library will transparently take care of refreshing the session for you. After successfully refreshing it, it will call your API for you again and return its response.
