@@ -1,6 +1,6 @@
-![SuperTokens banner](https://github.com/supertokens/auth-node-mysql-ref-jwt/blob/master/images/github%20cover.png)
+![SuperTokens banner](https://github.com/supertokens/supertokens-node-mysql-ref-jwt/blob/master/images/github%20cover.png)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/auth-website/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/supertokens-website/blob/master/LICENSE)
 
 This is a library written in TypeScript that implements the **frontend part of user session management for websites**. You can use this to make http(s) API calls to your backend that require an authenticated user.
 
@@ -105,7 +105,7 @@ AuthRequest.attemptRefreshingSession().then(success => {
 ```
 
 ## Example code & Demo
-You can play around with the [demo project](https://github.com/supertokens/auth-demo) that uses this and the [auth-node-mysql-ref-jwt](https://github.com/supertokens/auth-node-mysql-ref-jwt) library. The demo demonstrates how this package behaves when it detects auth token theft (and the best part - you are the hacker here, muahahaha!)
+You can play around with the [demo project](https://github.com/supertokens/auth-demo) that uses this and the [supertokens-node-mysql-ref-jwt](https://github.com/supertokens/supertokens-node-mysql-ref-jwt) library. The demo demonstrates how this package behaves when it detects auth token theft (and the best part - you are the hacker here, muahahaha!)
 
 ## Making changes
 This library is written in TypeScript (TS). When you make any changes to the .ts files in the root folder, run the following command to compile to .js:
