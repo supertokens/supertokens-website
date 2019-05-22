@@ -5,10 +5,11 @@
 This is a library written in TypeScript that implements the **frontend part of user session management for websites**. You can use this to make http(s) API calls to your backend that require an authenticated user.
 
 Features:
-- When you make an API call, and if the access token has expired, this library will transparently take care of refreshing the session for you. After successfully refreshing it, it will call your API for you again and return its response.
-- Takes care of race conditions mentioned in the footer of this blog post: <TODO blog post link>
+- When you make an API call, and if the access token has expired, this library will automatically take care of refreshing the token for you. After successfully refreshing it, it will call your API with the new token again and return its response.
+- Takes care of race conditions mentioned in the footer of this blog post. <TODO blog post link>
 
 ## Installation
+To get started, you just need to do:
 ```bash
 npm i --save auth-website
 ```
@@ -19,7 +20,7 @@ This library is to be used instead of axios in places where the API requires aut
 import * as AuthRequest from "auth-website";
 ```
 ### AuthRequest.init(refreshTokenURL, sessionExpiredStatusCode)
-- To be called at least once before any http request, that uses this library, is made from your frontend. For example, if your website is a single page ReactJS app, then you can call this in the constructor of the root component.
+- To be called at least once before any http request is made from your frontend that uses this library. For example, if your website is a single page ReactJS app, then you can call this in the constructor of the root component.
 ```js
 // @params refreshTokenURL: this is the path to API endpoint that is responsible for refreshing the session when the access token expires.
 // @params sessionExpiredStatusCode: this is the status code that will be sent by any API that detects session expiry.
@@ -104,7 +105,7 @@ AuthRequest.attemptRefreshingSession().then(success => {
 ```
 
 ## Example code & Demo
-You can play around with the [demo project](https://github.com/supertokens/auth-demo) that uses this and the [auth-node-mysql-ref-jwt](https://github.com/supertokens/auth-node-mysql-ref-jwt) library. The demo demonstrats how this package behaves when it detects auth token theft (and the best part is that you are the attacker, muahahaha)!
+You can play around with the [demo project](https://github.com/supertokens/auth-demo) that uses this and the [auth-node-mysql-ref-jwt](https://github.com/supertokens/auth-node-mysql-ref-jwt) library. The [demo](https://github.com/supertokens/auth-demo) demonstrates how this package behaves when it detects auth token theft (and the best part - you are the hacker here, muahahaha!)
 
 ## Making changes
 This library is written in TypeScript (TS). When you make any changes to the .ts files in the root folder, run the following command to compile to .js:
@@ -113,4 +114,4 @@ tsc -p tsconfig.json
 ```
 
 ## Authors
-Written with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:
+Created with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:
