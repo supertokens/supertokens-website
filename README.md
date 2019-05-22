@@ -1,6 +1,7 @@
-# SuperTokens
+![SuperTokens banner](https://github.com/supertokens/auth-node-mysql-ref-jwt/blob/master/images/github%20cover.png)
 
-## About
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/auth-website/blob/master/LICENSE)
+
 This is a library written in TypeScript that implements the frontend part of user session management for websites. You can use this to make http(s) API calls to your backend that require an authenticated user.
 
 Features:
@@ -113,6 +114,3 @@ tsc -p tsconfig.json
 
 ## Authors
 - Written with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:
-
-## License
-MIT license. For more information, please see the license tab on this repo.
