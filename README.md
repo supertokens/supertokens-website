@@ -17,83 +17,83 @@ npm i --save supertokens-website
 ## Usage
 This library is to be used instead of axios in places where the API requires auth tokens.
 ```js
-import * as AuthRequest from "auth-website";
+import * as SuperTokensRequest from "supertokens-website";
 ```
-### AuthRequest.init(refreshTokenURL, sessionExpiredStatusCode)
+### SuperTokensRequest.init(refreshTokenURL, sessionExpiredStatusCode)
 - To be called at least once before any http request is made from your frontend that uses this library. For example, if your website is a single page ReactJS app, then you can call this in the constructor of the root component.
 ```js
 // @params refreshTokenURL: this is the path to API endpoint that is responsible for refreshing the session when the access token expires.
 // @params sessionExpiredStatusCode: this is the status code that will be sent by any API that detects session expiry.
 // @returns void
-AuthRequest.init("/api/refreshtoken", 440)
+SuperTokensRequest.init("/api/refreshtoken", 440)
 ```
-### AuthRequest.get(url, config)
+### SuperTokensRequest.get(url, config)
 - send a GET request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your GET API
 // @params config: this is same as axios config
 // @returns Promise
-AuthRequest.get("/someAPI", config).then(response => {
+SuperTokensRequest.get("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
 });
 ```
-### AuthRequest.post(url, data, config)
+### SuperTokensRequest.post(url, data, config)
 - send a POST request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your POST API
 // @params data: post body data - key value object
 // @params config: this is same as axios config
 // @returns Promise
-AuthRequest.post("/someAPI", data, config).then(response => {
+SuperTokensRequest.post("/someAPI", data, config).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
 });
 ```
-### AuthRequest.delete(url, config)
+### SuperTokensRequest.delete(url, config)
 - send a DELETE request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your DELETE API
 // @params config: this is same as axios config
 // @returns Promise
-AuthRequest.delete("/someAPI", config).then(response => {
+SuperTokensRequest.delete("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
 });
 ```
-### AuthRequest.put(url, data, config)
+### SuperTokensRequest.put(url, data, config)
 - send a PUT request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your PUT API
 // @params data: put body data - key value object
 // @params config: this is same as axios config
 // @returns Promise
-AuthRequest.post("/someAPI", data, config).then(response => {
+SuperTokensRequest.post("/someAPI", data, config).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
 });
 ```
-### AuthRequest.doRequest(func)
+### SuperTokensRequest.doRequest(func)
 - use this function to send a request using any other http method that is not mentioned above
 ```js
 // @params func: a function that returns a Promise returned by calling the axios function
 // @returns Promise
-AuthRequest.doRequest(() => axios(...)).then(response => {
+SuperTokensRequest.doRequest(() => axios(...)).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
 });
 ```
-### AuthRequest.attemptRefreshingSession()
+### SuperTokensRequest.attemptRefreshingSession()
 - use this function when you want to manually refresh the session.
 ```js
 // @params func: a function that returns a Promise returned by calling the axios function
 // @returns Promise
-AuthRequest.attemptRefreshingSession().then(success => {
+SuperTokensRequest.attemptRefreshingSession().then(success => {
   if (success) {
     // session may have refreshed successfully 
   } else {
