@@ -104,7 +104,7 @@ AuthRequest.attemptRefreshingSession().then(success => {
 ```
 
 ## Example code & Demo
-You can play around with the demo project that uses this and the [auth-node-mysql-ref-jwt](https://github.com/supertokens/auth-node-mysql-ref-jwt) library. The demo demonstrats how this package behaves when it detects auth token theft (and the best part is that you are the attacker, muahahaha)!
+You can play around with the [demo project](https://github.com/supertokens/auth-demo) that uses this and the [auth-node-mysql-ref-jwt](https://github.com/supertokens/auth-node-mysql-ref-jwt) library. The demo demonstrats how this package behaves when it detects auth token theft (and the best part is that you are the attacker, muahahaha)!
 
 ## Making changes
 This library is written in TypeScript (TS). When you make any changes to the .ts files in the root folder, run the following command to compile to .js:
