@@ -11,7 +11,7 @@ Features:
 ## Installation
 To get started, you just need to do:
 ```bash
-npm i --save auth-website
+npm i --save supertokens-website
 ```
 
 ## Usage

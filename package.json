@@ -1,5 +1,5 @@
 {
-  "name": "auth-website",
+  "name": "supertokens-website",
   "version": "1.0.2",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/supertokens/auth-website.git"
+    "url": "git+https://github.com/supertokens/supertokens-website.git"
   },
   "keywords": [
     "auth",
@@ -31,7 +31,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/supertokens/auth-website/issues"
+    "url": "https://github.com/supertokens/supertokens-website/issues"
   },
-  "homepage": "https://github.com/supertokens/auth-website#readme"
+  "homepage": "https://github.com/supertokens/supertokens-website#readme"
 }
