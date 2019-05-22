@@ -100,7 +100,7 @@ AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, funct
  * @returns true if successful, else false if session has expired. Wrapped in a Promise
  * @throws error if anything goes wrong
  */
-AuthHttpRequest.attamptRefreshingSession = () => __awaiter(this, void 0, void 0, function* () {
+AuthHttpRequest.attemptRefreshingSession = () => __awaiter(this, void 0, void 0, function* () {
     const preRequestIdToken = getIDFromCookie();
     return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
 });
