@@ -9,6 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import axios from 'axios';
 import Lock from 'browser-tabs-lock';
 const ID_COOKIE_NAME = "sIdRefreshToken";
+/**
+ * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
+ * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
+ */
 export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
         let lock = new Lock();
@@ -20,6 +24,7 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                         return { result: "SESSION_EXPIRED" };
                     }
                     if (postLockID !== preRequestIdToken) {
+                        // means that some other process has already called this API and succeeded. so we need to call it again
                         return { result: "RETRY" };
                     }
                     let response = yield axios.post(REFRESH_TOKEN_URL, {});
@@ -46,6 +51,7 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                 if (idCookieValie !== preRequestIdToken) {
                     return { result: "RETRY" };
                 }
+                // here we try to call the API again since we probably failed to acquire lock and nothing has changed.
             }
         }
     });

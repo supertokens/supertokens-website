@@ -88,6 +88,16 @@ export default class AuthHttpRequest {
         }
     }
 
+    /**
+     * @description attempts to refresh session regardless of expiry
+     * @returns true if successful, else false if session has expired. Wrapped in a Promise
+     * @throws error if anything goes wrong
+     */
+    static attamptRefreshingSession = async (): Promise<boolean> => {
+        const preRequestIdToken = getIDFromCookie();
+        return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+    }
+
     static get = async (url: string, config?: axiosType.AxiosRequestConfig) => {
         return await AuthHttpRequest.doRequest(() => axios.get(url, config));
     }

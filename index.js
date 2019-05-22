@@ -8,7 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import axios from 'axios';
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
-// returns true if retry, else false is session has expired completely.
+/**
+ * @description returns true if retry, else false is session has expired completely.
+ */
 function handleUnauthorised(refreshAPI, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
         if (refreshAPI === undefined) {
@@ -27,6 +29,10 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
         return true;
     });
 }
+/**
+ * @class AuthHttpRequest
+ * @description wrapper for common http methods.
+ */
 export default class AuthHttpRequest {
     static init(REFRESH_TOKEN_URL, UNAUTHORISED_STATUS_CODE) {
         AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
@@ -35,9 +41,17 @@ export default class AuthHttpRequest {
 }
 AuthHttpRequest.UNAUTHORISED_STATUS_CODE = 440;
 AuthHttpRequest.SESSION_EXPIRED = "Session expired";
+/**
+ * @description sends the actual http request and returns a response if successful/
+ * If not successful due to session expiry reasons, it
+ * attempts to call the refresh token API and if that is successful, calls this API again.
+ * @throws Error
+ */
 AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, function* () {
     let throwError = false;
     while (true) {
+        // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
+        // to avoid race conditions
         const preRequestIdToken = getIDFromCookie();
         try {
             let response = yield axiosCall();
@@ -80,6 +94,15 @@ AuthHttpRequest.doRequest = (axiosCall) => __awaiter(this, void 0, void 0, funct
             data: AuthHttpRequest.SESSION_EXPIRED
         };
     }
+});
+/**
+ * @description attempts to refresh session regardless of expiry
+ * @returns true if successful, else false if session has expired. Wrapped in a Promise
+ * @throws error if anything goes wrong
+ */
+AuthHttpRequest.attamptRefreshingSession = () => __awaiter(this, void 0, void 0, function* () {
+    const preRequestIdToken = getIDFromCookie();
+    return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
 });
 AuthHttpRequest.get = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest(() => axios.get(url, config));
