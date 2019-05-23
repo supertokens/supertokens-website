@@ -112,6 +112,8 @@ This library is written in TypeScript (TS). When you make any changes to the .ts
 ```bash
 tsc -p tsconfig.json
 ```
+## Support, questions and bugs
+For now, we are most reachable via team@supertokens.io and via the GitHub issues feature
 
 ## Authors
 Created with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:
