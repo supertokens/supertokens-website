@@ -71,7 +71,7 @@ SuperTokensRequest.delete("/someAPI", config).then(response => {
 // @params data: put body data - key value object
 // @params config: this is same as axios config
 // @returns Promise
-SuperTokensRequest.post("/someAPI", data, config).then(response => {
+SuperTokensRequest.put("/someAPI", data, config).then(response => {
   // API response.
 }).catch(err => {
   // err is of type axios error
