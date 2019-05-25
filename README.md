@@ -2,11 +2,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/supertokens-website/blob/master/LICENSE)
 
-This is a library written in TypeScript that implements the **frontend part of user session management for websites**. You can use this to make http(s) API calls to your backend that require an authenticated user.
+This library implements the **frontend part of user session management for websites**. You can use this to make http(s) API calls to your backend that require an authenticated user.
 
 Features:
 - When you make an API call, and if the access token has expired, this library will automatically take care of refreshing the token for you. After successfully refreshing it, it will call your API with the new token again and return its response.
-- Takes care of race conditions mentioned in the footer of this blog post. <TODO blog post link>
+- Takes care of race conditions mentioned in the footer of [this blog post](https://medium.com/@supertokens.io/91f27eeef460).
 
 ## Installation
 To get started, you just need to do:
