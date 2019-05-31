@@ -4,7 +4,7 @@
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
-    "axios": "0.18.0",
+    "axios": "0.19.0",
     "browser-tabs-lock": "^1.1.4"
   },
   "devDependencies": {},
