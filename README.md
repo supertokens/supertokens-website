@@ -6,7 +6,7 @@ This library implements the **frontend part of user session management for websi
 
 Features:
 - When you make an API call, and if the access token has expired, this library will automatically take care of refreshing the token for you. After successfully refreshing it, it will call your API with the new token again and return its response.
-- Takes care of race conditions mentioned in the footer of [this blog post](https://medium.com/@supertokens.io/91f27eeef460).
+- Takes care of race conditions mentioned in the footer of [this blog post](https://hackernoon.com/the-best-way-to-securely-manage-user-sessions-91f27eeef460).
 
 ## Installation
 To get started, you just need to do:
