@@ -89,7 +89,7 @@ export default class AuthHttpRequest {
         return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
     }
 
-    static get = async (url: string, config?: RequestInit) => {
+    static get = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest(() => {
             return fetch(url, {
                 method: "GET",
@@ -98,7 +98,7 @@ export default class AuthHttpRequest {
         });
     }
 
-    static post = async (url: string, config?: RequestInit) => {
+    static post = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest(() => {
             return fetch(url, {
                 method: "POST",
@@ -107,7 +107,7 @@ export default class AuthHttpRequest {
         });
     }
 
-    static delete = async (url: string, config?: RequestInit) => {
+    static delete = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest(() => {
             return fetch(url, {
                 method: "DELETE",
@@ -116,7 +116,7 @@ export default class AuthHttpRequest {
         });
     }
 
-    static put = async (url: string, config?: RequestInit) => {
+    static put = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest(() => {
             return fetch(url, {
                 method: "PUT",
