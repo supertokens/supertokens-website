@@ -6,7 +6,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import axios from 'axios';
 import Lock from 'browser-tabs-lock';
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
@@ -27,7 +26,12 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                         // means that some other process has already called this API and succeeded. so we need to call it again
                         return { result: "RETRY" };
                     }
-                    let response = yield axios.post(REFRESH_TOKEN_URL, {});
+                    let response = yield fetch(REFRESH_TOKEN_URL, {
+                        method: "post"
+                    });
+                    if (response.status !== 200) {
+                        throw response;
+                    }
                     if (getIDFromCookie() === undefined) {
                         return { result: "SESSION_EXPIRED" };
                     }

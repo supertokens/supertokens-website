@@ -15,7 +15,7 @@ npm i --save supertokens-website
 ```
 
 ## Usage
-This library is to be used instead of axios in places where the API requires auth tokens.
+This library is to be used instead of fetch in places where the API requires authentication.
 ```js
 import * as SuperTokensRequest from "supertokens-website";
 ```
@@ -31,67 +31,65 @@ SuperTokensRequest.init("/api/refreshtoken", 440)
 - send a GET request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your GET API
-// @params config: this is same as axios config
+// @params config: this is same as fetch config
 // @returns Promise
 SuperTokensRequest.get("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
-### SuperTokensRequest.post(url, data, config)
+### SuperTokensRequest.post(url, config)
 - send a POST request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your POST API
-// @params data: post body data - key value object
-// @params config: this is same as axios config
+// @params config: this is same as fetch config
 // @returns Promise
-SuperTokensRequest.post("/someAPI", data, config).then(response => {
+SuperTokensRequest.post("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
 ### SuperTokensRequest.delete(url, config)
 - send a DELETE request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your DELETE API
-// @params config: this is same as axios config
+// @params config: this is same as fetch config
 // @returns Promise
 SuperTokensRequest.delete("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
-### SuperTokensRequest.put(url, data, config)
+### SuperTokensRequest.put(url, config)
 - send a PUT request to this url - to be used only with your app's APIs
 ```js
 // @params url: endpoint to your PUT API
-// @params data: put body data - key value object
-// @params config: this is same as axios config
+// @params config: this is same as fetch config
 // @returns Promise
-SuperTokensRequest.put("/someAPI", data, config).then(response => {
+SuperTokensRequest.put("/someAPI", config).then(response => {
   // API response.
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
 ### SuperTokensRequest.doRequest(func)
 - use this function to send a request using any other http method that is not mentioned above
 ```js
-// @params func: a function that returns a Promise returned by calling the axios function
+// @params func: a function that returns a Promise returned by calling the fetch function
 // @returns Promise
-SuperTokensRequest.doRequest(() => axios(...)).then(response => {
+SuperTokensRequest.doRequest(() => fetch(...)).then(response => {
   // API response.
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
 ### SuperTokensRequest.attemptRefreshingSession()
 - use this function when you want to manually refresh the session.
 ```js
-// @params func: a function that returns a Promise returned by calling the axios function
+// @params func: a function that returns a Promise returned by calling the fetch function
 // @returns Promise
 SuperTokensRequest.attemptRefreshingSession().then(success => {
   if (success) {
@@ -100,7 +98,7 @@ SuperTokensRequest.attemptRefreshingSession().then(success => {
     // user has been logged out. Redirect to login page
   }
 }).catch(err => {
-  // err is of type axios error
+  // handle error
 });
 ```
 
@@ -113,7 +111,7 @@ This library is written in TypeScript (TS). When you make any changes to the .ts
 tsc -p tsconfig.json
 ```
 ## Support, questions and bugs
-For now, we are most reachable via team@supertokens.io and via the GitHub issues feature
+For now, we are most reachable via team@supertokens.io, via the GitHub issues feature and our [Discord server](https://discord.gg/zVcVeev).
 
 ## Authors
 Created with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:

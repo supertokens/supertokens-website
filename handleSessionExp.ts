@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Lock from 'browser-tabs-lock';
 
 const ID_COOKIE_NAME = "sIdRefreshToken"
@@ -24,7 +23,12 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let response = await axios.post(REFRESH_TOKEN_URL, {});
+                let response = await fetch(REFRESH_TOKEN_URL, {
+                    method: "post"
+                });
+                if (response.status !== 200) {
+                    throw response;
+                }
                 if (getIDFromCookie() === undefined) {  // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }

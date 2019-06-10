@@ -1,7 +1,5 @@
-import axios from 'axios';
-import * as axiosType from 'axios';
-
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
+
 
 /**
  * @description returns true if retry, else false is session has expired completely.
@@ -30,7 +28,6 @@ export default class AuthHttpRequest {
 
     private static REFRESH_TOKEN_URL: string | undefined;
     private static UNAUTHORISED_STATUS_CODE = 440;
-    static SESSION_EXPIRED = "Session expired";
 
     static init(REFRESH_TOKEN_URL: string, UNAUTHORISED_STATUS_CODE: number) {
         AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
@@ -43,27 +40,30 @@ export default class AuthHttpRequest {
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    static doRequest = async (axiosCall: () => axiosType.AxiosPromise<any>) => {
+    static doRequest = async (httpCall: () => Promise<Response>): Promise<Response> => {
         let throwError = false;
+        let returnObj = undefined;
         while (true) {
             // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
             // to avoid race conditions
             const preRequestIdToken = getIDFromCookie();
             try {
-                let response = await axiosCall();
+                let response = await httpCall();
                 if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
                     let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
                     if (!retry) {
+                        returnObj = response;
                         break;
                     }
                 } else {
                     return response;
                 }
             } catch (err) {
-                if (err.response !== undefined && err.response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
                     let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
                     if (!retry) {
                         throwError = true;
+                        returnObj = err;
                         break;
                     }
                 } else {
@@ -73,18 +73,9 @@ export default class AuthHttpRequest {
         }
         // if it comes here, means we breaked. which happens only if we have logged out.
         if (throwError) {
-            throw {
-                response: {
-                    status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
-                    data: AuthHttpRequest.SESSION_EXPIRED
-                },
-                message: AuthHttpRequest.SESSION_EXPIRED
-            };
+            throw returnObj;
         } else {
-            return {
-                status: AuthHttpRequest.UNAUTHORISED_STATUS_CODE,
-                data: AuthHttpRequest.SESSION_EXPIRED
-            };
+            return returnObj;
         }
     }
 
@@ -98,19 +89,39 @@ export default class AuthHttpRequest {
         return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
     }
 
-    static get = async (url: string, config?: axiosType.AxiosRequestConfig) => {
-        return await AuthHttpRequest.doRequest(() => axios.get(url, config));
+    static get = async (url: string, config?: RequestInit) => {
+        return await AuthHttpRequest.doRequest(() => {
+            return fetch(url, {
+                method: "GET",
+                ...config
+            });
+        });
     }
 
-    static post = async (url: string, data?: any, config?: axiosType.AxiosRequestConfig) => {
-        return await AuthHttpRequest.doRequest(() => axios.post(url, data, config));
+    static post = async (url: string, config?: RequestInit) => {
+        return await AuthHttpRequest.doRequest(() => {
+            return fetch(url, {
+                method: "POST",
+                ...config
+            });
+        });
     }
 
-    static delete = async (url: string, config?: axiosType.AxiosRequestConfig) => {
-        return await AuthHttpRequest.doRequest(() => axios.delete(url, config));
+    static delete = async (url: string, config?: RequestInit) => {
+        return await AuthHttpRequest.doRequest(() => {
+            return fetch(url, {
+                method: "DELETE",
+                ...config
+            });
+        });
     }
 
-    static put = async (url: string, data?: any, config?: axiosType.AxiosRequestConfig) => {
-        return await AuthHttpRequest.doRequest(() => axios.put(url, data, config));
+    static put = async (url: string, config?: RequestInit) => {
+        return await AuthHttpRequest.doRequest(() => {
+            return fetch(url, {
+                method: "PUT",
+                ...config
+            });
+        });
     }
 }
