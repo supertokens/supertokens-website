@@ -8,6 +8,15 @@ Features:
 - When you make an API call, and if the access token has expired, this library will automatically take care of refreshing the token for you. After successfully refreshing it, it will call your API with the new token again and return its response.
 - Takes care of race conditions mentioned in the footer of [this blog post](https://hackernoon.com/the-best-way-to-securely-manage-user-sessions-91f27eeef460).
 
+## Index
+1) [Installation](https://github.com/supertokens/supertokens-website#installation)
+2) [API](https://github.com/supertokens/supertokens-website#api)
+3) [Usage with GraphQL - apollo-client & apollo-link-http](https://github.com/supertokens/supertokens-website#usage-with-graphql---apollo-client--apollo-link-http)
+4) [Example code & Demo](https://github.com/supertokens/supertokens-website#example-code--demo)
+5) [Making changes](https://github.com/supertokens/supertokens-website#making-changes)
+6) [Support, questions and bugs](https://github.com/supertokens/supertokens-website#support-questions-and-bugs)
+7) [Authors](https://github.com/supertokens/supertokens-website#authors)
+
 ## Installation
 To get started, you just need to do:
 ```bash
