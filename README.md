@@ -124,15 +124,16 @@ SuperTokensRequest.init("/api/refreshtoken", 440) // /api/refreshtoken is just a
 Then we create the ```ApolloClient``` as follows
 ```js
 const client = new ApolloClient({
-  link: new HttpLink({
-    uri: "/graphql",  // change this depending on your path
-    fetch: (uri, options) => {
-      return SuperTokensRequest.doRequest(() => {
-        return fetch(uri, options);
-      });
-    },
-  cache: new InMemoryCache(),  // change this depending on your preference
-  // ... other params
+    link: new HttpLink({
+        uri: "/graphql",  // change this depending on your path
+        fetch: (uri, options) => {
+            return SuperTokensRequest.doRequest(() => {
+                return fetch(uri, options);
+            });
+        }
+    }),
+    cache: new InMemoryCache(),  // change this depending on your preference
+    // ... other params
 });
 ```
 
