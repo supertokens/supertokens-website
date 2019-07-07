@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import Lock from 'browser-tabs-lock';
+import { AntiCsrfToken } from './';
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -35,6 +36,11 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                     if (getIDFromCookie() === undefined) {
                         return { result: "SESSION_EXPIRED" };
                     }
+                    response.headers.forEach((value, key) => {
+                        if (key.toString() === "anti-csrf") {
+                            AntiCsrfToken.setItem(getIDFromCookie(), value);
+                        }
+                    });
                     return { result: "SESSION_REFRESHED", apiResponse: response };
                 }
                 catch (error) {

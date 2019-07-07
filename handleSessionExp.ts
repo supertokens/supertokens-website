@@ -1,5 +1,7 @@
 import Lock from 'browser-tabs-lock';
 
+import { AntiCsrfToken } from './';
+
 const ID_COOKIE_NAME = "sIdRefreshToken"
 
 /**
@@ -32,6 +34,11 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
                 if (getIDFromCookie() === undefined) {  // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }
+                response.headers.forEach((value, key) => {
+                    if (key.toString() === "anti-csrf") {
+                        AntiCsrfToken.setItem(getIDFromCookie(), value);
+                    }
+                });
                 return { result: "SESSION_REFRESHED", apiResponse: response };
             } catch (error) {
                 if (getIDFromCookie() === undefined) {  // removed by server.

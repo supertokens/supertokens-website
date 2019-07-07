@@ -1,6 +1,6 @@
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
 
-class AntiCsrfToken {
+export class AntiCsrfToken {
 
     private static tokenInfo: undefined | {
         antiCsrf: string, associatedIdRefreshToken: string

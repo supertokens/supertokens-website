@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
-class AntiCsrfToken {
+export class AntiCsrfToken {
     constructor() { }
     static getToken(associatedIdRefreshToken) {
         if (associatedIdRefreshToken === undefined) {
