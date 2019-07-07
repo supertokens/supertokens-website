@@ -7,6 +7,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
+class AntiCsrfToken {
+    constructor() { }
+    static getToken(associatedIdRefreshToken) {
+        if (associatedIdRefreshToken === undefined) {
+            AntiCsrfToken.tokenInfo = undefined;
+            return undefined;
+        }
+        if (AntiCsrfToken.tokenInfo === undefined) {
+            let antiCsrf = window.localStorage.getItem("anti-csrf-localstorage");
+            if (antiCsrf === null) {
+                return undefined;
+            }
+            AntiCsrfToken.tokenInfo = {
+                antiCsrf, associatedIdRefreshToken
+            };
+        }
+        else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
+            // csrf token has changed.
+            AntiCsrfToken.tokenInfo = undefined;
+            return AntiCsrfToken.getToken(associatedIdRefreshToken);
+        }
+        return AntiCsrfToken.tokenInfo.antiCsrf;
+    }
+    static removeToken() {
+        AntiCsrfToken.tokenInfo = undefined;
+        window.localStorage.removeItem("anti-csrf-localstorage");
+    }
+    static setItem(associatedIdRefreshToken, antiCsrf) {
+        if (associatedIdRefreshToken === undefined) {
+            AntiCsrfToken.tokenInfo = undefined;
+            return undefined;
+        }
+        window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
+        AntiCsrfToken.tokenInfo = {
+            antiCsrf, associatedIdRefreshToken
+        };
+    }
+}
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
@@ -45,46 +83,65 @@ AuthHttpRequest.UNAUTHORISED_STATUS_CODE = 440;
  * attempts to call the refresh token API and if that is successful, calls this API again.
  * @throws Error
  */
-AuthHttpRequest.doRequest = (httpCall) => __awaiter(this, void 0, void 0, function* () {
-    let throwError = false;
-    let returnObj = undefined;
-    while (true) {
-        // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
-        // to avoid race conditions
-        const preRequestIdToken = getIDFromCookie();
-        try {
-            let response = yield httpCall();
-            if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
-                if (!retry) {
-                    returnObj = response;
-                    break;
+AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        let throwError = false;
+        let returnObj = undefined;
+        while (true) {
+            // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
+            // to avoid race conditions
+            const preRequestIdToken = getIDFromCookie();
+            const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+            let configWithAntiCsrf = config;
+            if (antiCsrfToken !== undefined) {
+                configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, { headers: configWithAntiCsrf === undefined ? {
+                        "anti-csrf": antiCsrfToken
+                    } : Object.assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken }) });
+            }
+            try {
+                let response = yield httpCall(configWithAntiCsrf);
+                if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                    let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (!retry) {
+                        returnObj = response;
+                        break;
+                    }
+                }
+                else {
+                    response.headers.forEach((value, key) => {
+                        if (key.toString() === "anti-csrf") {
+                            AntiCsrfToken.setItem(getIDFromCookie(), value);
+                        }
+                    });
+                    return response;
                 }
             }
-            else {
-                return response;
-            }
-        }
-        catch (err) {
-            if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
-                if (!retry) {
-                    throwError = true;
-                    returnObj = err;
-                    break;
+            catch (err) {
+                if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                    let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (!retry) {
+                        throwError = true;
+                        returnObj = err;
+                        break;
+                    }
+                }
+                else {
+                    throw err;
                 }
             }
-            else {
-                throw err;
-            }
+        }
+        // if it comes here, means we breaked. which happens only if we have logged out.
+        if (throwError) {
+            throw returnObj;
+        }
+        else {
+            return returnObj;
         }
     }
-    // if it comes here, means we breaked. which happens only if we have logged out.
-    if (throwError) {
-        throw returnObj;
-    }
-    else {
-        return returnObj;
+    finally {
+        if (getIDFromCookie() === undefined) {
+            AntiCsrfToken.removeToken();
+        }
     }
 });
 /**
@@ -97,22 +154,22 @@ AuthHttpRequest.attemptRefreshingSession = () => __awaiter(this, void 0, void 0,
     return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
 });
 AuthHttpRequest.get = (url, config) => __awaiter(this, void 0, void 0, function* () {
-    return yield AuthHttpRequest.doRequest(() => {
+    return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "GET" }, config));
     });
 });
 AuthHttpRequest.post = (url, config) => __awaiter(this, void 0, void 0, function* () {
-    return yield AuthHttpRequest.doRequest(() => {
+    return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "POST" }, config));
     });
 });
 AuthHttpRequest.delete = (url, config) => __awaiter(this, void 0, void 0, function* () {
-    return yield AuthHttpRequest.doRequest(() => {
+    return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "DELETE" }, config));
     });
 });
 AuthHttpRequest.put = (url, config) => __awaiter(this, void 0, void 0, function* () {
-    return yield AuthHttpRequest.doRequest(() => {
+    return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "PUT" }, config));
     });
 });

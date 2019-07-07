@@ -1,5 +1,50 @@
 import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
 
+class AntiCsrfToken {
+
+    private static tokenInfo: undefined | {
+        antiCsrf: string, associatedIdRefreshToken: string
+    };
+
+    private constructor() { }
+
+    static getToken(associatedIdRefreshToken: string | undefined): string | undefined {
+        if (associatedIdRefreshToken === undefined) {
+            AntiCsrfToken.tokenInfo = undefined;
+            return undefined;
+        }
+        if (AntiCsrfToken.tokenInfo === undefined) {
+            let antiCsrf = window.localStorage.getItem("anti-csrf-localstorage");
+            if (antiCsrf === null) {
+                return undefined;
+            }
+            AntiCsrfToken.tokenInfo = {
+                antiCsrf, associatedIdRefreshToken
+            };
+        } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
+            // csrf token has changed.
+            AntiCsrfToken.tokenInfo = undefined;
+            return AntiCsrfToken.getToken(associatedIdRefreshToken);
+        }
+        return AntiCsrfToken.tokenInfo.antiCsrf;
+    }
+
+    static removeToken() {
+        AntiCsrfToken.tokenInfo = undefined;
+        window.localStorage.removeItem("anti-csrf-localstorage");
+    }
+
+    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
+        if (associatedIdRefreshToken === undefined) {
+            AntiCsrfToken.tokenInfo = undefined;
+            return undefined;
+        }
+        window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
+        AntiCsrfToken.tokenInfo = {
+            antiCsrf, associatedIdRefreshToken
+        };
+    }
+}
 
 /**
  * @description returns true if retry, else false is session has expired completely.
@@ -40,42 +85,66 @@ export default class AuthHttpRequest {
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    static doRequest = async (httpCall: () => Promise<Response>): Promise<Response> => {
-        let throwError = false;
-        let returnObj = undefined;
-        while (true) {
-            // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
-            // to avoid race conditions
-            const preRequestIdToken = getIDFromCookie();
-            try {
-                let response = await httpCall();
-                if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                    let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
-                    if (!retry) {
-                        returnObj = response;
-                        break;
-                    }
-                } else {
-                    return response;
+    static doRequest = async (httpCall: (config?: RequestInit) => Promise<Response>, config?: RequestInit): Promise<Response> => {
+        try {
+            let throwError = false;
+            let returnObj = undefined;
+            while (true) {
+                // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
+                // to avoid race conditions
+                const preRequestIdToken = getIDFromCookie();
+                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                let configWithAntiCsrf: RequestInit | undefined = config;
+                if (antiCsrfToken !== undefined) {
+                    configWithAntiCsrf = {
+                        ...configWithAntiCsrf,
+                        headers: configWithAntiCsrf === undefined ? {
+                            "anti-csrf": antiCsrfToken
+                        } : {
+                                ...configWithAntiCsrf.headers,
+                                "anti-csrf": antiCsrfToken
+                            }
+                    };
                 }
-            } catch (err) {
-                if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                    let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
-                    if (!retry) {
-                        throwError = true;
-                        returnObj = err;
-                        break;
+                try {
+                    let response = await httpCall(configWithAntiCsrf);
+                    if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                        let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                        if (!retry) {
+                            returnObj = response;
+                            break;
+                        }
+                    } else {
+                        response.headers.forEach((value, key) => {
+                            if (key.toString() === "anti-csrf") {
+                                AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            }
+                        });
+                        return response;
                     }
-                } else {
-                    throw err;
+                } catch (err) {
+                    if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
+                        let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                        if (!retry) {
+                            throwError = true;
+                            returnObj = err;
+                            break;
+                        }
+                    } else {
+                        throw err;
+                    }
                 }
             }
-        }
-        // if it comes here, means we breaked. which happens only if we have logged out.
-        if (throwError) {
-            throw returnObj;
-        } else {
-            return returnObj;
+            // if it comes here, means we breaked. which happens only if we have logged out.
+            if (throwError) {
+                throw returnObj;
+            } else {
+                return returnObj;
+            }
+        } finally {
+            if (getIDFromCookie() === undefined) {
+                AntiCsrfToken.removeToken();
+            }
         }
     }
 
@@ -90,7 +159,7 @@ export default class AuthHttpRequest {
     }
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(() => {
+        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
             return fetch(url, {
                 method: "GET",
                 ...config
@@ -99,7 +168,7 @@ export default class AuthHttpRequest {
     }
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(() => {
+        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
             return fetch(url, {
                 method: "POST",
                 ...config
@@ -108,7 +177,7 @@ export default class AuthHttpRequest {
     }
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(() => {
+        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
             return fetch(url, {
                 method: "DELETE",
                 ...config
@@ -117,7 +186,7 @@ export default class AuthHttpRequest {
     }
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(() => {
+        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
             return fetch(url, {
                 method: "PUT",
                 ...config
