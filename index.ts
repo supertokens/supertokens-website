@@ -154,8 +154,14 @@ export default class AuthHttpRequest {
      * @throws error if anything goes wrong
      */
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        const preRequestIdToken = getIDFromCookie();
-        return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+        try {
+            const preRequestIdToken = getIDFromCookie();
+            return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+        } finally {
+            if (getIDFromCookie() === undefined) {
+                AntiCsrfToken.removeToken();
+            }
+        }
     }
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
@@ -164,7 +170,7 @@ export default class AuthHttpRequest {
                 method: "GET",
                 ...config
             });
-        });
+        }, config);
     }
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
@@ -173,7 +179,7 @@ export default class AuthHttpRequest {
                 method: "POST",
                 ...config
             });
-        });
+        }, config);
     }
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
@@ -182,7 +188,7 @@ export default class AuthHttpRequest {
                 method: "DELETE",
                 ...config
             });
-        });
+        }, config);
     }
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
@@ -191,6 +197,6 @@ export default class AuthHttpRequest {
                 method: "PUT",
                 ...config
             });
-        });
+        }, config);
     }
 }

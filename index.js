@@ -150,26 +150,33 @@ AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0
  * @throws error if anything goes wrong
  */
 AuthHttpRequest.attemptRefreshingSession = () => __awaiter(this, void 0, void 0, function* () {
-    const preRequestIdToken = getIDFromCookie();
-    return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+    try {
+        const preRequestIdToken = getIDFromCookie();
+        return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+    }
+    finally {
+        if (getIDFromCookie() === undefined) {
+            AntiCsrfToken.removeToken();
+        }
+    }
 });
 AuthHttpRequest.get = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "GET" }, config));
-    });
+    }, config);
 });
 AuthHttpRequest.post = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "POST" }, config));
-    });
+    }, config);
 });
 AuthHttpRequest.delete = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "DELETE" }, config));
-    });
+    }, config);
 });
 AuthHttpRequest.put = (url, config) => __awaiter(this, void 0, void 0, function* () {
     return yield AuthHttpRequest.doRequest((config) => {
         return fetch(url, Object.assign({ method: "PUT" }, config));
-    });
+    }, config);
 });
