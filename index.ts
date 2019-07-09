@@ -75,9 +75,11 @@ export default class AuthHttpRequest {
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode: number) {
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
-        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        if (sessionExpiredStatusCode !== undefined) {
+            AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        }
         AuthHttpRequest.initCalled = true;
     }
 

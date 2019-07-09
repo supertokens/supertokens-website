@@ -76,7 +76,9 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
 class AuthHttpRequest {
     static init(refreshTokenUrl, sessionExpiredStatusCode) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
-        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        if (sessionExpiredStatusCode !== undefined) {
+            AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        }
         AuthHttpRequest.initCalled = true;
     }
 }

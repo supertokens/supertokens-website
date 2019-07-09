@@ -19,7 +19,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
         let lock = new browser_tabs_lock_1.default();
         while (true) {
-            if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) { // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
+            if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
                 try {
                     let postLockID = getIDFromCookie();
                     if (postLockID === undefined) {
@@ -35,7 +35,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     if (response.status !== 200) {
                         throw response;
                     }
-                    if (getIDFromCookie() === undefined) { // removed by server. So we logout
+                    if (getIDFromCookie() === undefined) {
                         return { result: "SESSION_EXPIRED" };
                     }
                     response.headers.forEach((value, key) => {
@@ -46,7 +46,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     return { result: "RETRY" };
                 }
                 catch (error) {
-                    if (getIDFromCookie() === undefined) { // removed by server.
+                    if (getIDFromCookie() === undefined) {
                         return { result: "SESSION_EXPIRED" };
                     }
                     return { result: "API_ERROR", error };
@@ -56,7 +56,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                 }
             }
             let idCookieValie = getIDFromCookie();
-            if (idCookieValie === undefined) { // removed by server. So we logout
+            if (idCookieValie === undefined) {
                 return { result: "SESSION_EXPIRED" };
             }
             else {
