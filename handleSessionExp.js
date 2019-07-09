@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,17 +6,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const browser_tabs_lock_1 = require("browser-tabs-lock");
-const _1 = require("./");
+import Lock from 'browser-tabs-lock';
+import { AntiCsrfToken } from './';
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
+export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
-        let lock = new browser_tabs_lock_1.default();
+        let lock = new Lock();
         while (true) {
             if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
                 try {
@@ -40,7 +38,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     }
                     response.headers.forEach((value, key) => {
                         if (key.toString() === "anti-csrf") {
-                            _1.AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            AntiCsrfToken.setItem(getIDFromCookie(), value);
                         }
                     });
                     return { result: "RETRY" };
@@ -68,8 +66,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
         }
     });
 }
-exports.onUnauthorisedResponse = onUnauthorisedResponse;
-function getIDFromCookie() {
+export function getIDFromCookie() {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
     if (parts.length === 2) {
@@ -80,4 +77,3 @@ function getIDFromCookie() {
     }
     return undefined;
 }
-exports.getIDFromCookie = getIDFromCookie;
