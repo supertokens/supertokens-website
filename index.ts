@@ -71,12 +71,14 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
  */
 export default class AuthHttpRequest {
 
-    private static REFRESH_TOKEN_URL: string | undefined;
-    private static UNAUTHORISED_STATUS_CODE = 440;
+    private static refreshTokenUrl: string | undefined;
+    private static sessionExpiredStatusCode = 440;
+    private static initCalled = false;
 
-    static init(REFRESH_TOKEN_URL: string, UNAUTHORISED_STATUS_CODE: number) {
-        AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
-        AuthHttpRequest.UNAUTHORISED_STATUS_CODE = UNAUTHORISED_STATUS_CODE;
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode: number) {
+        AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
+        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        AuthHttpRequest.initCalled = true;
     }
 
     /**
@@ -86,6 +88,9 @@ export default class AuthHttpRequest {
      * @throws Error
      */
     static doRequest = async (httpCall: (config?: RequestInit) => Promise<Response>, config?: RequestInit): Promise<Response> => {
+        if (!AuthHttpRequest.initCalled) {
+            throw Error("init function not called");
+        }
         try {
             let throwError = false;
             let returnObj = undefined;
@@ -108,8 +113,8 @@ export default class AuthHttpRequest {
                 }
                 try {
                     let response = await httpCall(configWithAntiCsrf);
-                    if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                        let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                        let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -123,8 +128,8 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                        let retry = await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                    if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                        let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
@@ -154,9 +159,12 @@ export default class AuthHttpRequest {
      * @throws error if anything goes wrong
      */
     static attemptRefreshingSession = async (): Promise<boolean> => {
+        if (!AuthHttpRequest.initCalled) {
+            throw Error("init function not called");
+        }
         try {
             const preRequestIdToken = getIDFromCookie();
-            return await handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+            return await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();

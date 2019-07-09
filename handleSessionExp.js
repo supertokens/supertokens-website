@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -6,18 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import Lock from 'browser-tabs-lock';
-import { AntiCsrfToken } from './';
+Object.defineProperty(exports, "__esModule", { value: true });
+const browser_tabs_lock_1 = require("browser-tabs-lock");
+const _1 = require("./");
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
+function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function* () {
-        let lock = new Lock();
+        let lock = new browser_tabs_lock_1.default();
         while (true) {
-            if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
+            if (yield lock.acquireLock("REFRESH_TOKEN_USE", 1000)) { // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
                 try {
                     let postLockID = getIDFromCookie();
                     if (postLockID === undefined) {
@@ -27,24 +29,24 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                         // means that some other process has already called this API and succeeded. so we need to call it again
                         return { result: "RETRY" };
                     }
-                    let response = yield fetch(REFRESH_TOKEN_URL, {
+                    let response = yield fetch(refreshTokenUrl, {
                         method: "post"
                     });
                     if (response.status !== 200) {
                         throw response;
                     }
-                    if (getIDFromCookie() === undefined) {
+                    if (getIDFromCookie() === undefined) { // removed by server. So we logout
                         return { result: "SESSION_EXPIRED" };
                     }
                     response.headers.forEach((value, key) => {
                         if (key.toString() === "anti-csrf") {
-                            AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            _1.AntiCsrfToken.setItem(getIDFromCookie(), value);
                         }
                     });
-                    return { result: "SESSION_REFRESHED", apiResponse: response };
+                    return { result: "RETRY" };
                 }
                 catch (error) {
-                    if (getIDFromCookie() === undefined) {
+                    if (getIDFromCookie() === undefined) { // removed by server.
                         return { result: "SESSION_EXPIRED" };
                     }
                     return { result: "API_ERROR", error };
@@ -54,7 +56,7 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
                 }
             }
             let idCookieValie = getIDFromCookie();
-            if (idCookieValie === undefined) {
+            if (idCookieValie === undefined) { // removed by server. So we logout
                 return { result: "SESSION_EXPIRED" };
             }
             else {
@@ -66,7 +68,8 @@ export function onUnauthorisedResponse(REFRESH_TOKEN_URL, preRequestIdToken) {
         }
     });
 }
-export function getIDFromCookie() {
+exports.onUnauthorisedResponse = onUnauthorisedResponse;
+function getIDFromCookie() {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
     if (parts.length === 2) {
@@ -77,3 +80,4 @@ export function getIDFromCookie() {
     }
     return undefined;
 }
+exports.getIDFromCookie = getIDFromCookie;

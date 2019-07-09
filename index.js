@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -6,8 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
-export class AntiCsrfToken {
+Object.defineProperty(exports, "__esModule", { value: true });
+const handleSessionExp_1 = require("./handleSessionExp");
+class AntiCsrfToken {
     constructor() { }
     static getToken(associatedIdRefreshToken) {
         if (associatedIdRefreshToken === undefined) {
@@ -45,6 +47,7 @@ export class AntiCsrfToken {
         };
     }
 }
+exports.AntiCsrfToken = AntiCsrfToken;
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
@@ -54,9 +57,9 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
             throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
         }
         if (preRequestIdToken === undefined) {
-            return getIDFromCookie() !== undefined;
+            return handleSessionExp_1.getIDFromCookie() !== undefined;
         }
-        let result = yield onUnauthorisedResponse(refreshAPI, preRequestIdToken);
+        let result = yield handleSessionExp_1.onUnauthorisedResponse(refreshAPI, preRequestIdToken);
         if (result.result === "SESSION_EXPIRED") {
             return false;
         }
@@ -70,13 +73,15 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
-export default class AuthHttpRequest {
-    static init(REFRESH_TOKEN_URL, UNAUTHORISED_STATUS_CODE) {
-        AuthHttpRequest.REFRESH_TOKEN_URL = REFRESH_TOKEN_URL;
-        AuthHttpRequest.UNAUTHORISED_STATUS_CODE = UNAUTHORISED_STATUS_CODE;
+class AuthHttpRequest {
+    static init(refreshTokenUrl, sessionExpiredStatusCode) {
+        AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
+        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        AuthHttpRequest.initCalled = true;
     }
 }
-AuthHttpRequest.UNAUTHORISED_STATUS_CODE = 440;
+AuthHttpRequest.sessionExpiredStatusCode = 440;
+AuthHttpRequest.initCalled = false;
 /**
  * @description sends the actual http request and returns a response if successful/
  * If not successful due to session expiry reasons, it
@@ -84,13 +89,16 @@ AuthHttpRequest.UNAUTHORISED_STATUS_CODE = 440;
  * @throws Error
  */
 AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0, function* () {
+    if (!AuthHttpRequest.initCalled) {
+        throw Error("init function not called");
+    }
     try {
         let throwError = false;
         let returnObj = undefined;
         while (true) {
             // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
             // to avoid race conditions
-            const preRequestIdToken = getIDFromCookie();
+            const preRequestIdToken = handleSessionExp_1.getIDFromCookie();
             const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
             let configWithAntiCsrf = config;
             if (antiCsrfToken !== undefined) {
@@ -100,8 +108,8 @@ AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0
             }
             try {
                 let response = yield httpCall(configWithAntiCsrf);
-                if (response.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                    let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    let retry = yield handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                     if (!retry) {
                         returnObj = response;
                         break;
@@ -110,15 +118,15 @@ AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0
                 else {
                     response.headers.forEach((value, key) => {
                         if (key.toString() === "anti-csrf") {
-                            AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            AntiCsrfToken.setItem(handleSessionExp_1.getIDFromCookie(), value);
                         }
                     });
                     return response;
                 }
             }
             catch (err) {
-                if (err.status === AuthHttpRequest.UNAUTHORISED_STATUS_CODE) {
-                    let retry = yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+                if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    let retry = yield handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                     if (!retry) {
                         throwError = true;
                         returnObj = err;
@@ -139,7 +147,7 @@ AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0
         }
     }
     finally {
-        if (getIDFromCookie() === undefined) {
+        if (handleSessionExp_1.getIDFromCookie() === undefined) {
             AntiCsrfToken.removeToken();
         }
     }
@@ -150,12 +158,15 @@ AuthHttpRequest.doRequest = (httpCall, config) => __awaiter(this, void 0, void 0
  * @throws error if anything goes wrong
  */
 AuthHttpRequest.attemptRefreshingSession = () => __awaiter(this, void 0, void 0, function* () {
+    if (!AuthHttpRequest.initCalled) {
+        throw Error("init function not called");
+    }
     try {
-        const preRequestIdToken = getIDFromCookie();
-        return yield handleUnauthorised(AuthHttpRequest.REFRESH_TOKEN_URL, preRequestIdToken);
+        const preRequestIdToken = handleSessionExp_1.getIDFromCookie();
+        return yield handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
     }
     finally {
-        if (getIDFromCookie() === undefined) {
+        if (handleSessionExp_1.getIDFromCookie() === undefined) {
             AntiCsrfToken.removeToken();
         }
     }
@@ -180,3 +191,4 @@ AuthHttpRequest.put = (url, config) => __awaiter(this, void 0, void 0, function*
         return fetch(url, Object.assign({ method: "PUT" }, config));
     }, config);
 });
+exports.default = AuthHttpRequest;

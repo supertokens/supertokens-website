@@ -5,8 +5,7 @@
         "allowSyntheticDefaultImports": true,
         "strictNullChecks": true,
         "noImplicitThis": true,
-        "jsx": "react",
-        "module": "ES6",
+        "module": "commonjs",
         "moduleResolution": "node"
     },
     "compileOnSave": true

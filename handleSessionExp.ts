@@ -8,9 +8,8 @@ const ID_COOKIE_NAME = "sIdRefreshToken"
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preRequestIdToken: string):
+export async function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string):
     Promise<{ result: "SESSION_EXPIRED" } |
-    { result: "SESSION_REFRESHED", apiResponse: any } |
     { result: "API_ERROR", error: any } |
     { result: "RETRY" }> {
     let lock = new Lock();
@@ -25,7 +24,7 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let response = await fetch(REFRESH_TOKEN_URL, {
+                let response = await fetch(refreshTokenUrl, {
                     method: "post"
                 });
                 if (response.status !== 200) {
@@ -39,7 +38,7 @@ export async function onUnauthorisedResponse(REFRESH_TOKEN_URL: string, preReque
                         AntiCsrfToken.setItem(getIDFromCookie(), value);
                     }
                 });
-                return { result: "SESSION_REFRESHED", apiResponse: response };
+                return { result: "RETRY" };
             } catch (error) {
                 if (getIDFromCookie() === undefined) {  // removed by server.
                     return { result: "SESSION_EXPIRED" };

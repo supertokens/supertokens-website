@@ -6,9 +6,19 @@
   "dependencies": {
     "browser-tabs-lock": "^1.1.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "cookie-parser": "^1.4.4",
+    "express": "4.17.1",
+    "isomorphic-fetch": "^2.2.1",
+    "mocha": "6.1.4",
+    "mocha-jsdom": "2.0.0",
+    "supertest": "4.0.2",
+    "supertokens-node-mysql-ref-jwt": "git+https://github.com/supertokens/supertokens-node-mysql-ref-jwt.git#dev",
+    "typescript": "3.5.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "TEST_MODE=testing npx mocha",
+    "build": "npx tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",

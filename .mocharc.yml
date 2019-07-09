@@ -1,0 +1,7 @@
+exit: true
+spec: test/**/*.test.js
+reporter: spec
+slow: 10000
+timeout: 20000
+require:
+  - isomorphic-fetch
