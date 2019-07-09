@@ -7,6 +7,15 @@ jobs:
       - checkout
       - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run: npm publish
+  test:
+    docker:
+      - image: rishabhpoddar/node-mysql-git
+    steps:
+      - run: (cd / && ./runMySQL.sh)
+      - run: mysql -u root --password=root -e "CREATE DATABASE auth_session;"
+      - checkout
+      - run: npm install -d
+      - run: npm test
 
 workflows:
   version: 2
@@ -18,3 +27,10 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*/
             branches:
               ignore: /.*/
+      - test:
+          filters:
+            branches:
+              only: 
+                - testing
+                - dev
+                - master

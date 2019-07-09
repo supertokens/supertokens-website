@@ -1,12 +1,14 @@
-import { getIDFromCookie, onUnauthorisedResponse } from './handleSessionExp';
+import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
 
 export class AntiCsrfToken {
+    private static tokenInfo:
+        | undefined
+        | {
+              antiCsrf: string;
+              associatedIdRefreshToken: string;
+          };
 
-    private static tokenInfo: undefined | {
-        antiCsrf: string, associatedIdRefreshToken: string
-    };
-
-    private constructor() { }
+    private constructor() {}
 
     static getToken(associatedIdRefreshToken: string | undefined): string | undefined {
         if (associatedIdRefreshToken === undefined) {
@@ -19,7 +21,8 @@ export class AntiCsrfToken {
                 return undefined;
             }
             AntiCsrfToken.tokenInfo = {
-                antiCsrf, associatedIdRefreshToken
+                antiCsrf,
+                associatedIdRefreshToken
             };
         } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
             // csrf token has changed.
@@ -41,7 +44,8 @@ export class AntiCsrfToken {
         }
         window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
         AntiCsrfToken.tokenInfo = {
-            antiCsrf, associatedIdRefreshToken
+            antiCsrf,
+            associatedIdRefreshToken
         };
     }
 }
@@ -49,7 +53,10 @@ export class AntiCsrfToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean> {
+async function handleUnauthorised(
+    refreshAPI: string | undefined,
+    preRequestIdToken: string | undefined
+): Promise<boolean> {
     if (refreshAPI === undefined) {
         throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
     }
@@ -70,7 +77,6 @@ async function handleUnauthorised(refreshAPI: string | undefined, preRequestIdTo
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-
     private static refreshTokenUrl: string | undefined;
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
@@ -85,11 +91,14 @@ export default class AuthHttpRequest {
 
     /**
      * @description sends the actual http request and returns a response if successful/
-     * If not successful due to session expiry reasons, it 
+     * If not successful due to session expiry reasons, it
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    static doRequest = async (httpCall: (config?: RequestInit) => Promise<Response>, config?: RequestInit): Promise<Response> => {
+    static doRequest = async (
+        httpCall: (config?: RequestInit) => Promise<Response>,
+        config?: RequestInit
+    ): Promise<Response> => {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
         }
@@ -105,12 +114,15 @@ export default class AuthHttpRequest {
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
-                        headers: configWithAntiCsrf === undefined ? {
-                            "anti-csrf": antiCsrfToken
-                        } : {
-                                ...configWithAntiCsrf.headers,
-                                "anti-csrf": antiCsrfToken
-                            }
+                        headers:
+                            configWithAntiCsrf === undefined
+                                ? {
+                                      "anti-csrf": antiCsrfToken
+                                  }
+                                : {
+                                      ...configWithAntiCsrf.headers,
+                                      "anti-csrf": antiCsrfToken
+                                  }
                     };
                 }
                 try {
@@ -153,7 +165,7 @@ export default class AuthHttpRequest {
                 AntiCsrfToken.removeToken();
             }
         }
-    }
+    };
 
     /**
      * @description attempts to refresh session regardless of expiry
@@ -172,7 +184,7 @@ export default class AuthHttpRequest {
                 AntiCsrfToken.removeToken();
             }
         }
-    }
+    };
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
@@ -181,7 +193,7 @@ export default class AuthHttpRequest {
                 ...config
             });
         }, config);
-    }
+    };
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
@@ -190,7 +202,7 @@ export default class AuthHttpRequest {
                 ...config
             });
         }, config);
-    }
+    };
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
@@ -199,7 +211,7 @@ export default class AuthHttpRequest {
                 ...config
             });
         }, config);
-    }
+    };
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
@@ -208,5 +220,5 @@ export default class AuthHttpRequest {
                 ...config
             });
         }, config);
-    }
+    };
 }

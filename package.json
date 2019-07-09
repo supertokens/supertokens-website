@@ -7,18 +7,28 @@
     "browser-tabs-lock": "^1.1.4"
   },
   "devDependencies": {
-    "cookie-parser": "^1.4.4",
+    "@babel/core": "7.5.0",
+    "@babel/plugin-transform-runtime": "7.5.0",
+    "@babel/preset-env": "7.5.2",
+    "@babel/register": "7.4.4",
+    "@babel/runtime": "7.5.2",
+    "cookie-parser": "1.4.4",
     "express": "4.17.1",
-    "isomorphic-fetch": "^2.2.1",
+    "isomorphic-fetch": "2.2.1",
     "mocha": "6.1.4",
     "mocha-jsdom": "2.0.0",
-    "supertest": "4.0.2",
-    "supertokens-node-mysql-ref-jwt": "git+https://github.com/supertokens/supertokens-node-mysql-ref-jwt.git#dev",
+    "prettier": "1.18.2",
+    "supertokens-node-mysql-ref-jwt": "^4.0.0",
     "typescript": "3.5.2"
   },
   "scripts": {
     "test": "TEST_MODE=testing npx mocha",
-    "build": "npx tsc -p tsconfig.json"
+    "build": "npx tsc -p tsconfig.json",
+    "build-check": "npx tsc -p tsconfig.json --noEmit",
+    "pretty": "npx prettier --write --config .prettierrc \"*.ts\" \"*.js\" \"test/**/*.js\"",
+    "pretty-check": "npx prettier --check --config .prettierrc \"*.ts\" \"*.js\" \"test/**/*.js\"",
+    "build-pretty": "npm run build && npm run pretty",
+    "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "repository": {
     "type": "git",

@@ -1,20 +1,21 @@
-import Lock from 'browser-tabs-lock';
+import Lock from "browser-tabs-lock";
 
-import { AntiCsrfToken } from './';
+import { AntiCsrfToken } from "./";
 
-const ID_COOKIE_NAME = "sIdRefreshToken"
+const ID_COOKIE_NAME = "sIdRefreshToken";
 
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export async function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string):
-    Promise<{ result: "SESSION_EXPIRED" } |
-    { result: "API_ERROR", error: any } |
-    { result: "RETRY" }> {
+export async function onUnauthorisedResponse(
+    refreshTokenUrl: string,
+    preRequestIdToken: string
+): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
-        if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) { // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
+        if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
+            // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
             try {
                 let postLockID = getIDFromCookie();
                 if (postLockID === undefined) {
@@ -30,7 +31,8 @@ export async function onUnauthorisedResponse(refreshTokenUrl: string, preRequest
                 if (response.status !== 200) {
                     throw response;
                 }
-                if (getIDFromCookie() === undefined) {  // removed by server. So we logout
+                if (getIDFromCookie() === undefined) {
+                    // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }
                 response.headers.forEach((value, key) => {
@@ -40,7 +42,8 @@ export async function onUnauthorisedResponse(refreshTokenUrl: string, preRequest
                 });
                 return { result: "RETRY" };
             } catch (error) {
-                if (getIDFromCookie() === undefined) {  // removed by server.
+                if (getIDFromCookie() === undefined) {
+                    // removed by server.
                     return { result: "SESSION_EXPIRED" };
                 }
                 return { result: "API_ERROR", error };
@@ -49,7 +52,8 @@ export async function onUnauthorisedResponse(refreshTokenUrl: string, preRequest
             }
         }
         let idCookieValie = getIDFromCookie();
-        if (idCookieValie === undefined) {  // removed by server. So we logout
+        if (idCookieValie === undefined) {
+            // removed by server. So we logout
             return { result: "SESSION_EXPIRED" };
         } else {
             if (idCookieValie !== preRequestIdToken) {
