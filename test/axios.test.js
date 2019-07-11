@@ -1,3 +1,5 @@
+import axios from "axios";
+
 let jsdom = require("mocha-jsdom");
 let { AntiCsrfToken } = require("../index.js");
 let { default: AuthHttpRequest } = require("../axios.js");
@@ -5,7 +7,6 @@ let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
 let { delay } = require("./utils");
-
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
         url: "http://localhost"
@@ -84,21 +85,21 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
 
             let testing = "testing";
             let getResponse = await AuthHttpRequest.get(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let postResponse = await AuthHttpRequest.post(`${BASE_URL}/${testing}`, undefined, {
+            let postResponse = await axios.post(`${BASE_URL}/${testing}`, undefined, {
                 headers: { testing }
             });
             let deleteResponse = await AuthHttpRequest.delete(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let putResponse = await AuthHttpRequest.put(`${BASE_URL}/${testing}`, undefined, { headers: { testing } });
+            let putResponse = await axios.put(`${BASE_URL}/${testing}`, undefined, { headers: { testing } });
             let doRequestResponse1 = await AuthHttpRequest.axios({
                 url: `${BASE_URL}/${testing}`,
                 method: "GET",
                 headers: { testing }
             });
-            let doRequestResponse2 = await AuthHttpRequest.axios({
+            let doRequestResponse2 = await axios({
                 url: `${BASE_URL}/${testing}`,
                 method: "GET",
                 headers: { testing }
@@ -138,7 +139,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
             let expectedStatusCode = 404;
             try {
                 await AuthHttpRequest.get(`${BASE_URL}/fail`);
@@ -211,7 +212,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+            let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
@@ -240,7 +241,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await delay(3);
 
             assert.strictEqual(refreshCalled, false);
-            let getResponse = await AuthHttpRequest.axios({ url: `${BASE_URL}/`, method: "GET" });
+            let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
             assert.strictEqual(refreshCalled, true);
             getResponse = await getResponse.data;
             assert.strictEqual(getResponse, "success");
@@ -298,9 +299,9 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew(10);
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+            let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
@@ -334,7 +335,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             let N = 100;
             assert.strictEqual(refreshCalled, false);
             for (let i = 0; i < N; i++) {
-                promises.push(AuthHttpRequest.get(`${BASE_URL}/`));
+                promises.push(axios.get(`${BASE_URL}/`));
             }
             let responses = [];
             let result = [];

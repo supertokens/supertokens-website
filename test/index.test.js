@@ -84,14 +84,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
 
             let testing = "testing";
             let getResponse = await AuthHttpRequest.get(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let postResponse = await AuthHttpRequest.post(`${BASE_URL}/${testing}`, { headers: { testing } });
+            let postResponse = await fetch(`${BASE_URL}/${testing}`, { method: "post", headers: { testing } });
             let deleteResponse = await AuthHttpRequest.delete(`${BASE_URL}/${testing}`, { headers: { testing } });
             let putResponse = await AuthHttpRequest.put(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let doRequestResponse1 = await AuthHttpRequest.fetch(`${BASE_URL}/${testing}`, {
+            let doRequestResponse1 = await fetch(`${BASE_URL}/${testing}`, {
                 method: "GET",
                 headers: { testing }
             });
@@ -257,9 +257,10 @@ describe("Fetch AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew(10);
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, {
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
@@ -294,7 +295,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             let N = 100;
             assert.strictEqual(refreshCalled, false);
             for (let i = 0; i < N; i++) {
-                promises.push(AuthHttpRequest.get(`${BASE_URL}/`));
+                promises.push(fetch(`${BASE_URL}/`));
             }
             let responses = [];
             let result = [];

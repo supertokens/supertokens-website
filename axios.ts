@@ -3,15 +3,94 @@ import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie } from "./handleSessionExp";
 
+function createInterceptor() {
+    // Add a request interceptor
+    axios.interceptors.request.use(
+        async function(config) {
+            let url = config.url;
+            if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+                // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+                return config;
+            }
+            const preRequestIdToken = getIDFromCookie();
+            const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+            let configWithAntiCsrf: AxiosRequestConfig = config;
+            if (antiCsrfToken !== undefined) {
+                configWithAntiCsrf = {
+                    ...configWithAntiCsrf,
+                    headers:
+                        configWithAntiCsrf === undefined
+                            ? {
+                                  "anti-csrf": antiCsrfToken
+                              }
+                            : {
+                                  ...configWithAntiCsrf.headers,
+                                  "anti-csrf": antiCsrfToken
+                              }
+                };
+            }
+            return configWithAntiCsrf;
+        },
+        async function(error) {
+            return Promise.reject(error);
+        }
+    );
+
+    // Add a response interceptor
+    axios.interceptors.response.use(
+        async function(response) {
+            if (!AuthHttpRequest.initCalled) {
+                Promise.reject(new Error("init function not called"));
+            }
+            if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                let config = response.config;
+                return AuthHttpRequest.doRequest(
+                    (config: AxiosRequestConfig) => {
+                        // we create an instance since we don't want to intercept this.
+                        const instance = axios.create();
+                        return instance(config);
+                    },
+                    config,
+                    config.url,
+                    response
+                );
+            } else {
+                return response;
+            }
+        },
+        async function(error) {
+            if (!AuthHttpRequest.initCalled) {
+                Promise.reject(new Error("init function not called"));
+            }
+            if (error.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                let config = error.config;
+                return AuthHttpRequest.doRequest(
+                    (config: AxiosRequestConfig) => {
+                        // we create an instance since we don't want to intercept this.
+                        const instance = axios.create();
+                        return instance(config);
+                    },
+                    config,
+                    config.url,
+                    undefined,
+                    error
+                );
+            } else {
+                return Promise.reject(error);
+            }
+        }
+    );
+}
+
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
     private static refreshTokenUrl: string | undefined;
-    private static sessionExpiredStatusCode = 440;
-    private static initCalled = false;
-    private static apiDomain = "";
+    static sessionExpiredStatusCode = 440;
+    static initCalled = false;
+    static apiDomain = "";
     private static viaInterceptor = false;
 
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
@@ -21,7 +100,7 @@ export default class AuthHttpRequest {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
         if (viaInterceptor) {
-            // TODO:
+            createInterceptor();
         }
         AuthHttpRequest.viaInterceptor = viaInterceptor;
         AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
@@ -34,10 +113,12 @@ export default class AuthHttpRequest {
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    private static doRequest = async (
+    static doRequest = async (
         httpCall: (config: AxiosRequestConfig) => AxiosPromise<any>,
         config: AxiosRequestConfig,
-        url?: any
+        url?: string,
+        prevResponse?: AxiosResponse,
+        prevError?: any
     ): Promise<AxiosResponse<any>> => {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
@@ -47,6 +128,11 @@ export default class AuthHttpRequest {
             getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
             AuthHttpRequest.viaInterceptor
         ) {
+            if (prevError !== undefined) {
+                throw prevError;
+            } else if (prevResponse !== undefined) {
+                return prevResponse;
+            }
             // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
             return await httpCall(config);
         }
@@ -74,7 +160,15 @@ export default class AuthHttpRequest {
                     };
                 }
                 try {
-                    let response = await httpCall(configWithAntiCsrf);
+                    let localPrevError = prevError;
+                    let localPrevResponse = prevResponse;
+                    prevError = undefined;
+                    prevResponse = undefined;
+                    if (localPrevError !== undefined) {
+                        throw localPrevError;
+                    }
+                    let response =
+                        localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
@@ -170,7 +264,9 @@ export default class AuthHttpRequest {
     static axios = async (config: AxiosRequestConfig) => {
         return await AuthHttpRequest.doRequest(
             (config: AxiosRequestConfig) => {
-                return axios(config);
+                // we create an instance since we don't want to intercept this.
+                const instance = axios.create();
+                return instance(config);
             },
             config,
             config.url
