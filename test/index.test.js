@@ -173,9 +173,10 @@ describe("AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, {
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "POST",
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
@@ -205,7 +206,7 @@ describe("AuthHttpRequest class tests", function() {
             await delay(3);
 
             assert.strictEqual(refreshCalled, false);
-            let getResponse = await AuthHttpRequest.get(`${BASE_URL}/`);
+            let getResponse = await fetch(`${BASE_URL}/`, { method: "GET" });
             assert.strictEqual(refreshCalled, true);
             getResponse = await getResponse.text();
             assert.strictEqual(getResponse, "success");

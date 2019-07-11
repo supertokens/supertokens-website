@@ -80,11 +80,22 @@ export default class AuthHttpRequest {
     private static refreshTokenUrl: string | undefined;
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
+    private static viaInterceptor = false;
+    private static env: any = global;
+    private static originalFetch = AuthHttpRequest.env.fetch;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number) {
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        }
+        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        if (viaInterceptor) {
+            AuthHttpRequest.env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
+                return AuthHttpRequest.fetch(url, config);
+            };
+        } else {
+            AuthHttpRequest.env.fetch = AuthHttpRequest.originalFetch;
         }
         AuthHttpRequest.initCalled = true;
     }
@@ -95,7 +106,7 @@ export default class AuthHttpRequest {
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    static doRequest = async (
+    private static doRequest = async (
         httpCall: (config?: RequestInit) => Promise<Response>,
         config?: RequestInit
     ): Promise<Response> => {
@@ -188,7 +199,7 @@ export default class AuthHttpRequest {
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return fetch(url, {
+            return AuthHttpRequest.originalFetch(url, {
                 method: "GET",
                 ...config
             });
@@ -197,7 +208,7 @@ export default class AuthHttpRequest {
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return fetch(url, {
+            return AuthHttpRequest.originalFetch(url, {
                 method: "POST",
                 ...config
             });
@@ -206,7 +217,7 @@ export default class AuthHttpRequest {
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return fetch(url, {
+            return AuthHttpRequest.originalFetch(url, {
                 method: "DELETE",
                 ...config
             });
@@ -215,8 +226,16 @@ export default class AuthHttpRequest {
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return fetch(url, {
+            return AuthHttpRequest.originalFetch(url, {
                 method: "PUT",
+                ...config
+            });
+        }, config);
+    };
+
+    static fetch = async (url: RequestInfo, config?: RequestInit) => {
+        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
+            return AuthHttpRequest.originalFetch(url, {
                 ...config
             });
         }, config);

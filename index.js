@@ -91,16 +91,27 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-    static init(refreshTokenUrl, sessionExpiredStatusCode) {
+    static init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor = false) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        }
+        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        if (viaInterceptor) {
+            AuthHttpRequest.env.fetch = (url, config) => {
+                return AuthHttpRequest.fetch(url, config);
+            };
+        } else {
+            AuthHttpRequest.env.fetch = AuthHttpRequest.originalFetch;
         }
         AuthHttpRequest.initCalled = true;
     }
 }
 AuthHttpRequest.sessionExpiredStatusCode = 440;
 AuthHttpRequest.initCalled = false;
+AuthHttpRequest.viaInterceptor = false;
+AuthHttpRequest.env = global;
+AuthHttpRequest.originalFetch = AuthHttpRequest.env.fetch;
 /**
  * @description sends the actual http request and returns a response if successful/
  * If not successful due to session expiry reasons, it
@@ -194,24 +205,30 @@ AuthHttpRequest.attemptRefreshingSession = () =>
 AuthHttpRequest.get = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.doRequest(config => {
-            return fetch(url, Object.assign({ method: "GET" }, config));
+            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "GET" }, config));
         }, config);
     });
 AuthHttpRequest.post = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.doRequest(config => {
-            return fetch(url, Object.assign({ method: "POST" }, config));
+            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "POST" }, config));
         }, config);
     });
 AuthHttpRequest.delete = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.doRequest(config => {
-            return fetch(url, Object.assign({ method: "DELETE" }, config));
+            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "DELETE" }, config));
         }, config);
     });
 AuthHttpRequest.put = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.doRequest(config => {
-            return fetch(url, Object.assign({ method: "PUT" }, config));
+            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "PUT" }, config));
+        }, config);
+    });
+AuthHttpRequest.fetch = (url, config) =>
+    __awaiter(this, void 0, void 0, function*() {
+        return yield AuthHttpRequest.doRequest(config => {
+            return AuthHttpRequest.originalFetch(url, Object.assign({}, config));
         }, config);
     });
