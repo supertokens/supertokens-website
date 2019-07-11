@@ -1,6 +1,7 @@
 import Lock from "browser-tabs-lock";
 
 import { AntiCsrfToken } from "./";
+import AuthHttpRequest from "./";
 
 const ID_COOKIE_NAME = "sIdRefreshToken";
 
@@ -25,7 +26,7 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let response = await fetch(refreshTokenUrl, {
+                let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
                     method: "post"
                 });
                 if (response.status !== 200) {
@@ -35,7 +36,7 @@ export async function onUnauthorisedResponse(
                     // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }
-                response.headers.forEach((value, key) => {
+                response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "anti-csrf") {
                         AntiCsrfToken.setItem(getIDFromCookie(), value);
                     }

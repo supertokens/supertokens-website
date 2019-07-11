@@ -72,6 +72,21 @@ async function handleUnauthorised(
     return true;
 }
 
+function getDomainFromUrl(url: string): string {
+    if (window.fetch === undefined) {
+        // we are testing
+        return "http://localhost:8888";
+    }
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+        return url
+            .split("/")
+            .filter((_, i) => i <= 2)
+            .join("/");
+    } else {
+        return window.origin;
+    }
+}
+
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -80,7 +95,9 @@ export default class AuthHttpRequest {
     private static refreshTokenUrl: string | undefined;
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
-    private static originalFetch: any;
+    static originalFetch: any;
+    private static apiDomain = "";
+    private static viaInterceptor = false;
 
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
@@ -89,13 +106,15 @@ export default class AuthHttpRequest {
         }
         let env: any = window.fetch === undefined ? global : window;
         if (AuthHttpRequest.originalFetch === undefined) {
-            AuthHttpRequest.originalFetch = env.fetch;
+            AuthHttpRequest.originalFetch = env.fetch.bind(env);
         }
         if (viaInterceptor) {
             env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
                 return AuthHttpRequest.fetch(url, config);
             };
         }
+        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
         AuthHttpRequest.initCalled = true;
     }
 
@@ -107,10 +126,19 @@ export default class AuthHttpRequest {
      */
     private static doRequest = async (
         httpCall: (config?: RequestInit) => Promise<Response>,
-        config?: RequestInit
+        config?: RequestInit,
+        url?: any
     ): Promise<Response> => {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
+        }
+        if (
+            typeof url === "string" &&
+            getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
+            AuthHttpRequest.viaInterceptor
+        ) {
+            // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+            return await httpCall(config);
         }
         try {
             let throwError = false;
@@ -197,46 +225,66 @@ export default class AuthHttpRequest {
     };
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return AuthHttpRequest.originalFetch(url, {
-                method: "GET",
-                ...config
-            });
-        }, config);
+        return await AuthHttpRequest.doRequest(
+            (config?: RequestInit) => {
+                return AuthHttpRequest.originalFetch(url, {
+                    method: "GET",
+                    ...config
+                });
+            },
+            config,
+            url
+        );
     };
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return AuthHttpRequest.originalFetch(url, {
-                method: "POST",
-                ...config
-            });
-        }, config);
+        return await AuthHttpRequest.doRequest(
+            (config?: RequestInit) => {
+                return AuthHttpRequest.originalFetch(url, {
+                    method: "POST",
+                    ...config
+                });
+            },
+            config,
+            url
+        );
     };
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return AuthHttpRequest.originalFetch(url, {
-                method: "DELETE",
-                ...config
-            });
-        }, config);
+        return await AuthHttpRequest.doRequest(
+            (config?: RequestInit) => {
+                return AuthHttpRequest.originalFetch(url, {
+                    method: "DELETE",
+                    ...config
+                });
+            },
+            config,
+            url
+        );
     };
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return AuthHttpRequest.originalFetch(url, {
-                method: "PUT",
-                ...config
-            });
-        }, config);
+        return await AuthHttpRequest.doRequest(
+            (config?: RequestInit) => {
+                return AuthHttpRequest.originalFetch(url, {
+                    method: "PUT",
+                    ...config
+                });
+            },
+            config,
+            url
+        );
     };
 
     static fetch = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest((config?: RequestInit) => {
-            return AuthHttpRequest.originalFetch(url, {
-                ...config
-            });
-        }, config);
+        return await AuthHttpRequest.doRequest(
+            (config?: RequestInit) => {
+                return AuthHttpRequest.originalFetch(url, {
+                    ...config
+                });
+            },
+            config,
+            url
+        );
     };
 }

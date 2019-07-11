@@ -86,6 +86,20 @@ function handleUnauthorised(refreshAPI, preRequestIdToken) {
         return true;
     });
 }
+function getDomainFromUrl(url) {
+    if (window.fetch === undefined) {
+        // we are testing
+        return "http://localhost:8888";
+    }
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+        return url
+            .split("/")
+            .filter((_, i) => i <= 2)
+            .join("/");
+    } else {
+        return window.origin;
+    }
+}
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -98,28 +112,40 @@ export default class AuthHttpRequest {
         }
         let env = window.fetch === undefined ? global : window;
         if (AuthHttpRequest.originalFetch === undefined) {
-            AuthHttpRequest.originalFetch = env.fetch;
+            AuthHttpRequest.originalFetch = env.fetch.bind(env);
         }
         if (viaInterceptor) {
             env.fetch = (url, config) => {
                 return AuthHttpRequest.fetch(url, config);
             };
         }
+        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
         AuthHttpRequest.initCalled = true;
     }
 }
 AuthHttpRequest.sessionExpiredStatusCode = 440;
 AuthHttpRequest.initCalled = false;
+AuthHttpRequest.apiDomain = "";
+AuthHttpRequest.viaInterceptor = false;
 /**
  * @description sends the actual http request and returns a response if successful/
  * If not successful due to session expiry reasons, it
  * attempts to call the refresh token API and if that is successful, calls this API again.
  * @throws Error
  */
-AuthHttpRequest.doRequest = (httpCall, config) =>
+AuthHttpRequest.doRequest = (httpCall, config, url) =>
     __awaiter(this, void 0, void 0, function*() {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
+        }
+        if (
+            typeof url === "string" &&
+            getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
+            AuthHttpRequest.viaInterceptor
+        ) {
+            // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+            return yield httpCall(config);
         }
         try {
             let throwError = false;
@@ -202,31 +228,51 @@ AuthHttpRequest.attemptRefreshingSession = () =>
     });
 AuthHttpRequest.get = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(config => {
-            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "GET" }, config));
-        }, config);
+        return yield AuthHttpRequest.doRequest(
+            config => {
+                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "GET" }, config));
+            },
+            config,
+            url
+        );
     });
 AuthHttpRequest.post = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(config => {
-            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "POST" }, config));
-        }, config);
+        return yield AuthHttpRequest.doRequest(
+            config => {
+                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "POST" }, config));
+            },
+            config,
+            url
+        );
     });
 AuthHttpRequest.delete = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(config => {
-            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "DELETE" }, config));
-        }, config);
+        return yield AuthHttpRequest.doRequest(
+            config => {
+                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "DELETE" }, config));
+            },
+            config,
+            url
+        );
     });
 AuthHttpRequest.put = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(config => {
-            return AuthHttpRequest.originalFetch(url, Object.assign({ method: "PUT" }, config));
-        }, config);
+        return yield AuthHttpRequest.doRequest(
+            config => {
+                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "PUT" }, config));
+            },
+            config,
+            url
+        );
     });
 AuthHttpRequest.fetch = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(config => {
-            return AuthHttpRequest.originalFetch(url, Object.assign({}, config));
-        }, config);
+        return yield AuthHttpRequest.doRequest(
+            config => {
+                return AuthHttpRequest.originalFetch(url, Object.assign({}, config));
+            },
+            config,
+            url
+        );
     });

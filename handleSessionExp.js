@@ -28,6 +28,7 @@ var __awaiter =
     };
 import Lock from "browser-tabs-lock";
 import { AntiCsrfToken } from "./";
+import AuthHttpRequest from "./";
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -48,7 +49,7 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                         // means that some other process has already called this API and succeeded. so we need to call it again
                         return { result: "RETRY" };
                     }
-                    let response = yield fetch(refreshTokenUrl, {
+                    let response = yield AuthHttpRequest.originalFetch(refreshTokenUrl, {
                         method: "post"
                     });
                     if (response.status !== 200) {
