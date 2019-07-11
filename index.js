@@ -97,7 +97,7 @@ function getDomainFromUrl(url) {
             .filter((_, i) => i <= 2)
             .join("/");
     } else {
-        return window.origin;
+        return window.location.origin;
     }
 }
 /**
