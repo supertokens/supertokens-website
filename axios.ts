@@ -1,91 +1,7 @@
-import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
+import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
-export class AntiCsrfToken {
-    private static tokenInfo:
-        | undefined
-        | {
-              antiCsrf: string;
-              associatedIdRefreshToken: string;
-          };
-
-    private constructor() {}
-
-    static getToken(associatedIdRefreshToken: string | undefined): string | undefined {
-        if (associatedIdRefreshToken === undefined) {
-            AntiCsrfToken.tokenInfo = undefined;
-            return undefined;
-        }
-        if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = window.localStorage.getItem("anti-csrf-localstorage");
-            if (antiCsrf === null) {
-                return undefined;
-            }
-            AntiCsrfToken.tokenInfo = {
-                antiCsrf,
-                associatedIdRefreshToken
-            };
-        } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
-            // csrf token has changed.
-            AntiCsrfToken.tokenInfo = undefined;
-            return AntiCsrfToken.getToken(associatedIdRefreshToken);
-        }
-        return AntiCsrfToken.tokenInfo.antiCsrf;
-    }
-
-    static removeToken() {
-        AntiCsrfToken.tokenInfo = undefined;
-        window.localStorage.removeItem("anti-csrf-localstorage");
-    }
-
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
-        if (associatedIdRefreshToken === undefined) {
-            AntiCsrfToken.tokenInfo = undefined;
-            return undefined;
-        }
-        window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
-        AntiCsrfToken.tokenInfo = {
-            antiCsrf,
-            associatedIdRefreshToken
-        };
-    }
-}
-
-/**
- * @description returns true if retry, else false is session has expired completely.
- */
-export async function handleUnauthorised(
-    refreshAPI: string | undefined,
-    preRequestIdToken: string | undefined
-): Promise<boolean> {
-    if (refreshAPI === undefined) {
-        throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
-    }
-    if (preRequestIdToken === undefined) {
-        return getIDFromCookie() !== undefined;
-    }
-    let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken);
-    if (result.result === "SESSION_EXPIRED") {
-        return false;
-    } else if (result.result === "API_ERROR") {
-        throw result.error;
-    }
-    return true;
-}
-
-export function getDomainFromUrl(url: string): string {
-    if (window.fetch === undefined) {
-        // we are testing
-        return "http://localhost:8888";
-    }
-    if (url.startsWith("https://") || url.startsWith("http://")) {
-        return url
-            .split("/")
-            .filter((_, i) => i <= 2)
-            .join("/");
-    } else {
-        return window.location.origin;
-    }
-}
+import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
+import { getIDFromCookie } from "./handleSessionExp";
 
 /**
  * @class AuthHttpRequest
@@ -95,23 +11,17 @@ export default class AuthHttpRequest {
     private static refreshTokenUrl: string | undefined;
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
-    static originalFetch: any;
     private static apiDomain = "";
     private static viaInterceptor = false;
 
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
+        FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor);
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        let env: any = window.fetch === undefined ? global : window;
-        if (AuthHttpRequest.originalFetch === undefined) {
-            AuthHttpRequest.originalFetch = env.fetch.bind(env);
-        }
         if (viaInterceptor) {
-            env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
-                return AuthHttpRequest.fetch(url, config);
-            };
+            // TODO:
         }
         AuthHttpRequest.viaInterceptor = viaInterceptor;
         AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
@@ -125,10 +35,10 @@ export default class AuthHttpRequest {
      * @throws Error
      */
     private static doRequest = async (
-        httpCall: (config?: RequestInit) => Promise<Response>,
-        config?: RequestInit,
+        httpCall: (config: AxiosRequestConfig) => AxiosPromise<any>,
+        config: AxiosRequestConfig,
         url?: any
-    ): Promise<Response> => {
+    ): Promise<AxiosResponse<any>> => {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
         }
@@ -148,7 +58,7 @@ export default class AuthHttpRequest {
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                let configWithAntiCsrf: RequestInit | undefined = config;
+                let configWithAntiCsrf: AxiosRequestConfig = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
@@ -172,15 +82,14 @@ export default class AuthHttpRequest {
                             break;
                         }
                     } else {
-                        response.headers.forEach((value, key) => {
-                            if (key.toString() === "anti-csrf") {
-                                AntiCsrfToken.setItem(getIDFromCookie(), value);
-                            }
-                        });
+                        let antiCsrfToken = response.headers["anti-csrf"];
+                        if (antiCsrfToken !== undefined) {
+                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                        }
                         return response;
                     }
                 } catch (err) {
-                    if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (err.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
                             throwError = true;
@@ -224,43 +133,47 @@ export default class AuthHttpRequest {
         }
     };
 
-    static get = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.fetch(url, {
-            method: "GET",
+    static get = async <T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig) => {
+        return await AuthHttpRequest.axios({
+            method: "get",
+            url,
             ...config
         });
     };
 
-    static post = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.fetch(url, {
-            method: "POST",
+    static post = async <T = any, R = AxiosResponse<T>>(url: string, data?: any, config?: AxiosRequestConfig) => {
+        return await AuthHttpRequest.axios({
+            method: "post",
+            url,
+            data,
             ...config
         });
     };
 
-    static delete = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.fetch(url, {
-            method: "DELETE",
+    static delete = async <T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig) => {
+        return await AuthHttpRequest.axios({
+            method: "delete",
+            url,
             ...config
         });
     };
 
-    static put = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.fetch(url, {
-            method: "PUT",
+    static put = async <T = any, R = AxiosResponse<T>>(url: string, data?: any, config?: AxiosRequestConfig) => {
+        return await AuthHttpRequest.axios({
+            method: "put",
+            url,
+            data,
             ...config
         });
     };
 
-    static fetch = async (url: RequestInfo, config?: RequestInit) => {
+    static axios = async (config: AxiosRequestConfig) => {
         return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
-                    ...config
-                });
+            (config: AxiosRequestConfig) => {
+                return axios(config);
             },
             config,
-            url
+            config.url
         );
     };
 }

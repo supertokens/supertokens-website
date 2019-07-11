@@ -1,11 +1,12 @@
 let jsdom = require("mocha-jsdom");
-let { default: AuthHttpRequest, AntiCsrfToken } = require("../index.js");
+let { AntiCsrfToken } = require("../index.js");
+let { default: AuthHttpRequest } = require("../axios.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
 let { delay } = require("./utils");
 
-describe("Fetch AuthHttpRequest class tests", function() {
+describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
         url: "http://localhost"
     });
@@ -24,7 +25,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.strictEqual(typeof AuthHttpRequest.post, "function");
         assert.strictEqual(typeof AuthHttpRequest.delete, "function");
         assert.strictEqual(typeof AuthHttpRequest.put, "function");
-        assert.strictEqual(typeof AuthHttpRequest.fetch, "function");
         done();
     });
 
@@ -62,12 +62,12 @@ describe("Fetch AuthHttpRequest class tests", function() {
             let postResponse = await AuthHttpRequest.post(`${BASE_URL}/testing`);
             let deleteResponse = await AuthHttpRequest.delete(`${BASE_URL}/testing`);
             let putResponse = await AuthHttpRequest.put(`${BASE_URL}/testing`);
-            let doRequestResponse = await AuthHttpRequest.fetch(`${BASE_URL}/testing`, { method: "GET" });
-            getResponse = await getResponse.text();
-            putResponse = await putResponse.text();
-            postResponse = await postResponse.text();
-            deleteResponse = await deleteResponse.text();
-            doRequestResponse = await doRequestResponse.text();
+            let doRequestResponse = await AuthHttpRequest.axios({ method: "GET", url: `${BASE_URL}/testing` });
+            getResponse = await getResponse.data;
+            putResponse = await putResponse.data;
+            postResponse = await postResponse.data;
+            deleteResponse = await deleteResponse.data;
+            doRequestResponse = await doRequestResponse.data;
             let expectedResponse = "success";
 
             assert.strictEqual(getResponse, expectedResponse);
@@ -88,29 +88,33 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
             let testing = "testing";
             let getResponse = await AuthHttpRequest.get(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let postResponse = await AuthHttpRequest.post(`${BASE_URL}/${testing}`, { headers: { testing } });
+            let postResponse = await AuthHttpRequest.post(`${BASE_URL}/${testing}`, undefined, {
+                headers: { testing }
+            });
             let deleteResponse = await AuthHttpRequest.delete(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let putResponse = await AuthHttpRequest.put(`${BASE_URL}/${testing}`, { headers: { testing } });
-            let doRequestResponse1 = await AuthHttpRequest.fetch(`${BASE_URL}/${testing}`, {
+            let putResponse = await AuthHttpRequest.put(`${BASE_URL}/${testing}`, undefined, { headers: { testing } });
+            let doRequestResponse1 = await AuthHttpRequest.axios({
+                url: `${BASE_URL}/${testing}`,
                 method: "GET",
                 headers: { testing }
             });
-            let doRequestResponse2 = await AuthHttpRequest.fetch(`${BASE_URL}/${testing}`, {
+            let doRequestResponse2 = await AuthHttpRequest.axios({
+                url: `${BASE_URL}/${testing}`,
                 method: "GET",
                 headers: { testing }
             });
-            let getResponseHeader = getResponse.headers.get(testing);
-            getResponse = await getResponse.text();
-            let putResponseHeader = putResponse.headers.get(testing);
-            putResponse = await putResponse.text();
-            let postResponseHeader = postResponse.headers.get(testing);
-            postResponse = await postResponse.text();
-            let deleteResponseHeader = deleteResponse.headers.get(testing);
-            deleteResponse = await deleteResponse.text();
-            let doRequestResponseHeader1 = doRequestResponse1.headers.get(testing);
-            doRequestResponse1 = await doRequestResponse1.text();
-            let doRequestResponseHeader2 = doRequestResponse2.headers.get(testing);
-            doRequestResponse2 = await doRequestResponse2.text();
+            let getResponseHeader = getResponse.headers[testing];
+            getResponse = await getResponse.data;
+            let putResponseHeader = putResponse.headers[testing];
+            putResponse = await putResponse.data;
+            let postResponseHeader = postResponse.headers[testing];
+            postResponse = await postResponse.data;
+            let deleteResponseHeader = deleteResponse.headers[testing];
+            deleteResponse = await deleteResponse.data;
+            let doRequestResponseHeader1 = doRequestResponse1.headers[testing];
+            doRequestResponse1 = await doRequestResponse1.data;
+            let doRequestResponseHeader2 = doRequestResponse2.headers[testing];
+            doRequestResponse2 = await doRequestResponse2.data;
             let expectedResponse = "success";
 
             assert.strictEqual(getResponse, expectedResponse);
@@ -135,27 +139,67 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`);
-
-            let getResponse = await AuthHttpRequest.get(`${BASE_URL}/fail`);
-            let postResponse = await AuthHttpRequest.post(`${BASE_URL}/fail`);
-            let deleteResponse = await AuthHttpRequest.delete(`${BASE_URL}/fail`);
-            let putResponse = await AuthHttpRequest.put(`${BASE_URL}/fail`);
-            let doRequestResponse1 = await AuthHttpRequest.fetch(`${BASE_URL}/fail`, { method: "GET" });
-            let doRequestResponse2 = await AuthHttpRequest.fetch(`${BASE_URL}/fail`, { method: "GET" });
-            let getResponseCode = getResponse.status;
-            let putResponseCode = putResponse.status;
-            let postResponseCode = postResponse.status;
-            let deleteResponseCode = deleteResponse.status;
-            let doRequestResponseCode1 = doRequestResponse1.status;
-            let doRequestResponseCode2 = doRequestResponse2.status;
             let expectedStatusCode = 404;
-
-            assert.strictEqual(getResponseCode, expectedStatusCode);
-            assert.strictEqual(putResponseCode, expectedStatusCode);
-            assert.strictEqual(postResponseCode, expectedStatusCode);
-            assert.strictEqual(deleteResponseCode, expectedStatusCode);
-            assert.strictEqual(doRequestResponseCode1, expectedStatusCode);
-            assert.strictEqual(doRequestResponseCode2, expectedStatusCode);
+            try {
+                await AuthHttpRequest.get(`${BASE_URL}/fail`);
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
+            try {
+                await AuthHttpRequest.post(`${BASE_URL}/fail`);
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
+            try {
+                await AuthHttpRequest.delete(`${BASE_URL}/fail`);
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
+            try {
+                await AuthHttpRequest.put(`${BASE_URL}/fail`);
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
+            try {
+                await AuthHttpRequest.axios({ url: `${BASE_URL}/fail`, method: "GET" });
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
+            try {
+                await AuthHttpRequest.axios({ url: `${BASE_URL}/fail`, method: "GET" });
+                throw Error();
+            } catch (err) {
+                if (err.response !== undefined) {
+                    assert.strictEqual(err.response.status, expectedStatusCode);
+                } else {
+                    throw Error("test failed!!!");
+                }
+            }
         } finally {
             httpServer.close();
         }
@@ -167,17 +211,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
             let userId = "testing-supertokens-website";
-            let loginResponse = await fetch(`${BASE_URL}/login`, {
-                method: "POST",
+            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
                 credentials: "include"
             });
-            let userIdFromResponse = await loginResponse.text();
-            let cookies = loginResponse.headers._headers["set-cookie"];
+            let userIdFromResponse = loginResponse.data;
+            let cookies = loginResponse.headers["set-cookie"];
             let sAccessTokenCookieFound = false;
             let sRefreshTokenCookieFound = false;
             let sIdRefreshTokenCookieFound = false;
@@ -198,9 +240,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await delay(3);
 
             assert.strictEqual(refreshCalled, false);
-            let getResponse = await fetch(`${BASE_URL}/`, { method: "GET" });
+            let getResponse = await AuthHttpRequest.axios({ url: `${BASE_URL}/`, method: "GET" });
             assert.strictEqual(refreshCalled, true);
-            getResponse = await getResponse.text();
+            getResponse = await getResponse.data;
             assert.strictEqual(getResponse, "success");
         } finally {
             httpServer.close();
@@ -213,16 +255,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, {
+            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
                 credentials: "include"
             });
-            let userIdFromResponse = await loginResponse.text();
-            let cookies = loginResponse.headers._headers["set-cookie"];
+            let userIdFromResponse = await loginResponse.data;
+            let cookies = loginResponse.headers["set-cookie"];
             let sAccessTokenCookieFound = false;
             let sRefreshTokenCookieFound = false;
             let sIdRefreshTokenCookieFound = false;
@@ -246,7 +287,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             AntiCsrfToken.removeToken();
             let getResponse = await AuthHttpRequest.get(`${BASE_URL}/`);
             assert.strictEqual(refreshCalled, true);
-            getResponse = await getResponse.text();
+            getResponse = await getResponse.data;
             assert.strictEqual(getResponse, "success");
         } finally {
             httpServer.close();
@@ -259,16 +300,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`);
             let userId = "testing-supertokens-website";
-            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, {
+            let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
                 credentials: "include"
             });
-            let userIdFromResponse = await loginResponse.text();
-            let cookies = loginResponse.headers._headers["set-cookie"];
+            let userIdFromResponse = await loginResponse.data;
+            let cookies = loginResponse.headers["set-cookie"];
             let sAccessTokenCookieFound = false;
             let sRefreshTokenCookieFound = false;
             let sIdRefreshTokenCookieFound = false;
@@ -302,7 +342,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 responses.push(await promises[i]);
             }
             for (let i = 0; i < N; i++) {
-                result.push(await responses[i].text());
+                result.push(await responses[i].data);
             }
             let endTime = Date.now();
             assert.strictEqual(refreshCalled, true);

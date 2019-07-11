@@ -26,98 +26,22 @@ var __awaiter =
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
-export class AntiCsrfToken {
-    constructor() {}
-    static getToken(associatedIdRefreshToken) {
-        if (associatedIdRefreshToken === undefined) {
-            AntiCsrfToken.tokenInfo = undefined;
-            return undefined;
-        }
-        if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = window.localStorage.getItem("anti-csrf-localstorage");
-            if (antiCsrf === null) {
-                return undefined;
-            }
-            AntiCsrfToken.tokenInfo = {
-                antiCsrf,
-                associatedIdRefreshToken
-            };
-        } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
-            // csrf token has changed.
-            AntiCsrfToken.tokenInfo = undefined;
-            return AntiCsrfToken.getToken(associatedIdRefreshToken);
-        }
-        return AntiCsrfToken.tokenInfo.antiCsrf;
-    }
-    static removeToken() {
-        AntiCsrfToken.tokenInfo = undefined;
-        window.localStorage.removeItem("anti-csrf-localstorage");
-    }
-    static setItem(associatedIdRefreshToken, antiCsrf) {
-        if (associatedIdRefreshToken === undefined) {
-            AntiCsrfToken.tokenInfo = undefined;
-            return undefined;
-        }
-        window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
-        AntiCsrfToken.tokenInfo = {
-            antiCsrf,
-            associatedIdRefreshToken
-        };
-    }
-}
-/**
- * @description returns true if retry, else false is session has expired completely.
- */
-export function handleUnauthorised(refreshAPI, preRequestIdToken) {
-    return __awaiter(this, void 0, void 0, function*() {
-        if (refreshAPI === undefined) {
-            throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
-        }
-        if (preRequestIdToken === undefined) {
-            return getIDFromCookie() !== undefined;
-        }
-        let result = yield onUnauthorisedResponse(refreshAPI, preRequestIdToken);
-        if (result.result === "SESSION_EXPIRED") {
-            return false;
-        } else if (result.result === "API_ERROR") {
-            throw result.error;
-        }
-        return true;
-    });
-}
-export function getDomainFromUrl(url) {
-    if (window.fetch === undefined) {
-        // we are testing
-        return "http://localhost:8888";
-    }
-    if (url.startsWith("https://") || url.startsWith("http://")) {
-        return url
-            .split("/")
-            .filter((_, i) => i <= 2)
-            .join("/");
-    } else {
-        return window.location.origin;
-    }
-}
+import axios from "axios";
+import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
+import { getIDFromCookie } from "./handleSessionExp";
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
     static init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor = false) {
+        FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor);
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        let env = window.fetch === undefined ? global : window;
-        if (AuthHttpRequest.originalFetch === undefined) {
-            AuthHttpRequest.originalFetch = env.fetch.bind(env);
-        }
         if (viaInterceptor) {
-            env.fetch = (url, config) => {
-                return AuthHttpRequest.fetch(url, config);
-            };
+            // TODO:
         }
         AuthHttpRequest.viaInterceptor = viaInterceptor;
         AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
@@ -175,15 +99,14 @@ AuthHttpRequest.doRequest = (httpCall, config, url) =>
                             break;
                         }
                     } else {
-                        response.headers.forEach((value, key) => {
-                            if (key.toString() === "anti-csrf") {
-                                AntiCsrfToken.setItem(getIDFromCookie(), value);
-                            }
-                        });
+                        let antiCsrfToken = response.headers["anti-csrf"];
+                        if (antiCsrfToken !== undefined) {
+                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                        }
                         return response;
                     }
                 } catch (err) {
-                    if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (err.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
                         let retry = yield handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
                             throwError = true;
@@ -228,27 +151,27 @@ AuthHttpRequest.attemptRefreshingSession = () =>
     });
 AuthHttpRequest.get = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "GET" }, config));
+        return yield AuthHttpRequest.axios(Object.assign({ method: "get", url }, config));
     });
-AuthHttpRequest.post = (url, config) =>
+AuthHttpRequest.post = (url, data, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "POST" }, config));
+        return yield AuthHttpRequest.axios(Object.assign({ method: "post", url, data }, config));
     });
 AuthHttpRequest.delete = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "DELETE" }, config));
+        return yield AuthHttpRequest.axios(Object.assign({ method: "delete", url }, config));
     });
-AuthHttpRequest.put = (url, config) =>
+AuthHttpRequest.put = (url, data, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "PUT" }, config));
+        return yield AuthHttpRequest.axios(Object.assign({ method: "put", url, data }, config));
     });
-AuthHttpRequest.fetch = (url, config) =>
+AuthHttpRequest.axios = config =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.doRequest(
             config => {
-                return AuthHttpRequest.originalFetch(url, Object.assign({}, config));
+                return axios(config);
             },
             config,
-            url
+            config.url
         );
     });

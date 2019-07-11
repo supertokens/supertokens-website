@@ -127,7 +127,6 @@ class Server {
         });
 
         app.use("*", async (err, req, res, next) => {
-            console.log(err);
             res.send(500).send();
         });
 
