@@ -225,55 +225,31 @@ export default class AuthHttpRequest {
     };
 
     static get = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
-                    method: "GET",
-                    ...config
-                });
-            },
-            config,
-            url
-        );
+        return await AuthHttpRequest.fetch(url, {
+            method: "GET",
+            ...config
+        });
     };
 
     static post = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
-                    method: "POST",
-                    ...config
-                });
-            },
-            config,
-            url
-        );
+        return await AuthHttpRequest.fetch(url, {
+            method: "POST",
+            ...config
+        });
     };
 
     static delete = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
-                    method: "DELETE",
-                    ...config
-                });
-            },
-            config,
-            url
-        );
+        return await AuthHttpRequest.fetch(url, {
+            method: "DELETE",
+            ...config
+        });
     };
 
     static put = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
-                    method: "PUT",
-                    ...config
-                });
-            },
-            config,
-            url
-        );
+        return await AuthHttpRequest.fetch(url, {
+            method: "PUT",
+            ...config
+        });
     };
 
     static fetch = async (url: RequestInfo, config?: RequestInit) => {

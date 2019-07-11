@@ -228,43 +228,19 @@ AuthHttpRequest.attemptRefreshingSession = () =>
     });
 AuthHttpRequest.get = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(
-            config => {
-                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "GET" }, config));
-            },
-            config,
-            url
-        );
+        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "GET" }, config));
     });
 AuthHttpRequest.post = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(
-            config => {
-                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "POST" }, config));
-            },
-            config,
-            url
-        );
+        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "POST" }, config));
     });
 AuthHttpRequest.delete = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(
-            config => {
-                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "DELETE" }, config));
-            },
-            config,
-            url
-        );
+        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "DELETE" }, config));
     });
 AuthHttpRequest.put = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
-        return yield AuthHttpRequest.doRequest(
-            config => {
-                return AuthHttpRequest.originalFetch(url, Object.assign({ method: "PUT" }, config));
-            },
-            config,
-            url
-        );
+        return yield AuthHttpRequest.fetch(url, Object.assign({ method: "PUT" }, config));
     });
 AuthHttpRequest.fetch = (url, config) =>
     __awaiter(this, void 0, void 0, function*() {
