@@ -80,22 +80,21 @@ export default class AuthHttpRequest {
     private static refreshTokenUrl: string | undefined;
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
-    private static viaInterceptor = false;
-    private static env: any = global;
-    private static originalFetch = AuthHttpRequest.env.fetch;
+    private static originalFetch: any;
 
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        let env: any = window.fetch === undefined ? global : window;
+        if (AuthHttpRequest.originalFetch === undefined) {
+            AuthHttpRequest.originalFetch = env.fetch;
+        }
         if (viaInterceptor) {
-            AuthHttpRequest.env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
+            env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
                 return AuthHttpRequest.fetch(url, config);
             };
-        } else {
-            AuthHttpRequest.env.fetch = AuthHttpRequest.originalFetch;
         }
         AuthHttpRequest.initCalled = true;
     }

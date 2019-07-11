@@ -96,22 +96,20 @@ export default class AuthHttpRequest {
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        AuthHttpRequest.viaInterceptor = viaInterceptor;
+        let env = window.fetch === undefined ? global : window;
+        if (AuthHttpRequest.originalFetch === undefined) {
+            AuthHttpRequest.originalFetch = env.fetch;
+        }
         if (viaInterceptor) {
-            AuthHttpRequest.env.fetch = (url, config) => {
+            env.fetch = (url, config) => {
                 return AuthHttpRequest.fetch(url, config);
             };
-        } else {
-            AuthHttpRequest.env.fetch = AuthHttpRequest.originalFetch;
         }
         AuthHttpRequest.initCalled = true;
     }
 }
 AuthHttpRequest.sessionExpiredStatusCode = 440;
 AuthHttpRequest.initCalled = false;
-AuthHttpRequest.viaInterceptor = false;
-AuthHttpRequest.env = global;
-AuthHttpRequest.originalFetch = AuthHttpRequest.env.fetch;
 /**
  * @description sends the actual http request and returns a response if successful/
  * If not successful due to session expiry reasons, it
