@@ -96,7 +96,10 @@ export function makeSuper(axiosInstance) {
                 if (!AuthHttpRequest.initCalled) {
                     Promise.reject(new Error("init function not called"));
                 }
-                if (error.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                if (
+                    error.response !== undefined &&
+                    error.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                ) {
                     let config = error.config;
                     return AuthHttpRequest.doRequest(
                         config => {
@@ -198,7 +201,10 @@ AuthHttpRequest.doRequest = (httpCall, config, url, prevResponse, prevError, via
                         return response;
                     }
                 } catch (err) {
-                    if (err.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (
+                        err.response !== undefined &&
+                        err.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                    ) {
                         let retry = yield handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
                         if (!retry) {
                             throwError = true;
