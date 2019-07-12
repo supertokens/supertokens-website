@@ -27,8 +27,7 @@ var __awaiter =
         });
     };
 import Lock from "browser-tabs-lock";
-import { AntiCsrfToken } from "./";
-import AuthHttpRequest from "./";
+import AuthHttpRequest, { AntiCsrfToken } from "./";
 const ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -75,12 +74,12 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     lock.releaseLock("REFRESH_TOKEN_USE");
                 }
             }
-            let idCookieValie = getIDFromCookie();
-            if (idCookieValie === undefined) {
+            let idCookieValue = getIDFromCookie();
+            if (idCookieValue === undefined) {
                 // removed by server. So we logout
                 return { result: "SESSION_EXPIRED" };
             } else {
-                if (idCookieValie !== preRequestIdToken) {
+                if (idCookieValue !== preRequestIdToken) {
                     return { result: "RETRY" };
                 }
                 // here we try to call the API again since we probably failed to acquire lock and nothing has changed.

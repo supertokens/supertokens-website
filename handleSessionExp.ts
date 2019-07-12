@@ -1,7 +1,6 @@
 import Lock from "browser-tabs-lock";
 
-import { AntiCsrfToken } from "./";
-import AuthHttpRequest from "./";
+import AuthHttpRequest, { AntiCsrfToken } from "./";
 
 const ID_COOKIE_NAME = "sIdRefreshToken";
 
@@ -52,12 +51,12 @@ export async function onUnauthorisedResponse(
                 lock.releaseLock("REFRESH_TOKEN_USE");
             }
         }
-        let idCookieValie = getIDFromCookie();
-        if (idCookieValie === undefined) {
+        let idCookieValue = getIDFromCookie();
+        if (idCookieValue === undefined) {
             // removed by server. So we logout
             return { result: "SESSION_EXPIRED" };
         } else {
-            if (idCookieValie !== preRequestIdToken) {
+            if (idCookieValue !== preRequestIdToken) {
                 return { result: "RETRY" };
             }
             // here we try to call the API again since we probably failed to acquire lock and nothing has changed.
