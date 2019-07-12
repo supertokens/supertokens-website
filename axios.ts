@@ -45,46 +45,65 @@ export function makeSuper(axiosInstance: any) {
     // Add a response interceptor
     axiosInstance.interceptors.response.use(
         async function(response: AxiosResponse) {
-            if (!AuthHttpRequest.initCalled) {
-                Promise.reject(new Error("init function not called"));
-            }
-            if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                let config = response.config;
-                return AuthHttpRequest.doRequest(
-                    (config: AxiosRequestConfig) => {
-                        // we create an instance since we don't want to intercept this.
-                        const instance = axios.create();
-                        return instance(config);
-                    },
-                    config,
-                    config.url,
-                    response,
-                    true
-                );
-            } else {
-                return response;
+            try {
+                if (!AuthHttpRequest.initCalled) {
+                    Promise.reject(new Error("init function not called"));
+                }
+                if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    let config = response.config;
+                    return AuthHttpRequest.doRequest(
+                        (config: AxiosRequestConfig) => {
+                            // we create an instance since we don't want to intercept this.
+                            const instance = axios.create();
+                            return instance(config);
+                        },
+                        config,
+                        config.url,
+                        response,
+                        true
+                    );
+                } else {
+                    let antiCsrfToken = response.headers["anti-csrf"];
+                    if (antiCsrfToken !== undefined) {
+                        AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                    }
+                    return response;
+                }
+            } finally {
+                if (getIDFromCookie() === undefined) {
+                    AntiCsrfToken.removeToken();
+                }
             }
         },
         async function(error: any) {
             if (!AuthHttpRequest.initCalled) {
                 Promise.reject(new Error("init function not called"));
             }
-            if (error.response !== undefined && error.response.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                let config = error.config;
-                return AuthHttpRequest.doRequest(
-                    (config: AxiosRequestConfig) => {
-                        // we create an instance since we don't want to intercept this.
-                        const instance = axios.create();
-                        return instance(config);
-                    },
-                    config,
-                    config.url,
-                    undefined,
-                    error,
-                    true
-                );
-            } else {
-                return Promise.reject(error);
+            try {
+                if (
+                    error.response !== undefined &&
+                    error.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                ) {
+                    let config = error.config;
+                    return AuthHttpRequest.doRequest(
+                        (config: AxiosRequestConfig) => {
+                            // we create an instance since we don't want to intercept this.
+                            const instance = axios.create();
+                            return instance(config);
+                        },
+                        config,
+                        config.url,
+                        undefined,
+                        error,
+                        true
+                    );
+                } else {
+                    return Promise.reject(error);
+                }
+            } finally {
+                if (getIDFromCookie() === undefined) {
+                    AntiCsrfToken.removeToken();
+                }
             }
         }
     );
@@ -198,7 +217,7 @@ export default class AuthHttpRequest {
                     }
                 }
             }
-            // if it comes here, means we breaked. which happens only if we have logged out.
+            // if it comes here, means we called break. which happens only if we have logged out.
             if (throwError) {
                 throw returnObj;
             } else {
