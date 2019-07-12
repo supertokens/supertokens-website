@@ -2,13 +2,13 @@ import axios from "axios";
 
 let jsdom = require("mocha-jsdom");
 let { AntiCsrfToken } = require("../index.js");
-let { default: AuthHttpRequest, makeSuper } = require("../axios.js");
+let { default: AuthHttpRequest } = require("../axios.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
 let { delay } = require("./utils");
 
-makeSuper(axios);
+AuthHttpRequest.makeSuper(axios);
 
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({

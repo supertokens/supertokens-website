@@ -52,90 +52,6 @@ function interceptorFunctionRequestFulfilled(config) {
         return configWithAntiCsrf;
     });
 }
-export function makeSuper(axiosInstance) {
-    // we first check if this axiosInstance already has our interceptors.
-    let requestInterceptors = axiosInstance.interceptors.request;
-    for (let i = 0; i < requestInterceptors.handlers.length; i++) {
-        if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
-            return;
-        }
-    }
-    // Add a request interceptor
-    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, function(error) {
-        return __awaiter(this, void 0, void 0, function*() {
-            return Promise.reject(error);
-        });
-    });
-    // Add a response interceptor
-    axiosInstance.interceptors.response.use(
-        function(response) {
-            return __awaiter(this, void 0, void 0, function*() {
-                try {
-                    if (!AuthHttpRequest.initCalled) {
-                        Promise.reject(new Error("init function not called"));
-                    }
-                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                        let config = response.config;
-                        return AuthHttpRequest.doRequest(
-                            config => {
-                                // we create an instance since we don't want to intercept this.
-                                const instance = axios.create();
-                                return instance(config);
-                            },
-                            config,
-                            config.url,
-                            response,
-                            true
-                        );
-                    } else {
-                        let antiCsrfToken = response.headers["anti-csrf"];
-                        if (antiCsrfToken !== undefined) {
-                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
-                        }
-                        return response;
-                    }
-                } finally {
-                    if (getIDFromCookie() === undefined) {
-                        AntiCsrfToken.removeToken();
-                    }
-                }
-            });
-        },
-        function(error) {
-            return __awaiter(this, void 0, void 0, function*() {
-                if (!AuthHttpRequest.initCalled) {
-                    Promise.reject(new Error("init function not called"));
-                }
-                try {
-                    if (
-                        error.response !== undefined &&
-                        error.response.status === AuthHttpRequest.sessionExpiredStatusCode
-                    ) {
-                        let config = error.config;
-                        return AuthHttpRequest.doRequest(
-                            config => {
-                                // we create an instance since we don't want to intercept this.
-                                const instance = axios.create();
-                                return instance(config);
-                            },
-                            config,
-                            config.url,
-                            undefined,
-                            error,
-                            true
-                        );
-                    } else {
-                        return Promise.reject(error);
-                    }
-                } finally {
-                    if (getIDFromCookie() === undefined) {
-                        AntiCsrfToken.removeToken();
-                    }
-                }
-            });
-        }
-    );
-}
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -304,3 +220,87 @@ AuthHttpRequest.axios = (anything, maybeConfig) =>
             config.url
         );
     });
+AuthHttpRequest.makeSuper = axiosInstance => {
+    // we first check if this axiosInstance already has our interceptors.
+    let requestInterceptors = axiosInstance.interceptors.request;
+    for (let i = 0; i < requestInterceptors.handlers.length; i++) {
+        if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
+            return;
+        }
+    }
+    // Add a request interceptor
+    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, function(error) {
+        return __awaiter(this, void 0, void 0, function*() {
+            return Promise.reject(error);
+        });
+    });
+    // Add a response interceptor
+    axiosInstance.interceptors.response.use(
+        function(response) {
+            return __awaiter(this, void 0, void 0, function*() {
+                try {
+                    if (!AuthHttpRequest.initCalled) {
+                        Promise.reject(new Error("init function not called"));
+                    }
+                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                        let config = response.config;
+                        return AuthHttpRequest.doRequest(
+                            config => {
+                                // we create an instance since we don't want to intercept this.
+                                const instance = axios.create();
+                                return instance(config);
+                            },
+                            config,
+                            config.url,
+                            response,
+                            true
+                        );
+                    } else {
+                        let antiCsrfToken = response.headers["anti-csrf"];
+                        if (antiCsrfToken !== undefined) {
+                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                        }
+                        return response;
+                    }
+                } finally {
+                    if (getIDFromCookie() === undefined) {
+                        AntiCsrfToken.removeToken();
+                    }
+                }
+            });
+        },
+        function(error) {
+            return __awaiter(this, void 0, void 0, function*() {
+                if (!AuthHttpRequest.initCalled) {
+                    Promise.reject(new Error("init function not called"));
+                }
+                try {
+                    if (
+                        error.response !== undefined &&
+                        error.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                    ) {
+                        let config = error.config;
+                        return AuthHttpRequest.doRequest(
+                            config => {
+                                // we create an instance since we don't want to intercept this.
+                                const instance = axios.create();
+                                return instance(config);
+                            },
+                            config,
+                            config.url,
+                            undefined,
+                            error,
+                            true
+                        );
+                    } else {
+                        return Promise.reject(error);
+                    }
+                } finally {
+                    if (getIDFromCookie() === undefined) {
+                        AntiCsrfToken.removeToken();
+                    }
+                }
+            });
+        }
+    );
+};
