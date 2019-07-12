@@ -29,38 +29,43 @@ var __awaiter =
 import axios from "axios";
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie } from "./handleSessionExp";
-export function makeSuper(axiosInstance) {
-    // Add a request interceptor
-    axiosInstance.interceptors.request.use(
-        function(config) {
-            return __awaiter(this, void 0, void 0, function*() {
-                let url = config.url;
-                if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
-                    // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
-                    return config;
-                }
-                const preRequestIdToken = getIDFromCookie();
-                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                let configWithAntiCsrf = config;
-                if (antiCsrfToken !== undefined) {
-                    configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, {
-                        headers:
-                            configWithAntiCsrf === undefined
-                                ? {
-                                      "anti-csrf": antiCsrfToken
-                                  }
-                                : Object.assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
-                    });
-                }
-                return configWithAntiCsrf;
-            });
-        },
-        function(error) {
-            return __awaiter(this, void 0, void 0, function*() {
-                return Promise.reject(error);
+function interceptorFunctionRequestFulfilled(config) {
+    return __awaiter(this, void 0, void 0, function*() {
+        let url = config.url;
+        if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+            // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+            return config;
+        }
+        const preRequestIdToken = getIDFromCookie();
+        const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+        let configWithAntiCsrf = config;
+        if (antiCsrfToken !== undefined) {
+            configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, {
+                headers:
+                    configWithAntiCsrf === undefined
+                        ? {
+                              "anti-csrf": antiCsrfToken
+                          }
+                        : Object.assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
             });
         }
-    );
+        return configWithAntiCsrf;
+    });
+}
+export function makeSuper(axiosInstance) {
+    // we first check if this axiosInstance already has our interceptors.
+    let requestInterceptors = axiosInstance.interceptors.request;
+    for (let i = 0; i < requestInterceptors.handlers.length; i++) {
+        if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
+            return;
+        }
+    }
+    // Add a request interceptor
+    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, function(error) {
+        return __awaiter(this, void 0, void 0, function*() {
+            return Promise.reject(error);
+        });
+    });
     // Add a response interceptor
     axiosInstance.interceptors.response.use(
         function(response) {
