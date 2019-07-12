@@ -252,8 +252,21 @@ AuthHttpRequest.put = (url, data, config) =>
     __awaiter(this, void 0, void 0, function*() {
         return yield AuthHttpRequest.axios(Object.assign({ method: "put", url, data }, config));
     });
-AuthHttpRequest.axios = config =>
+AuthHttpRequest.axios = (anything, maybeConfig) =>
     __awaiter(this, void 0, void 0, function*() {
+        let config = {};
+        if (typeof anything === "string") {
+            if (maybeConfig === undefined) {
+                config = {
+                    url: anything,
+                    method: "get"
+                };
+            } else {
+                config = Object.assign({ url: anything }, maybeConfig);
+            }
+        } else {
+            config = anything;
+        }
         return yield AuthHttpRequest.doRequest(
             config => {
                 // we create an instance since we don't want to intercept this.

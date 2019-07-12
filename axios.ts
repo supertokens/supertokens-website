@@ -255,7 +255,23 @@ export default class AuthHttpRequest {
         });
     };
 
-    static axios = async (config: AxiosRequestConfig) => {
+    static axios = async (anything: AxiosRequestConfig | string, maybeConfig?: AxiosRequestConfig) => {
+        let config: AxiosRequestConfig = {};
+        if (typeof anything === "string") {
+            if (maybeConfig === undefined) {
+                config = {
+                    url: anything,
+                    method: "get"
+                };
+            } else {
+                config = {
+                    url: anything,
+                    ...maybeConfig
+                };
+            }
+        } else {
+            config = anything;
+        }
         return await AuthHttpRequest.doRequest(
             (config: AxiosRequestConfig) => {
                 // we create an instance since we don't want to intercept this.
