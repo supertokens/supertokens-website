@@ -97,9 +97,16 @@ export default class AuthHttpRequest {
     private static initCalled = false;
     static originalFetch: any;
     private static apiDomain = "";
-    private static viaInterceptor = false;
+    private static viaInterceptor: boolean | undefined;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean) {
+        if (viaInterceptor === undefined) {
+            if (AuthHttpRequest.viaInterceptor === undefined) {
+                viaInterceptor = false;
+            } else {
+                viaInterceptor = AuthHttpRequest.viaInterceptor;
+            }
+        }
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;

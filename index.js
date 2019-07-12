@@ -105,7 +105,14 @@ export function getDomainFromUrl(url) {
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-    static init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor = false) {
+    static init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor) {
+        if (viaInterceptor === undefined) {
+            if (AuthHttpRequest.viaInterceptor === undefined) {
+                viaInterceptor = false;
+            } else {
+                viaInterceptor = AuthHttpRequest.viaInterceptor;
+            }
+        }
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
@@ -127,7 +134,6 @@ export default class AuthHttpRequest {
 AuthHttpRequest.sessionExpiredStatusCode = 440;
 AuthHttpRequest.initCalled = false;
 AuthHttpRequest.apiDomain = "";
-AuthHttpRequest.viaInterceptor = false;
 /**
  * @description sends the actual http request and returns a response if successful/
  * If not successful due to session expiry reasons, it

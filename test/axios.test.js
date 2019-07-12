@@ -2,11 +2,14 @@ import axios from "axios";
 
 let jsdom = require("mocha-jsdom");
 let { AntiCsrfToken } = require("../index.js");
-let { default: AuthHttpRequest } = require("../axios.js");
+let { default: AuthHttpRequest, makeSuper } = require("../axios.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
 let { delay } = require("./utils");
+
+makeSuper(axios);
+
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
         url: "http://localhost"
@@ -85,7 +88,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
 
             let testing = "testing";
             let getResponse = await AuthHttpRequest.get(`${BASE_URL}/${testing}`, { headers: { testing } });
@@ -210,7 +213,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew();
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
             let userId = "testing-supertokens-website";
             let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {
@@ -299,7 +302,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         let httpServer = await Server.createNew(10);
 
         try {
-            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
             let userId = "testing-supertokens-website";
             let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                 headers: {

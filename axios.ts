@@ -3,10 +3,10 @@ import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie } from "./handleSessionExp";
 
-function createInterceptor() {
+export function makeSuper(axiosInstance: any) {
     // Add a request interceptor
-    axios.interceptors.request.use(
-        async function(config) {
+    axiosInstance.interceptors.request.use(
+        async function(config: AxiosRequestConfig) {
             let url = config.url;
             if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
                 // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
@@ -31,14 +31,14 @@ function createInterceptor() {
             }
             return configWithAntiCsrf;
         },
-        async function(error) {
+        async function(error: any) {
             return Promise.reject(error);
         }
     );
 
     // Add a response interceptor
-    axios.interceptors.response.use(
-        async function(response) {
+    axiosInstance.interceptors.response.use(
+        async function(response: AxiosResponse) {
             if (!AuthHttpRequest.initCalled) {
                 Promise.reject(new Error("init function not called"));
             }
@@ -52,13 +52,14 @@ function createInterceptor() {
                     },
                     config,
                     config.url,
-                    response
+                    response,
+                    true
                 );
             } else {
                 return response;
             }
         },
-        async function(error) {
+        async function(error: any) {
             if (!AuthHttpRequest.initCalled) {
                 Promise.reject(new Error("init function not called"));
             }
@@ -73,7 +74,8 @@ function createInterceptor() {
                     config,
                     config.url,
                     undefined,
-                    error
+                    error,
+                    true
                 );
             } else {
                 return Promise.reject(error);
@@ -91,18 +93,13 @@ export default class AuthHttpRequest {
     static sessionExpiredStatusCode = 440;
     static initCalled = false;
     static apiDomain = "";
-    private static viaInterceptor = false;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor: boolean = false) {
-        FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode, viaInterceptor);
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number) {
+        FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode);
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        if (viaInterceptor) {
-            createInterceptor();
-        }
-        AuthHttpRequest.viaInterceptor = viaInterceptor;
         AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
         AuthHttpRequest.initCalled = true;
     }
@@ -118,16 +115,13 @@ export default class AuthHttpRequest {
         config: AxiosRequestConfig,
         url?: string,
         prevResponse?: AxiosResponse,
-        prevError?: any
+        prevError?: any,
+        viaInterceptor: boolean = false
     ): Promise<AxiosResponse<any>> => {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
         }
-        if (
-            typeof url === "string" &&
-            getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
-            AuthHttpRequest.viaInterceptor
-        ) {
+        if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain && viaInterceptor) {
             if (prevError !== undefined) {
                 throw prevError;
             } else if (prevResponse !== undefined) {
