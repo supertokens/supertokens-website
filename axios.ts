@@ -299,10 +299,6 @@ export default class AuthHttpRequest {
                             (config: AxiosRequestConfig) => {
                                 // we create an instance since we don't want to intercept this.
                                 const instance = axios.create();
-                                config = {
-                                    ...config,
-                                    withCredentials: true
-                                };
                                 return instance(config);
                             },
                             config,
