@@ -49,7 +49,8 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                         return { result: "RETRY" };
                     }
                     let response = yield AuthHttpRequest.originalFetch(refreshTokenUrl, {
-                        method: "post"
+                        method: "post",
+                        credentials: "include"
                     });
                     if (response.status !== 200) {
                         throw response;

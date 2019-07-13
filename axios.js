@@ -38,6 +38,7 @@ function interceptorFunctionRequestFulfilled(config) {
         }
         const preRequestIdToken = getIDFromCookie();
         const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+        config = Object.assign({}, config, { withCredentials: true });
         let configWithAntiCsrf = config;
         if (antiCsrfToken !== undefined) {
             configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, {
@@ -98,6 +99,7 @@ AuthHttpRequest.doRequest = (httpCall, config, url, prevResponse, prevError, via
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                config = Object.assign({}, config, { withCredentials: true });
                 let configWithAntiCsrf = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, {

@@ -26,7 +26,8 @@ export async function onUnauthorisedResponse(
                     return { result: "RETRY" };
                 }
                 let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
-                    method: "post"
+                    method: "post",
+                    credentials: "include"
                 });
                 if (response.status !== 200) {
                     throw response;

@@ -161,6 +161,7 @@ AuthHttpRequest.doRequest = (httpCall, config, url) =>
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                config = Object.assign({}, config, { credentials: "include" });
                 let configWithAntiCsrf = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = Object.assign({}, configWithAntiCsrf, {
