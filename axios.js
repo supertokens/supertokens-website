@@ -286,6 +286,7 @@ AuthHttpRequest.makeSuper = axiosInstance => {
                             config => {
                                 // we create an instance since we don't want to intercept this.
                                 const instance = axios.create();
+                                config = Object.assign({}, config, { withCredentials: true });
                                 return instance(config);
                             },
                             config,
