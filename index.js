@@ -259,3 +259,7 @@ AuthHttpRequest.fetch = (url, config) =>
             url
         );
     });
+AuthHttpRequest.sessionPossiblyExists = () =>
+    __awaiter(this, void 0, void 0, function*() {
+        return getIDFromCookie() !== undefined;
+    });

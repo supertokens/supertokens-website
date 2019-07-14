@@ -306,3 +306,7 @@ AuthHttpRequest.makeSuper = axiosInstance => {
         }
     );
 };
+AuthHttpRequest.sessionPossiblyExists = () =>
+    __awaiter(this, void 0, void 0, function*() {
+        return getIDFromCookie() !== undefined;
+    });

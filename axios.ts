@@ -318,4 +318,8 @@ export default class AuthHttpRequest {
             }
         );
     };
+
+    static sessionPossiblyExists = async () => {
+        return getIDFromCookie() !== undefined;
+    };
 }

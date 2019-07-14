@@ -274,4 +274,8 @@ export default class AuthHttpRequest {
             url
         );
     };
+
+    static sessionPossiblyExists = async () => {
+        return getIDFromCookie() !== undefined;
+    };
 }
