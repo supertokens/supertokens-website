@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -20,7 +20,8 @@
     "prettier": "1.18.2",
     "supertokens-node-mysql-ref-jwt": "^4.0.0",
     "typescript": "3.5.2",
-    "axios": "*"
+    "axios": "*",
+    "mysql": "2.17.1"
   },
   "peerDependencies": {
     "axios": "*"
