@@ -8,7 +8,7 @@
 [![CircleCI](https://circleci.com/gh/supertokens/supertokens-website/tree/dev.svg?style=svg)](https://circleci.com/gh/supertokens/supertokens-website/tree/dev)
 
 ## Documentation
-Please visit [our website](https://supertokens.io) to see which tech stack you can use this with. One you find the right library, you will find the documentation for how to use this package along with it. For example, please [see this](https://supertokens.github.io/supertokens-node-mysql-ref-jwt/docs/frontend/website/installation) for how to use this library along with our NodeJS and MySQL solution.
+Please see our [Documentation website](https://supertokens.github.io/supertokens-website/)
 
 ## Making changes
 This library is written in TypeScript (TS). When you make any changes to the .ts files in the root folder, run the following command to compile to .js:

@@ -6,9 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.0.4] - 2019-07-14
+## [3.2.0] - 2019-07-22
 ### Added
-- sessionPossiblyExists function to determine is a session exists or not.
+- Added ability to check if a session exists or not.
+
+## [3.1.0] - 2019-07-15
+### Changed
+- Minor changes.
 
 ## [3.0.3] - 2019-07-14
 ### Changed

@@ -7,7 +7,7 @@ Describe the big picture of your changes here to communicate to the maintainers 
 
 ### Types of changes
 
-What types of changes does your code introduce to supertokens-node-mysql-ref-jwt?
+What types of changes does your code introduce to supertokens-website?
 _Put an `x` in the boxes that apply and add the issue number in # (if applicable)_
 
 - [ ] Bugfix (non-breaking change which fixes an issue) Fixes #
