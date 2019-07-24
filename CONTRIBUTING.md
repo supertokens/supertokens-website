@@ -3,7 +3,7 @@
 Contributions are always welcome. Before contributing please read the [code of conduct](https://github.com/supertokens/supertokens-website/blob/master/CODE_OF_CONDUCT.md) & search [the issue tracker](https://github.com/supertokens/supertokens-website/issues); your issue may have already been discussed or fixed in master. To contribute, fork SuperTokens, commit your changes, & send a pull request.
 
 # Questions
-We are most accessible via team@supertokens.io, via the GitHub issues feature and our [Discord server](https://discord.gg/zVcVeev). 
+We are most accessible via team@supertokens.io, via the GitHub issues feature and our [Discord server](https://supertokens.io/discord). 
 
 ## Pull Requests
 Before issuing a pull request, please make sure:
