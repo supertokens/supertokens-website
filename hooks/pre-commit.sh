@@ -62,7 +62,6 @@ if [ $compiles -eq 0 ] && [ $formatted -eq 0 ]
 then
    echo "$(tput setaf 2)... done. Proceeding with commit.$(tput sgr 0)"
    echo ""
-   exit 0
 elif [ $compiles -eq 0 ]
 then
    echo "$(tput setaf 1)... done.$(tput sgr 0)"
