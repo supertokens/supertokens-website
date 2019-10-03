@@ -77,7 +77,7 @@ fi
 
 # get current version----------
 version=`cat package.json | grep -e '"version":'`
-while IFS="'" read -ra ADDR; do
+while IFS='"' read -ra ADDR; do
     counter=0
     for i in "${ADDR[@]}"; do
         if [ $counter == 3 ]
