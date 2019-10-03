@@ -87,6 +87,7 @@ while IFS='"' read -ra ADDR; do
         counter=$(($counter+1))
     done
 done <<< "$version"
+
 # get git branch name-----------
 branch_name="$(git symbolic-ref HEAD 2>/dev/null)" ||
 branch_name="(unnamed branch)"     # detached HEAD
