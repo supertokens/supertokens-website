@@ -3,7 +3,7 @@ let { default: AuthHttpRequest, AntiCsrfToken } = require("../index.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
-let { delay } = require("./utils");
+let { delay, checkIfIdRefreshIsCleared } = require("./utils");
 
 describe("Fetch AuthHttpRequest class tests", function() {
     jsdom({
@@ -173,8 +173,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
-                credentials: "include"
+                body: JSON.stringify({ userId })
             });
             let userIdFromResponse = await loginResponse.text();
             let cookies = loginResponse.headers._headers["set-cookie"];
@@ -218,8 +217,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
-                credentials: "include"
+                body: JSON.stringify({ userId })
             });
             let userIdFromResponse = await loginResponse.text();
             let cookies = loginResponse.headers._headers["set-cookie"];
@@ -265,8 +263,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
-                credentials: "include"
+                body: JSON.stringify({ userId })
             });
             let userIdFromResponse = await loginResponse.text();
             let cookies = loginResponse.headers._headers["set-cookie"];
@@ -309,6 +306,96 @@ describe("Fetch AuthHttpRequest class tests", function() {
             assert.strictEqual(refreshCalled, true);
             assert.strictEqual(noOfTimesRefreshCalledDuringTest, 1);
             assert.strictEqual(endTime - startTime < 6000, true);
+        } finally {
+            httpServer.close();
+        }
+    });
+
+    it("refresh is not called when calling user info before access token expiry", async function() {
+        let httpServer = await Server.createNew(10);
+        try {
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            let userId = "testing-supertokens-website";
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId })
+            });
+            let userIdFromResponse = await loginResponse.text();
+            let cookies = loginResponse.headers._headers["set-cookie"];
+            let sAccessTokenCookieFound = false;
+            let sRefreshTokenCookieFound = false;
+            let sIdRefreshTokenCookieFound = false;
+            assert.strictEqual(Array.isArray(cookies), true);
+            for (let i = 0; i < cookies.length; i++) {
+                if (cookies[i].includes("sAccessToken=")) {
+                    sAccessTokenCookieFound = true;
+                } else if (cookies[i].includes("sRefreshToken")) {
+                    sRefreshTokenCookieFound = true;
+                } else if (cookies[i].includes("sIdRefreshToken")) {
+                    sIdRefreshTokenCookieFound = true;
+                }
+            }
+            if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
+                throw Error("");
+            }
+            assert.strictEqual(userId, userIdFromResponse);
+            let response = await fetch(`${BASE_URL}/`);
+            let responseText = await response.text();
+            assert.strictEqual(responseText, "success");
+            assert.strictEqual(refreshCalled, false);
+            assert.strictEqual(noOfTimesRefreshCalledDuringTest, 0);
+        } finally {
+            httpServer.close();
+        }
+    });
+
+    it("session should not exist after logout is called", async function() {
+        let httpServer = await Server.createNew(10);
+        try {
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            let userId = "testing-supertokens-website";
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId })
+            });
+            let userIdFromResponse = await loginResponse.text();
+            let cookies = loginResponse.headers._headers["set-cookie"];
+            let sAccessTokenCookieFound = false;
+            let sRefreshTokenCookieFound = false;
+            let sIdRefreshTokenCookieFound = false;
+            assert.strictEqual(Array.isArray(cookies), true);
+            for (let i = 0; i < cookies.length; i++) {
+                if (cookies[i].includes("sAccessToken=")) {
+                    sAccessTokenCookieFound = true;
+                } else if (cookies[i].includes("sRefreshToken")) {
+                    sRefreshTokenCookieFound = true;
+                } else if (cookies[i].includes("sIdRefreshToken")) {
+                    sIdRefreshTokenCookieFound = true;
+                }
+            }
+            if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
+                throw Error("");
+            }
+            assert.strictEqual(userId, userIdFromResponse);
+
+            let logoutResponse = await fetch(`${BASE_URL}/logout`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+            let logoutText = await logoutResponse.text();
+            assert.strictEqual(logoutText, "success");
+            assert.strictEqual(checkIfIdRefreshIsCleared(), true);
         } finally {
             httpServer.close();
         }
