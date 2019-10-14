@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter =
     (this && this.__awaiter) ||
     function(thisArg, _arguments, P, generator) {
@@ -126,21 +127,22 @@ var __generator =
             return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
-import Lock from "browser-tabs-lock";
-import AuthHttpRequest, { AntiCsrfToken } from "./";
-import { platform_name, package_version } from "./constants";
+Object.defineProperty(exports, "__esModule", { value: true });
+var browser_tabs_lock_1 = require("browser-tabs-lock");
+var _1 = require("./");
+var constants_1 = require("./constants");
 var ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
+function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function() {
         var lock, postLockID, response, error_1, idCookieValue;
         return __generator(this, function(_a) {
             switch (_a.label) {
                 case 0:
-                    lock = new Lock();
+                    lock = new browser_tabs_lock_1.default();
                     _a.label = 1;
                 case 1:
                     if (!true) return [3 /*break*/, 8];
@@ -160,12 +162,12 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     }
                     return [
                         4 /*yield*/,
-                        AuthHttpRequest.originalFetch(refreshTokenUrl, {
+                        _1.default.originalFetch(refreshTokenUrl, {
                             method: "post",
                             credentials: "include",
                             headers: {
-                                "supertokens-sdk-name": platform_name,
-                                "supertokens-sdk-version": package_version
+                                "supertokens-sdk-name": constants_1.platform_name,
+                                "supertokens-sdk-version": constants_1.package_version
                             }
                         })
                     ];
@@ -180,7 +182,7 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                     }
                     response.headers.forEach(function(value, key) {
                         if (key.toString() === "anti-csrf") {
-                            AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            _1.AntiCsrfToken.setItem(getIDFromCookie(), value);
                         }
                     });
                     return [2 /*return*/, { result: "RETRY" }];
@@ -212,7 +214,8 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
         });
     });
 }
-export function getIDFromCookie() {
+exports.onUnauthorisedResponse = onUnauthorisedResponse;
+function getIDFromCookie() {
     var value = "; " + document.cookie;
     var parts = value.split("; " + ID_COOKIE_NAME + "=");
     if (parts.length === 2) {
@@ -223,3 +226,4 @@ export function getIDFromCookie() {
     }
     return undefined;
 }
+exports.getIDFromCookie = getIDFromCookie;

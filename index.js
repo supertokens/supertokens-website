@@ -1,3 +1,4 @@
+"use strict";
 var __assign =
     (this && this.__assign) ||
     function() {
@@ -141,8 +142,9 @@ var __generator =
         }
     };
 var _this = this;
-import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
+Object.defineProperty(exports, "__esModule", { value: true });
+var handleSessionExp_1 = require("./handleSessionExp");
+var constants_1 = require("./constants");
 var AntiCsrfToken = /** @class */ (function() {
     function AntiCsrfToken() {}
     AntiCsrfToken.getToken = function(associatedIdRefreshToken) {
@@ -183,11 +185,11 @@ var AntiCsrfToken = /** @class */ (function() {
     };
     return AntiCsrfToken;
 })();
-export { AntiCsrfToken };
+exports.AntiCsrfToken = AntiCsrfToken;
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export function handleUnauthorised(refreshAPI, preRequestIdToken) {
+function handleUnauthorised(refreshAPI, preRequestIdToken) {
     return __awaiter(this, void 0, void 0, function() {
         var result;
         return __generator(this, function(_a) {
@@ -199,9 +201,9 @@ export function handleUnauthorised(refreshAPI, preRequestIdToken) {
                         );
                     }
                     if (preRequestIdToken === undefined) {
-                        return [2 /*return*/, getIDFromCookie() !== undefined];
+                        return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
                     }
-                    return [4 /*yield*/, onUnauthorisedResponse(refreshAPI, preRequestIdToken)];
+                    return [4 /*yield*/, handleSessionExp_1.onUnauthorisedResponse(refreshAPI, preRequestIdToken)];
                 case 1:
                     result = _a.sent();
                     if (result.result === "SESSION_EXPIRED") {
@@ -214,7 +216,8 @@ export function handleUnauthorised(refreshAPI, preRequestIdToken) {
         });
     });
 }
-export function getDomainFromUrl(url) {
+exports.handleUnauthorised = handleUnauthorised;
+function getDomainFromUrl(url) {
     if (window.fetch === undefined) {
         // we are testing
         return "http://localhost:8888";
@@ -230,6 +233,7 @@ export function getDomainFromUrl(url) {
         return window.location.origin;
     }
 }
+exports.getDomainFromUrl = getDomainFromUrl;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -306,7 +310,7 @@ var AuthHttpRequest = /** @class */ (function() {
                         _a.label = 3;
                     case 3:
                         if (!true) return [3 /*break*/, 14];
-                        preRequestIdToken = getIDFromCookie();
+                        preRequestIdToken = handleSessionExp_1.getIDFromCookie();
                         antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
                         config = __assign({}, config, { credentials: "include" });
                         configWithAntiCsrf = config;
@@ -325,12 +329,12 @@ var AuthHttpRequest = /** @class */ (function() {
                             headers:
                                 configWithAntiCsrf === undefined
                                     ? {
-                                          "supertokens-sdk-name": platform_name,
-                                          "supertokens-sdk-version": package_version
+                                          "supertokens-sdk-name": constants_1.platform_name,
+                                          "supertokens-sdk-version": constants_1.package_version
                                       }
                                     : __assign({}, configWithAntiCsrf.headers, {
-                                          "supertokens-sdk-name": platform_name,
-                                          "supertokens-sdk-version": package_version
+                                          "supertokens-sdk-name": constants_1.platform_name,
+                                          "supertokens-sdk-version": constants_1.package_version
                                       })
                         });
                         _a.label = 4;
@@ -351,7 +355,7 @@ var AuthHttpRequest = /** @class */ (function() {
                     case 7:
                         response.headers.forEach(function(value, key) {
                             if (key.toString() === "anti-csrf") {
-                                AntiCsrfToken.setItem(getIDFromCookie(), value);
+                                AntiCsrfToken.setItem(handleSessionExp_1.getIDFromCookie(), value);
                             }
                         });
                         return [2 /*return*/, response];
@@ -384,7 +388,7 @@ var AuthHttpRequest = /** @class */ (function() {
                         }
                         return [3 /*break*/, 16];
                     case 15:
-                        if (getIDFromCookie() === undefined) {
+                        if (handleSessionExp_1.getIDFromCookie() === undefined) {
                             AntiCsrfToken.removeToken();
                         }
                         return [7 /*endfinally*/];
@@ -411,12 +415,12 @@ var AuthHttpRequest = /** @class */ (function() {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, , 3, 4]);
-                        preRequestIdToken = getIDFromCookie();
+                        preRequestIdToken = handleSessionExp_1.getIDFromCookie();
                         return [4 /*yield*/, handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
                     case 2:
                         return [2 /*return*/, _a.sent()];
                     case 3:
-                        if (getIDFromCookie() === undefined) {
+                        if (handleSessionExp_1.getIDFromCookie() === undefined) {
                             AntiCsrfToken.removeToken();
                         }
                         return [7 /*endfinally*/];
@@ -498,10 +502,10 @@ var AuthHttpRequest = /** @class */ (function() {
     AuthHttpRequest.sessionPossiblyExists = function() {
         return __awaiter(_this, void 0, void 0, function() {
             return __generator(this, function(_a) {
-                return [2 /*return*/, getIDFromCookie() !== undefined];
+                return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
             });
         });
     };
     return AuthHttpRequest;
 })();
-export default AuthHttpRequest;
+exports.default = AuthHttpRequest;
