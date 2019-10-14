@@ -1,3 +1,4 @@
+"use strict";
 var __assign =
     (this && this.__assign) ||
     function() {
@@ -141,21 +142,22 @@ var __generator =
         }
     };
 var _this = this;
-import axios from "axios";
-import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
-import { getIDFromCookie } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
+Object.defineProperty(exports, "__esModule", { value: true });
+var axios_1 = require("axios");
+var _1 = require(".");
+var handleSessionExp_1 = require("./handleSessionExp");
+var constants_1 = require("./constants");
 function interceptorFunctionRequestFulfilled(config) {
     return __awaiter(this, void 0, void 0, function() {
         var url, preRequestIdToken, antiCsrfToken, configWithAntiCsrf;
         return __generator(this, function(_a) {
             url = config.url;
-            if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+            if (typeof url === "string" && _1.getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
                 // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
                 return [2 /*return*/, config];
             }
-            preRequestIdToken = getIDFromCookie();
-            antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+            preRequestIdToken = handleSessionExp_1.getIDFromCookie();
+            antiCsrfToken = _1.AntiCsrfToken.getToken(preRequestIdToken);
             config = __assign({}, config, { withCredentials: true });
             configWithAntiCsrf = config;
             if (antiCsrfToken !== undefined) {
@@ -173,12 +175,12 @@ function interceptorFunctionRequestFulfilled(config) {
                 headers:
                     configWithAntiCsrf === undefined
                         ? {
-                              "supertokens-sdk-name": platform_name,
-                              "supertokens-sdk-version": package_version
+                              "supertokens-sdk-name": constants_1.platform_name,
+                              "supertokens-sdk-version": constants_1.package_version
                           }
                         : __assign({}, configWithAntiCsrf.headers, {
-                              "supertokens-sdk-name": platform_name,
-                              "supertokens-sdk-version": package_version
+                              "supertokens-sdk-name": constants_1.platform_name,
+                              "supertokens-sdk-version": constants_1.package_version
                           })
             });
             return [2 /*return*/, configWithAntiCsrf];
@@ -192,12 +194,12 @@ function interceptorFunctionRequestFulfilled(config) {
 var AuthHttpRequest = /** @class */ (function() {
     function AuthHttpRequest() {}
     AuthHttpRequest.init = function(refreshTokenUrl, sessionExpiredStatusCode) {
-        FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode);
+        _1.default.init(refreshTokenUrl, sessionExpiredStatusCode);
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
-        AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
+        AuthHttpRequest.apiDomain = _1.getDomainFromUrl(refreshTokenUrl);
         AuthHttpRequest.initCalled = true;
     };
     AuthHttpRequest.sessionExpiredStatusCode = 440;
@@ -236,7 +238,7 @@ var AuthHttpRequest = /** @class */ (function() {
                         if (
                             !(
                                 typeof url === "string" &&
-                                getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
+                                _1.getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
                                 viaInterceptor
                             )
                         )
@@ -257,8 +259,8 @@ var AuthHttpRequest = /** @class */ (function() {
                         _b.label = 3;
                     case 3:
                         if (!true) return [3 /*break*/, 16];
-                        preRequestIdToken = getIDFromCookie();
-                        antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                        preRequestIdToken = handleSessionExp_1.getIDFromCookie();
+                        antiCsrfToken = _1.AntiCsrfToken.getToken(preRequestIdToken);
                         config = __assign({}, config, { withCredentials: true });
                         configWithAntiCsrf = config;
                         if (antiCsrfToken !== undefined) {
@@ -276,12 +278,12 @@ var AuthHttpRequest = /** @class */ (function() {
                             headers:
                                 configWithAntiCsrf === undefined
                                     ? {
-                                          "supertokens-sdk-name": platform_name,
-                                          "supertokens-sdk-version": package_version
+                                          "supertokens-sdk-name": constants_1.platform_name,
+                                          "supertokens-sdk-version": constants_1.package_version
                                       }
                                     : __assign({}, configWithAntiCsrf.headers, {
-                                          "supertokens-sdk-name": platform_name,
-                                          "supertokens-sdk-version": package_version
+                                          "supertokens-sdk-name": constants_1.platform_name,
+                                          "supertokens-sdk-version": constants_1.package_version
                                       })
                         });
                         _b.label = 4;
@@ -305,7 +307,7 @@ var AuthHttpRequest = /** @class */ (function() {
                     case 7:
                         response = _a;
                         if (!(response.status === AuthHttpRequest.sessionExpiredStatusCode)) return [3 /*break*/, 9];
-                        return [4 /*yield*/, handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
+                        return [4 /*yield*/, _1.handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
                     case 8:
                         retry = _b.sent();
                         if (!retry) {
@@ -316,7 +318,7 @@ var AuthHttpRequest = /** @class */ (function() {
                     case 9:
                         antiCsrfToken_1 = response.headers["anti-csrf"];
                         if (antiCsrfToken_1 !== undefined) {
-                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken_1);
+                            _1.AntiCsrfToken.setItem(handleSessionExp_1.getIDFromCookie(), antiCsrfToken_1);
                         }
                         return [2 /*return*/, response];
                     case 10:
@@ -330,7 +332,7 @@ var AuthHttpRequest = /** @class */ (function() {
                             )
                         )
                             return [3 /*break*/, 13];
-                        return [4 /*yield*/, handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
+                        return [4 /*yield*/, _1.handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
                     case 12:
                         retry = _b.sent();
                         if (!retry) {
@@ -354,8 +356,8 @@ var AuthHttpRequest = /** @class */ (function() {
                         }
                         return [3 /*break*/, 18];
                     case 17:
-                        if (getIDFromCookie() === undefined) {
-                            AntiCsrfToken.removeToken();
+                        if (handleSessionExp_1.getIDFromCookie() === undefined) {
+                            _1.AntiCsrfToken.removeToken();
                         }
                         return [7 /*endfinally*/];
                     case 18:
@@ -381,13 +383,13 @@ var AuthHttpRequest = /** @class */ (function() {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, , 3, 4]);
-                        preRequestIdToken = getIDFromCookie();
-                        return [4 /*yield*/, handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
+                        preRequestIdToken = handleSessionExp_1.getIDFromCookie();
+                        return [4 /*yield*/, _1.handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken)];
                     case 2:
                         return [2 /*return*/, _a.sent()];
                     case 3:
-                        if (getIDFromCookie() === undefined) {
-                            AntiCsrfToken.removeToken();
+                        if (handleSessionExp_1.getIDFromCookie() === undefined) {
+                            _1.AntiCsrfToken.removeToken();
                         }
                         return [7 /*endfinally*/];
                     case 4:
@@ -474,7 +476,7 @@ var AuthHttpRequest = /** @class */ (function() {
                             AuthHttpRequest.doRequest(
                                 function(config) {
                                     // we create an instance since we don't want to intercept this.
-                                    var instance = axios.create();
+                                    var instance = axios_1.default.create();
                                     return instance(config);
                                 },
                                 config,
@@ -520,7 +522,7 @@ var AuthHttpRequest = /** @class */ (function() {
                                     AuthHttpRequest.doRequest(
                                         function(config) {
                                             // we create an instance since we don't want to intercept this.
-                                            var instance = axios.create();
+                                            var instance = axios_1.default.create();
                                             return instance(config);
                                         },
                                         config,
@@ -532,13 +534,13 @@ var AuthHttpRequest = /** @class */ (function() {
                             } else {
                                 antiCsrfToken = response.headers["anti-csrf"];
                                 if (antiCsrfToken !== undefined) {
-                                    AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                                    _1.AntiCsrfToken.setItem(handleSessionExp_1.getIDFromCookie(), antiCsrfToken);
                                 }
                                 return [2 /*return*/, response];
                             }
                         } finally {
-                            if (getIDFromCookie() === undefined) {
-                                AntiCsrfToken.removeToken();
+                            if (handleSessionExp_1.getIDFromCookie() === undefined) {
+                                _1.AntiCsrfToken.removeToken();
                             }
                         }
                         return [2 /*return*/];
@@ -563,7 +565,7 @@ var AuthHttpRequest = /** @class */ (function() {
                                     AuthHttpRequest.doRequest(
                                         function(config) {
                                             // we create an instance since we don't want to intercept this.
-                                            var instance = axios.create();
+                                            var instance = axios_1.default.create();
                                             return instance(config);
                                         },
                                         config,
@@ -577,8 +579,8 @@ var AuthHttpRequest = /** @class */ (function() {
                                 return [2 /*return*/, Promise.reject(error)];
                             }
                         } finally {
-                            if (getIDFromCookie() === undefined) {
-                                AntiCsrfToken.removeToken();
+                            if (handleSessionExp_1.getIDFromCookie() === undefined) {
+                                _1.AntiCsrfToken.removeToken();
                             }
                         }
                         return [2 /*return*/];
@@ -590,10 +592,10 @@ var AuthHttpRequest = /** @class */ (function() {
     AuthHttpRequest.sessionPossiblyExists = function() {
         return __awaiter(_this, void 0, void 0, function() {
             return __generator(this, function(_a) {
-                return [2 /*return*/, getIDFromCookie() !== undefined];
+                return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
             });
         });
     };
     return AuthHttpRequest;
 })();
-export default AuthHttpRequest;
+exports.default = AuthHttpRequest;
