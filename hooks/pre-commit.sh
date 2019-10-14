@@ -98,12 +98,21 @@ then
     YELLOW='\033[1;33m'
     NC='\033[0m' # No Color
     printf "${YELLOW}committing to MASTER${NC}\n"
-    exit 0
 elif [[ $version == $branch_name* ]]
 then
-    exit 0
+    continue=1
+else
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    printf "${RED}Pushing to wrong branch. Stopping commit${NC}\n"
+    exit 1
 fi
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-printf "${RED}Pushing to wrong branch. Stopping commit${NC}\n"
-exit 1
+
+npm run pack
+
+if [ $? -ne 0 ]
+then
+    exit 1
+fi
+
+git add bundle/*
