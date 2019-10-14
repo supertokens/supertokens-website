@@ -1,3 +1,6 @@
+#Sync tags with remote
+git fetch --prune --prune-tags
+
 # GET Current Commit Hash -------
 if [ $# -eq 0 ]
 then
