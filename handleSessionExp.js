@@ -128,6 +128,7 @@ var __generator =
     };
 import Lock from "browser-tabs-lock";
 import AuthHttpRequest, { AntiCsrfToken } from "./";
+import { platform_name, package_version } from "./constants";
 var ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -161,7 +162,11 @@ export function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                         4 /*yield*/,
                         AuthHttpRequest.originalFetch(refreshTokenUrl, {
                             method: "post",
-                            credentials: "include"
+                            credentials: "include",
+                            headers: {
+                                "supertokens-sdk-name": platform_name,
+                                "supertokens-sdk-version": package_version
+                            }
                         })
                     ];
                 case 4:

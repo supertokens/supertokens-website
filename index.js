@@ -142,6 +142,7 @@ var __generator =
     };
 var _this = this;
 import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
+import { platform_name, package_version } from "./constants";
 var AntiCsrfToken = /** @class */ (function() {
     function AntiCsrfToken() {}
     AntiCsrfToken.getToken = function(associatedIdRefreshToken) {
@@ -319,6 +320,19 @@ var AuthHttpRequest = /** @class */ (function() {
                                         : __assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
                             });
                         }
+                        // Add package info to headers
+                        configWithAntiCsrf = __assign({}, configWithAntiCsrf, {
+                            headers:
+                                configWithAntiCsrf === undefined
+                                    ? {
+                                          "supertokens-sdk-name": platform_name,
+                                          "supertokens-sdk-version": package_version
+                                      }
+                                    : __assign({}, configWithAntiCsrf.headers, {
+                                          "supertokens-sdk-name": platform_name,
+                                          "supertokens-sdk-version": package_version
+                                      })
+                        });
                         _a.label = 4;
                     case 4:
                         _a.trys.push([4, 9, , 13]);

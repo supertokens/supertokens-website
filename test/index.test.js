@@ -311,7 +311,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh is not called when calling user info before access token expiry", async function() {
+    it("refresh is not called when calling main api before access token expiry", async function() {
         let httpServer = await Server.createNew(10);
         try {
             AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
@@ -396,6 +396,133 @@ describe("Fetch AuthHttpRequest class tests", function() {
             let logoutText = await logoutResponse.text();
             assert.strictEqual(logoutText, "success");
             assert.strictEqual(checkIfIdRefreshIsCleared(), true);
+        } finally {
+            httpServer.close();
+        }
+    });
+
+    it("test that apis that dont require authentication work after logout", async function() {
+        let httpServer = await Server.createNew(10);
+        try {
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            let userId = "testing-supertokens-website";
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId })
+            });
+            let userIdFromResponse = await loginResponse.text();
+            let cookies = loginResponse.headers._headers["set-cookie"];
+            let sAccessTokenCookieFound = false;
+            let sRefreshTokenCookieFound = false;
+            let sIdRefreshTokenCookieFound = false;
+            assert.strictEqual(Array.isArray(cookies), true);
+            for (let i = 0; i < cookies.length; i++) {
+                if (cookies[i].includes("sAccessToken=")) {
+                    sAccessTokenCookieFound = true;
+                } else if (cookies[i].includes("sRefreshToken")) {
+                    sRefreshTokenCookieFound = true;
+                } else if (cookies[i].includes("sIdRefreshToken")) {
+                    sIdRefreshTokenCookieFound = true;
+                }
+            }
+            if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
+                throw Error("");
+            }
+            assert.strictEqual(userId, userIdFromResponse);
+
+            let logoutResponse = await fetch(`${BASE_URL}/logout`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+            let logoutText = await logoutResponse.text();
+            assert.strictEqual(logoutText, "success");
+
+            let pingResponse = await fetch(`${BASE_URL}/ping`);
+            let pingText = await pingResponse.text();
+            assert.strictEqual(pingText, "success");
+        } finally {
+            httpServer.close();
+        }
+    });
+
+    it("test that user info after logout returns session expired", async function() {
+        let httpServer = await Server.createNew(10);
+        try {
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            let userId = "testing-supertokens-website";
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId })
+            });
+            let userIdFromResponse = await loginResponse.text();
+            let cookies = loginResponse.headers._headers["set-cookie"];
+            let sAccessTokenCookieFound = false;
+            let sRefreshTokenCookieFound = false;
+            let sIdRefreshTokenCookieFound = false;
+            assert.strictEqual(Array.isArray(cookies), true);
+            for (let i = 0; i < cookies.length; i++) {
+                if (cookies[i].includes("sAccessToken=")) {
+                    sAccessTokenCookieFound = true;
+                } else if (cookies[i].includes("sRefreshToken")) {
+                    sRefreshTokenCookieFound = true;
+                } else if (cookies[i].includes("sIdRefreshToken")) {
+                    sIdRefreshTokenCookieFound = true;
+                }
+            }
+            if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
+                throw Error("");
+            }
+            assert.strictEqual(userId, userIdFromResponse);
+
+            let logoutResponse = await fetch(`${BASE_URL}/logout`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+            let logoutText = await logoutResponse.text();
+            assert.strictEqual(logoutText, "success");
+
+            let failed = false;
+            try {
+                await fetch(`${BASE_URL}/`);
+                failed = true;
+            } catch (e) {
+                if (e.status === undefined || e.status !== 440) {
+                    failed = true;
+                }
+            }
+
+            assert.strictEqual(failed, false);
+        } finally {
+            httpServer.close();
+        }
+    });
+
+    it("test that custom headers are being sent", async function() {
+        let httpServer = await Server.createNew(10);
+        try {
+            AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
+            let response = await fetch(`${BASE_URL}/testHeader`, {
+                headers: {
+                    "st-custom-header": "st"
+                }
+            });
+            let responseText = await response.text();
+            let responseJSON = JSON.parse(responseText);
+            assert.strictEqual(responseJSON.success, true);
         } finally {
             httpServer.close();
         }

@@ -122,6 +122,23 @@ class Server {
             res.send("success");
         });
 
+        app.get("/ping", async (req, res) => {
+            res.send("success");
+        });
+
+        app.get("/testHeader", async (req, res) => {
+            let testHeader = req.headers["st-custom-header"];
+            let success = true;
+            if (testHeader === undefined) {
+                success = false;
+            }
+            let data = {
+                success
+            };
+
+            res.send(JSON.stringify(data));
+        });
+
         app.use("*", async (req, res, next) => {
             res.status(404).send();
         });
