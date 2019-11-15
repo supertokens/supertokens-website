@@ -121,12 +121,21 @@ then
 elif [[ $version == $branch_name* ]]
 then
     continue=1
+elif ! [[ $branch_name* =~ ^[0-9].[0-9]$ ]]
+then
+    YELLOW='\033[1;33m'
+    NC='\033[0m' # No Color
+    printf "${YELLOW}Not committing to master or version branches${NC}\n"
 else
     RED='\033[0;31m'
     NC='\033[0m' # No Color
     printf "${RED}Pushing to wrong branch. Stopping commit${NC}\n"
     exit 1
 fi
+
+# Delete existing bundle
+rm -rf bundle
+git add bundle
 
 npm run pack
 

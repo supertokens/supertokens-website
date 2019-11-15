@@ -1,6 +1,7 @@
 ![SuperTokens banner](https://raw.githubusercontent.com/supertokens/supertokens-logo/master/images/Artboard%20%E2%80%93%2027%402x.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/supertokens-website/blob/master/LICENSE)
+[![Slack](https://img.shields.io/badge/slack-chat-brightgreen?logo=slack)](https://join.slack.com/t/webmobilesecurity/shared_invite/enQtODM4MDM2MTQ1MDYyLTFiNmNhYzRlNGNjODhkNjc5MDRlYTBmZTBiNjFhOTFhYjI1MTc3ZWI2ZjY3Y2M3ZjY1MGJhZmRiNDFjNDNjOTM)
 
 **Master**
 [![CircleCI](https://circleci.com/gh/supertokens/supertokens-website.svg?style=svg)](https://circleci.com/gh/supertokens/supertokens-website)

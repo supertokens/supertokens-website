@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "3.2.4",
+  "version": "3.2.6",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -37,7 +37,8 @@
     "pretty-check": "npx prettier --check --config .prettierrc \"*.ts\" \"*.js\" \"test/**/*.js\"",
     "build-pretty": "npm run build && npm run pretty",
     "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "pack": "./node_modules/.bin/webpack -p"
+    "pack": "./node_modules/.bin/webpack -p",
+    "postinstall": "npm run set-up-hooks"
   },
   "repository": {
     "type": "git",
