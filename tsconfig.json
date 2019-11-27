@@ -6,7 +6,8 @@
         "strictNullChecks": true,
         "noImplicitThis": true,
         "module": "commonJS",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "declaration": true
     },
     "compileOnSave": true
 }
