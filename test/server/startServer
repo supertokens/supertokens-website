@@ -1,0 +1,2 @@
+# use: ./startServer ../../../com-root
+TEST_MODE=testing INSTALL_PATH=$1 node .
