@@ -8,10 +8,7 @@ export declare class AntiCsrfToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(
-    refreshAPI: string | undefined,
-    preRequestIdToken: string | undefined
-): Promise<boolean>;
+export declare function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean>;
 export declare function getDomainFromUrl(url: string): string;
 /**
  * @class AuthHttpRequest

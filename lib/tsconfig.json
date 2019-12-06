@@ -6,6 +6,7 @@
         "strictNullChecks": true,
         "noImplicitThis": true,
         "module": "commonJS",
+        "outDir": "build",
         "moduleResolution": "node",
         "declaration": true
     },

@@ -1,26 +1,9 @@
-![SuperTokens banner](https://raw.githubusercontent.com/supertokens/supertokens-logo/master/images/Artboard%20%E2%80%93%2027%402x.png)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/supertokens/supertokens-website/blob/master/LICENSE)
-<a href="https://supertokens.io/discord">
-        <img src="https://img.shields.io/discord/603466164219281420.svg?logo=discord"
-            alt="chat on Discord"></a>
-[![Slack](https://img.shields.io/badge/slack-chat-brightgreen?logo=slack)](https://join.slack.com/t/webmobilesecurity/shared_invite/enQtODM4MDM2MTQ1MDYyLTFiNmNhYzRlNGNjODhkNjc5MDRlYTBmZTBiNjFhOTFhYjI1MTc3ZWI2ZjY3Y2M3ZjY1MGJhZmRiNDFjNDNjOTM)
-
-**Master**
-[![CircleCI](https://circleci.com/gh/supertokens/supertokens-website.svg?style=svg)](https://circleci.com/gh/supertokens/supertokens-website)
-**Dev**
-[![CircleCI](https://circleci.com/gh/supertokens/supertokens-website/tree/dev.svg?style=svg)](https://circleci.com/gh/supertokens/supertokens-website/tree/dev)
-
-## Documentation
-Please see our [Documentation website](https://supertokens.github.io/supertokens-website/)
-
-## Making changes
-This library is written in TypeScript (TS). When you make any changes to the .ts files in the root folder, run the following command to compile to .js:
-```bash
-tsc -p tsconfig.json
-```
-## Support, questions and bugs
-For now, we are most reachable via team@supertokens.io, via the GitHub issues feature and our [Discord server](https://supertokens.io/discord).
-
-## Authors
-Created with :heart: by the folks at SuperTokens. We are a startup passionate about security and solving software challenges in a way that's helpful for everyone! Please feel free to give us feedback at team@supertokens.io, until our website is ready :grinning:
+Under construction:
+TODO:
+- .github folder -> pull requests & issues
+- actual code changes
+- local and CICD tests
+- license
+- contributing guide
+- README actual content here
+- testing of addDevTag and addReleaseTag

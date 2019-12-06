@@ -4,3 +4,5 @@ package-lock.json
 /.history
 .vscode
 coverage
+apiPassword
+releasePassword

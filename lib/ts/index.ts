@@ -1,5 +1,5 @@
 import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
+import { package_version } from "./version";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -182,12 +182,12 @@ export default class AuthHttpRequest {
                     headers:
                         configWithAntiCsrf === undefined
                             ? {
-                                  "supertokens-sdk-name": platform_name,
+                                  "supertokens-sdk-name": "website",
                                   "supertokens-sdk-version": package_version
                               }
                             : {
                                   ...configWithAntiCsrf.headers,
-                                  "supertokens-sdk-name": platform_name,
+                                  "supertokens-sdk-name": "website",
                                   "supertokens-sdk-version": package_version
                               }
                 };

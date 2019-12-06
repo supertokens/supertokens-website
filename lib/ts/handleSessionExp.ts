@@ -1,7 +1,7 @@
 import Lock from "browser-tabs-lock";
 
 import AuthHttpRequest, { AntiCsrfToken } from "./";
-import { platform_name, package_version } from "./constants";
+import { package_version } from "./version";
 
 const ID_COOKIE_NAME = "sIdRefreshToken";
 
@@ -30,7 +30,7 @@ export async function onUnauthorisedResponse(
                     method: "post",
                     credentials: "include",
                     headers: {
-                        "supertokens-sdk-name": platform_name,
+                        "supertokens-sdk-name": "website",
                         "supertokens-sdk-version": package_version
                     }
                 });

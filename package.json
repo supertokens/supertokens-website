@@ -1,8 +1,8 @@
 {
   "name": "supertokens-website",
-  "version": "3.2.7",
+  "version": "4.0.0",
   "description": "frontend sdk for website to be used for auth solution.",
-  "main": "index.js",
+  "main": "lib/build/index.js",
   "dependencies": {
     "browser-tabs-lock": "^1.1.4"
   },
@@ -31,11 +31,11 @@
   },
   "scripts": {
     "test": "TEST_MODE=testing npx mocha",
-    "build": "npx tsc -p tsconfig.json",
-    "build-check": "npx tsc -p tsconfig.json --noEmit",
-    "pretty": "npx prettier --write --config .prettierrc \"*.ts\" \"*.js\" \"test/**/*.js\"",
-    "pretty-check": "npx prettier --check --config .prettierrc \"*.ts\" \"*.js\" \"test/**/*.js\"",
+    "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",
+    "build": "cd lib && npx tsc -p tsconfig.json",
+    "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "build-pretty": "npm run build && npm run pretty",
+    "pretty-check": "cd lib && npx prettier --check --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "pack": "./node_modules/.bin/webpack -p"
   },

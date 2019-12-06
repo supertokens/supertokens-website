@@ -2,7 +2,7 @@ import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
+import { package_version } from "./version";
 
 async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = config.url;
@@ -38,12 +38,12 @@ async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      "supertokens-sdk-name": platform_name,
+                      "supertokens-sdk-name": "website",
                       "supertokens-sdk-version": package_version
                   }
                 : {
                       ...configWithAntiCsrf.headers,
-                      "supertokens-sdk-name": platform_name,
+                      "supertokens-sdk-name": "website",
                       "supertokens-sdk-version": package_version
                   }
     };
@@ -130,12 +130,12 @@ export default class AuthHttpRequest {
                     headers:
                         configWithAntiCsrf === undefined
                             ? {
-                                  "supertokens-sdk-name": platform_name,
+                                  "supertokens-sdk-name": "website",
                                   "supertokens-sdk-version": package_version
                               }
                             : {
                                   ...configWithAntiCsrf.headers,
-                                  "supertokens-sdk-name": platform_name,
+                                  "supertokens-sdk-name": "website",
                                   "supertokens-sdk-version": package_version
                               }
                 };
