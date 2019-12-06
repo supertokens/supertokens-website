@@ -1,8 +1,8 @@
 import axios from "axios";
 
 let jsdom = require("mocha-jsdom");
-let { AntiCsrfToken } = require("../index.js");
-let { default: AuthHttpRequest } = require("../axios.js");
+let { AntiCsrfToken } = require("../lib/build/index.js");
+let { default: AuthHttpRequest } = require("../lib/build/axios.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";

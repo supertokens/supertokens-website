@@ -1,5 +1,5 @@
 let jsdom = require("mocha-jsdom");
-let { default: AuthHttpRequest, AntiCsrfToken } = require("../index.js");
+let { default: AuthHttpRequest, AntiCsrfToken } = require("../lib/build/index.js");
 let assert = require("assert");
 let Server = require("./server");
 const BASE_URL = "http://localhost:8888";
