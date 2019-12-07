@@ -56,15 +56,16 @@ export class AntiCsrfToken {
  */
 export async function handleUnauthorised(
     refreshAPI: string | undefined,
-    preRequestIdToken: string | undefined
+    preRequestIdToken: string | undefined,
+    websiteRootDomain: string
 ): Promise<boolean> {
     if (refreshAPI === undefined) {
-        throw Error("Please define refresh token API: AuthHttpRequest.init(<PATH HERE>, unauthorised status code)");
+        throw Error("Please define refresh token API in the init function");
     }
     if (preRequestIdToken === undefined) {
         return getIDFromCookie() !== undefined;
     }
-    let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken);
+    let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken, websiteRootDomain);
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
@@ -99,8 +100,14 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     private static apiDomain = "";
     private static viaInterceptor: boolean | undefined;
+    private static websiteRootDomain: string;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean) {
+    static init(
+        refreshTokenUrl: string,
+        sessionExpiredStatusCode?: number,
+        viaInterceptor?: boolean,
+        websiteRootDomain?: string
+    ) {
         if (viaInterceptor === undefined) {
             if (AuthHttpRequest.viaInterceptor === undefined) {
                 viaInterceptor = false;
@@ -109,6 +116,8 @@ export default class AuthHttpRequest {
             }
         }
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
+        AuthHttpRequest.websiteRootDomain =
+            websiteRootDomain === undefined ? window.location.hostname : websiteRootDomain;
         if (sessionExpiredStatusCode !== undefined) {
             AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         }
@@ -194,7 +203,11 @@ export default class AuthHttpRequest {
                 try {
                     let response = await httpCall(configWithAntiCsrf);
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
+                        let retry = await handleUnauthorised(
+                            AuthHttpRequest.refreshTokenUrl,
+                            preRequestIdToken,
+                            AuthHttpRequest.websiteRootDomain
+                        );
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -209,7 +222,11 @@ export default class AuthHttpRequest {
                     }
                 } catch (err) {
                     if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
+                        let retry = await handleUnauthorised(
+                            AuthHttpRequest.refreshTokenUrl,
+                            preRequestIdToken,
+                            AuthHttpRequest.websiteRootDomain
+                        );
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
@@ -244,7 +261,11 @@ export default class AuthHttpRequest {
         }
         try {
             const preRequestIdToken = getIDFromCookie();
-            return await handleUnauthorised(AuthHttpRequest.refreshTokenUrl, preRequestIdToken);
+            return await handleUnauthorised(
+                AuthHttpRequest.refreshTokenUrl,
+                preRequestIdToken,
+                AuthHttpRequest.websiteRootDomain
+            );
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();

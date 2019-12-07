@@ -1,3 +1,5 @@
+import axios from "axios";
+
 module.exports.delay = function(sec) {
     return new Promise(res => setTimeout(res, sec * 1000));
 };
@@ -21,4 +23,16 @@ module.exports.checkIfIdRefreshIsCleared = function() {
             }
         }
     }
+};
+
+module.exports.getNumberOfTimesRefreshCalled = async function() {
+    let instance = axios.create();
+    let response = await instance.get("http://localhost:8080/refreshCalledTime");
+    return response.data;
+};
+
+module.exports.startST = async function() {
+    let instance = axios.create();
+    let response = await instance.post("http://localhost:8080/startST");
+    return response.data;
 };

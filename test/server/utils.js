@@ -1,7 +1,7 @@
 const { exec } = require("child_process");
 let { HandshakeInfo } = require("supertokens-node/lib/build/handshakeInfo");
 let { DeviceInfo } = require("supertokens-node/lib/build/deviceInfo");
-let { Querier } = require("supertokens-node/lib/build/querier");
+let fs = require("fs");
 
 module.exports.executeCommand = async function(cmd) {
     return new Promise((resolve, reject) => {
@@ -21,6 +21,28 @@ module.exports.setupST = async function() {
     await module.exports.executeCommand("cd " + installationPath + " && cp temp/config.yaml ./config.yaml");
 };
 
+module.exports.setKeyValueInConfig = async function(key, value) {
+    return new Promise((resolve, reject) => {
+        let installationPath = process.env.INSTALL_PATH;
+        fs.readFile(installationPath + "/config.yaml", "utf8", function(err, data) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            let oldStr = new RegExp("((#\\s)?)" + key + "(:|((:\\s).+))\n");
+            let newStr = key + ": " + value + "\n";
+            let result = data.replace(oldStr, newStr);
+            fs.writeFile(installationPath + "/config.yaml", result, "utf8", function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    });
+};
+
 module.exports.cleanST = async function() {
     let installationPath = process.env.INSTALL_PATH;
     await module.exports.executeCommand("cd " + installationPath + " && rm licenseKey");
@@ -38,7 +60,7 @@ module.exports.stopST = async function(pid) {
     startTime = Date.now();
     while (Date.now() - startTime < 10000) {
         let pidsAfter = await getListOfPids();
-        if (pidsAfter.length !== pidsBefore.length - 1) {
+        if (pidsAfter.includes(pid)) {
             await new Promise(r => setTimeout(r, 100));
             continue;
         } else {
@@ -55,7 +77,6 @@ module.exports.killAllST = async function() {
     }
     HandshakeInfo.reset();
     DeviceInfo.reset();
-    Querier.reset();
 };
 
 module.exports.startST = async function(host = "localhost", port = 8081) {

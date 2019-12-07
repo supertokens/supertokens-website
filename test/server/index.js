@@ -3,7 +3,7 @@ let express = require("express");
 let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
 let http = require("http");
-let { startST, stopST, killAllST, setupST, cleanST } = require("./utils");
+let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = require("./utils");
 
 let noOfTimesRefreshCalledDuringTest = 0;
 
@@ -24,26 +24,20 @@ SuperTokens.init([
 
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
-    await SuperTokens.createNewSession(res, userId);
-    res.send(userId);
+    let session = await SuperTokens.createNewSession(res, userId);
+    res.send(session.userId);
 });
 
 app.post("/startst", async (req, res) => {
-    try {
-        let pid = await startST();
-        res.send(pid);
-    } catch (err) {
-        console.log(err);
-    }
+    let pid = await startST();
+    res.send(pid);
 });
 
 app.post("/beforeeach", async (req, res) => {
-    try {
-        await killAllST();
-        await setupST();
-    } catch (err) {
-        console.log(err);
-    }
+    noOfTimesRefreshCalledDuringTest = 0;
+    await killAllST();
+    await setupST();
+    await setKeyValueInConfig("cookie_domain", '"localhost"');
     res.send();
 });
 
@@ -63,6 +57,7 @@ app.get("/", async (req, res) => {
         await SuperTokens.getSession(req, res, true);
         res.send("success");
     } catch (err) {
+        console.log(err);
         res.status(440).send();
     }
 });
@@ -109,7 +104,7 @@ app.post("/refresh", async (req, res) => {
 });
 
 app.get("/refreshCalledTime", async (req, res) => {
-    res.send(noOfTimesRefreshCalledDuringTest);
+    res.status(200).send("" + noOfTimesRefreshCalledDuringTest);
 });
 
 app.get("/ping", async (req, res) => {

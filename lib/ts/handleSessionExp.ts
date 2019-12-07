@@ -11,7 +11,8 @@ const ID_COOKIE_NAME = "sIdRefreshToken";
  */
 export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
-    preRequestIdToken: string
+    preRequestIdToken: string,
+    websiteRootDomain: string
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -34,6 +35,10 @@ export async function onUnauthorisedResponse(
                         "supertokens-sdk-version": package_version
                     }
                 });
+                let idRefreshToken = response.headers["id-refresh-token"];
+                if (idRefreshToken !== undefined) {
+                    setIDToCookie(idRefreshToken, websiteRootDomain);
+                }
                 if (response.status !== 200) {
                     throw response;
                 }
@@ -80,4 +85,11 @@ export function getIDFromCookie(): string | undefined {
         }
     }
     return undefined;
+}
+
+export function setIDToCookie(idRefreshToken: string, domain: string) {
+    let splitted = idRefreshToken.split(";");
+    let cookieVal = splitted[0];
+    let expires = new Date(Number(splitted[1])).toUTCString();
+    document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain}`;
 }

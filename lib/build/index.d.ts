@@ -8,7 +8,7 @@ export declare class AntiCsrfToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined): Promise<boolean>;
+export declare function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined, websiteRootDomain: string): Promise<boolean>;
 export declare function getDomainFromUrl(url: string): string;
 /**
  * @class AuthHttpRequest
@@ -21,7 +21,8 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     private static apiDomain;
     private static viaInterceptor;
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean): void;
+    private static websiteRootDomain;
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean, websiteRootDomain?: string): void;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
