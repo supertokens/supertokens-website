@@ -19,7 +19,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     before(async function() {
-        spawn("./test/startServer", ["../../" + process.env.INSTALL_PATH]);
+        spawn("./test/startServer", [process.env.INSTALL_PATH]);
         await new Promise(r => setTimeout(r, 1000));
     });
 

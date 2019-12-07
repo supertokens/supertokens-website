@@ -1,2 +1,2 @@
 # use: ./startServer ../../../com-root
-(cd test/server && TEST_MODE=testing INSTALL_PATH=$1 node .)
+(cd test/server && TEST_MODE=testing INSTALL_PATH=../../$1 node .)
