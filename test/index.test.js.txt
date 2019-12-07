@@ -1,4 +1,4 @@
-import axios from "axios";
+let axios = require('axios');
 
 let jsdom = require("mocha-jsdom");
 let { default: AuthHttpRequest, AntiCsrfToken } = require("../lib/build/index.js");

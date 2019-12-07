@@ -1,5 +1,5 @@
-import SuperTokensFetch from "./index";
+import SuperTokensFetch from ".";
 import SuperTokensAxios from "./axios";
-declare var fetch: typeof SuperTokensFetch;
-declare var axios: typeof SuperTokensAxios;
+declare let fetch: typeof SuperTokensFetch;
+declare let axios: typeof SuperTokensAxios;
 export { fetch, axios };

@@ -18,19 +18,25 @@ app.use(cookieParser());
 SuperTokens.init([
     {
         hostname: "localhost",
-        port: 8081
+        port: 9000
     }
 ]);
 
 app.post("/login", async (req, res) => {
-    let userId = req.body.userId;
-    let session = await SuperTokens.createNewSession(res, userId);
-    res.send(session.userId);
+    try {
+        let userId = req.body.userId;
+        let session = await SuperTokens.createNewSession(res, userId);
+        res.send(session.userId);
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 app.post("/startst", async (req, res) => {
+    let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
+    await setKeyValueInConfig("access_token_validity", accessTokenValidity);
     let pid = await startST();
-    res.send(pid);
+    res.send(pid + "");
 });
 
 app.post("/beforeeach", async (req, res) => {
@@ -38,6 +44,7 @@ app.post("/beforeeach", async (req, res) => {
     await killAllST();
     await setupST();
     await setKeyValueInConfig("cookie_domain", '"localhost"');
+    await setKeyValueInConfig("cookie_secure", "false");
     res.send();
 });
 
@@ -57,7 +64,6 @@ app.get("/", async (req, res) => {
         await SuperTokens.getSession(req, res, true);
         res.send("success");
     } catch (err) {
-        console.log(err);
         res.status(440).send();
     }
 });
@@ -121,6 +127,10 @@ app.get("/testHeader", async (req, res) => {
         success
     };
     res.send(JSON.stringify(data));
+});
+
+app.get("/index", (req, res) => {
+    res.sendFile("index.html", { root: __dirname });
 });
 
 app.use("*", async (req, res, next) => {

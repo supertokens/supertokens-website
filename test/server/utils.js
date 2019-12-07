@@ -79,7 +79,7 @@ module.exports.killAllST = async function() {
     DeviceInfo.reset();
 };
 
-module.exports.startST = async function(host = "localhost", port = 8081) {
+module.exports.startST = async function(host = "localhost", port = 9000) {
     return new Promise(async (resolve, reject) => {
         let installationPath = process.env.INSTALL_PATH;
         let pidsBefore = await getListOfPids();
@@ -129,7 +129,7 @@ module.exports.startST = async function(host = "localhost", port = 8081) {
 async function getListOfPids() {
     let installationPath = process.env.INSTALL_PATH;
     try {
-        await module.exports.executeCommand("cd " + installationPath + " && ls .started/");
+        (await module.exports.executeCommand("cd " + installationPath + " && ls .started/")).stdout;
     } catch (err) {
         return [];
     }

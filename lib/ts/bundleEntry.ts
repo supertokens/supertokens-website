@@ -1,7 +1,7 @@
-import SuperTokensFetch from "./index";
+import SuperTokensFetch from ".";
 import SuperTokensAxios from "./axios";
 
-var fetch = SuperTokensFetch;
-var axios = SuperTokensAxios;
+let fetch = SuperTokensFetch;
+let axios = SuperTokensAxios;
 
 export { fetch, axios };
