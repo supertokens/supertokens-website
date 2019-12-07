@@ -6,6 +6,7 @@ let { AntiCsrfToken } = require("../lib/build/index.js");
 let { default: AuthHttpRequest } = require("../lib/build/axios.js");
 let assert = require("assert");
 let { delay, checkIfIdRefreshIsCleared, getNumberOfTimesRefreshCalled, startST } = require("./utils");
+const { spawn } = require("child_process");
 
 const BASE_URL = "http://localhost:8080";
 AuthHttpRequest.makeSuper(axios);
@@ -17,9 +18,17 @@ describe("Axios AuthHttpRequest class tests", function() {
         url: "http://localhost"
     });
 
+    before(async function() {
+        spawn("./test/startServer", ["../../" + process.env.INSTALL_PATH]);
+        await new Promise(r => setTimeout(r, 1000));
+    });
+
     after(async function() {
         let instance = axios.create();
         await instance.post(BASE_URL + "/after");
+        try {
+            await instance.get(BASE_URL + "/stop");
+        } catch (err) {}
     });
 
     beforeEach(async function() {

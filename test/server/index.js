@@ -133,6 +133,10 @@ app.get("/index", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
 
+app.get("/stop", async (req, res) => {
+    process.exit();
+});
+
 app.use("*", async (req, res, next) => {
     res.status(404).send();
 });
