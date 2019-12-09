@@ -11,11 +11,9 @@ jobs:
     docker:
       - image: rishabhpoddar/node-mysql-git
     steps:
-      - run: (cd / && ./runMySQL.sh)
-      - run: mysql -u root --password=root -e "CREATE DATABASE auth_session;"
       - checkout
-      - run: npm install -d
-      - run: npm test
+      - run: npm i -d
+      - run: (cd .circleci/ && ./doTests.sh)
 
 workflows:
   version: 2
@@ -29,7 +27,6 @@ workflows:
               ignore: /.*/
       - test:
           filters:
-            tags:
-              only: /dev-v[0-9]+(\.[0-9]+)*/
             branches:
-              ignore: /.*/
+              only:
+                - "4.0"

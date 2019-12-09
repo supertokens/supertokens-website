@@ -7,6 +7,7 @@ const BASE_URL = "http://localhost:8080";
 let { delay, checkIfIdRefreshIsCleared } = require("./utils");
 
 // TODO: also test bundle using puppiteer... + device info
+// TODO: check that "updating" idRefreshTokens works.. and it's removed in time etc etc..
 
 describe("Fetch AuthHttpRequest class tests", function() {
     jsdom({
