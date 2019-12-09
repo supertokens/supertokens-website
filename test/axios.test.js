@@ -219,26 +219,35 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             console.log("page loaded: " + Date.now());
+            await page.on("console", msg => console.log(msg, Date.now()));
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
-                supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
-                let userId = "testing-supertokens-website";
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                let userIdFromResponse = loginResponse.data;
-                assertEqual(userId, userIdFromResponse);
-                await delay(3);
+                try {
+                    let BASE_URL = "http://localhost:8080";
+                    supertokens.axios.makeSuper(axios);
+                    console.log("initiates axios");
+                    supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                    let userId = "testing-supertokens-website";
+                    let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    console.log("login API result obtained");
+                    let userIdFromResponse = loginResponse.data;
+                    assertEqual(userId, userIdFromResponse);
+                    await delay(3);
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-                getResponse = await getResponse.data;
-                assertEqual(getResponse, "success");
+                    assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                    console.log("twoooooo");
+                    let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
+                    assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                    console.log("threeeeee");
+                    getResponse = await getResponse.data;
+                    assertEqual(getResponse, "success");
+                } catch (err) {
+                    console.log(err);
+                }
             });
         } finally {
             await browser.close();
