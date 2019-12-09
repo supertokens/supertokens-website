@@ -208,7 +208,9 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("refresh session", async function() {
+        console.log("starting test: " + Date.now());
         await startST();
+        console.log("started ST: " + Date.now());
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -216,7 +218,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-
+            console.log("page loaded: " + Date.now());
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
