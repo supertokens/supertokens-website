@@ -85,7 +85,7 @@ while [ $i -lt $frontendDriverLength ]; do
     coreCommercial=$(echo $coreCommercial | jq .core | tr -d '"')
 
     someTestsRan=true
-    ./setupAndTestWithCommercialCore.sh $coreCommercial $driverVersion $driverTag
+    ./setupAndTestWithCommercialCore.sh $coreCommercial $driverTag
     if [[ $? -ne 0 ]]
     then
         echo "test failed... exiting!"
