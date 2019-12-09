@@ -71,6 +71,6 @@ echo $SUPERTOKENS_API_KEY > apiPassword
 ./utils/setupTestEnvLocal
 cd ../project/test/server/
 npm i -d
-npm i git@github.com:supertokens/supertokens-node.git#$2
+npm i git+https://github.com:supertokens/supertokens-node.git#$2
 cd ../../
 INSTALL_PATH=../com-root npm test
