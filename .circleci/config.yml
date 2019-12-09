@@ -9,7 +9,7 @@ jobs:
       - run: npm publish
   test:
     docker:
-      - image: rishabhpoddar/node-mysql-git
+      - image: rishabhpoddar/supertokens_website_sdk_testing
     steps:
       - checkout
       - run: npm i -d
