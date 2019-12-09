@@ -51,7 +51,7 @@ fi
 pluginTag=$(echo $pluginInfo | jq .tag | tr -d '"')
 pluginVersion=$(echo $pluginInfo | jq .version | tr -d '"')
 
-echo "Testing with COMMERCIAL core: $coreVersion, plugin-interface: $pluginInterfaceVersion, mysql plugin: $pluginVersion"
+echo "Testing with node driver: $2, COMMERCIAL core: $coreVersion, plugin-interface: $pluginInterfaceVersion, mysql plugin: $pluginVersion"
 
 (cd / && ./runMySQL.sh)
 mysql -u root --password=root -e "CREATE DATABASE auth_session;"
@@ -72,5 +72,5 @@ echo $SUPERTOKENS_API_KEY > apiPassword
 cd ../project/test/server/
 npm i -d
 npm i git+https://github.com:supertokens/supertokens-node.git#$2
-cd ../../
+cd ../../.circleci
 INSTALL_PATH=../com-root npm test
