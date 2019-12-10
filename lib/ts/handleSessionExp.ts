@@ -88,12 +88,12 @@ export function getIDFromCookie(): string | undefined {
 }
 
 export function setIDToCookie(idRefreshToken: string, domain: string) {
-    if (idRefreshToken === "remove") {
-        document.cookie = ID_COOKIE_NAME + "=;expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        return;
+    let expires = "Thu, 01 Jan 1970 00:00:01 GMT";
+    let cookieVal = "";
+    if (idRefreshToken !== "remove") {
+        let splitted = idRefreshToken.split(";");
+        cookieVal = splitted[0];
+        expires = new Date(Number(splitted[1])).toUTCString();
     }
-    let splitted = idRefreshToken.split(";");
-    let cookieVal = splitted[0];
-    let expires = new Date(Number(splitted[1])).toUTCString();
     document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain}`;
 }
