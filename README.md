@@ -2,7 +2,7 @@ Under construction:
 TODO:
 - .github folder -> pull requests & issues
 - actual code changes
-- local and CICD tests
+- add tests
 - license
 - contributing guide
 - README actual content here
