@@ -53,8 +53,6 @@ pluginVersion=$(echo $pluginInfo | jq .version | tr -d '"')
 
 echo "Testing with node driver: $2, COMMERCIAL core: $coreVersion, plugin-interface: $pluginInterfaceVersion, mysql plugin: $pluginVersion"
 
-(cd / && ./runMySQL.sh)
-mysql -u root --password=root -e "CREATE DATABASE auth_session;"
 cd ../../
 git clone git@bitbucket.org:vrai-labs/com-root.git
 cd com-root
