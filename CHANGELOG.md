@@ -32,3 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - handling of anti-csrf token
 - package testing
+
+## [3.2.8] - 2019-12-14
+### Changed
+- changes sessionPossiblyExists to be non async. Credit @eweitnauer for finding this bug.

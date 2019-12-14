@@ -1,8 +1,8 @@
 import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
+import { package_version, platform_name } from "./constants";
 import { getIDFromCookie } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
 
 async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = config.url;
@@ -352,7 +352,7 @@ export default class AuthHttpRequest {
         );
     };
 
-    static sessionPossiblyExists = async () => {
+    static sessionPossiblyExists = () => {
         return getIDFromCookie() !== undefined;
     };
 }

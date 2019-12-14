@@ -145,8 +145,8 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = require("axios");
 var _1 = require(".");
-var handleSessionExp_1 = require("./handleSessionExp");
 var constants_1 = require("./constants");
+var handleSessionExp_1 = require("./handleSessionExp");
 function interceptorFunctionRequestFulfilled(config) {
     return __awaiter(this, void 0, void 0, function() {
         var url, preRequestIdToken, antiCsrfToken, configWithAntiCsrf;
@@ -590,11 +590,7 @@ var AuthHttpRequest = /** @class */ (function() {
         );
     };
     AuthHttpRequest.sessionPossiblyExists = function() {
-        return __awaiter(_this, void 0, void 0, function() {
-            return __generator(this, function(_a) {
-                return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
-            });
-        });
+        return handleSessionExp_1.getIDFromCookie() !== undefined;
     };
     return AuthHttpRequest;
 })();

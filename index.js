@@ -143,8 +143,8 @@ var __generator =
     };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var handleSessionExp_1 = require("./handleSessionExp");
 var constants_1 = require("./constants");
+var handleSessionExp_1 = require("./handleSessionExp");
 var AntiCsrfToken = /** @class */ (function() {
     function AntiCsrfToken() {}
     AntiCsrfToken.getToken = function(associatedIdRefreshToken) {
@@ -500,11 +500,7 @@ var AuthHttpRequest = /** @class */ (function() {
         });
     };
     AuthHttpRequest.sessionPossiblyExists = function() {
-        return __awaiter(_this, void 0, void 0, function() {
-            return __generator(this, function(_a) {
-                return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
-            });
-        });
+        return handleSessionExp_1.getIDFromCookie() !== undefined;
     };
     return AuthHttpRequest;
 })();

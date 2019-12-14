@@ -52,5 +52,5 @@ export default class AuthHttpRequest {
         maybeConfig?: AxiosRequestConfig | undefined
     ) => Promise<AxiosResponse<any>>;
     static makeSuper: (axiosInstance: any) => void;
-    static sessionPossiblyExists: () => Promise<boolean>;
+    static sessionPossiblyExists: () => boolean;
 }

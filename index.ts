@@ -1,5 +1,5 @@
+import { package_version, platform_name } from "./constants";
 import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
-import { platform_name, package_version } from "./constants";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -292,7 +292,7 @@ export default class AuthHttpRequest {
         );
     };
 
-    static sessionPossiblyExists = async () => {
+    static sessionPossiblyExists = () => {
         return getIDFromCookie() !== undefined;
     };
 }
