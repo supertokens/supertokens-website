@@ -1,4 +1,4 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from 'axios';
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -29,5 +29,5 @@ export default class AuthHttpRequest {
     static put: <T = any, R = AxiosResponse<T>>(url: string, data?: any, config?: AxiosRequestConfig | undefined) => Promise<AxiosResponse<any>>;
     static axios: (anything: string | AxiosRequestConfig, maybeConfig?: AxiosRequestConfig | undefined) => Promise<AxiosResponse<any>>;
     static makeSuper: (axiosInstance: any) => void;
-    static sessionPossiblyExists: () => Promise<boolean>;
+    static sessionPossiblyExists: () => boolean;
 }
