@@ -75,7 +75,7 @@ export async function onUnauthorisedResponse(
     }
 }
 
-// NOTE: we do not store this in memory and always read as to synchronise events across tabs
+// NOTE: we do not store this in memory and always read as to synchronize events across tabs
 export function getIDFromCookie(): string | undefined {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
