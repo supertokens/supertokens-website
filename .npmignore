@@ -1,0 +1,15 @@
+**/*.ts
+!**/*.d.ts
+.git/
+test/
+bundle/
+hooks/
+.circleci/
+.babelrc
+.mocharc.yml
+.prettierrc
+addDevTag.sh
+frontendBackendInterfaceSupported.json
+tsconfig.json 
+webpack.config.js 
+.github/
