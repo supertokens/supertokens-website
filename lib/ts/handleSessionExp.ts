@@ -3,7 +3,7 @@ import Lock from "browser-tabs-lock";
 import AuthHttpRequest, { AntiCsrfToken } from "./";
 import { package_version } from "./version";
 
-const ID_COOKIE_NAME = "sIdRefreshToken";
+const ID_COOKIE_NAME = "sIRTFrontend";
 
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
