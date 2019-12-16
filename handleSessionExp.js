@@ -130,7 +130,6 @@ var __generator =
 Object.defineProperty(exports, "__esModule", { value: true });
 var browser_tabs_lock_1 = require("browser-tabs-lock");
 var _1 = require("./");
-var constants_1 = require("./constants");
 var ID_COOKIE_NAME = "sIdRefreshToken";
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -164,11 +163,7 @@ function onUnauthorisedResponse(refreshTokenUrl, preRequestIdToken) {
                         4 /*yield*/,
                         _1.default.originalFetch(refreshTokenUrl, {
                             method: "post",
-                            credentials: "include",
-                            headers: {
-                                "supertokens-sdk-name": constants_1.platform_name,
-                                "supertokens-sdk-version": constants_1.package_version
-                            }
+                            credentials: "include"
                         })
                     ];
                 case 4:

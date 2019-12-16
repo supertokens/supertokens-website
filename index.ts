@@ -175,22 +175,6 @@ export default class AuthHttpRequest {
                                   }
                     };
                 }
-
-                // Add package info to headers
-                configWithAntiCsrf = {
-                    ...configWithAntiCsrf,
-                    headers:
-                        configWithAntiCsrf === undefined
-                            ? {
-                                  "supertokens-sdk-name": platform_name,
-                                  "supertokens-sdk-version": package_version
-                              }
-                            : {
-                                  ...configWithAntiCsrf.headers,
-                                  "supertokens-sdk-name": platform_name,
-                                  "supertokens-sdk-version": package_version
-                              }
-                };
                 try {
                     let response = await httpCall(configWithAntiCsrf);
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {

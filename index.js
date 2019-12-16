@@ -144,7 +144,6 @@ var __generator =
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var handleSessionExp_1 = require("./handleSessionExp");
-var constants_1 = require("./constants");
 var AntiCsrfToken = /** @class */ (function() {
     function AntiCsrfToken() {}
     AntiCsrfToken.getToken = function(associatedIdRefreshToken) {
@@ -324,19 +323,6 @@ var AuthHttpRequest = /** @class */ (function() {
                                         : __assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
                             });
                         }
-                        // Add package info to headers
-                        configWithAntiCsrf = __assign({}, configWithAntiCsrf, {
-                            headers:
-                                configWithAntiCsrf === undefined
-                                    ? {
-                                          "supertokens-sdk-name": constants_1.platform_name,
-                                          "supertokens-sdk-version": constants_1.package_version
-                                      }
-                                    : __assign({}, configWithAntiCsrf.headers, {
-                                          "supertokens-sdk-name": constants_1.platform_name,
-                                          "supertokens-sdk-version": constants_1.package_version
-                                      })
-                        });
                         _a.label = 4;
                     case 4:
                         _a.trys.push([4, 9, , 13]);

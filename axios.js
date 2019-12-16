@@ -146,7 +146,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = require("axios");
 var _1 = require(".");
 var handleSessionExp_1 = require("./handleSessionExp");
-var constants_1 = require("./constants");
 function interceptorFunctionRequestFulfilled(config) {
     return __awaiter(this, void 0, void 0, function() {
         var url, preRequestIdToken, antiCsrfToken, configWithAntiCsrf;
@@ -170,19 +169,6 @@ function interceptorFunctionRequestFulfilled(config) {
                             : __assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
                 });
             }
-            // Add package info to headers
-            configWithAntiCsrf = __assign({}, configWithAntiCsrf, {
-                headers:
-                    configWithAntiCsrf === undefined
-                        ? {
-                              "supertokens-sdk-name": constants_1.platform_name,
-                              "supertokens-sdk-version": constants_1.package_version
-                          }
-                        : __assign({}, configWithAntiCsrf.headers, {
-                              "supertokens-sdk-name": constants_1.platform_name,
-                              "supertokens-sdk-version": constants_1.package_version
-                          })
-            });
             return [2 /*return*/, configWithAntiCsrf];
         });
     });
@@ -273,19 +259,6 @@ var AuthHttpRequest = /** @class */ (function() {
                                         : __assign({}, configWithAntiCsrf.headers, { "anti-csrf": antiCsrfToken })
                             });
                         }
-                        // Add package info to headers
-                        configWithAntiCsrf = __assign({}, configWithAntiCsrf, {
-                            headers:
-                                configWithAntiCsrf === undefined
-                                    ? {
-                                          "supertokens-sdk-name": constants_1.platform_name,
-                                          "supertokens-sdk-version": constants_1.package_version
-                                      }
-                                    : __assign({}, configWithAntiCsrf.headers, {
-                                          "supertokens-sdk-name": constants_1.platform_name,
-                                          "supertokens-sdk-version": constants_1.package_version
-                                      })
-                        });
                         _b.label = 4;
                     case 4:
                         _b.trys.push([4, 11, , 15]);

@@ -28,11 +28,7 @@ export async function onUnauthorisedResponse(
                 }
                 let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
                     method: "post",
-                    credentials: "include",
-                    headers: {
-                        "supertokens-sdk-name": platform_name,
-                        "supertokens-sdk-version": package_version
-                    }
+                    credentials: "include"
                 });
                 if (response.status !== 200) {
                     throw response;
