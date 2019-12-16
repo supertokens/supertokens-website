@@ -486,11 +486,7 @@ var AuthHttpRequest = /** @class */ (function() {
         });
     };
     AuthHttpRequest.sessionPossiblyExists = function() {
-        return __awaiter(_this, void 0, void 0, function() {
-            return __generator(this, function(_a) {
-                return [2 /*return*/, handleSessionExp_1.getIDFromCookie() !== undefined];
-            });
-        });
+        return handleSessionExp_1.getIDFromCookie() !== undefined;
     };
     return AuthHttpRequest;
 })();
