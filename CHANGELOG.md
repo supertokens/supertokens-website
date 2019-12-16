@@ -36,3 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.2.8] - 2019-12-14
 ### Changed
 - changes sessionPossiblyExists to be non async. Credit @eweitnauer for finding this bug.
+
+## [3.2.9] - 2019-12-16
+### Changes
+- Changes custom headers being sent to the backend
+- Changes version of browser-tabs-lock
