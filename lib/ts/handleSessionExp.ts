@@ -35,10 +35,11 @@ export async function onUnauthorisedResponse(
                         "supertokens-sdk-version": package_version
                     }
                 });
-                let idRefreshToken = response.headers["id-refresh-token"];
-                if (idRefreshToken !== undefined) {
-                    setIDToCookie(idRefreshToken, websiteRootDomain);
-                }
+                response.headers.forEach((value: any, key: any) => {
+                    if (key.toString() === "id-refresh-token") {
+                        setIDToCookie(value, websiteRootDomain);
+                    }
+                });
                 if (response.status !== 200) {
                     throw response;
                 }

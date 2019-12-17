@@ -1,4 +1,4 @@
-import { getIDFromCookie, onUnauthorisedResponse } from "./handleSessionExp";
+import { getIDFromCookie, onUnauthorisedResponse, setIDToCookie } from "./handleSessionExp";
 import { package_version } from "./version";
 
 export class AntiCsrfToken {
@@ -165,7 +165,7 @@ export default class AuthHttpRequest {
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                if (preRequestIdToken !== undefined) {
+                if (preRequestIdToken !== undefined && (config === undefined || config.credentials === undefined)) {
                     config = {
                         ...config,
                         credentials: "include"
@@ -204,6 +204,11 @@ export default class AuthHttpRequest {
                 };
                 try {
                     let response = await httpCall(configWithAntiCsrf);
+                    response.headers.forEach((value: any, key: any) => {
+                        if (key.toString() === "id-refresh-token") {
+                            setIDToCookie(value, AuthHttpRequest.websiteRootDomain);
+                        }
+                    });
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
