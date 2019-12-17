@@ -12,10 +12,12 @@ async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     }
     const preRequestIdToken = getIDFromCookie();
     const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-    config = {
-        ...config,
-        withCredentials: true
-    };
+    if (preRequestIdToken !== undefined) {
+        config = {
+            ...config,
+            withCredentials: true
+        };
+    }
     let configWithAntiCsrf: AxiosRequestConfig = config;
     if (antiCsrfToken !== undefined) {
         configWithAntiCsrf = {
@@ -107,10 +109,12 @@ export default class AuthHttpRequest {
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                config = {
-                    ...config,
-                    withCredentials: true
-                };
+                if (preRequestIdToken !== undefined) {
+                    config = {
+                        ...config,
+                        withCredentials: true
+                    };
+                }
                 let configWithAntiCsrf: AxiosRequestConfig = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {

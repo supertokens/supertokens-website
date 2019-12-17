@@ -1,4 +1,4 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from 'axios';
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.

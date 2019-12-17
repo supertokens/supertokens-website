@@ -165,10 +165,12 @@ export default class AuthHttpRequest {
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                config = {
-                    ...config,
-                    credentials: "include"
-                };
+                if (preRequestIdToken !== undefined) {
+                    config = {
+                        ...config,
+                        credentials: "include"
+                    };
+                }
                 let configWithAntiCsrf: RequestInit | undefined = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
