@@ -22,6 +22,7 @@ AuthHttpRequest.makeSuper(axios);
     - if not logged in, test that API that requires auth throws session expired
     - test that calling makeSuper many times is not a problem
     - if any API throws error, it gets propogated to the user properly (with and without interception)
+    - if multiple interceptors are there, they should all work
     - testing attemptRefreshingSession works fine
     - testing sessionPossiblyExists works fine when user is logged in
     - Test everything without and without interception
@@ -31,6 +32,7 @@ AuthHttpRequest.makeSuper(axios);
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
+    - User passed config should be sent as well
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
