@@ -1,4 +1,4 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from 'axios';
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -9,7 +9,8 @@ export default class AuthHttpRequest {
     private static sessionExpiredStatusCode;
     private static initCalled;
     static apiDomain: string;
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, websiteRootDomain?: string): void;
+    private static refreshAPICustomHeaders;
+    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it

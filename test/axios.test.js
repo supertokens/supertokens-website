@@ -33,6 +33,7 @@ AuthHttpRequest.makeSuper(axios);
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
     - User passed config should be sent as well
+    - Refresh API custom headers are working
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({

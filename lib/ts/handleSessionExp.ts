@@ -12,7 +12,8 @@ const ID_COOKIE_NAME = "sIRTFrontend";
 export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
     preRequestIdToken: string,
-    websiteRootDomain: string
+    websiteRootDomain: string,
+    refreshAPICustomHeaders: any
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -31,6 +32,7 @@ export async function onUnauthorisedResponse(
                     method: "post",
                     credentials: "include",
                     headers: {
+                        ...refreshAPICustomHeaders,
                         "supertokens-sdk-name": "website",
                         "supertokens-sdk-version": package_version
                     }

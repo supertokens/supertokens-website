@@ -62,10 +62,17 @@ export default class AuthHttpRequest {
     private static sessionExpiredStatusCode = 440;
     private static initCalled = false;
     static apiDomain = "";
+    private static refreshAPICustomHeaders: any;
 
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, websiteRootDomain?: string) {
+    static init(
+        refreshTokenUrl: string,
+        sessionExpiredStatusCode?: number,
+        websiteRootDomain?: string,
+        refreshAPICustomHeaders?: any
+    ) {
         FetchAuthRequest.init(refreshTokenUrl, sessionExpiredStatusCode);
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
+        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders === undefined ? {} : refreshAPICustomHeaders;
         AuthHttpRequest.websiteRootDomain =
             websiteRootDomain === undefined ? window.location.hostname : websiteRootDomain;
         if (sessionExpiredStatusCode !== undefined) {
@@ -164,7 +171,8 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain
+                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.refreshAPICustomHeaders
                         );
                         if (!retry) {
                             returnObj = response;
@@ -185,7 +193,8 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain
+                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.refreshAPICustomHeaders
                         );
                         if (!retry) {
                             throwError = true;
@@ -224,7 +233,8 @@ export default class AuthHttpRequest {
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain
+                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.refreshAPICustomHeaders
             );
         } finally {
             if (getIDFromCookie() === undefined) {

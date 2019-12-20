@@ -57,7 +57,8 @@ export class AntiCsrfToken {
 export async function handleUnauthorised(
     refreshAPI: string | undefined,
     preRequestIdToken: string | undefined,
-    websiteRootDomain: string
+    websiteRootDomain: string,
+    refreshAPICustomHeaders: any
 ): Promise<boolean> {
     if (refreshAPI === undefined) {
         throw Error("Please define refresh token API in the init function");
@@ -65,7 +66,12 @@ export async function handleUnauthorised(
     if (preRequestIdToken === undefined) {
         return getIDFromCookie() !== undefined;
     }
-    let result = await onUnauthorisedResponse(refreshAPI, preRequestIdToken, websiteRootDomain);
+    let result = await onUnauthorisedResponse(
+        refreshAPI,
+        preRequestIdToken,
+        websiteRootDomain,
+        refreshAPICustomHeaders
+    );
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
@@ -101,12 +107,14 @@ export default class AuthHttpRequest {
     private static apiDomain = "";
     private static viaInterceptor: boolean | undefined;
     private static websiteRootDomain: string;
+    private static refreshAPICustomHeaders: any;
 
     static init(
         refreshTokenUrl: string,
         sessionExpiredStatusCode?: number,
         viaInterceptor?: boolean,
-        websiteRootDomain?: string
+        websiteRootDomain?: string,
+        refreshAPICustomHeaders?: any
     ) {
         if (viaInterceptor === undefined) {
             if (AuthHttpRequest.viaInterceptor === undefined) {
@@ -116,6 +124,7 @@ export default class AuthHttpRequest {
             }
         }
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
+        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders === undefined ? {} : refreshAPICustomHeaders;
         AuthHttpRequest.websiteRootDomain =
             websiteRootDomain === undefined ? window.location.hostname : websiteRootDomain;
         if (sessionExpiredStatusCode !== undefined) {
@@ -213,7 +222,8 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain
+                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.refreshAPICustomHeaders
                         );
                         if (!retry) {
                             returnObj = response;
@@ -232,7 +242,8 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain
+                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.refreshAPICustomHeaders
                         );
                         if (!retry) {
                             throwError = true;
@@ -271,7 +282,8 @@ export default class AuthHttpRequest {
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain
+                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.refreshAPICustomHeaders
             );
         } finally {
             if (getIDFromCookie() === undefined) {
