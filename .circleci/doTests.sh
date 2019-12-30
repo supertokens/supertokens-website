@@ -45,7 +45,6 @@ while [ $i -lt $frontendDriverLength ]; do
     if [[ `echo $driverVersionXY | jq .driver` == "null" ]]
     then
         echo "fetching latest X.Y version for driver given frontend-driver-interface X.Y version: $frontendDriverVersion gave response: $driverVersionXY. Please make sure all relevant drivers have been pushed."
-        git push --delete origin dev-v$version
         exit 1
     fi
     driverVersionXY=$(echo $driverVersionXY | jq .driver | tr -d '"')
@@ -56,7 +55,6 @@ while [ $i -lt $frontendDriverLength ]; do
     if [[ `echo $driverInfo | jq .tag` == "null" ]]
     then
         echo "fetching latest X.Y.Z version for driver, X.Y version: $driverVersionXY gave response: $driverInfo"
-        git push --delete origin dev-v$version
         exit 1
     fi
     driverTag=$(echo $driverInfo | jq .tag | tr -d '"')
@@ -79,7 +77,6 @@ while [ $i -lt $frontendDriverLength ]; do
     if [[ `echo $coreCommercial | jq .core` == "null" ]]
     then
         echo "fetching latest X.Y version for core given core-driver-interface X.Y version: $coreDriverVersion, planType: COMMERCIAL gave response: $coreCommercial. Please make sure all relevant cores have been pushed."
-        git push --delete origin dev-v$version
         exit 1
     fi
     coreCommercial=$(echo $coreCommercial | jq .core | tr -d '"')
@@ -89,7 +86,6 @@ while [ $i -lt $frontendDriverLength ]; do
     if [[ $? -ne 0 ]]
     then
         echo "test failed... exiting!"
-        git push --delete origin dev-v$version
         exit 1
     fi
     rm -rf ../../com-root
