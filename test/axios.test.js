@@ -34,6 +34,7 @@ AuthHttpRequest.makeSuper(axios);
     - Proper change in anti-csrf token once access token resets
     - User passed config should be sent as well
     - Refresh API custom headers are working
+    - Things should work if anti-csrf is disabled.
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
