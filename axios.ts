@@ -1,1 +1,3 @@
-export * from './lib/ts/axios';
+import SuperTokens from './lib/ts/axios';
+
+export default SuperTokens;

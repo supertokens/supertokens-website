@@ -1,1 +1,3 @@
-export * from './lib/build/axios';
+import SuperTokens from './lib/build/axios';
+
+export default SuperTokens;

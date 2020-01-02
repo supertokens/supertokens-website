@@ -1,1 +1,3 @@
-export * from './lib/ts';
+import SuperTokens from './lib/ts';
+
+export default SuperTokens;
