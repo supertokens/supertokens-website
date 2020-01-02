@@ -1,8 +1,8 @@
 {
   "name": "supertokens-website",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "frontend sdk for website to be used for auth solution.",
-  "main": "lib/build/index.js",
+  "main": "index.js",
   "dependencies": {
     "browser-tabs-lock": "^1.1.4"
   },

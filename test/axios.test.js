@@ -2,8 +2,8 @@ let axios = require("axios");
 
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
-let { AntiCsrfToken } = require("../lib/build/index.js");
-let { default: AuthHttpRequest } = require("../lib/build/axios.js");
+let { AntiCsrfToken } = require("../index.js");
+let { default: AuthHttpRequest } = require("../axios.js");
 let assert = require("assert");
 let { delay, checkIfIdRefreshIsCleared, getNumberOfTimesRefreshCalled, startST } = require("./utils");
 const { spawn } = require("child_process");
