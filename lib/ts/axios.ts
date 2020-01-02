@@ -7,17 +7,11 @@ import { package_version } from "./version";
 async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = config.url;
     if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
-        // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+        // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
     const preRequestIdToken = getIDFromCookie();
     const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-    if (preRequestIdToken !== undefined && (config === undefined || config.withCredentials === undefined)) {
-        config = {
-            ...config,
-            withCredentials: true
-        };
-    }
     let configWithAntiCsrf: AxiosRequestConfig = config;
     if (antiCsrfToken !== undefined) {
         configWithAntiCsrf = {
@@ -116,12 +110,6 @@ export default class AuthHttpRequest {
                 // to avoid race conditions
                 const preRequestIdToken = getIDFromCookie();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
-                if (preRequestIdToken !== undefined && (config === undefined || config.withCredentials === undefined)) {
-                    config = {
-                        ...config,
-                        withCredentials: true
-                    };
-                }
                 let configWithAntiCsrf: AxiosRequestConfig = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
