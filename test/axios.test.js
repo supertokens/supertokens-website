@@ -14,8 +14,8 @@ AuthHttpRequest.makeSuper(axios);
 /* TODO: 
     - device info tests
     - multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called
-    - session should not exist when user calls log out - use sessionPossiblyExists & check localstorage is empty
-    - session should not exist when user's session fully expires - use sessionPossiblyExists & check localstorage is empty
+    - session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
+    - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
     - test custom headers are being sent when logged in and when not
@@ -24,7 +24,7 @@ AuthHttpRequest.makeSuper(axios);
     - if any API throws error, it gets propogated to the user properly (with and without interception)
     - if multiple interceptors are there, they should all work
     - testing attemptRefreshingSession works fine
-    - testing sessionPossiblyExists works fine when user is logged in
+    - testing doesSessionExist works fine when user is logged in
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
     - Interception should not happen when domain is not the one that they gave

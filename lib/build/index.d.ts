@@ -42,5 +42,5 @@ export default class AuthHttpRequest {
     static delete: (url: RequestInfo, config?: RequestInit | undefined) => Promise<Response>;
     static put: (url: RequestInfo, config?: RequestInit | undefined) => Promise<Response>;
     static fetch: (url: RequestInfo, config?: RequestInit | undefined) => Promise<Response>;
-    static sessionPossiblyExists: () => boolean;
+    static doesSessionExist: () => boolean;
 }

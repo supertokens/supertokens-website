@@ -377,7 +377,7 @@ export default class AuthHttpRequest {
         );
     };
 
-    static sessionPossiblyExists = () => {
+    static doesSessionExist = () => {
         return getIDFromCookie() !== undefined;
     };
 }
