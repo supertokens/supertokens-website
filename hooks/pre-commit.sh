@@ -149,7 +149,7 @@ rm -rf bundle
 git add bundle
 npm run pack
 packExitCode=$?
-
+echo $packExitCode
 if [ $packExitCode -e 0 ]
 then
     echo "hahahah"
