@@ -152,6 +152,7 @@ packExitCode=$?
 
 if [ $packExitCode -e 0 ]
 then
+    echo "hahahah"
     git add bundle/*
 fi
 
