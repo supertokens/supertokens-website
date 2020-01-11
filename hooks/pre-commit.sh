@@ -135,18 +135,41 @@ else
     exit 1
 fi
 
+no_of_files_to_stash=`git ls-files . --exclude-standard --others -m | wc -l`
+if [ $no_of_files_to_stash -ne 0 ]
+then
+   echo "$(tput setaf 3)* Stashing non-staged changes"
+   files_to_stash=`git ls-files . --exclude-standard --others -m | xargs`
+   git stash push -k -u -- $files_to_stash >/dev/null 2>/dev/null
+fi
+
+
 # Delete existing bundle
 rm -rf bundle
 git add bundle
-
 npm run pack
+packExitCode=$?
 
-if [ $? -ne 0 ]
+if [ $packExitCode -e 0 ]
+then
+    git add bundle/*
+fi
+
+if [ $no_of_files_to_stash -ne 0 ]
+then
+   echo "$(tput setaf 3)* Undoing stashing$(tput sgr 0)"
+   git stash apply >/dev/null 2>/dev/null
+   if [ $? -ne 0 ]
+   then
+      git checkout --theirs . >/dev/null 2>/dev/null
+   fi
+   git stash drop >/dev/null 2>/dev/null
+fi
+
+if [ $packExitCode -ne 0 ]
 then
     RED='\033[0;31m'
     NC='\033[0m' # No Color
     printf "${RED}Bundling failed. Stopping commit${NC}\n"
     exit 1
 fi
-
-git add bundle/*
