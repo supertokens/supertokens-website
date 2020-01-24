@@ -12,29 +12,30 @@ const BASE_URL = "http://localhost:8080";
 AuthHttpRequest.makeSuper(axios);
 
 /* TODO: 
-    - device info tests
-    - multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called
-    - session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
+    - device info tests******
+    - multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
+    - session should not exist when user calls log out - use doesSessionExist & check localstorage is empty*****
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
-    - test custom headers are being sent when logged in and when not
+    - test custom headers are being sent when logged in and when not*****
     - if not logged in, test that API that requires auth throws session expired
-    - test that calling makeSuper many times is not a problem
-    - if any API throws error, it gets propogated to the user properly (with and without interception)
+    - test that calling makeSuper many times is not a problem******
+    - if any API throws error, it gets propogated to the user properly (with and without interception)******
     - if multiple interceptors are there, they should all work
-    - testing attemptRefreshingSession works fine
-    - testing doesSessionExist works fine when user is logged in
+    - testing attemptRefreshingSession works fine******
+    - testing doesSessionExist works fine when user is logged in******
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
-    - Interception should not happen when domain is not the one that they gave
-    - Calling SuperTokens.init more than once works!
+    - Interception should not happen when domain is not the one that they gave*******
+    - Calling SuperTokens.init more than once works!*******
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
-    - User passed config should be sent as well
+    - User passed config should be sent as well******
     - Refresh API custom headers are working
-    - Things should work if anti-csrf is disabled.
+    - Things should work if anti-csrf is disabled.******
+    - If via interception, make sure that initially, just AI endpoint is just hit once in case of access token expiry*****
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({

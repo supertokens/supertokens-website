@@ -106,7 +106,7 @@ app.post("/refresh", async (req, res) => {
         res.status(440).send();
         return;
     }
-    res.send("success");
+    res.send("refresh success");
 });
 
 app.get("/refreshCalledTime", async (req, res) => {
