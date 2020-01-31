@@ -45,8 +45,11 @@ module.exports.getNumberOfTimesRefreshCalled = async function() {
     return response.data;
 };
 
-module.exports.startST = async function() {
+module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf = true) {
     let instance = axios.create();
-    let response = await instance.post("http://localhost:8080/startST");
+    let response = await instance.post("http://localhost:8080/startST", {
+        accessTokenValidity,
+        enableAntiCsrf
+    });
     return response.data;
 };

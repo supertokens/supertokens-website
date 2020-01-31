@@ -18,6 +18,7 @@ let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
 let http = require("http");
 let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = require("./utils");
+let { ProcessState, PROCESS_STATE } = require("../../lib/build/processState");
 
 let noOfTimesRefreshCalledDuringTest = 0;
 
@@ -42,13 +43,15 @@ app.post("/login", async (req, res) => {
         let session = await SuperTokens.createNewSession(res, userId);
         res.send(session.userId);
     } catch (err) {
-        console.log(err);
+        res.status(500).send("");
     }
 });
 
 app.post("/startst", async (req, res) => {
     let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
+    let enableAntiCsrf = req.body.enableAntiCsrf === undefined ? true : req.body.enableAntiCsrf;
     await setKeyValueInConfig("access_token_validity", accessTokenValidity);
+    await setKeyValueInConfig("enable_anti_csrf", enableAntiCsrf);
     let pid = await startST();
     res.send(pid + "");
 });
@@ -125,6 +128,11 @@ app.post("/refresh", async (req, res) => {
 
 app.get("/refreshCalledTime", async (req, res) => {
     res.status(200).send("" + noOfTimesRefreshCalledDuringTest);
+});
+
+app.get("/doingInterception", async (req, res) => {
+    let verifyState = ProcessState.getInstance().waitForEvent(PROCESS_STATE.CALLING_SERVICE_IN_VERIFY, 1000);
+    res.status(200).send(verifyState);
 });
 
 app.get("/ping", async (req, res) => {
