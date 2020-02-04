@@ -21,6 +21,7 @@ let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = requ
 let { ProcessState, PROCESS_STATE } = require("../../lib/build/processState");
 
 let noOfTimesRefreshCalledDuringTest = 0;
+let noOfTimesGetSessionCalledDuringTest = 0;
 
 let urlencodedParser = bodyParser.urlencoded({ limit: "20mb", extended: true, parameterLimit: 20000 });
 let jsonParser = bodyParser.json({ limit: "20mb" });
@@ -58,6 +59,7 @@ app.post("/startst", async (req, res) => {
 
 app.post("/beforeeach", async (req, res) => {
     noOfTimesRefreshCalledDuringTest = 0;
+    noOfTimesGetSessionCalledDuringTest = 0;
     await killAllST();
     await setupST();
     await setKeyValueInConfig("cookie_domain", '"localhost"');
@@ -76,8 +78,14 @@ app.post("/stopst", async (req, res) => {
     res.send("");
 });
 
+app.post("/checkUserConfig", async (req, res) => {
+    let userConfig = req.body.testConfigKey;
+    res.status(200).send(userConfig);
+});
+
 app.get("/", async (req, res) => {
     try {
+        noOfTimesGetSessionCalledDuringTest += 1;
         await SuperTokens.getSession(req, res, true);
         res.send("success");
     } catch (err) {
@@ -130,9 +138,8 @@ app.get("/refreshCalledTime", async (req, res) => {
     res.status(200).send("" + noOfTimesRefreshCalledDuringTest);
 });
 
-app.get("/doingInterception", async (req, res) => {
-    let verifyState = ProcessState.getInstance().waitForEvent(PROCESS_STATE.CALLING_SERVICE_IN_VERIFY, 1000);
-    res.status(200).send(verifyState);
+app.get("/getSessionCalledTime", async (req, res) => {
+    res.status(200).send("" + noOfTimesGetSessionCalledDuringTest);
 });
 
 app.get("/ping", async (req, res) => {
@@ -153,6 +160,9 @@ app.get("/testHeader", async (req, res) => {
 
 app.get("/index", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
+});
+app.get("/testError", (req, res) => {
+    res.status(500).send();
 });
 
 app.get("/stop", async (req, res) => {

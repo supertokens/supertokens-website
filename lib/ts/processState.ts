@@ -18,7 +18,7 @@ export enum PROCESS_STATE {
 }
 
 export class ProcessState {
-    history: PROCESS_STATE[];
+    history: PROCESS_STATE[] = [];
     private static instance: ProcessState | undefined;
 
     private constructor() {}
@@ -31,7 +31,7 @@ export class ProcessState {
     }
 
     addState = (state: PROCESS_STATE) => {
-        if (process.env.TEST_MODE === "testing") {
+        if (process !== undefined && process.env !== undefined && process.env.TEST_MODE === "testing") {
             this.history.push(state);
         }
     };

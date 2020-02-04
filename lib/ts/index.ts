@@ -95,10 +95,10 @@ export async function handleUnauthorised(
 }
 
 export function getDomainFromUrl(url: string): string {
-    if (window.fetch === undefined) {
-        // we are testing
-        return "http://localhost:8888";
-    }
+    // if (window.fetch === undefined) {
+    //     // we are testing
+    //     return "http://localhost:8888";
+    // }
     if (url.startsWith("https://") || url.startsWith("http://")) {
         return url
             .split("/")

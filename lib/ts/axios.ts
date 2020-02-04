@@ -17,7 +17,7 @@ import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie, setIDToCookie } from "./handleSessionExp";
 import { package_version } from "./version";
-// import { PROCESS_STATE, ProcessState } from "./processState";
+import { PROCESS_STATE, ProcessState } from "./processState";
 
 async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = config.url;
@@ -25,7 +25,7 @@ async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
-    // ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
+    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
     const preRequestIdToken = getIDFromCookie();
     const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
     let configWithAntiCsrf: AxiosRequestConfig = config;
@@ -325,6 +325,12 @@ export default class AuthHttpRequest {
         // Add a response interceptor
         axiosInstance.interceptors.response.use(
             async function(response: AxiosResponse) {
+                let url = response.config.url;
+                if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+                    // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
+                    return response;
+                }
+                ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
                 try {
                     if (!AuthHttpRequest.initCalled) {
                         throw new Error("init function not called");
