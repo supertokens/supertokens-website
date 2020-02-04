@@ -33,31 +33,19 @@ const BASE_URL = "http://localhost:8080";
 AuthHttpRequest.makeSuper(axios);
 
 /* TODO: 
-    - device info tests******
-    - multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-    - session should not exist when user calls log out - use doesSessionExist & check localstorage is empty*****
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
-    - test custom headers are being sent when logged in and when not*****
     - if not logged in, test that API that requires auth throws session expired
-    - test that calling makeSuper many times is not a problem******
-    - if any API throws error, it gets propogated to the user properly (with and without interception)******
     - if multiple interceptors are there, they should all work
-    - testing attemptRefreshingSession works fine******
-    - testing doesSessionExist works fine when user is logged in******
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
-    - Interception should not happen when domain is not the one that they gave*******
-    - Calling SuperTokens.init more than once works!*******
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
-    - User passed config should be sent as well******
     - Refresh API custom headers are working
-    - Things should work if anti-csrf is disabled.******
-    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token expiry*****
-    - If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 440 as the output****
+    - allow-credentials should not be sent by our SDK by default.****
+    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
@@ -291,7 +279,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     //test custom headers are being sent when logged in and when not*****
     it("test that custom headers are being sent when logged in", async function() {
-        await startST(5);
+        await startST(5); // TODO: why 5 seconds?
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -343,6 +331,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                         testing: "testValue"
                     }
                 });
+                // TODO: check that data also has success as its output
                 //check that custom headers are present
                 assertEqual(testResponse2.headers["testing"], "testValue");
             });
@@ -382,9 +371,9 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty*****
+    //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
     it("test session should not exist when user calls log out", async function() {
-        await startST(5);
+        await startST(5); // TODO: why setting to 5 seconds here?
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -429,7 +418,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     // testing attemptRefreshingSession works fine******
     it("test that attemptRefreshingSession is working correctly", async function() {
-        await startST(5);
+        await startST(5); // TODO: why 5 seconds?
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -509,6 +498,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 //check that the number of times refresh is called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                // TODO: also assert that the number of successes above is = to the number of requests sent.
             });
         } finally {
             await browser.close();
@@ -591,8 +581,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(loginResponse.data, userId);
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
 
-                assertEqual(loginResponse.config.headers["supertokens-sdk-name"] !== undefined, true);
-                assertEqual(loginResponse.config.headers["supertokens-sdk-version"] !== undefined, true);
+                assertEqual(loginResponse.config.headers["supertokens-sdk-name"] !== undefined, true); // TODO: check against actual value
+                assertEqual(loginResponse.config.headers["supertokens-sdk-version"] !== undefined, true); // TODO: check against actual value
             });
         } finally {
             await browser.close();
@@ -611,6 +601,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
+                // TODO: call make sure here one more time
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -687,6 +678,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     },
                     testConfigKey: "testConfigValue"
                 });
+                // TODO: also send something like allow-credentials set to true - check that that is recieved by the API
 
                 assertEqual(userConfigResponse.data, "testConfigValue");
             });
@@ -712,6 +704,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     await axios.get(`${BASE_URL}/testError`);
                     assert(false, "should not have come here");
                 } catch (error) {
+                    // TODO: please throw a custom error message from the API and check for that
                     assertEqual(error.message, "Request failed with status code 500");
                 }
             });
@@ -735,9 +728,10 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 try {
-                    await axios.get(`${BASE_URL}/testError`);
+                    await axios.get(`${BASE_URL}/testError`); // TODO: this should be without!!
                     assert(false, "should not have come here");
                 } catch (error) {
+                    // TODO: please throw a custom error from API
                     assertEqual(error.message, "Request failed with status code 500");
                 }
             });
@@ -760,6 +754,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                // TODO: call init one more time here
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -798,7 +793,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    //If via interception, make sure that initially, just an endpoint is just hit once in case of access token expiry*****
+    //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
     it("test that if via interception, initially an endpoint is hit just once in case of access token expiary", async () => {
         await startST();
         const browser = await puppeteer.launch({
@@ -829,6 +824,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(getSessionResponse.data, "success");
 
+                // TODO: can move the below two things into a function like getNumberOfTimesRefreshCalled
                 let getSessionNumber = await axios({ url: `${BASE_URL}/getSessionCalledTime`, method: "GET" });
 
                 //check that the number of times getSession was called is 2
@@ -849,8 +845,10 @@ describe("Axios AuthHttpRequest class tests", function() {
 
         await axios.get(`https://www.google.com`);
         let verifyState = await ProcessState.getInstance().waitForEvent(PROCESS_STATE.CALLING_INTERCEPTION, 1500);
-
+        // TODO: make it two process states - one for request inteceptor, one for response and make sure both don't get called.
         assert.strictEqual(verifyState, undefined);
+
+        // TODO: now make a call to localhost:8080 and check that interception does happen in request and response area.
     });
 
     //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 440 as the output****
@@ -899,280 +897,4 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
-
-    // it("anti-csrf test with refresh session", async function () {
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`);
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await AuthHttpRequest.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-
-    //     assert.strictEqual(refreshCalled, false);
-    //     window.localStorage.clear();
-    //     AntiCsrfToken.removeToken();
-    //     let getResponse = await AuthHttpRequest.get(`${BASE_URL}/`);
-    //     assert.strictEqual(refreshCalled, true);
-    //     getResponse = await getResponse.data;
-    //     assert.strictEqual(getResponse, "success");
-    // });
-
-    // it("refresh session (multiple get call where access token is expired)", async function () {
-    //     // TODO: Server was created with 10 in the arguments
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, "localhost");
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-    //     await delay(10);
-
-    //     let startTime = Date.now();
-    //     let promises = [];
-
-    //     let N = 100;
-    //     assert.strictEqual(refreshCalled, false);
-    //     for (let i = 0; i < N; i++) {
-    //         promises.push(axios.get(`${BASE_URL}/`));
-    //     }
-    //     let responses = [];
-    //     let result = [];
-    //     for (let i = 0; i < N; i++) {
-    //         responses.push(await promises[i]);
-    //     }
-    //     for (let i = 0; i < N; i++) {
-    //         result.push(await responses[i].data);
-    //     }
-    //     let endTime = Date.now();
-    //     assert.strictEqual(refreshCalled, true);
-    //     assert.strictEqual(noOfTimesRefreshCalledDuringTest, 1);
-    //     assert.strictEqual(endTime - startTime < 6000, true);
-    // });
-
-    // it("refresh is not called when calling user info before access token expiry", async function () {
-    //     // TODO: 10 in argument of server
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-    //     let response = await axios.get(`${BASE_URL}/`);
-    //     let responseData = await response.data;
-    //     assert.strictEqual(responseData, "success");
-    //     assert.strictEqual(refreshCalled, false);
-    //     assert.strictEqual(noOfTimesRefreshCalledDuringTest, 0);
-    // });
-
-    // it("session should not exist after logout is called", async function () {
-    //     // TODO: 10 in args of server
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-
-    //     let logoutResponse = await axios.post(`${BASE_URL}/logout`, "", {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let logoutData = await logoutResponse.data;
-    //     assert.strictEqual(logoutData, "success");
-    //     assert.strictEqual(checkIfIdRefreshIsCleared(), true);
-    // });
-
-    // it("test that apis that dont require authentication work after logout", async function () {
-    //     // TODO: 10 in args of server.
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-
-    //     let logoutResponse = await axios.post(`${BASE_URL}/logout`, "", {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let logoutData = await logoutResponse.data;
-    //     assert.strictEqual(logoutData, "success");
-
-    //     let pingResponse = await axios.get(`${BASE_URL}/ping`);
-    //     let pingText = await pingResponse.data;
-    //     assert.strictEqual(pingText, "success");
-    // });
-
-    // it("test that user info after logout returns session expired", async function () {
-    //     // TODO: 10 in args of server
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
-    //     let userId = "testing-supertokens-website";
-    //     let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let userIdFromResponse = await loginResponse.data;
-    //     let cookies = loginResponse.headers["set-cookie"];
-    //     let sAccessTokenCookieFound = false;
-    //     let sRefreshTokenCookieFound = false;
-    //     let sIdRefreshTokenCookieFound = false;
-    //     assert.strictEqual(Array.isArray(cookies), true);
-    //     for (let i = 0; i < cookies.length; i++) {
-    //         if (cookies[i].includes("sAccessToken=")) {
-    //             sAccessTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sRefreshToken")) {
-    //             sRefreshTokenCookieFound = true;
-    //         } else if (cookies[i].includes("sIdRefreshToken")) {
-    //             sIdRefreshTokenCookieFound = true;
-    //         }
-    //     }
-    //     if (!sAccessTokenCookieFound || !sRefreshTokenCookieFound || !sIdRefreshTokenCookieFound) {
-    //         throw Error("");
-    //     }
-    //     assert.strictEqual(userId, userIdFromResponse);
-
-    //     let logoutResponse = await axios.post(`${BASE_URL}/logout`, "", {
-    //         headers: {
-    //             Accept: "application/json",
-    //             "Content-Type": "application/json"
-    //         }
-    //     });
-    //     let logoutData = await logoutResponse.data;
-    //     assert.strictEqual(logoutData, "success");
-
-    //     let failed = false;
-    //     try {
-    //         await axios.get(`${BASE_URL}/`);
-    //         failed = true;
-    //     } catch (e) {
-    //         if (e.status === undefined || e.status !== 440) {
-    //             failed = true;
-    //         }
-    //     }
-
-    //     assert.strictEqual(failed, false);
-    // });
-
-    // it("test that custom headers are being sent", async function () {
-    //     // TODO: 10 in args of server
-    //     AuthHttpRequest.init(`${BASE_URL}/refresh`, 440, true);
-    //     let response = await axios.get(`${BASE_URL}/testHeader`, {
-    //         headers: {
-    //             "st-custom-header": "st"
-    //         }
-    //     });
-    //     let responseText = await response.data;
-    //     assert.strictEqual(responseText.success, true);
-    // });
 });

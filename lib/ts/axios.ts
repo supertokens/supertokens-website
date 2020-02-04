@@ -16,8 +16,8 @@ import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
 import { getIDFromCookie, setIDToCookie } from "./handleSessionExp";
-import { package_version } from "./version";
 import { PROCESS_STATE, ProcessState } from "./processState";
+import { package_version } from "./version";
 
 async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = config.url;
@@ -325,16 +325,17 @@ export default class AuthHttpRequest {
         // Add a response interceptor
         axiosInstance.interceptors.response.use(
             async function(response: AxiosResponse) {
-                let url = response.config.url;
-                if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
-                    // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
-                    return response;
-                }
-                ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
                 try {
                     if (!AuthHttpRequest.initCalled) {
                         throw new Error("init function not called");
                     }
+                    let url = response.config.url;
+                    if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+                        // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
+                        return response;
+                    }
+                    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
+
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
                         setIDToCookie(idRefreshToken, AuthHttpRequest.websiteRootDomain);
