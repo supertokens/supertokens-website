@@ -25,7 +25,7 @@ async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
-    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
+    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
     const preRequestIdToken = getIDFromCookie();
     const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
     let configWithAntiCsrf: AxiosRequestConfig = config;
@@ -334,7 +334,7 @@ export default class AuthHttpRequest {
                         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
                         return response;
                     }
-                    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION);
+                    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {

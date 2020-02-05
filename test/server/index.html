@@ -8,6 +8,18 @@
         return response.data;
     };
 
+    async function getNumberOfTimesGetSessionCalled() {
+        let instance = axios.create();
+        let response = await instance.get("http://localhost:8080/getSessionCalledTime");
+        return response.data;
+    };
+
+    async function getPackageVersion() {
+        let instance = axios.create();
+        let response = await instance.get("http://localhost:8080/getPackageVersion");
+        return response.data;
+    };
+
     function assertEqual(a, b) {
         if (a !== b) {
             throw new Error("assert failed");
