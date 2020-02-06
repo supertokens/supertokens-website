@@ -44,8 +44,6 @@ AuthHttpRequest.makeSuper(axios);
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
     - Refresh API custom headers are working
-    - allow-credentials should not be sent by our SDK by default.****
-    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
@@ -279,7 +277,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     //test custom headers are being sent when logged in and when not*****
     it("test that custom headers are being sent when logged in", async function() {
-        await startST(); // TODO: why 5 seconds?
+        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -331,7 +329,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                         testing: "testValue"
                     }
                 });
-                // TODO: check that data also has success as its output
                 assertEqual(testResponse2.data, "success");
                 //check that custom headers are present
                 assertEqual(testResponse2.headers["testing"], "testValue");
@@ -374,7 +371,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
     it("test session should not exist when user calls log out", async function() {
-        await startST(); // TODO: why setting to 5 seconds here?
+        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -419,7 +416,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     // testing attemptRefreshingSession works fine******
     it("test that attemptRefreshingSession is working correctly", async function() {
-        await startST(); // TODO: why 5 seconds?
+        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -441,6 +438,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     }
                 });
 
+                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
                 assertEqual(userId, loginResponse.data);
                 let attemptRefresh = await supertokens.axios.attemptRefreshingSession();
                 assertEqual(attemptRefresh, true);
@@ -501,7 +499,6 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 //check that the number of times refresh is called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-                // TODO: also assert that the number of successes above is = to the number of requests sent.
                 assertEqual(noOfResponeSuccesses, n);
             });
         } finally {
@@ -559,7 +556,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    //    - device info tests******
+    // device info tests******
     it("test device info being sent", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -576,7 +573,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let userId = "testing-supertokens-website";
 
                 let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
-                assertEqual(deviceInfoIsAdded.data, true); // TODO: check against actual value
+                assertEqual(deviceInfoIsAdded.data, true);
             });
         } finally {
             await browser.close();
@@ -595,7 +592,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                // TODO: call make sure here one more time
                 supertokens.axios.makeSuper(axios);
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
@@ -674,7 +670,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                     testConfigKey: "testConfigValue",
                     "allow-credentials": true
                 });
-                // TODO: also send something like allow-credentials set to true - check that that is recieved by the API
+                // TODO: is testConfigKey in body of the request? I'm confused... what are you doing here?
+                // TODO: you do not need to do the allow-credentials thing here since you have another test for this. My bad.
                 assertEqual(userConfigResponse.data.setAllowCredential, true);
                 assertEqual(userConfigResponse.data.testConfigKey, "testConfigValue");
             });
@@ -700,7 +697,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     await axios.get(`${BASE_URL}/testError`);
                     assertEqual(false, "should not have come here");
                 } catch (error) {
-                    // TODO: please throw a custom error message from the API and check for that
+                    // TODO: also check status code.
                     assertEqual(error.response.data, "test error message");
                 }
             });
@@ -724,10 +721,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 try {
-                    await supertokens.axios.get(`${BASE_URL}/testError`); // TODO: this should be without!!
+                    await supertokens.axios.get(`${BASE_URL}/testError`);
                     assert(false, "should not have come here");
                 } catch (error) {
-                    // TODO: please throw a custom error from API
                     assertEqual(error.response.data, "test error message");
                 }
             });
@@ -750,7 +746,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
-                // TODO: call init one more time here
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -821,7 +816,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(getSessionResponse.data, "success");
 
-                // TODO: can move the below two things into a function like getNumberOfTimesRefreshCalled
                 //check that the number of times getSession was called is 2
                 assertEqual(await getNumberOfTimesGetSessionCalled(), 2);
 
@@ -843,7 +837,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
             100
         );
-        // TODO: make it two process states - one for request inteceptor, one for response and make sure both don't get called.
         let verifyResponseState = await ProcessState.getInstance().waitForEvent(
             PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE,
             100
@@ -852,7 +845,6 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.strictEqual(verifyRequestState, undefined);
         assert.strictEqual(verifyResponseState, undefined);
 
-        // TODO: now make a call to localhost:8080 and check that interception does happen in request and response area.
         let userId = "testing-supertokens-website";
         let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
             headers: {
@@ -963,6 +955,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //- allow-credentials should not be sent by our SDK by default.****
+    // TODO: test is passing, but incorrect!
     it("test that allow-credentials should not be sent by our SDK by default", async function() {
         await startST();
         const browser = await puppeteer.launch({

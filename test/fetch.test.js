@@ -32,31 +32,17 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 const BASE_URL = "http://localhost:8080";
 
 /* TODO: 
-    - device info tests******
-    - multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-    - session should not exist when user calls log out - use doesSessionExist & check localstorage is empty*****
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
-    - test custom headers are being sent when logged in and when not*****
     - if not logged in, test that API that requires auth throws session expired
-    - test that calling makeSuper many times is not a problem******
-    - if any API throws error, it gets propogated to the user properly (with and without interception)******
     - if multiple interceptors are there, they should all work
-    - testing attemptRefreshingSession works fine******
-    - testing doesSessionExist works fine when user is logged in******
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
-    - Interception should not happen when domain is not the one that they gave*******
-    - Calling SuperTokens.init more than once works!*******
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
-    - User passed config should be sent as well******
     - Refresh API custom headers are working
-    - Things should work if anti-csrf is disabled.******
-    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token expiry*****
-    - If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 440 as the output****
 */
 describe("Fetch AuthHttpRequest class tests", function() {
     jsdom({
@@ -142,7 +128,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing with fetch api methods with config", async function() {
-        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true);
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true); // TODO: viaInteceptor should be false.
 
         let testing = "testing";
         let getResponse = await AuthHttpRequestFetch.get(`${BASE_URL}/${testing}`, { headers: { testing } });
@@ -256,7 +242,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     //test custom headers are being sent when logged in and when not*****
     it("test with fetch that custom headers are being sent", async function() {
-        await startST(5);
+        await startST(5); // TODO: why 5?
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -406,6 +392,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
     // testing attemptRefreshingSession works fine******
     it("test with fetch that attemptRefreshingSession is working correctly", async function() {
         await startST(5);
@@ -430,6 +417,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ userId })
                 });
+                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
                 assertEqual(await loginResponse.text(), userId);
 
                 let attemptRefresh = await supertokens.fetch.attemptRefreshingSession();
@@ -552,7 +540,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    //    - device info tests******
+    // device info tests******
     it("test with fetch that device info is sent", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -599,7 +587,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ testConfigKey: "testConfigValue", "allow-credentials": true })
                 });
-
+                // TODO: discuss with me please.
+                // TODO: you do not need to do the allow-credentials thing here since you have another test for this. My bad.
                 let configDataResponse = JSON.parse(await userConfigResponse.text());
                 assertEqual(configDataResponse.setAllowCredential, true);
                 assertEqual(configDataResponse.testConfigKey, "testConfigValue");
@@ -624,6 +613,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
 
                 let val = await fetch(`${BASE_URL}/testError`);
+                // TODO: also check status code.
                 assertEqual(await val.text(), "test error message");
             });
         } finally {
@@ -645,7 +635,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, false);
 
-                let val = await fetch(`${BASE_URL}/testError`);
+                let val = await fetch(`${BASE_URL}/testError`); // TODO: without interception!!
                 assertEqual(await val.text(), "test error message");
             });
         } finally {
@@ -848,6 +838,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //- allow-credentials should not be sent by our SDK by default.****
+    // TODO: passing, but incorrect
     it("test with fetch that allow-credentials should not be sent by our SDK by default", async function() {
         await startST(5);
         const browser = await puppeteer.launch({
