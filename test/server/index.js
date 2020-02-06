@@ -18,8 +18,7 @@ let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
 let http = require("http");
 let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = require("./utils");
-let { ProcessState, PROCESS_STATE } = require("../../lib/build/processState");
-
+let { package_version } = require("../../lib/build/version");
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 
@@ -80,7 +79,8 @@ app.post("/stopst", async (req, res) => {
 
 app.post("/checkUserConfig", async (req, res) => {
     let userConfig = req.body.testConfigKey;
-    res.status(200).send(userConfig);
+    let allowCredential = req.body["allow-credentials"] !== undefined ? true : false;
+    res.status(200).send({ testConfigKey: userConfig, setAllowCredential: allowCredential });
 });
 
 app.get("/", async (req, res) => {
@@ -141,6 +141,9 @@ app.get("/refreshCalledTime", async (req, res) => {
 app.get("/getSessionCalledTime", async (req, res) => {
     res.status(200).send("" + noOfTimesGetSessionCalledDuringTest);
 });
+app.get("/getPackageVersion", async (req, res) => {
+    res.status(200).send("" + package_version);
+});
 
 app.get("/ping", async (req, res) => {
     res.send("success");
@@ -158,11 +161,21 @@ app.get("/testHeader", async (req, res) => {
     res.send(JSON.stringify(data));
 });
 
+app.get("/checkDeviceInfo", (req, res) => {
+    let sdkName = req.headers["supertokens-sdk-name"];
+    let sdkVersion = req.headers["supertokens-sdk-version"];
+    res.send(sdkName === "website" && sdkVersion === package_version ? true : false);
+});
+
+app.post("/checkAllowCredentials", (req, res) => {
+    res.send(req.headers["allow-credentials"] !== undefined ? true : false);
+});
+
 app.get("/index", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
 app.get("/testError", (req, res) => {
-    res.status(500).send();
+    res.status(500).send("test error message");
 });
 
 app.get("/stop", async (req, res) => {

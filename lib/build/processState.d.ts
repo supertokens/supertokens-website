@@ -1,5 +1,6 @@
 export declare enum PROCESS_STATE {
-    CALLING_INTERCEPTION = 0
+    CALLING_INTERCEPTION_REQUEST = 0,
+    CALLING_INTERCEPTION_RESPONSE = 1
 }
 export declare class ProcessState {
     history: PROCESS_STATE[];
