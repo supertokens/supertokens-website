@@ -14,6 +14,7 @@
  */
 import { getIDFromCookie, onUnauthorisedResponse, setIDToCookie } from "./handleSessionExp";
 import { package_version } from "./version";
+import { ProcessState, PROCESS_STATE } from "./processState";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -180,6 +181,7 @@ export default class AuthHttpRequest {
             // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
             return await httpCall(config);
         }
+        ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         try {
             let throwError = false;
             let returnObj = undefined;

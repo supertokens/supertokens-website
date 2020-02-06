@@ -575,21 +575,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                assertEqual(loginResponse.data, userId);
-                assertEqual(await supertokens.axios.doesSessionExist(), true);
-
-                assertEqual(loginResponse.config.headers["supertokens-sdk-name"] === "website", true); // TODO: check against actual value
-                assertEqual(
-                    loginResponse.config.headers["supertokens-sdk-version"] === (await getPackageVersion()),
-                    true
-                ); // TODO: check against actual value
+                let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
+                assertEqual(deviceInfoIsAdded.data, true); // TODO: check against actual value
             });
         } finally {
             await browser.close();
@@ -711,7 +698,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 try {
                     await axios.get(`${BASE_URL}/testError`);
-                    assert(false, "should not have come here");
+                    assertEqual(false, "should not have come here");
                 } catch (error) {
                     // TODO: please throw a custom error message from the API and check for that
                     assertEqual(error.response.data, "test error message");
@@ -991,15 +978,13 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
-                // send api request to login
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
                     }
                 });
-                assertEqual(userId, loginResponse.data);
-                assertEqual(loginResponse.config["allow-credentials"], undefined);
+                assertEqual(loginResponse.headers["access-control-expose-headers"].includes("withCredentials "), false);
             });
         } finally {
             await browser.close();
