@@ -1,13 +1,15 @@
 import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+export declare function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig): Promise<AxiosRequestConfig>;
+export declare function responseInterceptor(response: AxiosResponse): Promise<AxiosResponse<any>>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
     private static refreshTokenUrl;
-    private static websiteRootDomain;
-    private static sessionExpiredStatusCode;
-    private static initCalled;
+    static websiteRootDomain: string;
+    static sessionExpiredStatusCode: number;
+    static initCalled: boolean;
     static apiDomain: string;
     private static refreshAPICustomHeaders;
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;

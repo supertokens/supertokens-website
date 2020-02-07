@@ -32,11 +32,12 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 const BASE_URL = "http://localhost:8080";
 
 /* TODO: 
+    - User passed config should be sent as well
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
     - if not logged in, test that API that requires auth throws session expired
-    - if multiple interceptors are there, they should all work
+    - if multiple interceptors are there, they should all work****
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
     - Cross origin API requests to API that requires Auth
@@ -128,7 +129,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing with fetch api methods with config", async function() {
-        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true); // TODO: viaInteceptor should be false.
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, false); // TODO: viaInteceptor should be false.
 
         let testing = "testing";
         let getResponse = await AuthHttpRequestFetch.get(`${BASE_URL}/${testing}`, { headers: { testing } });
@@ -197,7 +198,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("test refresh session with fetch", async function() {
-        await startST();
+        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -222,7 +223,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
 
                 //delay for 3 seconds for access token validity expiry
-                await delay(3);
+                await delay(5);
 
                 //check that the number of times the refreshAPI was called is 0
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
@@ -242,7 +243,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     //test custom headers are being sent when logged in and when not*****
     it("test with fetch that custom headers are being sent", async function() {
-        await startST(5); // TODO: why 5?
+        await startST(); // TODO: why 5?
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -417,12 +418,19 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ userId })
                 });
-                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
                 assertEqual(await loginResponse.text(), userId);
-
+                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
+                await delay(5);
                 let attemptRefresh = await supertokens.fetch.attemptRefreshingSession();
                 assertEqual(attemptRefresh, true);
 
+                //check that the number of times the refresh API was called is 1
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                let getSessionResponse = await fetch(`${BASE_URL}/`);
+                assertEqual(await getSessionResponse.text(), "success");
+
+                //check that the number of times the refresh API was called is still 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
             });
         } finally {
@@ -490,7 +498,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     // - Things should work if anti-csrf is disabled.******
     it("test with fetch that things should work correctly if anti-csrf is disabled", async function() {
-        await startST(1, false);
+        await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -516,7 +524,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.fetch.doesSessionExist(), true);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                await delay(3);
+                await delay(5);
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
 
@@ -566,37 +574,45 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //    - User passed config should be sent as well******
-    it("test with fetch that user passed config should be sent", async () => {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
-            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
+    // it("test with fetch that user passed config should be sent", async () => {
+    //     await startST();
+    //     const browser = await puppeteer.launch({
+    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    //     });
+    //     try {
+    //         const page = await browser.newPage();
+    //         await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+    //         await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+    //         page.on("console", consoleObj => console.log(consoleObj.text()));
+    //         await page.evaluate(async () => {
+    //             let BASE_URL = "http://localhost:8080";
+    //             supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
 
-                let userConfigResponse = await fetch(`${BASE_URL}/checkUserConfig`, {
-                    method: "post",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ testConfigKey: "testConfigValue", "allow-credentials": true })
-                });
-                // TODO: discuss with me please.
-                // TODO: you do not need to do the allow-credentials thing here since you have another test for this. My bad.
-                let configDataResponse = JSON.parse(await userConfigResponse.text());
-                assertEqual(configDataResponse.setAllowCredential, true);
-                assertEqual(configDataResponse.testConfigKey, "testConfigValue");
-            });
-        } finally {
-            await browser.close();
-        }
-    });
+    //             // let userConfigResponse = await fetch(`${BASE_URL}/checkUserConfig`, {
+    //             //     method: "post",
+    //             //     headers: {
+    //             //         Accept: "application/json",
+    //             //         "Content-Type": "application/json"
+    //             //     },
+    //             //     body: JSON.stringify({ testConfigKey: "testConfigValue"})
+    //             // });
+    //             let userConfigResponse = await fetch(`${BASE_URL}/testCheckUserConfig`, {
+    //                 method: "post",
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 redirect: ""
+    //             });
+    //             // TODO: discuss with me please.
+    //             console.log(userConfigResponse)
+    //             // let configDataResponse = JSON.parse(await userConfigResponse.text());
+    //             // assertEqual(configDataResponse.testConfigKey, "testConfigValue");
+    //         });
+    //     } finally {
+    //         await browser.close();
+    //     }
+    // });
 
     // if any API throws error, it gets propogated to the user properly (with and without interception)******
     it("test with fetch that if an api throws an error it gets propagated to the user with interception", async () => {
@@ -615,6 +631,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let val = await fetch(`${BASE_URL}/testError`);
                 // TODO: also check status code.
                 assertEqual(await val.text(), "test error message");
+                assertEqual(val.status, 500);
             });
         } finally {
             await browser.close();
@@ -635,8 +652,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, false);
 
-                let val = await fetch(`${BASE_URL}/testError`); // TODO: without interception!!
+                let val = await supertokens.fetch.get(`${BASE_URL}/testError`); // TODO: without interception!!
                 assertEqual(await val.text(), "test error message");
+                assertEqual(val.status, 500);
             });
         } finally {
             await browser.close();
@@ -705,7 +723,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
     it("test with fetch that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
-        await startST();
+        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -731,7 +749,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
 
                 //wait for 3 seconds such that the session expires
-                await delay(3);
+                await delay(5);
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
                 assertEqual(await getSessionResponse.text(), "success");
@@ -839,39 +857,39 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     //- allow-credentials should not be sent by our SDK by default.****
     // TODO: passing, but incorrect
-    it("test with fetch that allow-credentials should not be sent by our SDK by default", async function() {
-        await startST(5);
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
-            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
-                supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
-                let userId = "testing-supertokens-website";
+    // it("test with fetch that allow-credentials should not be sent by our SDK by default", async function() {
+    //     await startST(5);
+    //     const browser = await puppeteer.launch({
+    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    //     });
+    //     try {
+    //         const page = await browser.newPage();
+    //         await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+    //         await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+    //         await page.evaluate(async () => {
+    //             let BASE_URL = "http://localhost:8080";
+    //             supertokens.axios.makeSuper(axios);
+    //             supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+    //             let userId = "testing-supertokens-website";
 
-                let loginResponse = await fetch(`${BASE_URL}/login`, {
-                    method: "post",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ userId })
-                });
+    //             let loginResponse = await fetch(`${BASE_URL}/login`, {
+    //                 method: "post",
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 body: JSON.stringify({ userId })
+    //             });
 
-                assertEqual(
-                    await loginResponse.headers.get("access-control-expose-headers").includes("credentials"),
-                    false
-                );
-            });
-        } finally {
-            await browser.close();
-        }
-    });
+    //             assertEqual(
+    //                 await loginResponse.headers.get("access-control-expose-headers").includes("credentials"),
+    //                 false
+    //             );
+    //         });
+    //     } finally {
+    //         await browser.close();
+    //     }
+    // });
 
     //    - Interception should not happen when domain is not the one that they gave*******
     it("test with fetch interception should not happen when domain is not the one that they gave", async function() {
@@ -879,6 +897,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true);
         let userId = "testing-supertokens-website";
 
+        // this is technically not doing interception, but it is equavalent to doing it since the inteceptor just calls the function below.
         await AuthHttpRequestFetch.fetch(`https://www.google.com`);
 
         let verifyRequestState = await ProcessState.getInstance().waitForEvent(
@@ -904,5 +923,50 @@ describe("Fetch AuthHttpRequest class tests", function() {
             5000
         );
         assert.notDeepEqual(verifyRequestState, undefined);
+    });
+
+    it("test with fetch that if multiple interceptors are there, they should all work", async function() {
+        await startST(5);
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true);
+        let userId = "testing-supertokens-website";
+
+        let myFetch = async (url, config) => {
+            let testConfig = config;
+            testConfig = {
+                ...testConfig,
+                headers: {
+                    ...testConfig.headers,
+                    interceptorHeader1: "value1",
+                    interceptorHeader2: "value2"
+                }
+            };
+            let response = await AuthHttpRequestFetch.fetch(url, testConfig);
+            let requestValue = await response.text();
+            response = {
+                ...response,
+                headers: {
+                    ...response.headers,
+                    doInterception3: "value3",
+                    doInterception4: "value4"
+                },
+                body: {
+                    key: requestValue
+                }
+            };
+            return response;
+        };
+
+        let multipleInterceptorResponse = await myFetch(`${BASE_URL}/multipleInterceptors`, {
+            method: "post",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                doMultipleInterceptors: "true"
+            },
+            body: JSON.stringify({ userId })
+        });
+        assert.deepEqual(multipleInterceptorResponse.body.key, "success");
+        assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception3, undefined);
+        assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception4, undefined);
     });
 });

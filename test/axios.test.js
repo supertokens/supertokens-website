@@ -17,7 +17,7 @@ let axios = require("axios");
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
 let { AntiCsrfToken } = require("../index.js");
-let { default: AuthHttpRequest } = require("../axios.js");
+let { default: AuthHttpRequest, interceptorFunctionRequestFulfilled, responseInterceptor } = require("../axios.js");
 let assert = require("assert");
 let {
     delay,
@@ -31,13 +31,12 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 
 const BASE_URL = "http://localhost:8080";
 AuthHttpRequest.makeSuper(axios);
-
 /* TODO: 
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
     - if not logged in, test that API that requires auth throws session expired
-    - if multiple interceptors are there, they should all work
+    - if multiple interceptors are there, they should all work*****
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
     - Cross origin API requests to API that requires Auth
@@ -416,7 +415,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     // testing attemptRefreshingSession works fine******
     it("test that attemptRefreshingSession is working correctly", async function() {
-        await startST();
+        await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -437,12 +436,19 @@ describe("Axios AuthHttpRequest class tests", function() {
                         "Content-Type": "application/json"
                     }
                 });
-
-                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
                 assertEqual(userId, loginResponse.data);
+                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
+                await delay(7);
                 let attemptRefresh = await supertokens.axios.attemptRefreshingSession();
                 assertEqual(attemptRefresh, true);
 
+                //check that the number of times the refresh API called is 1
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                let getSessionResponse = await axios.get(`${BASE_URL}/`);
+                assertEqual(getSessionResponse.data, "success");
+
+                //check that the number of times the refresh API called is still 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
             });
         } finally {
@@ -508,7 +514,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     // - Things should work if anti-csrf is disabled.******
     it("test that things should work correctly if anti-csrf is disabled", async function() {
-        await startST(1, false);
+        await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -535,7 +541,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                await delay(3);
+                await delay(5);
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(getSessionResponse.data, "success");
@@ -582,7 +588,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     //test that calling makeSuper many times is not a problem******
     it("test that calling makeSuper multiple times is not a problem", async () => {
-        await startST();
+        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -614,9 +620,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // check that the number of times session refresh is called is zero
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                //delay for 3 seconds so that we know accessToken expires
-                await delay(3);
+                //delay for 5 seconds so that we know accessToken expires
 
+                await delay(5);
                 // send a get session request , which should do a refresh session request
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
@@ -662,18 +668,15 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
-                let userConfigResponse = await axios.post(`${BASE_URL}/checkUserConfig`, {
+                let userConfigResponse = await axios.post(`${BASE_URL}/testUserConfig`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
                     },
-                    testConfigKey: "testConfigValue",
-                    "allow-credentials": true
+                    timeout: 1000
                 });
                 // TODO: is testConfigKey in body of the request? I'm confused... what are you doing here?
-                // TODO: you do not need to do the allow-credentials thing here since you have another test for this. My bad.
-                assertEqual(userConfigResponse.data.setAllowCredential, true);
-                assertEqual(userConfigResponse.data.testConfigKey, "testConfigValue");
+                assertEqual(userConfigResponse.config.timeout, 1000);
             });
         } finally {
             await browser.close();
@@ -699,6 +702,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 } catch (error) {
                     // TODO: also check status code.
                     assertEqual(error.response.data, "test error message");
+                    assertEqual(error.response.status, 500);
                 }
             });
         } finally {
@@ -725,6 +729,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     assert(false, "should not have come here");
                 } catch (error) {
                     assertEqual(error.response.data, "test error message");
+                    assertEqual(error.response.status, 500);
                 }
             });
         } finally {
@@ -787,7 +792,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
     it("test that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
-        await startST();
+        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -811,7 +816,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
 
                 //wait for 3 seconds such that the session expires
-                await delay(3);
+                await delay(5);
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(getSessionResponse.data, "success");
@@ -983,4 +988,117 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    //- if multiple interceptors are there, they should all work*****
+    it("test that if multiple interceptors are there, they should all work", async function() {
+        await startST();
+        let testAxios = axios.create();
+        makeSuperTest(testAxios);
+        AuthHttpRequest.init(`${BASE_URL}/refresh`, 440);
+        let userId = "testing-supertokens-website";
+        let multipleInterceptorResponse = await testAxios.post(
+            `${BASE_URL}/multipleInterceptors`,
+            JSON.stringify({ userId }),
+            {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    doMultipleInterceptors: "true"
+                }
+            }
+        );
+        assert.deepEqual(multipleInterceptorResponse.data, "success");
+        assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception3, undefined);
+        assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception4, undefined);
+    });
 });
+
+function makeSuperTest(axiosInstance) {
+    // we first check if this axiosInstance already has our interceptors.
+    let requestInterceptors = axiosInstance.interceptors.request;
+    for (let i = 0; i < requestInterceptors.handlers.length; i++) {
+        if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
+            return;
+        }
+    }
+
+    // test request interceptor1
+    axiosInstance.interceptors.request.use(testRequestInterceptor, async function(error) {
+        throw error;
+    });
+
+    // Add a request interceptor
+    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(error) {
+        throw error;
+    });
+
+    // test request interceptor2
+    axiosInstance.interceptors.request.use(testRequestInterceptor, async function(error) {
+        throw error;
+    });
+
+    // test response interceptor3
+    axiosInstance.interceptors.response.use(
+        async function(response) {
+            if (response.config.headers["doMultipleInterceptors"] !== undefined) {
+                response = {
+                    ...response,
+                    headers: {
+                        ...response.headers,
+                        doInterception3: "value 3"
+                    }
+                };
+            }
+            return response;
+        },
+        async function(error) {
+            throw error;
+        }
+    );
+
+    // Add a response interceptor
+    axiosInstance.interceptors.response.use(responseInterceptor);
+    // test response interceptor4
+    axiosInstance.interceptors.response.use(
+        async function(response) {
+            if (response.config.headers["doMultipleInterceptors"] !== undefined) {
+                response = {
+                    ...response,
+                    headers: {
+                        ...response.headers,
+                        doInterception4: "value 4"
+                    }
+                };
+            }
+            return response;
+        },
+        async function(error) {
+            throw error;
+        }
+    );
+}
+
+async function testRequestInterceptor(config) {
+    let testConfig = config;
+    if (
+        testConfig.headers["doMultipleInterceptors"] !== undefined &&
+        testConfig.headers["interceptorHeader1"] === undefined
+    ) {
+        testConfig = {
+            ...testConfig,
+            headers: {
+                ...testConfig.headers,
+                interceptorHeader1: "value1"
+            }
+        };
+    } else if (testConfig.headers["doMultipleInterceptors"] !== undefined) {
+        testConfig = {
+            ...testConfig,
+            headers: {
+                ...testConfig.headers,
+                interceptorHeader2: "value2"
+            }
+        };
+    }
+    return testConfig;
+}

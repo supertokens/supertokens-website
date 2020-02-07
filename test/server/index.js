@@ -77,10 +77,16 @@ app.post("/stopst", async (req, res) => {
     res.send("");
 });
 
-app.post("/checkUserConfig", async (req, res) => {
-    let userConfig = req.body.testConfigKey;
-    let allowCredential = req.body["allow-credentials"] !== undefined ? true : false;
-    res.status(200).send({ testConfigKey: userConfig, setAllowCredential: allowCredential });
+app.post("/testUserConfig", async (req, res) => {
+    res.status(200).send();
+});
+
+app.post("/multipleInterceptors", async (req, res) => {
+    res.status(200).send(
+        req.headers.interceptorheader2 !== undefined && req.headers.interceptorheader1 !== undefined
+            ? "success"
+            : "failure"
+    );
 });
 
 app.get("/", async (req, res) => {
