@@ -925,6 +925,76 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.notDeepEqual(verifyRequestState, undefined);
     });
 
+    //cross domain login, userinfo, logout
+    it("test with fetch cross domain", async () => {
+        await startST(5);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto("http://127.0.0.1:8080/index", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost:8080";
+                supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    credentials: "include",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                //check that the userId which is returned in the response is the same as the one we sent
+                assertEqual(await loginResponse.text(), userId);
+
+                // check that the session exists
+                assertEqual(await supertokens.fetch.doesSessionExist(), true);
+
+                // check that the number of times session refresh is called is zero
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                //delay for 5 seconds so that we know accessToken expires
+
+                await delay(5);
+                // send a get session request , which should do a refresh session request
+                let getSessionResponse = await fetch(`${BASE_URL}/`, {
+                    method: "get",
+                    credentials: "include"
+                });
+
+                // check that the getSession was successfull
+                assertEqual(await getSessionResponse.text(), "success");
+
+                // check that the refresh session was called only once
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                // do logout
+                let logoutResponse = await fetch(`${BASE_URL}/logout`, {
+                    method: "post",
+                    credentials: "include",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                assertEqual(await logoutResponse.text(), "success");
+
+                //check that session does not exist
+                assertEqual(await supertokens.fetch.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("test with fetch that if multiple interceptors are there, they should all work", async function() {
         await startST(5);
         AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, true);

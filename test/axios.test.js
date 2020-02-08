@@ -1011,6 +1011,72 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception3, undefined);
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception4, undefined);
     });
+
+    //cross domain login, userinfo, logout
+    it("cross domain", async () => {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto("http://127.0.0.1:8080/index", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            await page.evaluate(async () => {
+                supertokens.axios.makeSuper(axios);
+                let BASE_URL = "http://localhost:8080";
+                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    withCredentials: true
+                });
+
+                //check that the userId which is returned in the response is the same as the one we sent
+                assertEqual(loginResponse.data, userId);
+
+                // check that the session exists
+                assertEqual(await supertokens.axios.doesSessionExist(), true);
+
+                // check that the number of times session refresh is called is zero
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                //delay for 5 seconds so that we know accessToken expires
+
+                await delay(5);
+                // send a get session request , which should do a refresh session request
+
+                let getSessionResponse = await axios.get(`${BASE_URL}/`, {
+                    withCredentials: true
+                });
+
+                // check that the getSession was successfull
+                assertEqual(getSessionResponse.data, "success");
+
+                // check that the refresh session was called only once
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                // do logout
+                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    withCredentials: true
+                });
+                assertEqual(logoutResponse.data, "success");
+
+                //check that session does not exist
+                assertEqual(await supertokens.axios.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
 });
 
 function makeSuperTest(axiosInstance) {

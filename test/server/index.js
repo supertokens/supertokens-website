@@ -37,10 +37,20 @@ SuperTokens.init([
     }
 ]);
 
+app.options("*", async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+    res.header("Access-Control-Allow-Headers", "content-type");
+    res.header("Access-Control-Allow-Methods", "*");
+    SuperTokens.setRelevantHeadersForOptionsAPI(res);
+    res.send("");
+});
+
 app.post("/login", async (req, res) => {
     try {
         let userId = req.body.userId;
         let session = await SuperTokens.createNewSession(res, userId);
+        res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+        res.header("Access-Control-Allow-Credentials", true);
         res.send(session.userId);
     } catch (err) {
         res.status(500).send("");
@@ -93,8 +103,12 @@ app.get("/", async (req, res) => {
     try {
         noOfTimesGetSessionCalledDuringTest += 1;
         await SuperTokens.getSession(req, res, true);
+        res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+        res.header("Access-Control-Allow-Credentials", true);
         res.send("success");
     } catch (err) {
+        res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+        res.header("Access-Control-Allow-Credentials", true);
         res.status(440).send();
     }
 });
@@ -111,6 +125,8 @@ app.post("/logout", async (req, res) => {
     try {
         let sessionInfo = await SuperTokens.getSession(req, res, true);
         await sessionInfo.revokeSession();
+        res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+        res.header("Access-Control-Allow-Credentials", true);
         res.send("success");
     } catch (err) {
         res.status(440).send();
@@ -134,13 +150,18 @@ app.post("/refresh", async (req, res) => {
         refreshCalled = true;
         noOfTimesRefreshCalledDuringTest += 1;
     } catch (err) {
+        res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+        res.header("Access-Control-Allow-Credentials", true);
         res.status(440).send();
         return;
     }
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+    res.header("Access-Control-Allow-Credentials", true);
     res.send("refresh success");
 });
 
 app.get("/refreshCalledTime", async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
     res.status(200).send("" + noOfTimesRefreshCalledDuringTest);
 });
 
@@ -197,4 +218,4 @@ app.use("*", async (err, req, res, next) => {
 });
 
 let server = http.createServer(app);
-server.listen(8080, "localhost");
+server.listen(8080, "0.0.0.0");
