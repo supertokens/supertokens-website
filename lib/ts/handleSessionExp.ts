@@ -51,11 +51,16 @@ export async function onUnauthorisedResponse(
                         "supertokens-sdk-version": package_version
                     }
                 });
+                let removeIdRefreshToken = true;
                 response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
                         setIDToCookie(value, websiteRootDomain);
+                        removeIdRefreshToken = false;
                     }
                 });
+                if (removeIdRefreshToken) {
+                    setIDToCookie("remove", websiteRootDomain);
+                }
                 if (response.status !== 200) {
                     throw response;
                 }
