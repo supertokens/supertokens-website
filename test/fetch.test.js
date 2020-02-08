@@ -37,13 +37,14 @@ const BASE_URL = "http://localhost:8080";
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
     - if not logged in, test that API that requires auth throws session expired
-    - if multiple interceptors are there, they should all work****
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
     - Refresh API custom headers are working
+    - allow-credentials should not be sent by our SDK by default.
+    - User passed config should be sent as well
 */
 describe("Fetch AuthHttpRequest class tests", function() {
     jsdom({
@@ -129,7 +130,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing with fetch api methods with config", async function() {
-        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, false); // TODO: viaInteceptor should be false.
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, 440, false);
 
         let testing = "testing";
         let getResponse = await AuthHttpRequestFetch.get(`${BASE_URL}/${testing}`, { headers: { testing } });
@@ -243,7 +244,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     //test custom headers are being sent when logged in and when not*****
     it("test with fetch that custom headers are being sent", async function() {
-        await startST(); // TODO: why 5?
+        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -419,7 +420,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
-                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
+
                 await delay(5);
                 let attemptRefresh = await supertokens.fetch.attemptRefreshingSession();
                 assertEqual(attemptRefresh, true);
@@ -573,47 +574,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    //    - User passed config should be sent as well******
-    // it("test with fetch that user passed config should be sent", async () => {
-    //     await startST();
-    //     const browser = await puppeteer.launch({
-    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    //     });
-    //     try {
-    //         const page = await browser.newPage();
-    //         await page.goto(BASE_URL + "/index", { waitUntil: "load" });
-    //         await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-    //         page.on("console", consoleObj => console.log(consoleObj.text()));
-    //         await page.evaluate(async () => {
-    //             let BASE_URL = "http://localhost:8080";
-    //             supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
-
-    //             // let userConfigResponse = await fetch(`${BASE_URL}/checkUserConfig`, {
-    //             //     method: "post",
-    //             //     headers: {
-    //             //         Accept: "application/json",
-    //             //         "Content-Type": "application/json"
-    //             //     },
-    //             //     body: JSON.stringify({ testConfigKey: "testConfigValue"})
-    //             // });
-    //             let userConfigResponse = await fetch(`${BASE_URL}/testCheckUserConfig`, {
-    //                 method: "post",
-    //                 headers: {
-    //                     Accept: "application/json",
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 redirect: ""
-    //             });
-    //             // TODO: discuss with me please.
-    //             console.log(userConfigResponse)
-    //             // let configDataResponse = JSON.parse(await userConfigResponse.text());
-    //             // assertEqual(configDataResponse.testConfigKey, "testConfigValue");
-    //         });
-    //     } finally {
-    //         await browser.close();
-    //     }
-    // });
-
     // if any API throws error, it gets propogated to the user properly (with and without interception)******
     it("test with fetch that if an api throws an error it gets propagated to the user with interception", async () => {
         await startST();
@@ -629,7 +589,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
 
                 let val = await fetch(`${BASE_URL}/testError`);
-                // TODO: also check status code.
                 assertEqual(await val.text(), "test error message");
                 assertEqual(val.status, 500);
             });
@@ -652,7 +611,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, false);
 
-                let val = await supertokens.fetch.get(`${BASE_URL}/testError`); // TODO: without interception!!
+                let val = await supertokens.fetch.get(`${BASE_URL}/testError`);
                 assertEqual(await val.text(), "test error message");
                 assertEqual(val.status, 500);
             });
@@ -854,42 +813,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
-
-    //- allow-credentials should not be sent by our SDK by default.****
-    // TODO: passing, but incorrect
-    // it("test with fetch that allow-credentials should not be sent by our SDK by default", async function() {
-    //     await startST(5);
-    //     const browser = await puppeteer.launch({
-    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    //     });
-    //     try {
-    //         const page = await browser.newPage();
-    //         await page.goto(BASE_URL + "/index", { waitUntil: "load" });
-    //         await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-    //         await page.evaluate(async () => {
-    //             let BASE_URL = "http://localhost:8080";
-    //             supertokens.axios.makeSuper(axios);
-    //             supertokens.axios.init(`${BASE_URL}/refresh`, 440);
-    //             let userId = "testing-supertokens-website";
-
-    //             let loginResponse = await fetch(`${BASE_URL}/login`, {
-    //                 method: "post",
-    //                 headers: {
-    //                     Accept: "application/json",
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 body: JSON.stringify({ userId })
-    //             });
-
-    //             assertEqual(
-    //                 await loginResponse.headers.get("access-control-expose-headers").includes("credentials"),
-    //                 false
-    //             );
-    //         });
-    //     } finally {
-    //         await browser.close();
-    //     }
-    // });
 
     //    - Interception should not happen when domain is not the one that they gave*******
     it("test with fetch interception should not happen when domain is not the one that they gave", async function() {

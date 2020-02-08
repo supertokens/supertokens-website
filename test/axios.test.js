@@ -36,13 +36,13 @@ AuthHttpRequest.makeSuper(axios);
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
     - if not logged in, test that API that requires auth throws session expired
-    - if multiple interceptors are there, they should all work*****
     - Test everything without and without interception
     - If user provides withCredentials as false or whatever, then app should not add it
     - Cross origin API requests to API that requires Auth
     - Cross origin API request to APi that doesn't require auth
     - Proper change in anti-csrf token once access token resets
     - Refresh API custom headers are working
+    - allow-credentials should not be sent by our SDK by default.
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
@@ -437,7 +437,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     }
                 });
                 assertEqual(userId, loginResponse.data);
-                // TODO: set the access token expiry time to 5 seconds, let it expire, then call attempting refresh (check that refresh counter is 1) then call userInfo and check that refresh counter is still 1
+
                 await delay(7);
                 let attemptRefresh = await supertokens.axios.attemptRefreshingSession();
                 assertEqual(attemptRefresh, true);
@@ -675,7 +675,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                     },
                     timeout: 1000
                 });
-                // TODO: is testConfigKey in body of the request? I'm confused... what are you doing here?
                 assertEqual(userConfigResponse.config.timeout, 1000);
             });
         } finally {
@@ -700,7 +699,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                     await axios.get(`${BASE_URL}/testError`);
                     assertEqual(false, "should not have come here");
                 } catch (error) {
-                    // TODO: also check status code.
                     assertEqual(error.response.data, "test error message");
                     assertEqual(error.response.status, 500);
                 }
@@ -959,36 +957,6 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    //- allow-credentials should not be sent by our SDK by default.****
-    // TODO: test is passing, but incorrect!
-    it("test that allow-credentials should not be sent by our SDK by default", async function() {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
-            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
-                supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
-                let userId = "testing-supertokens-website";
-
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                assertEqual(loginResponse.headers["access-control-expose-headers"].includes("withCredentials "), false);
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
     //- if multiple interceptors are there, they should all work*****
     it("test that if multiple interceptors are there, they should all work", async function() {
         await startST();
@@ -1002,8 +970,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             {
                 headers: {
                     Accept: "application/json",
-                    "Content-Type": "application/json",
-                    doMultipleInterceptors: "true"
+                    "Content-Type": "application/json"
                 }
             }
         );
@@ -1080,14 +1047,6 @@ describe("Axios AuthHttpRequest class tests", function() {
 });
 
 function makeSuperTest(axiosInstance) {
-    // we first check if this axiosInstance already has our interceptors.
-    let requestInterceptors = axiosInstance.interceptors.request;
-    for (let i = 0; i < requestInterceptors.handlers.length; i++) {
-        if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
-            return;
-        }
-    }
-
     // test request interceptor1
     axiosInstance.interceptors.request.use(testRequestInterceptor, async function(error) {
         throw error;
@@ -1106,15 +1065,13 @@ function makeSuperTest(axiosInstance) {
     // test response interceptor3
     axiosInstance.interceptors.response.use(
         async function(response) {
-            if (response.config.headers["doMultipleInterceptors"] !== undefined) {
-                response = {
-                    ...response,
-                    headers: {
-                        ...response.headers,
-                        doInterception3: "value 3"
-                    }
-                };
-            }
+            response = {
+                ...response,
+                headers: {
+                    ...response.headers,
+                    doInterception3: "value 3"
+                }
+            };
             return response;
         },
         async function(error) {
@@ -1127,15 +1084,13 @@ function makeSuperTest(axiosInstance) {
     // test response interceptor4
     axiosInstance.interceptors.response.use(
         async function(response) {
-            if (response.config.headers["doMultipleInterceptors"] !== undefined) {
-                response = {
-                    ...response,
-                    headers: {
-                        ...response.headers,
-                        doInterception4: "value 4"
-                    }
-                };
-            }
+            response = {
+                ...response,
+                headers: {
+                    ...response.headers,
+                    doInterception4: "value 4"
+                }
+            };
             return response;
         },
         async function(error) {
@@ -1146,10 +1101,7 @@ function makeSuperTest(axiosInstance) {
 
 async function testRequestInterceptor(config) {
     let testConfig = config;
-    if (
-        testConfig.headers["doMultipleInterceptors"] !== undefined &&
-        testConfig.headers["interceptorHeader1"] === undefined
-    ) {
+    if (testConfig.headers["interceptorHeader1"] === undefined) {
         testConfig = {
             ...testConfig,
             headers: {
@@ -1157,7 +1109,7 @@ async function testRequestInterceptor(config) {
                 interceptorHeader1: "value1"
             }
         };
-    } else if (testConfig.headers["doMultipleInterceptors"] !== undefined) {
+    } else {
         testConfig = {
             ...testConfig,
             headers: {
