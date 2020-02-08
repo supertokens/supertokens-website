@@ -73,7 +73,8 @@ export async function handleUnauthorised(
     refreshAPI: string | undefined,
     preRequestIdToken: string | undefined,
     websiteRootDomain: string,
-    refreshAPICustomHeaders: any
+    refreshAPICustomHeaders: any,
+    sessionExpiredStatusCode: number
 ): Promise<boolean> {
     if (refreshAPI === undefined) {
         throw Error("Please define refresh token API in the init function");
@@ -85,7 +86,8 @@ export async function handleUnauthorised(
         refreshAPI,
         preRequestIdToken,
         websiteRootDomain,
-        refreshAPICustomHeaders
+        refreshAPICustomHeaders,
+        sessionExpiredStatusCode
     );
     if (result.result === "SESSION_EXPIRED") {
         return false;
@@ -235,7 +237,8 @@ export default class AuthHttpRequest {
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
                             AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders
+                            AuthHttpRequest.refreshAPICustomHeaders,
+                            AuthHttpRequest.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             returnObj = response;
@@ -255,7 +258,8 @@ export default class AuthHttpRequest {
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
                             AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders
+                            AuthHttpRequest.refreshAPICustomHeaders,
+                            AuthHttpRequest.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             throwError = true;
@@ -295,7 +299,8 @@ export default class AuthHttpRequest {
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
                 AuthHttpRequest.websiteRootDomain,
-                AuthHttpRequest.refreshAPICustomHeaders
+                AuthHttpRequest.refreshAPICustomHeaders,
+                AuthHttpRequest.sessionExpiredStatusCode
             );
         } finally {
             if (getIDFromCookie() === undefined) {

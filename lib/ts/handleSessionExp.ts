@@ -27,7 +27,8 @@ export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
     preRequestIdToken: string,
     websiteRootDomain: string,
-    refreshAPICustomHeaders: any
+    refreshAPICustomHeaders: any,
+    sessionExpiredStatusCode: number
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -58,8 +59,11 @@ export async function onUnauthorisedResponse(
                         removeIdRefreshToken = false;
                     }
                 });
-                if (removeIdRefreshToken) {
-                    setIDToCookie("remove", websiteRootDomain);
+                if (response.status === sessionExpiredStatusCode) {
+                    // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
+                    if (removeIdRefreshToken) {
+                        setIDToCookie("remove", websiteRootDomain);
+                    }
                 }
                 if (response.status !== 200) {
                     throw response;
