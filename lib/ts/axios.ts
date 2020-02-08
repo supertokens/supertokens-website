@@ -219,7 +219,8 @@ export default class AuthHttpRequest {
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
                             AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders
+                            AuthHttpRequest.refreshAPICustomHeaders,
+                            AuthHttpRequest.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             returnObj = response;
@@ -241,7 +242,8 @@ export default class AuthHttpRequest {
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
                             AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders
+                            AuthHttpRequest.refreshAPICustomHeaders,
+                            AuthHttpRequest.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             throwError = true;
@@ -281,7 +283,8 @@ export default class AuthHttpRequest {
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
                 AuthHttpRequest.websiteRootDomain,
-                AuthHttpRequest.refreshAPICustomHeaders
+                AuthHttpRequest.refreshAPICustomHeaders,
+                AuthHttpRequest.sessionExpiredStatusCode
             );
         } finally {
             if (getIDFromCookie() === undefined) {
