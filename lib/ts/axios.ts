@@ -19,8 +19,23 @@ import { getIDFromCookie, setIDToCookie } from "./handleSessionExp";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
 
+function getUrlFromConfig(config: AxiosRequestConfig) {
+    let url: string = config.url === undefined ? "" : config.url;
+    let baseURL: string | undefined = config.baseURL;
+    if (baseURL !== undefined) {
+        if (url.charAt(0) === "/" && baseURL.charAt(baseURL.length - 1) === "/") {
+            url = baseURL + url.substr(1);
+        } else if (url.charAt(0) !== "/" && baseURL.charAt(baseURL.length - 1) !== "/") {
+            url = baseURL + "/" + url;
+        } else {
+            url = baseURL + url;
+        }
+    }
+    return url;
+}
+
 export async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
-    let url = config.url;
+    let url = getUrlFromConfig(config);
     if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
@@ -67,7 +82,7 @@ export async function responseInterceptor(response: AxiosResponse) {
         if (!AuthHttpRequest.initCalled) {
             throw new Error("init function not called");
         }
-        let url = response.config.url;
+        let url = getUrlFromConfig(response.config);
         if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
             // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
             return response;
@@ -87,7 +102,7 @@ export async function responseInterceptor(response: AxiosResponse) {
                     return instance(config);
                 },
                 config,
-                config.url,
+                url,
                 response,
                 true
             );
@@ -386,7 +401,7 @@ export default class AuthHttpRequest {
                             return instance(config);
                         },
                         config,
-                        config.url,
+                        getUrlFromConfig(config),
                         undefined,
                         error,
                         true

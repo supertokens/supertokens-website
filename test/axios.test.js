@@ -1044,6 +1044,110 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("cross domain with BaseURL", async () => {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto("http://127.0.0.1:8080/index", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            await page.evaluate(async () => {
+                const http = axios.create({
+                    baseURL: "http://localhost:8080",
+                    withCredentials: true
+                });
+                supertokens.axios.makeSuper(http);
+                let BASE_URL = "http://localhost:8080";
+                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await http.post(`login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                //check that the userId which is returned in the response is the same as the one we sent
+                assertEqual(loginResponse.data, userId);
+
+                // check that the session exists
+                assertEqual(await supertokens.axios.doesSessionExist(), true);
+
+                // check that the number of times session refresh is called is zero
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                //delay for 5 seconds so that we know accessToken expires
+
+                await delay(5);
+                // send a get session request , which should do a refresh session request
+
+                let getSessionResponse = await http.get(`/`);
+
+                // check that the getSession was successfull
+                assertEqual(getSessionResponse.data, "success");
+
+                // check that the refresh session was called only once
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                // do logout
+                let logoutResponse = await http.post(`/logout`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                assertEqual(logoutResponse.data, "success");
+
+                //check that session does not exist
+                assertEqual(await supertokens.axios.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("refresh session with baseURL", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                const http = axios.create({
+                    baseURL: "http://localhost:8080"
+                });
+                let BASE_URL = "http://localhost:8080";
+                supertokens.axios.makeSuper(http);
+                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                let userId = "testing-supertokens-website";
+                let loginResponse = await http.post(`/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let userIdFromResponse = loginResponse.data;
+                assertEqual(userId, userIdFromResponse);
+                await delay(3);
+
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                let getResponse = await http({ url: `/`, method: "GET" });
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                getResponse = await getResponse.data;
+                assertEqual(getResponse, "success");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
 });
 
 function makeSuperTest(axiosInstance) {
