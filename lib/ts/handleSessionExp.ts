@@ -105,7 +105,7 @@ export async function onUnauthorisedResponse(
 export function getIDFromCookie(): string | undefined {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
-    if (parts.length === 2) {
+    if (parts.length >= 2) {
         let last = parts.pop();
         if (last !== undefined) {
             return last.split(";").shift();

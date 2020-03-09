@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.12] - 2020-03-09
+### Changed
+- Relaxes constraint for checking if session is alive
+
+## [4.0.0]
+### Changed
+- Handles id refresh token via frontend cookies so that non sub domain cross domain requests can be made.
+
 ## [3.2.0] - 2019-07-22
 ### Added
 - Added ability to check if a session exists or not.
