@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.1] - 2020-03-18
+### Changed
+- Updated dependency browser-tabs-lock's version
+
 ## [4.1.0] - 2020-03-17
 ### Changed
 - Makes frontend id refresh token's cookie path = `/` So that it is accessible throughout a website and not just the page that was used to login the user (in case tha page was not `/`). 

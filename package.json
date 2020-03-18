@@ -1,10 +1,10 @@
 {
   "name": "supertokens-website",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
-    "browser-tabs-lock": "^1.1.4"
+    "browser-tabs-lock": "^1.2.8"
   },
   "devDependencies": {
     "isomorphic-fetch": "2.2.1",
