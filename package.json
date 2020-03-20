@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -50,7 +50,7 @@
     "bhumilsarvaiya",
     "rishabhpoddar"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/supertokens/supertokens-website/issues"
   },

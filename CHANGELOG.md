@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.2] - 2020-03-20
+### Changed
+- Update license in package.json to match github's license.
+
 ## [4.1.1] - 2020-03-18
 ### Changed
 - Updated dependency browser-tabs-lock's version
