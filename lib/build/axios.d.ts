@@ -1,6 +1,6 @@
 import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 export declare function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig): Promise<AxiosRequestConfig>;
-export declare function responseInterceptor(response: AxiosResponse): Promise<AxiosResponse<any>>;
+export declare function responseInterceptor(axiosInstance: any): (response: AxiosResponse<any>) => Promise<AxiosResponse<any>>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
