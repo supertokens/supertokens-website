@@ -1184,7 +1184,7 @@ function makeSuperTest(axiosInstance) {
     );
 
     // Add a response interceptor
-    axiosInstance.interceptors.response.use(responseInterceptor);
+    axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance));
     // test response interceptor4
     axiosInstance.interceptors.response.use(
         async function(response) {

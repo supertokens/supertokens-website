@@ -387,7 +387,7 @@ export default class AuthHttpRequest {
         });
 
         // Add a response interceptor
-        axiosInstance.interceptors.response.use(responseInterceptor, async function(error: any) {
+        axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance), async function(error: any) {
             if (!AuthHttpRequest.initCalled) {
                 throw new Error("init function not called");
             }
