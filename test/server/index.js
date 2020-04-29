@@ -198,7 +198,7 @@ app.post("/checkAllowCredentials", (req, res) => {
     res.send(req.headers["allow-credentials"] !== undefined ? true : false);
 });
 
-app.get("/index", (req, res) => {
+app.get("/index.html", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
 app.get("/testError", (req, res) => {
@@ -218,4 +218,4 @@ app.use("*", async (err, req, res, next) => {
 });
 
 let server = http.createServer(app);
-server.listen(8080, "0.0.0.0");
+server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "0.0.0.0");

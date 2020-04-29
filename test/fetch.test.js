@@ -24,12 +24,12 @@ let {
     checkIfIdRefreshIsCleared,
     getNumberOfTimesRefreshCalled,
     startST,
-    getNumberOfTimesGetSessionCalled
+    getNumberOfTimesGetSessionCalled,
+    BASE_URL,
+    BASE_URL_FOR_ST
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
-
-const BASE_URL = "http://localhost:8080";
 
 /* TODO: 
     - User passed config should be sent as well
@@ -52,15 +52,18 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     before(async function() {
-        spawn("./test/startServer", [process.env.INSTALL_PATH]);
+        spawn("./test/startServer", [
+            process.env.INSTALL_PATH,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
+        ]);
         await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function() {
         let instance = axios.create();
-        await instance.post(BASE_URL + "/after");
+        await instance.post(BASE_URL_FOR_ST + "/after");
         try {
-            await instance.get(BASE_URL + "/stop");
+            await instance.get(BASE_URL_FOR_ST + "/stop");
         } catch (err) {}
     });
 
@@ -70,6 +73,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
+        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
         await instance.post(BASE_URL + "/beforeeach");
     });
 
@@ -205,7 +209,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -250,7 +254,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -322,7 +326,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -355,7 +359,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -403,7 +407,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -447,7 +451,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -505,7 +509,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -557,7 +561,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -582,7 +586,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -605,7 +609,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -628,7 +632,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -688,7 +692,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -732,7 +736,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -781,7 +785,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index", { waitUntil: "load" });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
@@ -856,7 +860,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://127.0.0.1:8080/index", { waitUntil: "load" });
+            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";

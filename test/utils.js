@@ -14,6 +14,10 @@
  */
 let axios = require("axios");
 
+module.exports.BASE_URL = "http://localhost:8080";
+module.exports.BASE_URL_FOR_ST =
+    process.env.NODE_PORT === undefined ? "http://localhost:8080" : "http://localhost:" + process.env.NODE_PORT;
+
 module.exports.delay = function(sec) {
     return new Promise(res => setTimeout(res, sec * 1000));
 };
@@ -41,13 +45,13 @@ module.exports.checkIfIdRefreshIsCleared = function() {
 
 module.exports.getNumberOfTimesRefreshCalled = async function() {
     let instance = axios.create();
-    let response = await instance.get("http://localhost:8080/refreshCalledTime");
+    let response = await instance.get(module.exports.BASE_URL + "/refreshCalledTime");
     return response.data;
 };
 
 module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf = true) {
     let instance = axios.create();
-    let response = await instance.post("http://localhost:8080/startST", {
+    let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
         accessTokenValidity,
         enableAntiCsrf
     });
