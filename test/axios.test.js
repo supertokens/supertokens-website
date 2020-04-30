@@ -463,7 +463,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
     it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
-        await startST(5, true);
+        await startST(15, true);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -488,14 +488,16 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
                 // wait for 7 seconds so that the accesstoken expires
-                await delay(7);
+                await delay(17);
 
                 let promises = [];
                 let n = 100;
 
                 // create an array of 100 get session promises
                 for (let i = 0; i < n; i++) {
-                    promises.push(axios({ url: `${BASE_URL}/`, method: "GET" }));
+                    promises.push(
+                        axios({ url: `${BASE_URL}/`, method: "GET", headers: { "Cache-Control": "no-cache, private" } })
+                    );
                 }
 
                 // send 100 get session requests
@@ -577,6 +579,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            page.on("console", message => console.log(message.text()));
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
@@ -584,7 +587,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let userId = "testing-supertokens-website";
 
                 let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
-                assertEqual(deviceInfoIsAdded.data, true);
+                result = deviceInfoIsAdded.data === 1 ? true : deviceInfoIsAdded.data;
+                assertEqual(result, true);
             });
         } finally {
             await browser.close();

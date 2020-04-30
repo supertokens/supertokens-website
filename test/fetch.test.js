@@ -445,7 +445,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
     it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
-        await startST(5);
+        await startST(15);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -471,14 +471,16 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
                 // wait for 7 seconds so that the accesstoken expires
-                await delay(7);
+                await delay(17);
 
                 let promises = [];
                 let n = 100;
 
                 // create an array of 100 get session promises
                 for (let i = 0; i < n; i++) {
-                    promises.push(fetch(`${BASE_URL}/`));
+                    promises.push(
+                        fetch(`${BASE_URL}/`, { method: "GET", headers: { "Cache-Control": "no-cache, private" } })
+                    );
                 }
 
                 // send 100 get session requests
@@ -571,7 +573,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // send request to check if deviceInfo is beinf added to headers
                 let deviceInfoIsAdded = await fetch(`${BASE_URL}/checkDeviceInfo`);
 
-                assertEqual(await deviceInfoIsAdded.text(), "true");
+                let result = await deviceInfoIsAdded.text();
+                result = result === "1" ? "true" : result;
+                assertEqual(result, "true");
             });
         } finally {
             await browser.close();
