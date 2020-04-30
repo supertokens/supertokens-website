@@ -23,7 +23,7 @@
     "axios": "*"
   },
   "scripts": {
-    "test": "TEST_MODE=testing npx mocha --timeout 1000000",
+    "test": "TEST_MODE=testing npx mocha --timeout 50000",
     "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",
     "build": "cd lib && npx tsc -p tsconfig.json && cd ../ && ./node_modules/.bin/webpack -p",
     "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
