@@ -806,6 +806,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            page.on("console", msg => console.log(msg.text()));
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
@@ -827,8 +828,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(getSessionResponse.data, "success");
 
-                //check that the number of times getSession was called is 2
-                assertEqual(await getNumberOfTimesGetSessionCalled(), 2);
+                //check that the number of times getSession was called successfully is 1
+                assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
 
                 //check that the number of times refesh session was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
