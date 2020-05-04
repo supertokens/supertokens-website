@@ -721,8 +721,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
                 assertEqual(await getSessionResponse.text(), "success");
 
-                //check that the number of times getSession was called is 2
-                assertEqual(await getNumberOfTimesGetSessionCalled(), 2);
+                //check that the number of times getSession was called is 1
+                assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
 
                 //check that the number of times refesh session was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);

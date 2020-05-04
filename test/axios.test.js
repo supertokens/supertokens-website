@@ -806,7 +806,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            page.on("console", msg => console.log(msg.text()));
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost:8080";
                 supertokens.axios.makeSuper(axios);
