@@ -212,7 +212,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -257,7 +257,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -329,7 +329,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -362,7 +362,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -410,7 +410,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -454,7 +454,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -514,7 +514,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -566,7 +566,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -593,7 +593,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
 
                 let val = await fetch(`${BASE_URL}/testError`);
@@ -616,7 +616,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, false);
 
                 let val = await supertokens.fetch.get(`${BASE_URL}/testError`);
@@ -639,7 +639,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
@@ -699,7 +699,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -743,7 +743,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -792,7 +792,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -867,7 +867,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
 
@@ -916,6 +916,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ userId })
                 });
+                console.log(9);
                 assertEqual(await logoutResponse.text(), "success");
 
                 //check that session does not exist

@@ -67,7 +67,7 @@ app.post("/beforeeach", async (req, res) => {
     noOfTimesGetSessionCalledDuringTest = 0;
     await killAllST();
     await setupST();
-    await setKeyValueInConfig("cookie_domain", '"localhost"');
+    await setKeyValueInConfig("cookie_domain", '"localhost.org"');
     await setKeyValueInConfig("cookie_secure", "false");
     res.send();
 });

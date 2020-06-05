@@ -14,9 +14,9 @@
  */
 let axios = require("axios");
 
-module.exports.BASE_URL = "http://localhost:8080";
+module.exports.BASE_URL = "http://localhost.org:8080";
 module.exports.BASE_URL_FOR_ST =
-    process.env.NODE_PORT === undefined ? "http://localhost:8080" : "http://localhost:" + process.env.NODE_PORT;
+    process.env.NODE_PORT === undefined ? "http://localhost.org:8080" : "http://localhost.org:" + process.env.NODE_PORT;
 
 module.exports.delay = function(sec) {
     return new Promise(res => setTimeout(res, sec * 1000));

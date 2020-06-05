@@ -17,7 +17,7 @@ let axios = require('axios');
 let jsdom = require("mocha-jsdom");
 let { default: AuthHttpRequest, AntiCsrfToken } = require("../lib/build/index.js");
 let assert = require("assert");
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://localhost.org:8080";
 let { delay, checkIfIdRefreshIsCleared } = require("./utils");
 
 // TODO: also test bundle using puppiteer... + device info
@@ -30,14 +30,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     after(async function() {
         let instance = axios.create();
-        await instance.post("http://localhost:8080/after");
+        await instance.post("http://localhost.org:8080/after");
     });
 
     beforeEach(async function() {
         AuthHttpRequest.initCalled = false;
         global.document = {};
         let instance = axios.create();
-        await instance.post("http://localhost:8080/beforeeach");
+        await instance.post("http://localhost.org:8080/beforeeach");
     });
 
     it("checking that methods exists", function(done) {

@@ -47,7 +47,7 @@ AuthHttpRequest.makeSuper(axios);
 */
 describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
-        url: "http://localhost"
+        url: "http://localhost.org"
     });
 
     before(async function() {
@@ -254,7 +254,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -290,7 +290,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -353,7 +353,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -384,7 +384,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -429,7 +429,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -472,7 +472,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -530,7 +530,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -580,7 +580,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -607,7 +607,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -672,7 +672,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -700,7 +700,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 try {
@@ -727,7 +727,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 try {
@@ -754,7 +754,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
@@ -807,7 +807,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -891,7 +891,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -937,7 +937,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
@@ -999,7 +999,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -1064,11 +1064,11 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 const http = axios.create({
-                    baseURL: "http://localhost:8080",
+                    baseURL: "http://localhost.org:8080",
                     withCredentials: true
                 });
                 supertokens.axios.makeSuper(http);
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
 
@@ -1130,9 +1130,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 const http = axios.create({
-                    baseURL: "http://localhost:8080"
+                    baseURL: "http://localhost.org:8080"
                 });
-                let BASE_URL = "http://localhost:8080";
+                let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(http);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
