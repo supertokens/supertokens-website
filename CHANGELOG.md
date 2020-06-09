@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.4] - 2020-06-09
+### Added
+- New tests added for testing JWT payload update
+### Changed
+- For testing, cookie domain changed from localhost to localhost.org
+- In testing, GET "/" API will return userId of the logged in user
+
 ## [4.1.3] - 2020-04-02
 ### Changed
 - In axios interception, when handling error, we no longer create a new axios instance

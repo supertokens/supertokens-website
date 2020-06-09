@@ -272,7 +272,54 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 getResponse = await getResponse.data;
-                assertEqual(getResponse, "success");
+                assertEqual(getResponse, userId);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("update jwt data", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.axios.makeSuper(axios);
+                supertokens.axios.init(`${BASE_URL}/refresh`, 440);
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                assertEqual(userId, loginResponse.data);
+
+                // update jwt data
+                let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
+                assertEqual(testResponse1.data.key, "data");
+                
+                // get jwt data
+                let testResponse2 = await axios.get(`${BASE_URL}/update-jwt`);
+                assertEqual(testResponse2.data.key, "data");
+
+                // update jwt data
+                let testResponse3 = await axios.post(`${BASE_URL}/update-jwt`, { key1: "data1" });
+                assertEqual(testResponse3.data.key1, "data1");
+                assertEqual(testResponse3.data.key, undefined);
+
+                // get jwt data
+                let testResponse4 = await axios.get(`${BASE_URL}/update-jwt`);
+                assertEqual(testResponse4.data.key1, "data1");
+                assertEqual(testResponse4.data.key, undefined);
             });
         } finally {
             await browser.close();
@@ -367,6 +414,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
+                let getSessionResponse = await axios.get(`${BASE_URL}/`);
+                assertEqual(userId, getSessionResponse.data);
             });
         } finally {
             await browser.close();
@@ -451,7 +500,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 let getSessionResponse = await axios.get(`${BASE_URL}/`);
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 //check that the number of times the refresh API called is still 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -506,7 +555,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 //check that reponse of all requests are success
                 let noOfResponeSuccesses = 0;
                 multipleGetSessionResponse.forEach(element => {
-                    assertEqual(element.data, "success");
+                    assertEqual(element.data, userId);
                     noOfResponeSuccesses += 1;
                 });
 
@@ -551,7 +600,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 await delay(5);
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -584,7 +633,6 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init(`${BASE_URL}/refresh`, 440);
                 let userId = "testing-supertokens-website";
-
                 let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
                 result = deviceInfoIsAdded.data === 1 ? true : deviceInfoIsAdded.data;
                 assertEqual(result, true);
@@ -636,7 +684,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
 
                 // check that the getSession was successfull
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -825,7 +873,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 await delay(5);
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 //check that the number of times getSession was called successfully is 1
                 assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
@@ -952,7 +1000,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
 
                 let getSessionResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 //check that the number of times getSession was called is 1
                 assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
@@ -1030,7 +1078,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
 
                 // check that the getSession was successfull
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -1096,7 +1144,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getSessionResponse = await http.get(`/`);
 
                 // check that the getSession was successfull
-                assertEqual(getSessionResponse.data, "success");
+                assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -1150,7 +1198,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let getResponse = await http({ url: `/`, method: "GET" });
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 getResponse = await getResponse.data;
-                assertEqual(getResponse, "success");
+                assertEqual(getResponse, userId);
             });
         } finally {
             await browser.close();

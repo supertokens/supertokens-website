@@ -236,10 +236,77 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let getResponse = await fetch(`${BASE_URL}/`);
 
                 //check that the response to getSession was success
-                assertEqual(await getResponse.text(), "success");
+                assertEqual(await getResponse.text(), userId);
 
                 //check that the number of time the refreshAPI was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test update jwt data  with fetch", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
+                let userId = "testing-supertokens-website";
+            
+                // send api request to login
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            
+                assertEqual(await loginResponse.text(), userId);
+
+                // update jwt data
+                let testResponse1 = await fetch(`${BASE_URL}/update-jwt`,{
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ key: "data" })
+                });
+                let data1 = await testResponse1.json();
+                assertEqual(data1.key, "data");
+                
+                // get jwt data
+                let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, {method: "get"});
+                let data2 = await testResponse2.json();
+                assertEqual(data2.key, "data");
+
+                // update jwt data
+                let testResponse3 = await fetch(`${BASE_URL}/update-jwt`,{
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ key1: "data1" })
+                });
+                let data3 = await testResponse3.json();
+                assertEqual(data3.key1, "data1");
+                assertEqual(data3.key, undefined);
+
+                // get jwt data
+                let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, {method: "get"});
+                let data4 = await testResponse4.json();
+                assertEqual(data4.key1, "data1");
+                assertEqual(data4.key, undefined);
             });
         } finally {
             await browser.close();
@@ -433,7 +500,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
-                assertEqual(await getSessionResponse.text(), "success");
+                assertEqual(await getSessionResponse.text(), userId);
 
                 //check that the number of times the refresh API was called is still 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -489,7 +556,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 //check that reponse of all requests are success
                 let noOfResponeSuccesses = 0;
                 for (let i = 0; i < multipleGetSessionResponse.length; i++) {
-                    assertEqual(await multipleGetSessionResponse[i].text(), "success");
+                    assertEqual(await multipleGetSessionResponse[i].text(), userId);
                     noOfResponeSuccesses += 1;
                 }
 
@@ -535,7 +602,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
 
-                assertEqual(await getSessionResponse.text(), "success");
+                assertEqual(await getSessionResponse.text(), userId);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 let logoutResponse = await fetch(`${BASE_URL}/logout`, {
@@ -719,7 +786,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 await delay(5);
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
-                assertEqual(await getSessionResponse.text(), "success");
+                assertEqual(await getSessionResponse.text(), userId);
 
                 //check that the number of times getSession was called is 1
                 assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
@@ -809,7 +876,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
 
                 let getSessionResponse = await fetch(`${BASE_URL}/`);
-                assertEqual(await getSessionResponse.text(), "success");
+                assertEqual(await getSessionResponse.text(), userId);
 
                 //check that the number of times getSession was called is 1
                 assertEqual(await getNumberOfTimesGetSessionCalled(), 1);
@@ -901,7 +968,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 });
 
                 // check that the getSession was successfull
-                assertEqual(await getSessionResponse.text(), "success");
+                assertEqual(await getSessionResponse.text(), userId);
 
                 // check that the refresh session was called only once
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
@@ -916,7 +983,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ userId })
                 });
-                console.log(9);
                 assertEqual(await logoutResponse.text(), "success");
 
                 //check that session does not exist
