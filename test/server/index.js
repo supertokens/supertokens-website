@@ -99,7 +99,20 @@ app.get("/", SuperTokens.middleware(true), async (req, res) => {
     noOfTimesGetSessionCalledDuringTest += 1;
     res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
     res.header("Access-Control-Allow-Credentials", true);
-    res.send("success");
+    res.send(req.session.getUserId());
+});
+
+app.get("/update-jwt", SuperTokens.middleware(true), async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+    res.header("Access-Control-Allow-Credentials", true);
+    res.json(req.session.getJWTPayload());
+});
+
+app.post("/update-jwt", SuperTokens.middleware(true), async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8080");
+    res.header("Access-Control-Allow-Credentials", true);
+    await req.session.updateJWTPayload(req.body);
+    res.json(req.session.getJWTPayload());
 });
 
 app.use("/testing", async (req, res) => {
