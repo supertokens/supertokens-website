@@ -306,7 +306,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // update jwt data
                 let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
                 assertEqual(testResponse1.data.key, "data");
-                
+
                 // get jwt data
                 let testResponse2 = await axios.get(`${BASE_URL}/update-jwt`);
                 assertEqual(testResponse2.data.key, "data");

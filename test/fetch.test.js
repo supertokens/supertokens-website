@@ -259,7 +259,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.fetch.init(`${BASE_URL}/refresh`, 440, true);
                 let userId = "testing-supertokens-website";
-            
+
                 // send api request to login
                 let loginResponse = await fetch(`${BASE_URL}/login`, {
                     method: "post",
@@ -269,11 +269,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     },
                     body: JSON.stringify({ userId })
                 });
-            
+
                 assertEqual(await loginResponse.text(), userId);
 
                 // update jwt data
-                let testResponse1 = await fetch(`${BASE_URL}/update-jwt`,{
+                let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -283,14 +283,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 });
                 let data1 = await testResponse1.json();
                 assertEqual(data1.key, "data");
-                
+
                 // get jwt data
-                let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, {method: "get"});
+                let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
                 let data2 = await testResponse2.json();
                 assertEqual(data2.key, "data");
 
                 // update jwt data
-                let testResponse3 = await fetch(`${BASE_URL}/update-jwt`,{
+                let testResponse3 = await fetch(`${BASE_URL}/update-jwt`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -303,7 +303,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(data3.key, undefined);
 
                 // get jwt data
-                let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, {method: "get"});
+                let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
                 let data4 = await testResponse4.json();
                 assertEqual(data4.key1, "data1");
                 assertEqual(data4.key, undefined);
