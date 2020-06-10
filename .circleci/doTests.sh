@@ -66,7 +66,7 @@ while [ $i -lt $frontendDriverLength ]; do
     coreDriverJson=`cat ./coreDriverInterfaceSupported.json`
     coreDriverLength=`echo $coreDriverJson | jq ".versions | length"`
     coreDriverArray=`echo $coreDriverJson | jq ".versions"`
-    coreDriverVersion=`echo $coreDriverArray | jq ".[0]"`
+    coreDriverVersion=`echo $coreDriverArray | jq ". | last"`
     coreDriverVersion=`echo $coreDriverVersion | tr -d '"'`
     cd ../
     rm -rf supertokens-node
