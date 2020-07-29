@@ -12,6 +12,7 @@ export default class AuthHttpRequest {
     static initCalled: boolean;
     static apiDomain: string;
     private static refreshAPICustomHeaders;
+    static setAuth0API(apiPath: string): void;
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;
     /**
      * @description sends the actual http request and returns a response if successful/

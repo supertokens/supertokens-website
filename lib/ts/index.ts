@@ -125,6 +125,20 @@ export default class AuthHttpRequest {
     private static viaInterceptor: boolean | undefined;
     private static websiteRootDomain: string;
     private static refreshAPICustomHeaders: any;
+    private static auth0Path: string | undefined;
+
+    static setAuth0API(apiPath: string) {
+        if (apiPath.charAt(0) !== "/") {
+            apiPath = "/" + apiPath;
+        }
+        AuthHttpRequest.auth0Path = apiPath;
+    }
+
+    static getAuth0API = () => {
+        return {
+            apiPath: AuthHttpRequest.auth0Path
+        };
+    };
 
     static init(
         refreshTokenUrl: string,

@@ -23,6 +23,11 @@ export default class AuthHttpRequest {
     private static viaInterceptor;
     private static websiteRootDomain;
     private static refreshAPICustomHeaders;
+    private static auth0Path;
+    static setAuth0API(apiPath: string): void;
+    static getAuth0API: () => {
+        apiPath: string | undefined;
+    };
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;
     static getRefreshURLDomain: () => string | undefined;
     /**

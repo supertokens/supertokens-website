@@ -135,6 +135,10 @@ export default class AuthHttpRequest {
     static apiDomain = "";
     private static refreshAPICustomHeaders: any;
 
+    static setAuth0API(apiPath: string) {
+        FetchAuthRequest.setAuth0API(apiPath);
+    }
+
     static init(
         refreshTokenUrl: string,
         sessionExpiredStatusCode?: number,
