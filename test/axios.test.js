@@ -16,7 +16,7 @@ let axios = require("axios");
 
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
-let { AntiCsrfToken } = require("../index.js");
+let AuthHttpRequestFetch = require("../index.js").default;
 let { default: AuthHttpRequest, interceptorFunctionRequestFulfilled, responseInterceptor } = require("../axios.js");
 let assert = require("assert");
 let {
@@ -129,6 +129,11 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.strictEqual(postResponse, expectedResponse);
         assert.strictEqual(deleteResponse, expectedResponse);
         assert.strictEqual(doRequestResponse, expectedResponse);
+    });
+
+    it("testing getDomain", async function() {
+        AuthHttpRequest.init(`https://hello.com/refresh`);
+        assert.strictEqual(AuthHttpRequestFetch.getRefreshURLDomain(), "https://hello.com");
     });
 
     it("testing api methods with config", async function() {

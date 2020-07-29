@@ -24,6 +24,7 @@ export default class AuthHttpRequest {
     private static websiteRootDomain;
     private static refreshAPICustomHeaders;
     static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;
+    static getRefreshURLDomain: () => string | undefined;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it

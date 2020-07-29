@@ -161,6 +161,13 @@ export default class AuthHttpRequest {
         AuthHttpRequest.initCalled = true;
     }
 
+    static getRefreshURLDomain = (): string | undefined => {
+        if (AuthHttpRequest.refreshTokenUrl === undefined) {
+            return undefined;
+        }
+        return getDomainFromUrl(AuthHttpRequest.refreshTokenUrl);
+    };
+
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it

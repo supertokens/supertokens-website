@@ -77,6 +77,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
+    it("testing getDomain", async function() {
+        AuthHttpRequestFetch.init(`https://hello.com/refresh`);
+        assert.strictEqual(AuthHttpRequestFetch.getRefreshURLDomain(), "https://hello.com");
+    });
+
     it("checking in fetch that methods exists", function(done) {
         assert.strictEqual(typeof AuthHttpRequestFetch.doRequest, "function");
         assert.strictEqual(typeof AuthHttpRequestFetch.attemptRefreshingSession, "function");

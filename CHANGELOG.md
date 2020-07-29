@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.5] - 2020-07-30
+### Added
+- Function to get Refresh URL's domain
+
 ## [4.1.4] - 2020-06-09
 ### Added
 - New tests added for testing JWT payload update
