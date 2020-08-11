@@ -28,7 +28,7 @@ export default class AuthHttpRequest {
     static getAuth0API: () => {
         apiPath: string | undefined;
     };
-    static init(refreshTokenUrl: string, sessionExpiredStatusCode?: number, viaInterceptor?: boolean, websiteRootDomain?: string, refreshAPICustomHeaders?: any): void;
+    static init(refreshTokenUrl: string, viaInterceptor?: boolean, websiteRootDomain?: string, refreshAPICustomHeaders?: any, sessionExpiredStatusCode?: number): void;
     static getRefreshURLDomain: () => string | undefined;
     /**
      * @description sends the actual http request and returns a response if successful/
