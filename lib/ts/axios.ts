@@ -14,8 +14,13 @@
  */
 import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import FetchAuthRequest, { AntiCsrfToken, getDomainFromUrl, handleUnauthorised } from ".";
-import { getIDFromCookie, setIDToCookie } from "./handleSessionExp";
+import FetchAuthRequest, {
+    AntiCsrfToken,
+    getDomainFromUrl,
+    handleUnauthorised,
+    getIDFromCookie,
+    setIDToCookie
+} from ".";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
 
@@ -147,7 +152,7 @@ export default class AuthHttpRequest {
     ) {
         FetchAuthRequest.init(
             refreshTokenUrl,
-            undefined,
+            null, // no interception in fetch
             websiteRootDomain,
             refreshAPICustomHeaders,
             sessionExpiredStatusCode

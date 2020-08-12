@@ -28,7 +28,7 @@ export default class AuthHttpRequest {
     static getAuth0API: () => {
         apiPath: string | undefined;
     };
-    static init(refreshTokenUrl: string, viaInterceptor?: boolean, websiteRootDomain?: string, refreshAPICustomHeaders?: any, sessionExpiredStatusCode?: number): void;
+    static init(refreshTokenUrl: string, viaInterceptor?: boolean | null, websiteRootDomain?: string, refreshAPICustomHeaders?: any, sessionExpiredStatusCode?: number): void;
     static getRefreshURLDomain: () => string | undefined;
     /**
      * @description sends the actual http request and returns a response if successful/
@@ -50,3 +50,17 @@ export default class AuthHttpRequest {
     static fetch: (url: RequestInfo, config?: RequestInit | undefined) => Promise<Response>;
     static doesSessionExist: () => boolean;
 }
+/**
+ * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
+ * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
+ */
+export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, websiteRootDomain: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
+    result: "SESSION_EXPIRED";
+} | {
+    result: "API_ERROR";
+    error: any;
+} | {
+    result: "RETRY";
+}>;
+export declare function getIDFromCookie(): string | undefined;
+export declare function setIDToCookie(idRefreshToken: string, domain: string): void;

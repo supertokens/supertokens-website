@@ -78,7 +78,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing getDomain", async function() {
-        AuthHttpRequestFetch.init(`https://hello.com/refresh`);
+        AuthHttpRequestFetch.init(`https://hello.com/refresh`, false);
         assert.strictEqual(AuthHttpRequestFetch.getRefreshURLDomain(), "https://hello.com");
     });
 
@@ -117,7 +117,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing with fetch api methods without config", async function() {
-        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`);
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, false);
 
         let getResponse = await AuthHttpRequestFetch.get(`${BASE_URL}/testing`);
         let postResponse = await AuthHttpRequestFetch.post(`${BASE_URL}/testing`);
@@ -183,7 +183,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("testing with fetch api methods that doesn't exists", async function() {
-        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`);
+        AuthHttpRequestFetch.init(`${BASE_URL}/refresh`, false);
 
         let getResponse = await AuthHttpRequestFetch.get(`${BASE_URL}/fail`);
         let postResponse = await AuthHttpRequestFetch.post(`${BASE_URL}/fail`);
@@ -218,7 +218,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await fetch(`${BASE_URL}/login`, {
@@ -262,7 +262,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -330,7 +330,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 //send loing request
@@ -402,7 +402,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 //send loing request
@@ -435,7 +435,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -483,7 +483,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -527,7 +527,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -587,7 +587,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -639,7 +639,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 // send request to check if deviceInfo is beinf added to headers
@@ -666,7 +666,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
 
                 let val = await fetch(`${BASE_URL}/testError`);
                 assertEqual(await val.text(), "test error message");
@@ -712,8 +712,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
-                supertokens.fetch.init(`${BASE_URL}/refresh`, true);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
+                supertokens.fetch.init(`${BASE_URL}/refresh`);
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await fetch(`${BASE_URL}/login`, {
