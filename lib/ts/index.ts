@@ -98,10 +98,6 @@ export async function handleUnauthorised(
 }
 
 export function getDomainFromUrl(url: string): string {
-    // if (window.fetch === undefined) {
-    //     // we are testing
-    //     return "http://localhost:8888";
-    // }
     if (url.startsWith("https://") || url.startsWith("http://")) {
         return url
             .split("/")
@@ -126,6 +122,7 @@ export default class AuthHttpRequest {
     private static websiteRootDomain: string;
     private static refreshAPICustomHeaders: any;
     private static auth0Path: string | undefined;
+    static autoAddCredentials: boolean = true;
 
     static setAuth0API(apiPath: string) {
         if (apiPath.charAt(0) !== "/") {
@@ -140,13 +137,25 @@ export default class AuthHttpRequest {
         };
     };
 
-    static init(
-        refreshTokenUrl: string,
-        viaInterceptor?: boolean | null,
-        websiteRootDomain?: string,
-        refreshAPICustomHeaders?: any,
-        sessionExpiredStatusCode?: number
-    ) {
+    static init(options: {
+        refreshTokenUrl: string;
+        viaInterceptor?: boolean | null;
+        websiteRootDomain?: string;
+        refreshAPICustomHeaders?: any;
+        sessionExpiredStatusCode?: number;
+        autoAddCredentials?: boolean;
+    }) {
+        let {
+            refreshTokenUrl,
+            websiteRootDomain,
+            viaInterceptor,
+            refreshAPICustomHeaders,
+            sessionExpiredStatusCode,
+            autoAddCredentials
+        } = options;
+        if (autoAddCredentials !== undefined) {
+            AuthHttpRequest.autoAddCredentials = autoAddCredentials;
+        }
         if (viaInterceptor === undefined || viaInterceptor === null) {
             if (AuthHttpRequest.viaInterceptor === undefined) {
                 viaInterceptor = viaInterceptor === undefined;
@@ -248,6 +257,12 @@ export default class AuthHttpRequest {
                                   "supertokens-sdk-version": package_version
                               }
                 };
+                if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.credentials === undefined) {
+                    configWithAntiCsrf = {
+                        ...configWithAntiCsrf,
+                        credentials: "include"
+                    };
+                }
                 try {
                     let response = await httpCall(configWithAntiCsrf);
                     response.headers.forEach((value: any, key: any) => {

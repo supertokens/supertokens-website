@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the default session expiry status code to 401
 - Changed function signature of `init` for `axios` and `fetch`
 - Enables `fetch` interception by default
+- Automatically adds credentials to `axios` and `fetch` - which can be disabled
 
 ## [4.1.5] - 2020-07-30
 ### Added

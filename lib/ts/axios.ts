@@ -79,6 +79,12 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                       "supertokens-sdk-version": package_version
                   }
     };
+    if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+        configWithAntiCsrf = {
+            ...configWithAntiCsrf,
+            withCredentials: true
+        };
+    }
     return configWithAntiCsrf;
 }
 
@@ -138,25 +144,34 @@ export default class AuthHttpRequest {
     static sessionExpiredStatusCode = 401;
     static initCalled = false;
     static apiDomain = "";
+    static autoAddCredentials: boolean = true;
     private static refreshAPICustomHeaders: any;
 
     static setAuth0API(apiPath: string) {
         FetchAuthRequest.setAuth0API(apiPath);
     }
 
-    static init(
-        refreshTokenUrl: string,
-        websiteRootDomain?: string,
-        refreshAPICustomHeaders?: any,
-        sessionExpiredStatusCode?: number
-    ) {
-        FetchAuthRequest.init(
+    static init(options: {
+        refreshTokenUrl: string;
+        websiteRootDomain?: string;
+        refreshAPICustomHeaders?: any;
+        sessionExpiredStatusCode?: number;
+        autoAddCredentials?: boolean;
+    }) {
+        let {
             refreshTokenUrl,
-            null, // no interception in fetch
             websiteRootDomain,
             refreshAPICustomHeaders,
-            sessionExpiredStatusCode
-        );
+            sessionExpiredStatusCode,
+            autoAddCredentials
+        } = options;
+        FetchAuthRequest.init({
+            ...options,
+            viaInterceptor: null
+        });
+        if (autoAddCredentials !== undefined) {
+            AuthHttpRequest.autoAddCredentials = autoAddCredentials;
+        }
         AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
         AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders === undefined ? {} : refreshAPICustomHeaders;
         AuthHttpRequest.websiteRootDomain =
@@ -233,6 +248,12 @@ export default class AuthHttpRequest {
                                   "supertokens-sdk-version": package_version
                               }
                 };
+                if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+                    configWithAntiCsrf = {
+                        ...configWithAntiCsrf,
+                        withCredentials: true
+                    };
+                }
                 try {
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;

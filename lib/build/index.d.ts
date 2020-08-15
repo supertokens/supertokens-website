@@ -24,11 +24,19 @@ export default class AuthHttpRequest {
     private static websiteRootDomain;
     private static refreshAPICustomHeaders;
     private static auth0Path;
+    static autoAddCredentials: boolean;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;
     };
-    static init(refreshTokenUrl: string, viaInterceptor?: boolean | null, websiteRootDomain?: string, refreshAPICustomHeaders?: any, sessionExpiredStatusCode?: number): void;
+    static init(options: {
+        refreshTokenUrl: string;
+        viaInterceptor?: boolean | null;
+        websiteRootDomain?: string;
+        refreshAPICustomHeaders?: any;
+        sessionExpiredStatusCode?: number;
+        autoAddCredentials?: boolean;
+    }): void;
     static getRefreshURLDomain: () => string | undefined;
     /**
      * @description sends the actual http request and returns a response if successful/

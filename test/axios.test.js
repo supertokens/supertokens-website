@@ -110,7 +110,9 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("testing api methods without config", async function() {
-        AuthHttpRequest.init(`${BASE_URL}/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `${BASE_URL}/refresh`
+        });
 
         let getResponse = await AuthHttpRequest.get(`${BASE_URL}/testing`);
         let postResponse = await AuthHttpRequest.post(`${BASE_URL}/testing`);
@@ -132,12 +134,16 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("testing getDomain", async function() {
-        AuthHttpRequest.init(`https://hello.com/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `https://hello.com/refresh`
+        });
         assert.strictEqual(AuthHttpRequestFetch.getRefreshURLDomain(), "https://hello.com");
     });
 
     it("testing api methods with config", async function() {
-        AuthHttpRequest.init(`${BASE_URL}/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `${BASE_URL}/refresh`
+        });
 
         let testing = "testing";
         let getResponse = await AuthHttpRequest.get(`${BASE_URL}/${testing}`, { headers: { testing } });
@@ -185,7 +191,9 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("testing api methods that doesn't exists", async function() {
-        AuthHttpRequest.init(`${BASE_URL}/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `${BASE_URL}/refresh`
+        });
         let expectedStatusCode = 404;
         try {
             await AuthHttpRequest.get(`${BASE_URL}/fail`);
@@ -261,7 +269,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
@@ -296,7 +306,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -344,7 +356,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -407,7 +421,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -440,7 +456,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -485,7 +503,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -528,7 +548,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -586,7 +608,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
                 // test out anti-csrf
                 //check that login works correctly
@@ -636,7 +660,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
                 let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
                 result = deviceInfoIsAdded.data === 1 ? true : deviceInfoIsAdded.data;
@@ -661,7 +687,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.makeSuper(axios);
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -726,7 +754,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let userConfigResponse = await axios.post(`${BASE_URL}/testUserConfig`, JSON.stringify({ userId }), {
@@ -755,7 +785,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 try {
                     await axios.get(`${BASE_URL}/testError`);
                     assertEqual(false, "should not have come here");
@@ -782,7 +814,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 try {
                     await supertokens.axios.get(`${BASE_URL}/testError`);
                     assert(false, "should not have come here");
@@ -809,8 +843,12 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -821,7 +859,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
 
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
 
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
                     headers: {
@@ -862,7 +902,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -894,7 +936,9 @@ describe("Axios AuthHttpRequest class tests", function() {
     //    - Interception should not happen when domain is not the one that they gave*******
     it("test interception should not happen when domain is not the one that they gave", async function() {
         await startST(5);
-        AuthHttpRequest.init(`${BASE_URL}/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `${BASE_URL}/refresh`
+        });
 
         await axios.get(`https://www.google.com`);
         let verifyRequestState = await ProcessState.getInstance().waitForEvent(
@@ -945,7 +989,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -992,7 +1038,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -1023,7 +1071,9 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startST();
         let testAxios = axios.create();
         makeSuperTest(testAxios);
-        AuthHttpRequest.init(`${BASE_URL}/refresh`);
+        AuthHttpRequest.init({
+            refreshTokenUrl: `${BASE_URL}/refresh`
+        });
         let userId = "testing-supertokens-website";
         let multipleInterceptorResponse = await testAxios.post(
             `${BASE_URL}/multipleInterceptors`,
@@ -1053,7 +1103,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -1106,6 +1158,151 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
+    //cross domain login, userinfo, logout
+    it("cross domain with auto add credentials", async () => {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            await page.evaluate(async () => {
+                supertokens.axios.makeSuper(axios);
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                //check that the userId which is returned in the response is the same as the one we sent
+                assertEqual(loginResponse.data, userId);
+
+                // check that the session exists
+                assertEqual(await supertokens.axios.doesSessionExist(), true);
+
+                // check that the number of times session refresh is called is zero
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                //delay for 5 seconds so that we know accessToken expires
+
+                await delay(5);
+                // send a get session request , which should do a refresh session request
+
+                let getSessionResponse = await axios.get(`${BASE_URL}/`);
+
+                // check that the getSession was successfull
+                assertEqual(getSessionResponse.data, userId);
+
+                // check that the refresh session was called only once
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                // do logout
+                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                assertEqual(logoutResponse.data, "success");
+
+                //check that session does not exist
+                assertEqual(await supertokens.axios.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    //cross domain login, userinfo, logout
+    it("cross domain with no auto add credentials, fail", async () => {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+            await page.evaluate(async () => {
+                supertokens.axios.makeSuper(axios);
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`,
+                    autoAddCredentials: false
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                //check that the userId which is returned in the response is the same as the one we sent
+                assertEqual(loginResponse.data, userId);
+                // check that the session exists
+                assertEqual(await supertokens.axios.doesSessionExist(), true);
+
+                // check that the number of times session refresh is called is zero
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                //delay for 5 seconds so that we know accessToken expires
+
+                await delay(5);
+                // send a get session request , which should do a refresh session request
+
+                try {
+                    await axios.get(`${BASE_URL}/`);
+                    assert(false);
+                } catch (err) {
+                    assertEqual(err.message, "Request failed with status code 401");
+                }
+
+                assertEqual(await supertokens.axios.doesSessionExist(), false);
+
+                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    withCredentials: true
+                });
+
+                let getSessionResponse = await axios.get(`${BASE_URL}/`, {
+                    withCredentials: true
+                });
+
+                // check that the getSession was successfull
+                assertEqual(getSessionResponse.data, userId);
+
+                // do logout
+                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    withCredentials: true
+                });
+                assertEqual(logoutResponse.data, "success");
+
+                //check that session does not exist
+                assertEqual(await supertokens.axios.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("cross domain with BaseURL", async () => {
         await startST(3);
         const browser = await puppeteer.launch({
@@ -1122,7 +1319,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 supertokens.axios.makeSuper(http);
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await http.post(`login`, JSON.stringify({ userId }), {
@@ -1187,7 +1386,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(http);
-                supertokens.axios.init(`${BASE_URL}/refresh`);
+                supertokens.axios.init({
+                    refreshTokenUrl: `${BASE_URL}/refresh`
+                });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await http.post(`/login`, JSON.stringify({ userId }), {
                     headers: {

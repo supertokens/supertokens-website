@@ -11,9 +11,16 @@ export default class AuthHttpRequest {
     static sessionExpiredStatusCode: number;
     static initCalled: boolean;
     static apiDomain: string;
+    static autoAddCredentials: boolean;
     private static refreshAPICustomHeaders;
     static setAuth0API(apiPath: string): void;
-    static init(refreshTokenUrl: string, websiteRootDomain?: string, refreshAPICustomHeaders?: any, sessionExpiredStatusCode?: number): void;
+    static init(options: {
+        refreshTokenUrl: string;
+        websiteRootDomain?: string;
+        refreshAPICustomHeaders?: any;
+        sessionExpiredStatusCode?: number;
+        autoAddCredentials?: boolean;
+    }): void;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
