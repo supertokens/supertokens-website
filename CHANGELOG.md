@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enables `fetch` interception by default
 - Automatically adds credentials to `axios` and `fetch` - which can be disabled
 
+### Fixes:
+- If current hostname is `localhost`, we do not add that as an explicit domain when setting the `IRTFrontend` cookie.
+
 ## [4.1.5] - 2020-07-30
 ### Added
 - Function to get Refresh URL's domain

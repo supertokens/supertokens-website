@@ -497,5 +497,10 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
         cookieVal = splitted[0];
         expires = new Date(Number(splitted[1])).toUTCString();
     }
-    document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+    if (domain === "localhost") {
+        // since some browsers ignore cookies with domain set to localhost
+        document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+    } else {
+        document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+    }
 }
