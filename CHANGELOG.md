@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.0] - 2020-08-20
+### Changed
+- Adds 1.1 as supported FDI
+
 ## [4.2.0] - 2020-08-11
 ### Changed
 - Changed the default session expiry status code to 401
