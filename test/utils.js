@@ -43,9 +43,9 @@ module.exports.checkIfIdRefreshIsCleared = function() {
     }
 };
 
-module.exports.getNumberOfTimesRefreshCalled = async function() {
+module.exports.getNumberOfTimesRefreshCalled = async function(BASE = module.exports.BASE_URL) {
     let instance = axios.create();
-    let response = await instance.get(module.exports.BASE_URL + "/refreshCalledTime");
+    let response = await instance.get(BASE + "/refreshCalledTime");
     return response.data;
 };
 

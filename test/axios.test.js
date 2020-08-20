@@ -72,6 +72,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         ProcessState.getInstance().reset();
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/beforeeach");
+        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
         await instance.post(BASE_URL + "/beforeeach");
     });
 
@@ -1098,16 +1099,15 @@ describe("Axios AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost.org:8080";
+                let BASE_URL = "http://localhost.org:8082";
                 supertokens.axios.init({
                     refreshTokenUrl: `${BASE_URL}/refresh`
                 });
                 let userId = "testing-supertokens-website";
-
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
@@ -1123,8 +1123,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
@@ -1138,7 +1137,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
 
                 // do logout
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -1166,11 +1165,11 @@ describe("Axios AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost.org:8080";
+                let BASE_URL = "http://localhost.org:8082";
                 supertokens.axios.init({
                     refreshTokenUrl: `${BASE_URL}/refresh`
                 });
@@ -1190,7 +1189,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
@@ -1203,7 +1202,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
 
                 // do logout
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -1230,11 +1229,11 @@ describe("Axios AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 supertokens.axios.makeSuper(axios);
-                let BASE_URL = "http://localhost.org:8080";
+                let BASE_URL = "http://localhost.org:8082";
                 supertokens.axios.init({
                     refreshTokenUrl: `${BASE_URL}/refresh`,
                     autoAddCredentials: false
@@ -1254,7 +1253,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
@@ -1310,15 +1309,15 @@ describe("Axios AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://127.0.0.1:8080/index.html", { waitUntil: "load" });
+            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 const http = axios.create({
-                    baseURL: "http://localhost.org:8080",
+                    baseURL: "http://localhost.org:8082",
                     withCredentials: true
                 });
                 supertokens.axios.makeSuper(http);
-                let BASE_URL = "http://localhost.org:8080";
+                let BASE_URL = "http://localhost.org:8082";
                 supertokens.axios.init({
                     refreshTokenUrl: `${BASE_URL}/refresh`
                 });
@@ -1338,7 +1337,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
@@ -1351,7 +1350,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
 
                 // do logout
                 let logoutResponse = await http.post(`/logout`, JSON.stringify({ userId }), {
