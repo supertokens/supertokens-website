@@ -70,5 +70,13 @@ echo $SUPERTOKENS_API_KEY > apiPassword
 cd ../project/test/server/
 npm i -d
 npm i git+https://github.com:supertokens/supertokens-node.git#$2
-cd ../../.circleci
+cd ../../
+./test/startServer ../com-root 8082 &
+pid=$!
 INSTALL_PATH=../com-root npm test
+if [[ $? -ne 0 ]]
+then
+    echo "test failed... exiting!"
+    exit 1
+fi
+kill -15 $pid
