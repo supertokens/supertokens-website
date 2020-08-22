@@ -70,9 +70,10 @@ echo $SUPERTOKENS_API_KEY > apiPassword
 cd ../project/test/server/
 npm i -d
 npm i git+https://github.com:supertokens/supertokens-node.git#$2
-cd ../../
-./test/startServer ../com-root 8082 &
+cd ../../test/server/
+TEST_MODE=testing INSTALL_PATH=../../../com-root NODE_PORT=8082 node . &
 pid=$!
+cd ../../
 INSTALL_PATH=../com-root npm test
 if [[ $? -ne 0 ]]
 then
