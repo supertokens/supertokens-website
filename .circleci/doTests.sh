@@ -88,8 +88,6 @@ while [ $i -lt $frontendDriverLength ]; do
         echo "test failed... exiting!"
         exit 1
     fi
-    echo "DIRECTORY!"
-    pwd
     rm -rf ../../com-root
     rm -rf ../test/server/node_modules/supertokens-node
     git checkout HEAD -- ../test/server/package.json
