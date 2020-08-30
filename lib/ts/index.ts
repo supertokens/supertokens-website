@@ -32,7 +32,7 @@ export class AntiCsrfToken {
             return undefined;
         }
         if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = window.localStorage.getItem("anti-csrf-localstorage");
+            let antiCsrf = getAntiCSRFromCookie(AuthHttpRequest.websiteRootDomain);
             if (antiCsrf === null) {
                 return undefined;
             }
@@ -50,7 +50,7 @@ export class AntiCsrfToken {
 
     static removeToken() {
         AntiCsrfToken.tokenInfo = undefined;
-        window.localStorage.removeItem("anti-csrf-localstorage");
+        setAntiCSRFToCookie(undefined, AuthHttpRequest.websiteRootDomain);
     }
 
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
@@ -58,7 +58,7 @@ export class AntiCsrfToken {
             AntiCsrfToken.tokenInfo = undefined;
             return undefined;
         }
-        window.localStorage.setItem("anti-csrf-localstorage", antiCsrf);
+        setAntiCSRFToCookie(antiCsrf, AuthHttpRequest.websiteRootDomain);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
             associatedIdRefreshToken
@@ -119,7 +119,7 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     private static apiDomain = "";
     private static viaInterceptor: boolean | undefined;
-    private static websiteRootDomain: string;
+    static websiteRootDomain: string;
     private static refreshAPICustomHeaders: any;
     private static auth0Path: string | undefined;
     static autoAddCredentials: boolean = true;
@@ -393,6 +393,7 @@ export default class AuthHttpRequest {
 }
 
 const ID_COOKIE_NAME = "sIRTFrontend";
+const ANTI_CSRF_COOKIE_NAME = "sAntiCsrf";
 
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -502,5 +503,59 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
     } else {
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+    }
+}
+
+// NOTE: we do not store this in memory and always read as to synchronize events across tabs
+export function getAntiCSRFromCookie(domain: string): string | null {
+    let value = "; " + document.cookie;
+    let parts = value.split("; " + ANTI_CSRF_COOKIE_NAME + "=");
+    if (parts.length >= 2) {
+        let last = parts.pop();
+        if (last !== undefined) {
+            let temp = last.split(";").shift();
+            if (temp === undefined) {
+                return null;
+            }
+            return temp;
+        }
+    }
+
+    // check for backwards compatibility
+    let fromLocalstorage = window.localStorage.getItem("anti-csrf-localstorage");
+    if (fromLocalstorage !== null) {
+        setAntiCSRFToCookie(fromLocalstorage, domain);
+        window.localStorage.removeItem("anti-csrf-localstorage");
+        return fromLocalstorage;
+    }
+    return null;
+}
+
+// give antiCSRFToken as undefined to remove it.
+export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string) {
+    let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
+    let cookieVal = "";
+    if (antiCSRFToken !== undefined) {
+        cookieVal = antiCSRFToken;
+        expires = undefined; // set cookie without expiry
+    }
+    if (domain === "localhost") {
+        // since some browsers ignore cookies with domain set to localhost
+        if (expires !== undefined) {
+            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+        } else {
+            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};path=/`;
+        }
+    } else {
+        if (expires !== undefined) {
+            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+        } else {
+            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+        }
+    }
+
+    // for backwards compatibility
+    if (antiCSRFToken === undefined) {
+        window.localStorage.removeItem("anti-csrf-localstorage");
     }
 }

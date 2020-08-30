@@ -21,7 +21,7 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     private static apiDomain;
     private static viaInterceptor;
-    private static websiteRootDomain;
+    static websiteRootDomain: string;
     private static refreshAPICustomHeaders;
     private static auth0Path;
     static autoAddCredentials: boolean;
@@ -72,3 +72,5 @@ export declare function onUnauthorisedResponse(refreshTokenUrl: string, preReque
 }>;
 export declare function getIDFromCookie(): string | undefined;
 export declare function setIDToCookie(idRefreshToken: string, domain: string): void;
+export declare function getAntiCSRFromCookie(domain: string): string | null;
+export declare function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string): void;

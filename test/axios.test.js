@@ -455,6 +455,17 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
+                function getAntiCSRFromCookie() {
+                    let value = "; " + document.cookie;
+                    let parts = value.split("; sAntiCsrf=");
+                    if (parts.length >= 2) {
+                        let last = parts.pop();
+                        if (last !== undefined) {
+                            return last;
+                        }
+                    }
+                    return null;
+                }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.axios.makeSuper(axios);
                 supertokens.axios.init({
@@ -471,7 +482,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
-                assertEqual(window.localStorage.length, 1);
+                assertEqual(getAntiCSRFromCookie() !== null, true);
 
                 // send api request to logout
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -484,7 +495,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 assertEqual(logoutResponse.data, "success");
                 assertEqual(sessionExists, false);
-                assertEqual(window.localStorage.length, 0);
+                assertEqual(getAntiCSRFromCookie() === null, true);
             });
         } finally {
             await browser.close();

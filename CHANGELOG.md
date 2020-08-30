@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.4.0] - 2020-08-30
+### Changed
+- Stores Anti CSRF token in cookie that can be shared across sub domains. This value is then read and added to the request header separately.
+
 ## [4.3.0] - 2020-08-20
 ### Changed
 - Adds 1.1 as supported FDI
