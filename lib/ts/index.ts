@@ -419,14 +419,22 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
+                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                let headers: any = {
+                    ...refreshAPICustomHeaders,
+                    "supertokens-sdk-name": "website",
+                    "supertokens-sdk-version": package_version
+                };
+                if (antiCsrfToken !== undefined) {
+                    headers = {
+                        ...headers,
+                        "anti-csrf": antiCsrfToken
+                    };
+                }
                 let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
                     method: "post",
                     credentials: "include",
-                    headers: {
-                        ...refreshAPICustomHeaders,
-                        "supertokens-sdk-name": "website",
-                        "supertokens-sdk-version": package_version
-                    }
+                    headers
                 });
                 let removeIdRefreshToken = true;
                 response.headers.forEach((value: any, key: any) => {
