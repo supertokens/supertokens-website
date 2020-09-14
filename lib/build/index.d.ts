@@ -5,6 +5,16 @@ export declare class AntiCsrfToken {
     static removeToken(): void;
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): undefined;
 }
+export declare class FrontToken {
+    private constructor();
+    static getTokenInfo(): {
+        uid: string;
+        ate: number;
+        up: any;
+    } | undefined;
+    static removeToken(): void;
+    static setItem(frontToken: string): void;
+}
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
@@ -38,6 +48,8 @@ export default class AuthHttpRequest {
         autoAddCredentials?: boolean;
     }): void;
     static getRefreshURLDomain: () => string | undefined;
+    static getUserId(): string;
+    static getJWTPayloadSecurely(): Promise<any>;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
@@ -74,3 +86,5 @@ export declare function getIDFromCookie(): string | undefined;
 export declare function setIDToCookie(idRefreshToken: string, domain: string): void;
 export declare function getAntiCSRFromCookie(domain: string): string | null;
 export declare function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string): void;
+export declare function getFrontTokenFromCookie(): string | null;
+export declare function setFrontTokenToCookie(frontToken: string | undefined, domain: string): void;

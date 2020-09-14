@@ -19,7 +19,8 @@ import FetchAuthRequest, {
     getDomainFromUrl,
     handleUnauthorised,
     getIDFromCookie,
-    setIDToCookie
+    setIDToCookie,
+    FrontToken
 } from ".";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
@@ -124,11 +125,16 @@ export function responseInterceptor(axiosInstance: any) {
                 if (antiCsrfToken !== undefined) {
                     AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
                 }
+                let frontToken = response.headers["front-token"];
+                if (frontToken !== undefined) {
+                    FrontToken.setItem(frontToken);
+                }
                 return response;
             }
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();
+                FrontToken.removeToken();
             }
         }
     };
@@ -181,6 +187,38 @@ export default class AuthHttpRequest {
         }
         AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
         AuthHttpRequest.initCalled = true;
+    }
+
+    static getUserId(): string {
+        let tokenInfo = FrontToken.getTokenInfo();
+        if (tokenInfo === undefined) {
+            throw new Error("No session exists");
+        }
+        return tokenInfo.uid;
+    }
+
+    static async getJWTPayloadSecurely(): Promise<any> {
+        let tokenInfo = FrontToken.getTokenInfo();
+        if (tokenInfo === undefined) {
+            throw new Error("No session exists");
+        }
+
+        if (tokenInfo.ate < Date.now()) {
+            const preRequestIdToken = getIDFromCookie();
+            let retry = await handleUnauthorised(
+                AuthHttpRequest.refreshTokenUrl,
+                preRequestIdToken,
+                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.refreshAPICustomHeaders,
+                AuthHttpRequest.sessionExpiredStatusCode
+            );
+            if (retry) {
+                return await AuthHttpRequest.getJWTPayloadSecurely();
+            } else {
+                throw new Error("Could not refresh session");
+            }
+        }
+        return tokenInfo.up;
     }
 
     /**
@@ -285,6 +323,10 @@ export default class AuthHttpRequest {
                         if (antiCsrfToken !== undefined) {
                             AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
                         }
+                        let frontToken = response.headers["front-token"];
+                        if (frontToken !== undefined) {
+                            FrontToken.setItem(frontToken);
+                        }
                         return response;
                     }
                 } catch (err) {
@@ -318,6 +360,7 @@ export default class AuthHttpRequest {
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();
+                FrontToken.removeToken();
             }
         }
     };
@@ -343,6 +386,7 @@ export default class AuthHttpRequest {
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();
+                FrontToken.removeToken();
             }
         }
     };
@@ -452,6 +496,7 @@ export default class AuthHttpRequest {
             } finally {
                 if (getIDFromCookie() === undefined) {
                     AntiCsrfToken.removeToken();
+                    FrontToken.removeToken();
                 }
             }
         });

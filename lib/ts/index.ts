@@ -66,6 +66,34 @@ export class AntiCsrfToken {
     }
 }
 
+// Note: We do not store this in memory because another tab may have
+// modified this value, and if so, we may not know about it in this tab
+export class FrontToken {
+    private constructor() {}
+
+    static getTokenInfo():
+        | {
+              uid: string;
+              ate: number;
+              up: any;
+          }
+        | undefined {
+        let frontToken = getFrontTokenFromCookie();
+        if (frontToken === null) {
+            return undefined;
+        }
+        return JSON.parse(atob(frontToken));
+    }
+
+    static removeToken() {
+        setFrontTokenToCookie(undefined, AuthHttpRequest.websiteRootDomain);
+    }
+
+    static setItem(frontToken: string) {
+        setFrontTokenToCookie(frontToken, AuthHttpRequest.websiteRootDomain);
+    }
+}
+
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
@@ -193,6 +221,38 @@ export default class AuthHttpRequest {
         return getDomainFromUrl(AuthHttpRequest.refreshTokenUrl);
     };
 
+    static getUserId(): string {
+        let tokenInfo = FrontToken.getTokenInfo();
+        if (tokenInfo === undefined) {
+            throw new Error("No session exists");
+        }
+        return tokenInfo.uid;
+    }
+
+    static async getJWTPayloadSecurely(): Promise<any> {
+        let tokenInfo = FrontToken.getTokenInfo();
+        if (tokenInfo === undefined) {
+            throw new Error("No session exists");
+        }
+
+        if (tokenInfo.ate < Date.now()) {
+            const preRequestIdToken = getIDFromCookie();
+            let retry = await handleUnauthorised(
+                AuthHttpRequest.refreshTokenUrl,
+                preRequestIdToken,
+                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.refreshAPICustomHeaders,
+                AuthHttpRequest.sessionExpiredStatusCode
+            );
+            if (retry) {
+                return await AuthHttpRequest.getJWTPayloadSecurely();
+            } else {
+                throw new Error("Could not refresh session");
+            }
+        }
+        return tokenInfo.up;
+    }
+
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
@@ -286,6 +346,8 @@ export default class AuthHttpRequest {
                         response.headers.forEach((value, key) => {
                             if (key.toString() === "anti-csrf") {
                                 AntiCsrfToken.setItem(getIDFromCookie(), value);
+                            } else if (key.toString() === "front-token") {
+                                FrontToken.setItem(value);
                             }
                         });
                         return response;
@@ -318,6 +380,7 @@ export default class AuthHttpRequest {
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();
+                FrontToken.removeToken();
             }
         }
     };
@@ -343,6 +406,7 @@ export default class AuthHttpRequest {
         } finally {
             if (getIDFromCookie() === undefined) {
                 AntiCsrfToken.removeToken();
+                FrontToken.removeToken();
             }
         }
     };
@@ -394,6 +458,7 @@ export default class AuthHttpRequest {
 
 const ID_COOKIE_NAME = "sIRTFrontend";
 const ANTI_CSRF_COOKIE_NAME = "sAntiCsrf";
+const FRONT_TOKEN_COOKIE_NAME = "sFrontToken";
 
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -459,6 +524,8 @@ export async function onUnauthorisedResponse(
                 response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "anti-csrf") {
                         AntiCsrfToken.setItem(getIDFromCookie(), value);
+                    } else if (key.toString() === "front-token") {
+                        FrontToken.setItem(value);
                     }
                 });
                 return { result: "RETRY" };
@@ -514,7 +581,6 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
     }
 }
 
-// NOTE: we do not store this in memory and always read as to synchronize events across tabs
 export function getAntiCSRFromCookie(domain: string): string | null {
     let value = "; " + document.cookie;
     let parts = value.split("; " + ANTI_CSRF_COOKIE_NAME + "=");
@@ -565,5 +631,45 @@ export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: s
     // for backwards compatibility
     if (antiCSRFToken === undefined) {
         window.localStorage.removeItem("anti-csrf-localstorage");
+    }
+}
+
+export function getFrontTokenFromCookie(): string | null {
+    let value = "; " + document.cookie;
+    let parts = value.split("; " + FRONT_TOKEN_COOKIE_NAME + "=");
+    if (parts.length >= 2) {
+        let last = parts.pop();
+        if (last !== undefined) {
+            let temp = last.split(";").shift();
+            if (temp === undefined) {
+                return null;
+            }
+            return temp;
+        }
+    }
+    return null;
+}
+
+// give frontToken as undefined to remove it.
+export function setFrontTokenToCookie(frontToken: string | undefined, domain: string) {
+    let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
+    let cookieVal = "";
+    if (frontToken !== undefined) {
+        cookieVal = frontToken;
+        expires = undefined; // set cookie without expiry
+    }
+    if (domain === "localhost") {
+        // since some browsers ignore cookies with domain set to localhost
+        if (expires !== undefined) {
+            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+        } else {
+            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};path=/`;
+        }
+    } else {
+        if (expires !== undefined) {
+            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+        } else {
+            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+        }
     }
 }

@@ -21,6 +21,8 @@ export default class AuthHttpRequest {
         sessionExpiredStatusCode?: number;
         autoAddCredentials?: boolean;
     }): void;
+    static getUserId(): string;
+    static getJWTPayloadSecurely(): Promise<any>;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
