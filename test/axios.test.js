@@ -295,6 +295,49 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
+    // it("refresh session via reading of frontend info", async function () {
+    //     await startST();
+    //     const browser = await puppeteer.launch({
+    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    //     });
+    //     try {
+    //         const page = await browser.newPage();
+    //         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+    //         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+    //         await page.evaluate(async () => {
+    //             let BASE_URL = "http://localhost.org:8080";
+    //             supertokens.axios.makeSuper(axios);
+    //             supertokens.axios.init({
+    //                 refreshTokenUrl: `${BASE_URL}/refresh`
+    //             });
+    //             let userId = "testing-supertokens-website";
+    //             let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json"
+    //                 }
+    //             });
+    //             let userIdFromResponse = loginResponse.data;
+    //             assertEqual(userId, userIdFromResponse);
+
+    //             await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
+
+    //             await delay(3);
+
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+    //             let data = await supertokens.axios.getJWTPayloadSecurely();
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+    //             assertEqual(data.key === "data", true);
+
+    //             let data2 = await supertokens.axios.getJWTPayloadSecurely();
+    //             assertEqual(data2.key === "data", true);
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+    //         });
+    //     } finally {
+    //         await browser.close();
+    //     }
+    // });
+
     it("update jwt data", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -321,9 +364,21 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
 
+                try {
+                    // TODO: remove try catch
+                    let data = await supertokens.axios.getJWTPayloadSecurely();
+                    assertEqual(Object.keys(data).length, 0);
+                } catch (ignored) {}
+
                 // update jwt data
                 let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
                 assertEqual(testResponse1.data.key, "data");
+
+                try {
+                    // TODO: remove try catch
+                    data = await supertokens.axios.getJWTPayloadSecurely();
+                    assertEqual(data.key, "data");
+                } catch (ignored) {}
 
                 // get jwt data
                 let testResponse2 = await axios.get(`${BASE_URL}/update-jwt`);
@@ -333,6 +388,13 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let testResponse3 = await axios.post(`${BASE_URL}/update-jwt`, { key1: "data1" });
                 assertEqual(testResponse3.data.key1, "data1");
                 assertEqual(testResponse3.data.key, undefined);
+
+                try {
+                    // TODO: remove try catch
+                    data = await supertokens.axios.getJWTPayloadSecurely();
+                    assertEqual(data.key1, "data1");
+                    assertEqual(data.key, undefined);
+                } catch (ignored) {}
 
                 // get jwt data
                 let testResponse4 = await axios.get(`${BASE_URL}/update-jwt`);
@@ -483,6 +545,11 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
                 assertEqual(await supertokens.axios.doesSessionExist(), true);
                 assertEqual(getAntiCSRFromCookie() !== null, true);
+                try {
+                    // TODO: remove this try catch after all drivers have implemented front-token
+                    let userIdFromToken = supertokens.axios.getUserId();
+                    assertEqual(userIdFromToken, userId);
+                } catch (ignored) {}
 
                 // send api request to logout
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -496,6 +563,20 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(logoutResponse.data, "success");
                 assertEqual(sessionExists, false);
                 assertEqual(getAntiCSRFromCookie() === null, true);
+
+                try {
+                    supertokens.axios.getUserId();
+                    throw new Error("test failed");
+                } catch (err) {
+                    assertEqual(err.message, "No session exists");
+                }
+
+                try {
+                    await supertokens.axios.getJWTPayloadSecurely();
+                    throw new Error("test failed");
+                } catch (err) {
+                    assertEqual(err.message, "No session exists");
+                }
             });
         } finally {
             await browser.close();

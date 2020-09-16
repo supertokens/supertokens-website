@@ -266,6 +266,56 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
+    // it("refresh session via reading of frontend info using fetch", async function () {
+    //     await startST();
+    //     const browser = await puppeteer.launch({
+    //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    //     });
+    //     try {
+    //         const page = await browser.newPage();
+    //         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+    //         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+    //         await page.evaluate(async () => {
+    //             let BASE_URL = "http://localhost.org:8080";
+    //             supertokens.fetch.init({
+    //                 refreshTokenUrl: `${BASE_URL}/refresh`
+    //             });
+    //             let userId = "testing-supertokens-website";
+    //             let loginResponse = await fetch(`${BASE_URL}/login`, {
+    //                 method: "post",
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 body: JSON.stringify({ userId })
+    //             });
+    //             assertEqual(await loginResponse.text(), userId);
+
+    //             let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
+    //                 method: "post",
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 body: JSON.stringify({ key: "data" })
+    //             });
+
+    //             await delay(3);
+
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+    //             let data = await supertokens.fetch.getJWTPayloadSecurely();
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+    //             assertEqual(data.key === "data", true);
+
+    //             let data2 = await supertokens.fetch.getJWTPayloadSecurely();
+    //             assertEqual(data2.key === "data", true);
+    //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+    //         });
+    //     } finally {
+    //         await browser.close();
+    //     }
+    // });
+
     it("test update jwt data  with fetch", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -294,6 +344,12 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
+                try {
+                    // TODO: remove try catch
+                    let data = await supertokens.fetch.getJWTPayloadSecurely();
+                    assertEqual(Object.keys(data).length, 0);
+                } catch (ignored) {}
+
                 // update jwt data
                 let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
                     method: "post",
@@ -305,6 +361,12 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 });
                 let data1 = await testResponse1.json();
                 assertEqual(data1.key, "data");
+
+                try {
+                    // TODO: remove try catch
+                    data = await supertokens.fetch.getJWTPayloadSecurely();
+                    assertEqual(data.key, "data");
+                } catch (ignored) {}
 
                 // get jwt data
                 let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
@@ -323,6 +385,13 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let data3 = await testResponse3.json();
                 assertEqual(data3.key1, "data1");
                 assertEqual(data3.key, undefined);
+
+                try {
+                    // TODO: remove try catch
+                    data = await supertokens.fetch.getJWTPayloadSecurely();
+                    assertEqual(data.key1, "data1");
+                    assertEqual(data.key, undefined);
+                } catch (ignored) {}
 
                 // get jwt data
                 let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
@@ -485,6 +554,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await supertokens.fetch.doesSessionExist(), true);
                 assertEqual(getAntiCSRFromCookie() !== null, true);
+                try {
+                    // TODO: remove this try catch after all drivers have implemented front-token
+                    let userIdFromToken = supertokens.fetch.getUserId();
+                    assertEqual(userIdFromToken, userId);
+                } catch (ignored) {}
 
                 // send api request to logout
                 let logoutResponse = await fetch(`${BASE_URL}/logout`, {
@@ -499,6 +573,20 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await logoutResponse.text(), "success");
                 assertEqual(await supertokens.fetch.doesSessionExist(), false);
                 assertEqual(getAntiCSRFromCookie() === null, true);
+
+                try {
+                    supertokens.fetch.getUserId();
+                    throw new Error("test failed");
+                } catch (err) {
+                    assertEqual(err.message, "No session exists");
+                }
+
+                try {
+                    await supertokens.fetch.getJWTPayloadSecurely();
+                    throw new Error("test failed");
+                } catch (err) {
+                    assertEqual(err.message, "No session exists");
+                }
             });
         } finally {
             await browser.close();
