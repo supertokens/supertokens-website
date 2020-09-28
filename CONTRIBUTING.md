@@ -53,9 +53,9 @@ We're so excited you're interested in helping with SuperTokens! We are happy to 
    npm i git+https://github.com:supertokens/supertokens-node.git
    TEST_MODE=testing INSTALL_PATH=../../../supertokens-root NODE_PORT=8082 node .
    ```
-5. Go back to `supertokens-website` and run all tests
+5. Open a new terminal in `supertokens-website` and run all tests
    ```
-   INSTALL_PATH=../com-root npm test
+   INSTALL_PATH=../supertokens-root npm test
    ```
 6. If all tests pass the output should be:
 
