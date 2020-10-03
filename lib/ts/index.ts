@@ -514,7 +514,7 @@ export async function onUnauthorisedResponse(
                         setIDToCookie("remove", websiteRootDomain);
                     }
                 }
-                if (response.status !== 200) {
+                if (response.status >= 300) {
                     throw response;
                 }
                 if (getIDFromCookie() === undefined) {
