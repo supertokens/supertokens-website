@@ -19,9 +19,6 @@
     "webpack-dev-server": "3.7.2",
     "puppeteer": "5.2.1"
   },
-  "peerDependencies": {
-    "axios": "*"
-  },
   "scripts": {
     "test": "TEST_MODE=testing npx mocha --timeout 500000",
     "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",

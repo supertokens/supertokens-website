@@ -12,10 +12,4 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import SuperTokensFetch from ".";
-import SuperTokensAxios from "./axios";
-
-let fetch = SuperTokensFetch;
-let axios = SuperTokensAxios;
-
-export { fetch, axios };
+export * from ".";
