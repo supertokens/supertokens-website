@@ -12,16 +12,16 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import FetchAuthRequest, {
+import AuthHttpRequestFetch, {
     AntiCsrfToken,
     getDomainFromUrl,
     handleUnauthorised,
     getIDFromCookie,
     setIDToCookie,
     FrontToken
-} from ".";
+} from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
 
@@ -42,7 +42,7 @@ function getUrlFromConfig(config: AxiosRequestConfig) {
 
 export async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = getUrlFromConfig(config);
-    if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+    if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
@@ -80,7 +80,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                       "supertokens-sdk-version": package_version
                   }
     };
-    if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+    if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
         configWithAntiCsrf = {
             ...configWithAntiCsrf,
             withCredentials: true
@@ -92,11 +92,11 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
 export function responseInterceptor(axiosInstance: any) {
     return async (response: AxiosResponse) => {
         try {
-            if (!AuthHttpRequest.initCalled) {
+            if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
             let url = getUrlFromConfig(response.config);
-            if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain) {
+            if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain) {
                 // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
                 return response;
             }
@@ -104,9 +104,9 @@ export function responseInterceptor(axiosInstance: any) {
 
             let idRefreshToken = response.headers["id-refresh-token"];
             if (idRefreshToken !== undefined) {
-                setIDToCookie(idRefreshToken, AuthHttpRequest.websiteRootDomain);
+                setIDToCookie(idRefreshToken, AuthHttpRequestFetch.websiteRootDomain);
             }
-            if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+            if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                 let config = response.config;
                 return AuthHttpRequest.doRequest(
                     (config: AxiosRequestConfig) => {
@@ -145,82 +145,6 @@ export function responseInterceptor(axiosInstance: any) {
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-    private static refreshTokenUrl: string | undefined;
-    static websiteRootDomain: string;
-    static sessionExpiredStatusCode = 401;
-    static initCalled = false;
-    static apiDomain = "";
-    static autoAddCredentials: boolean = true;
-    private static refreshAPICustomHeaders: any;
-
-    static setAuth0API(apiPath: string) {
-        FetchAuthRequest.setAuth0API(apiPath);
-    }
-
-    static init(options: {
-        refreshTokenUrl: string;
-        websiteRootDomain?: string;
-        refreshAPICustomHeaders?: any;
-        sessionExpiredStatusCode?: number;
-        autoAddCredentials?: boolean;
-    }) {
-        let {
-            refreshTokenUrl,
-            websiteRootDomain,
-            refreshAPICustomHeaders,
-            sessionExpiredStatusCode,
-            autoAddCredentials
-        } = options;
-        FetchAuthRequest.init({
-            ...options,
-            viaInterceptor: null
-        });
-        if (autoAddCredentials !== undefined) {
-            AuthHttpRequest.autoAddCredentials = autoAddCredentials;
-        }
-        AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
-        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders === undefined ? {} : refreshAPICustomHeaders;
-        AuthHttpRequest.websiteRootDomain =
-            websiteRootDomain === undefined ? window.location.hostname : websiteRootDomain;
-        if (sessionExpiredStatusCode !== undefined) {
-            AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
-        }
-        AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
-        AuthHttpRequest.initCalled = true;
-    }
-
-    static getUserId(): string {
-        let tokenInfo = FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-        return tokenInfo.uid;
-    }
-
-    static async getJWTPayloadSecurely(): Promise<any> {
-        let tokenInfo = FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-
-        if (tokenInfo.ate < Date.now()) {
-            const preRequestIdToken = getIDFromCookie();
-            let retry = await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
-            if (retry) {
-                return await AuthHttpRequest.getJWTPayloadSecurely();
-            } else {
-                throw new Error("Could not refresh session");
-            }
-        }
-        return tokenInfo.up;
-    }
-
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it
@@ -235,10 +159,10 @@ export default class AuthHttpRequest {
         prevError?: any,
         viaInterceptor: boolean = false
     ): Promise<AxiosResponse<any>> => {
-        if (!AuthHttpRequest.initCalled) {
+        if (!AuthHttpRequestFetch.initCalled) {
             throw Error("init function not called");
         }
-        if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequest.apiDomain && viaInterceptor) {
+        if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain && viaInterceptor) {
             if (prevError !== undefined) {
                 throw prevError;
             } else if (prevResponse !== undefined) {
@@ -286,7 +210,7 @@ export default class AuthHttpRequest {
                                   "supertokens-sdk-version": package_version
                               }
                 };
-                if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+                if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
                         withCredentials: true
@@ -304,15 +228,15 @@ export default class AuthHttpRequest {
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
-                        setIDToCookie(idRefreshToken, AuthHttpRequest.websiteRootDomain);
+                        setIDToCookie(idRefreshToken, AuthHttpRequestFetch.websiteRootDomain);
                     }
-                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
+                            AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
+                            AuthHttpRequestFetch.websiteRootDomain,
+                            AuthHttpRequestFetch.refreshAPICustomHeaders,
+                            AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             returnObj = response;
@@ -332,14 +256,14 @@ export default class AuthHttpRequest {
                 } catch (err) {
                     if (
                         err.response !== undefined &&
-                        err.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                        err.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
                     ) {
                         let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
+                            AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
+                            AuthHttpRequestFetch.websiteRootDomain,
+                            AuthHttpRequestFetch.refreshAPICustomHeaders,
+                            AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             throwError = true;
@@ -365,95 +289,7 @@ export default class AuthHttpRequest {
         }
     };
 
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
-    static attemptRefreshingSession = async (): Promise<boolean> => {
-        if (!AuthHttpRequest.initCalled) {
-            throw Error("init function not called");
-        }
-        try {
-            const preRequestIdToken = getIDFromCookie();
-            return await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
-        } finally {
-            if (getIDFromCookie() === undefined) {
-                AntiCsrfToken.removeToken();
-                FrontToken.removeToken();
-            }
-        }
-    };
-
-    static get = async <T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig) => {
-        return await AuthHttpRequest.axios({
-            method: "get",
-            url,
-            ...config
-        });
-    };
-
-    static post = async <T = any, R = AxiosResponse<T>>(url: string, data?: any, config?: AxiosRequestConfig) => {
-        return await AuthHttpRequest.axios({
-            method: "post",
-            url,
-            data,
-            ...config
-        });
-    };
-
-    static delete = async <T = any, R = AxiosResponse<T>>(url: string, config?: AxiosRequestConfig) => {
-        return await AuthHttpRequest.axios({
-            method: "delete",
-            url,
-            ...config
-        });
-    };
-
-    static put = async <T = any, R = AxiosResponse<T>>(url: string, data?: any, config?: AxiosRequestConfig) => {
-        return await AuthHttpRequest.axios({
-            method: "put",
-            url,
-            data,
-            ...config
-        });
-    };
-
-    static axios = async (anything: AxiosRequestConfig | string, maybeConfig?: AxiosRequestConfig) => {
-        let config: AxiosRequestConfig = {};
-        if (typeof anything === "string") {
-            if (maybeConfig === undefined) {
-                config = {
-                    url: anything,
-                    method: "get"
-                };
-            } else {
-                config = {
-                    url: anything,
-                    ...maybeConfig
-                };
-            }
-        } else {
-            config = anything;
-        }
-        return await AuthHttpRequest.doRequest(
-            (config: AxiosRequestConfig) => {
-                // we create an instance since we don't want to intercept this.
-                const instance = axios.create();
-                return instance(config);
-            },
-            config,
-            config.url
-        );
-    };
-
-    static makeSuper = (axiosInstance: any) => {
+    static addAxiosInterceptors = (axiosInstance: any) => {
         // we first check if this axiosInstance already has our interceptors.
         let requestInterceptors = axiosInstance.interceptors.request;
         for (let i = 0; i < requestInterceptors.handlers.length; i++) {
@@ -468,13 +304,13 @@ export default class AuthHttpRequest {
 
         // Add a response interceptor
         axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance), async function(error: any) {
-            if (!AuthHttpRequest.initCalled) {
+            if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
             try {
                 if (
                     error.response !== undefined &&
-                    error.response.status === AuthHttpRequest.sessionExpiredStatusCode
+                    error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
                 ) {
                     let config = error.config;
                     return AuthHttpRequest.doRequest(
@@ -500,9 +336,5 @@ export default class AuthHttpRequest {
                 }
             }
         });
-    };
-
-    static doesSessionExist = () => {
-        return getIDFromCookie() !== undefined;
     };
 }

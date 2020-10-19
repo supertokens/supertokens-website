@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.5.0] - 2020-10-18
+### Changed
+- Enforce interception for fetch and axios for easier use - issue #19
+
 ## [4.4.1] - 2020-10-03
 ### Changed
 - Changed success refresh call status code to >= 200 && < 300
