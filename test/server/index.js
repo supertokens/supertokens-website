@@ -32,7 +32,8 @@ app.use(cookieParser());
 
 SuperTokens.init({
     hosts: "http://localhost:9000",
-    cookieSameSite: "lax"
+    cookieSameSite: "lax",
+    refreshTokenPath: "/refresh"
 });
 
 app.options("*", async (req, res) => {
@@ -65,9 +66,6 @@ app.post("/beforeeach", async (req, res) => {
     noOfTimesGetSessionCalledDuringTest = 0;
     await killAllST();
     await setupST();
-    await setKeyValueInConfig("cookie_domain", '"localhost.org"');
-    await setKeyValueInConfig("cookie_secure", "false");
-    await setKeyValueInConfig("refresh_api_path", "/refresh");
     res.send();
 });
 
