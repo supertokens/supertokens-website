@@ -16,7 +16,6 @@ import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
-    getDomainFromUrl,
     handleUnauthorised,
     getIDFromCookie,
     setIDToCookie,
@@ -24,6 +23,7 @@ import AuthHttpRequestFetch, {
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
+import { normaliseURLDomainOrThrowError } from "./utils";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;
@@ -42,7 +42,7 @@ function getUrlFromConfig(config: AxiosRequestConfig) {
 
 export async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = getUrlFromConfig(config);
-    if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain) {
+    if (typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
@@ -96,7 +96,7 @@ export function responseInterceptor(axiosInstance: any) {
                 throw new Error("init function not called");
             }
             let url = getUrlFromConfig(response.config);
-            if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain) {
+            if (typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain) {
                 // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
                 return response;
             }
@@ -104,7 +104,7 @@ export function responseInterceptor(axiosInstance: any) {
 
             let idRefreshToken = response.headers["id-refresh-token"];
             if (idRefreshToken !== undefined) {
-                setIDToCookie(idRefreshToken, AuthHttpRequestFetch.websiteRootDomain);
+                setIDToCookie(idRefreshToken, AuthHttpRequestFetch.sessionScope);
             }
             if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                 let config = response.config;
@@ -162,7 +162,11 @@ export default class AuthHttpRequest {
         if (!AuthHttpRequestFetch.initCalled) {
             throw Error("init function not called");
         }
-        if (typeof url === "string" && getDomainFromUrl(url) !== AuthHttpRequestFetch.apiDomain && viaInterceptor) {
+        if (
+            typeof url === "string" &&
+            normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain &&
+            viaInterceptor
+        ) {
             if (prevError !== undefined) {
                 throw prevError;
             } else if (prevResponse !== undefined) {
@@ -228,13 +232,13 @@ export default class AuthHttpRequest {
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
-                        setIDToCookie(idRefreshToken, AuthHttpRequestFetch.websiteRootDomain);
+                        setIDToCookie(idRefreshToken, AuthHttpRequestFetch.sessionScope);
                     }
                     if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.websiteRootDomain,
+                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
@@ -261,7 +265,7 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.websiteRootDomain,
+                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );

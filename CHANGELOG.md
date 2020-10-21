@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.5.0] - 2020-10-18
 ### Changed
 - Enforce interception for fetch and axios for easier use - issue #19
+- Renames `websiteRootDomain` to `sessionScope`
+- Removes `refreshTokenUrl` from input and replaces it with `apiDomain` and `apiBasePath`.
+- The refresh API will alway be `apiDomain + apiBasePath + "/session/refresh"`
+- Normalizing of user input
 
 ## [4.4.1] - 2020-10-03
 ### Changed

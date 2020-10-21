@@ -15,6 +15,12 @@
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { package_version } from "./version";
 import Lock from "browser-tabs-lock";
+import {
+    InputType,
+    validateAndNormaliseInputOrThrowError,
+    normaliseURLPathOrThrowError,
+    normaliseURLDomainOrThrowError
+} from "./utils";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -32,7 +38,7 @@ export class AntiCsrfToken {
             return undefined;
         }
         if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = getAntiCSRFromCookie(AuthHttpRequest.websiteRootDomain);
+            let antiCsrf = getAntiCSRFromCookie(AuthHttpRequest.sessionScope);
             if (antiCsrf === null) {
                 return undefined;
             }
@@ -50,7 +56,7 @@ export class AntiCsrfToken {
 
     static removeToken() {
         AntiCsrfToken.tokenInfo = undefined;
-        setAntiCSRFToCookie(undefined, AuthHttpRequest.websiteRootDomain);
+        setAntiCSRFToCookie(undefined, AuthHttpRequest.sessionScope);
     }
 
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
@@ -58,7 +64,7 @@ export class AntiCsrfToken {
             AntiCsrfToken.tokenInfo = undefined;
             return undefined;
         }
-        setAntiCSRFToCookie(antiCsrf, AuthHttpRequest.websiteRootDomain);
+        setAntiCSRFToCookie(antiCsrf, AuthHttpRequest.sessionScope);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
             associatedIdRefreshToken
@@ -86,11 +92,11 @@ export class FrontToken {
     }
 
     static removeToken() {
-        setFrontTokenToCookie(undefined, AuthHttpRequest.websiteRootDomain);
+        setFrontTokenToCookie(undefined, AuthHttpRequest.sessionScope);
     }
 
     static setItem(frontToken: string) {
-        setFrontTokenToCookie(frontToken, AuthHttpRequest.websiteRootDomain);
+        setFrontTokenToCookie(frontToken, AuthHttpRequest.sessionScope);
     }
 }
 
@@ -98,22 +104,19 @@ export class FrontToken {
  * @description returns true if retry, else false is session has expired completely.
  */
 export async function handleUnauthorised(
-    refreshAPI: string | undefined,
+    refreshAPI: string,
     preRequestIdToken: string | undefined,
-    websiteRootDomain: string,
+    sessionScope: string,
     refreshAPICustomHeaders: any,
     sessionExpiredStatusCode: number
 ): Promise<boolean> {
-    if (refreshAPI === undefined) {
-        throw Error("Please define refresh token API in the init function");
-    }
     if (preRequestIdToken === undefined) {
         return getIDFromCookie() !== undefined;
     }
     let result = await onUnauthorisedResponse(
         refreshAPI,
         preRequestIdToken,
-        websiteRootDomain,
+        sessionScope,
         refreshAPICustomHeaders,
         sessionExpiredStatusCode
     );
@@ -125,38 +128,24 @@ export async function handleUnauthorised(
     return true;
 }
 
-export function getDomainFromUrl(url: string): string {
-    if (url.startsWith("https://") || url.startsWith("http://")) {
-        return url
-            .split("/")
-            .filter((_, i) => i <= 2)
-            .join("/");
-    } else {
-        return window.location.origin;
-    }
-}
-
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-    static refreshTokenUrl: string | undefined;
-    static sessionExpiredStatusCode = 401;
+    static refreshTokenUrl: string;
+    static sessionExpiredStatusCode: number;
     static initCalled = false;
     static originalFetch: any;
     static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
-    static websiteRootDomain: string;
+    static sessionScope: string;
     static refreshAPICustomHeaders: any;
     static auth0Path: string | undefined;
-    static autoAddCredentials: boolean = true;
+    static autoAddCredentials: boolean;
 
     static setAuth0API(apiPath: string) {
-        if (apiPath.charAt(0) !== "/") {
-            apiPath = "/" + apiPath;
-        }
-        AuthHttpRequest.auth0Path = apiPath;
+        AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
     }
 
     static getAuth0API = () => {
@@ -165,30 +154,23 @@ export default class AuthHttpRequest {
         };
     };
 
-    static init(options: {
-        refreshTokenUrl: string;
-        websiteRootDomain?: string;
-        refreshAPICustomHeaders?: any;
-        sessionExpiredStatusCode?: number;
-        autoAddCredentials?: boolean;
-    }) {
+    static init(options: InputType) {
         let {
-            refreshTokenUrl,
-            websiteRootDomain,
+            apiDomain,
+            apiBasePath,
+            sessionScope,
             refreshAPICustomHeaders,
             sessionExpiredStatusCode,
             autoAddCredentials
-        } = options;
-        if (autoAddCredentials !== undefined) {
-            AuthHttpRequest.autoAddCredentials = autoAddCredentials;
-        }
-        AuthHttpRequest.refreshTokenUrl = refreshTokenUrl;
-        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders === undefined ? {} : refreshAPICustomHeaders;
-        AuthHttpRequest.websiteRootDomain =
-            websiteRootDomain === undefined ? window.location.hostname : websiteRootDomain;
-        if (sessionExpiredStatusCode !== undefined) {
-            AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
-        }
+        } = validateAndNormaliseInputOrThrowError(options);
+
+        AuthHttpRequest.autoAddCredentials = autoAddCredentials;
+        AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
+        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders;
+        AuthHttpRequest.sessionScope = sessionScope;
+        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
+        AuthHttpRequest.apiDomain = apiDomain;
+
         let env: any = window.fetch === undefined ? global : window;
         if (AuthHttpRequest.originalFetch === undefined) {
             AuthHttpRequest.originalFetch = env.fetch.bind(env);
@@ -199,15 +181,12 @@ export default class AuthHttpRequest {
                 return AuthHttpRequest.fetch(url, config);
             };
         }
-        AuthHttpRequest.apiDomain = getDomainFromUrl(refreshTokenUrl);
+
         AuthHttpRequest.initCalled = true;
     }
 
-    static getRefreshURLDomain = (): string | undefined => {
-        if (AuthHttpRequest.refreshTokenUrl === undefined) {
-            return undefined;
-        }
-        return getDomainFromUrl(AuthHttpRequest.refreshTokenUrl);
+    static getRefreshURLDomain = (): string => {
+        return normaliseURLDomainOrThrowError(AuthHttpRequest.refreshTokenUrl);
     };
 
     static getUserId(): string {
@@ -229,7 +208,7 @@ export default class AuthHttpRequest {
             let retry = await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.sessionScope,
                 AuthHttpRequest.refreshAPICustomHeaders,
                 AuthHttpRequest.sessionExpiredStatusCode
             );
@@ -258,7 +237,7 @@ export default class AuthHttpRequest {
         }
         if (
             typeof url === "string" &&
-            getDomainFromUrl(url) !== AuthHttpRequest.apiDomain &&
+            normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
             AuthHttpRequest.addedFetchInterceptor
         ) {
             // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
@@ -316,14 +295,14 @@ export default class AuthHttpRequest {
                     let response = await httpCall(configWithAntiCsrf);
                     response.headers.forEach((value: any, key: any) => {
                         if (key.toString() === "id-refresh-token") {
-                            setIDToCookie(value, AuthHttpRequest.websiteRootDomain);
+                            setIDToCookie(value, AuthHttpRequest.sessionScope);
                         }
                     });
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.sessionScope,
                             AuthHttpRequest.refreshAPICustomHeaders,
                             AuthHttpRequest.sessionExpiredStatusCode
                         );
@@ -346,7 +325,7 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.websiteRootDomain,
+                            AuthHttpRequest.sessionScope,
                             AuthHttpRequest.refreshAPICustomHeaders,
                             AuthHttpRequest.sessionExpiredStatusCode
                         );
@@ -388,7 +367,7 @@ export default class AuthHttpRequest {
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.websiteRootDomain,
+                AuthHttpRequest.sessionScope,
                 AuthHttpRequest.refreshAPICustomHeaders,
                 AuthHttpRequest.sessionExpiredStatusCode
             );
@@ -428,7 +407,7 @@ const FRONT_TOKEN_COOKIE_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
     preRequestIdToken: string,
-    websiteRootDomain: string,
+    sessionScope: string,
     refreshAPICustomHeaders: any,
     sessionExpiredStatusCode: number
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
@@ -465,14 +444,14 @@ export async function onUnauthorisedResponse(
                 let removeIdRefreshToken = true;
                 response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
-                        setIDToCookie(value, websiteRootDomain);
+                        setIDToCookie(value, sessionScope);
                         removeIdRefreshToken = false;
                     }
                 });
                 if (response.status === sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
-                        setIDToCookie("remove", websiteRootDomain);
+                        setIDToCookie("remove", sessionScope);
                     }
                 }
                 if (response.status >= 300) {
