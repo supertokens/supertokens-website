@@ -22,12 +22,7 @@ let {
     normaliseURLDomainOrThrowError
 } = require("../lib/build/utils");
 let assert = require("assert");
-
-/**
- * TODO:
- * - check for default values
- *
- */
+let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 
 describe("Config tests", function() {
     jsdom({
@@ -35,6 +30,7 @@ describe("Config tests", function() {
     });
 
     beforeEach(async function() {
+        AuthHttpRequestFetch.initCalled = false;
         global.document = {};
     });
 
@@ -145,6 +141,81 @@ describe("Config tests", function() {
             assert(false);
         } catch (err) {
             assert(err.message === "Please provide a valid domain name");
+        }
+    });
+
+    it("testing various input configs", async function() {
+        {
+            AuthHttpRequest.init({
+                apiDomain: "example.com",
+                apiBasePath: "/"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/session/refresh");
+            assert(AuthHttpRequestFetch.apiDomain === "https://example.com");
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "https://api.example.com",
+                apiBasePath: "/some/path/"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://api.example.com/some/path/session/refresh");
+            assert(AuthHttpRequestFetch.apiDomain === "https://api.example.com");
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "localhost",
+                apiBasePath: "/some/path/"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost/some/path/session/refresh");
+            assert(AuthHttpRequestFetch.apiDomain === "http://localhost");
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "localhost:9000",
+                apiBasePath: "/some/path/"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost:9000/some/path/session/refresh");
+            assert(AuthHttpRequestFetch.apiDomain === "http://localhost:9000");
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "https://localhost:9000",
+                apiBasePath: "/some/path/"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://localhost:9000/some/path/session/refresh");
+            assert(AuthHttpRequestFetch.apiDomain === "https://localhost:9000");
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "example.com",
+                apiBasePath: "/some/path/",
+                sessionExpiredStatusCode: 402
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/some/path/session/refresh");
+            assert(AuthHttpRequestFetch.sessionExpiredStatusCode === 402);
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "example.com"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
+            assert(AuthHttpRequestFetch.sessionScope === ".localhost.org");
+            assert(Object.keys(AuthHttpRequestFetch.refreshAPICustomHeaders).length === 0);
+        }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "example.com",
+                sessionScope: "a.b.example.com"
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
+            assert(AuthHttpRequestFetch.sessionScope === ".a.b.example.com");
         }
     });
 });
