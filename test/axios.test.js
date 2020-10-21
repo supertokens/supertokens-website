@@ -108,7 +108,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     it("testing getDomain", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`
+            apiDomain: BASE_URL
         });
 
         let getResponse = await axios.get(`${BASE_URL}/testing`);
@@ -132,14 +132,14 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     it("testing getDomain", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `https://hello.com/refresh`
+            apiDomain: "https://hello.com"
         });
         assert.strictEqual(AuthHttpRequest.getRefreshURLDomain(), "https://hello.com");
     });
 
     it("testing api methods with config", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`
+            apiDomain: BASE_URL
         });
 
         let testing = "testing";
@@ -189,7 +189,7 @@ describe("Axios AuthHttpRequest class tests", function() {
 
     it("testing api methods that doesn't exists", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`
+            apiDomain: BASE_URL
         });
         let expectedStatusCode = 404;
         try {
@@ -267,7 +267,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -304,7 +304,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     //             let BASE_URL = "http://localhost.org:8080";
     //             supertokens.addAxiosInterceptors(axios);
     //             supertokens.init({
-    //                 refreshTokenUrl: `${BASE_URL}/refresh`
+    //                 apiDomain: BASE_URL
     //             });
     //             let userId = "testing-supertokens-website";
     //             let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -347,7 +347,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -416,7 +416,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -481,7 +481,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -527,7 +527,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -593,7 +593,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -638,7 +638,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -698,7 +698,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 // test out anti-csrf
@@ -750,7 +750,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
@@ -777,7 +777,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -844,7 +844,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -875,7 +875,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 try {
                     await axios.get(`${BASE_URL}/testError`);
@@ -903,7 +903,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 try {
                     await axios.get(`${BASE_URL}/testError`);
@@ -932,10 +932,10 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -948,7 +948,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
 
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
 
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -991,7 +991,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1025,7 +1025,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     it("test interception should not happen when domain is not the one that they gave", async function() {
         await startST(5);
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`
+            apiDomain: BASE_URL
         });
 
         await axios.get(`https://www.google.com`);
@@ -1078,7 +1078,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1127,7 +1127,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1160,7 +1160,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         let testAxios = axios.create();
         addAxiosInterceptorsTest(testAxios);
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`
+            apiDomain: BASE_URL
         });
         let userId = "testing-supertokens-website";
         let multipleInterceptorResponse = await testAxios.post(
@@ -1192,7 +1192,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -1258,7 +1258,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1322,7 +1322,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
+                    apiDomain: BASE_URL,
                     autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
@@ -1406,7 +1406,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.addAxiosInterceptors(http);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1473,7 +1473,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(http);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await http.post(`/login`, JSON.stringify({ userId }), {

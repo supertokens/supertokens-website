@@ -1,3 +1,4 @@
+import { InputType } from "./utils";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -18,20 +19,19 @@ export declare class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(refreshAPI: string | undefined, preRequestIdToken: string | undefined, websiteRootDomain: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
-export declare function getDomainFromUrl(url: string): string;
+export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: string | undefined, sessionScope: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
  */
 export default class AuthHttpRequest {
-    static refreshTokenUrl: string | undefined;
+    static refreshTokenUrl: string;
     static sessionExpiredStatusCode: number;
     static initCalled: boolean;
     static originalFetch: any;
     static apiDomain: string;
     static addedFetchInterceptor: boolean;
-    static websiteRootDomain: string;
+    static sessionScope: string;
     static refreshAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
@@ -39,14 +39,8 @@ export default class AuthHttpRequest {
     static getAuth0API: () => {
         apiPath: string | undefined;
     };
-    static init(options: {
-        refreshTokenUrl: string;
-        websiteRootDomain?: string;
-        refreshAPICustomHeaders?: any;
-        sessionExpiredStatusCode?: number;
-        autoAddCredentials?: boolean;
-    }): void;
-    static getRefreshURLDomain: () => string | undefined;
+    static init(options: InputType): void;
+    static getRefreshURLDomain: () => string;
     static getUserId(): string;
     static getJWTPayloadSecurely(): Promise<any>;
     /**
@@ -69,7 +63,7 @@ export default class AuthHttpRequest {
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, websiteRootDomain: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
+export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, sessionScope: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
     result: "SESSION_EXPIRED";
 } | {
     result: "API_ERROR";

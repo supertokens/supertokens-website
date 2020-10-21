@@ -15,15 +15,10 @@
 
 import AuthHttpRequestFetch from "./fetch";
 import AuthHttpRequestAxios from "./axios";
+import { InputType } from "./utils";
 
 export default class AuthHttpRequest {
-    static init(options: {
-        refreshTokenUrl: string;
-        websiteRootDomain?: string;
-        refreshAPICustomHeaders?: any;
-        sessionExpiredStatusCode?: number;
-        autoAddCredentials?: boolean;
-    }) {
+    static init(options: InputType) {
         AuthHttpRequestFetch.init(options);
     }
 

@@ -1,11 +1,6 @@
+import { InputType } from "./utils";
 export default class AuthHttpRequest {
-    static init(options: {
-        refreshTokenUrl: string;
-        websiteRootDomain?: string;
-        refreshAPICustomHeaders?: any;
-        sessionExpiredStatusCode?: number;
-        autoAddCredentials?: boolean;
-    }): void;
+    static init(options: InputType): void;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;

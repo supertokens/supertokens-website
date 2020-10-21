@@ -78,8 +78,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("testing getDomain", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `https://hello.com/refresh`,
-            viaInterceptor: false
+            apiDomain: `https://hello.com/`
         });
         assert.strictEqual(AuthHttpRequest.getRefreshURLDomain(), "https://hello.com");
     });
@@ -114,8 +113,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("testing with fetch api methods without config", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`,
-            viaInterceptor: false
+            apiDomain: BASE_URL
         });
 
         let getResponse = await fetch(`${BASE_URL}/testing`, {
@@ -147,8 +145,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("testing with fetch api methods with config", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`,
-            viaInterceptor: false
+            apiDomain: BASE_URL
         });
 
         let testing = "testing";
@@ -194,8 +191,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("testing with fetch api methods that doesn't exists", async function() {
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`,
-            viaInterceptor: false
+            apiDomain: BASE_URL
         });
 
         let getResponse = await fetch(`${BASE_URL}/fail`, {
@@ -240,7 +236,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -286,7 +282,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     //         await page.evaluate(async () => {
     //             let BASE_URL = "http://localhost.org:8080";
     //             supertokens.init({
-    //                 refreshTokenUrl: `${BASE_URL}/refresh`
+    //                 apiDomain: BASE_URL
     //             });
     //             let userId = "testing-supertokens-website";
     //             let loginResponse = await fetch(`${BASE_URL}/login`, {
@@ -336,7 +332,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -425,7 +421,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -499,7 +495,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -545,7 +541,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -614,7 +610,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -660,7 +656,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -722,7 +718,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -776,7 +772,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -805,7 +801,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
 
                 let val = await fetch(`${BASE_URL}/testError`);
@@ -830,8 +826,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: false
+                    apiDomain: BASE_URL
                 });
 
                 let val = await fetch(`${BASE_URL}/testError`, {
@@ -858,10 +853,10 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -876,8 +871,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
 
                 let logoutResponse = await fetch(`${BASE_URL}/logout`, {
@@ -924,8 +918,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -971,8 +964,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1023,8 +1015,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1058,8 +1049,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("test with fetch interception should not happen when domain is not the one that they gave", async function() {
         await startST(5);
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`,
-            viaInterceptor: true
+            apiDomain: BASE_URL
         });
         let userId = "testing-supertokens-website";
 
@@ -1104,8 +1094,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1177,8 +1166,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1247,8 +1235,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    refreshTokenUrl: `${BASE_URL}/refresh`,
-                    viaInterceptor: true,
+                    apiDomain: BASE_URL,
                     autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
@@ -1328,8 +1315,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("test with fetch that if multiple interceptors are there, they should all work", async function() {
         await startST(5);
         AuthHttpRequest.init({
-            refreshTokenUrl: `${BASE_URL}/refresh`,
-            viaInterceptor: true
+            apiDomain: BASE_URL
         });
         let userId = "testing-supertokens-website";
 

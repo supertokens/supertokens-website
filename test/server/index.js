@@ -33,7 +33,7 @@ app.use(cookieParser());
 SuperTokens.init({
     hosts: "http://localhost:9000",
     cookieSameSite: "lax",
-    refreshTokenPath: "/refresh"
+    refreshTokenPath: "/auth/session/refresh"
 });
 
 app.options("*", async (req, res) => {
@@ -133,7 +133,7 @@ app.post("/revokeAll", SuperTokens.middleware(), async (req, res) => {
     res.send("success");
 });
 
-app.post("/refresh", SuperTokens.middleware(), async (req, res) => {
+app.post("/auth/session/refresh", SuperTokens.middleware(), async (req, res) => {
     refreshCalled = true;
     noOfTimesRefreshCalledDuringTest += 1;
     res.header("Access-Control-Allow-Origin", "http://localhost.org:8080");
