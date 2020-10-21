@@ -100,6 +100,11 @@ describe("Config tests", function() {
         assert(normaliseURLPathOrThrowError("one/two?hello=1") === "/one/two");
         assert(normaliseURLPathOrThrowError("/one/two/#random") === "/one/two");
         assert(normaliseURLPathOrThrowError("one/two#random") === "/one/two");
+
+        assert(normaliseURLPathOrThrowError("localhost:4000/one/two") === "/one/two");
+        assert(normaliseURLPathOrThrowError("127.0.0.1:4000/one/two") === "/one/two");
+        assert(normaliseURLPathOrThrowError("127.0.0.1/one/two") === "/one/two");
+        assert(normaliseURLPathOrThrowError("https://127.0.0.1:80/one/two") === "/one/two");
     });
 
     it("testing URL domain normalisation", async function() {
@@ -130,6 +135,10 @@ describe("Config tests", function() {
         assert(normaliseURLDomainOrThrowError("api.example.com/one/two/#random") === "https://api.example.com");
         assert(normaliseURLDomainOrThrowError(".example.com/one/two") === "https://example.com");
         assert(normaliseURLDomainOrThrowError(window.location.hostname + "/one/two") === "http://localhost.org");
+        assert(normaliseURLDomainOrThrowError("localhost:4000") === "http://localhost:4000");
+        assert(normaliseURLDomainOrThrowError("127.0.0.1:4000") === "http://127.0.0.1:4000");
+        assert(normaliseURLDomainOrThrowError("127.0.0.1") === "http://127.0.0.1");
+        assert(normaliseURLDomainOrThrowError("https://127.0.0.1:80/") === "https://127.0.0.1:80");
 
         try {
             normaliseURLDomainOrThrowError("/one/two");

@@ -41,9 +41,12 @@ export function normaliseURLDomainOrThrowError(input: string): string {
     input = input.trim().toLowerCase();
 
     try {
+        if (!input.startsWith("http://") && !input.startsWith("https://") && !input.startsWith("supertokens://")) {
+            throw new Error("converting to proper URL");
+        }
         let urlObj = new URL(input);
         if (urlObj.protocol === "supertokens:") {
-            if (urlObj.host.startsWith("localhost") || isAnIpAddress(urlObj.host)) {
+            if (urlObj.hostname.startsWith("localhost") || isAnIpAddress(urlObj.hostname)) {
                 input = "http://" + urlObj.host;
             } else {
                 input = "https://" + urlObj.host;
@@ -63,7 +66,7 @@ export function normaliseURLDomainOrThrowError(input: string): string {
     // If the input contains a . it means they have given a domain name.
     // So we try assuming that they have given a domain name
     if (
-        (input.indexOf(".") !== -1 || input === "localhost") &&
+        (input.indexOf(".") !== -1 || input.startsWith("localhost")) &&
         !input.startsWith("http://") &&
         !input.startsWith("https://")
     ) {
@@ -84,6 +87,9 @@ export function normaliseURLPathOrThrowError(input: string): string {
     input = input.trim().toLowerCase();
 
     try {
+        if (!input.startsWith("http://") && !input.startsWith("https://")) {
+            throw new Error("converting to proper URL");
+        }
         let urlObj = new URL(input);
         input = urlObj.pathname;
 
@@ -98,7 +104,7 @@ export function normaliseURLPathOrThrowError(input: string): string {
     // If the input contains a . it means they have given a domain name.
     // So we try assuming that they have given a domain name + path
     if (
-        (input.indexOf(".") !== -1 || input === "localhost") &&
+        (input.indexOf(".") !== -1 || input.startsWith("localhost")) &&
         !input.startsWith("http://") &&
         !input.startsWith("https://")
     ) {
