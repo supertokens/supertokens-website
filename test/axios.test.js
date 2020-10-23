@@ -736,32 +736,6 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    // device info tests******
-    it("test device info being sent", async function() {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL
-                });
-                let userId = "testing-supertokens-website";
-                let deviceInfoIsAdded = await axios.get(`${BASE_URL}/checkDeviceInfo`);
-                result = deviceInfoIsAdded.data === 1 ? true : deviceInfoIsAdded.data;
-                assertEqual(result, true);
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
     //test that calling addAxiosInterceptors many times is not a problem******
     it("test that calling addAxiosInterceptors multiple times is not a problem", async () => {
         await startST(3);

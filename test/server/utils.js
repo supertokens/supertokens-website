@@ -13,8 +13,6 @@
  * under the License.
  */
 const { exec } = require("child_process");
-let { HandshakeInfo } = require("supertokens-node/lib/build/handshakeInfo");
-let { DeviceInfo } = require("supertokens-node/lib/build/deviceInfo");
 let fs = require("fs");
 
 module.exports.executeCommand = async function(cmd) {
@@ -93,8 +91,6 @@ module.exports.killAllST = async function() {
     for (let i = 0; i < pids.length; i++) {
         await module.exports.stopST(pids[i]);
     }
-    HandshakeInfo.reset();
-    DeviceInfo.reset();
 };
 
 module.exports.startST = async function(host = "localhost", port = 9000) {

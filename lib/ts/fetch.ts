@@ -270,26 +270,17 @@ export default class AuthHttpRequest {
                     };
                 }
 
-                // Add package info to headers
-                configWithAntiCsrf = {
-                    ...configWithAntiCsrf,
-                    headers:
-                        configWithAntiCsrf === undefined
-                            ? {
-                                  "supertokens-sdk-name": "website",
-                                  "supertokens-sdk-version": package_version
-                              }
-                            : {
-                                  ...configWithAntiCsrf.headers,
-                                  "supertokens-sdk-name": "website",
-                                  "supertokens-sdk-version": package_version
-                              }
-                };
-                if (AuthHttpRequest.autoAddCredentials && configWithAntiCsrf.credentials === undefined) {
-                    configWithAntiCsrf = {
-                        ...configWithAntiCsrf,
-                        credentials: "include"
-                    };
+                if (AuthHttpRequest.autoAddCredentials) {
+                    if (configWithAntiCsrf === undefined) {
+                        configWithAntiCsrf = {
+                            credentials: "include"
+                        };
+                    } else if (configWithAntiCsrf.credentials === undefined) {
+                        configWithAntiCsrf = {
+                            ...configWithAntiCsrf,
+                            credentials: "include"
+                        };
+                    }
                 }
                 try {
                     let response = await httpCall(configWithAntiCsrf);
@@ -426,9 +417,7 @@ export async function onUnauthorisedResponse(
                 }
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
                 let headers: any = {
-                    ...refreshAPICustomHeaders,
-                    "supertokens-sdk-name": "website",
-                    "supertokens-sdk-version": package_version
+                    ...refreshAPICustomHeaders
                 };
                 if (antiCsrfToken !== undefined) {
                     headers = {

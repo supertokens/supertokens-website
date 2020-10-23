@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.5.0] - 2020-10-21
+## [4.5.0] - 2020-10-24
 ### Changed
 - Enforce interception for fetch and axios for easier use - issue #19
 - Renames `websiteRootDomain` to `sessionScope`
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Normalizing of user input
 - Updates supported FDI to be `1.3`
 - Changes to tests to use the new config
+- Does not send frontend SDK version anymore
 
 ## [4.4.1] - 2020-10-03
 ### Changed

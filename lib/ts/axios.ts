@@ -65,21 +65,6 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         };
     }
 
-    // Add package info to headers
-    configWithAntiCsrf = {
-        ...configWithAntiCsrf,
-        headers:
-            configWithAntiCsrf === undefined
-                ? {
-                      "supertokens-sdk-name": "website",
-                      "supertokens-sdk-version": package_version
-                  }
-                : {
-                      ...configWithAntiCsrf.headers,
-                      "supertokens-sdk-name": "website",
-                      "supertokens-sdk-version": package_version
-                  }
-    };
     if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
         configWithAntiCsrf = {
             ...configWithAntiCsrf,
@@ -199,21 +184,6 @@ export default class AuthHttpRequest {
                     };
                 }
 
-                // Add package info to headers
-                configWithAntiCsrf = {
-                    ...configWithAntiCsrf,
-                    headers:
-                        configWithAntiCsrf === undefined
-                            ? {
-                                  "supertokens-sdk-name": "website",
-                                  "supertokens-sdk-version": package_version
-                              }
-                            : {
-                                  ...configWithAntiCsrf.headers,
-                                  "supertokens-sdk-name": "website",
-                                  "supertokens-sdk-version": package_version
-                              }
-                };
                 if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
