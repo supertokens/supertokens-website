@@ -759,35 +759,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    // device info tests******
-    it("test with fetch that device info is sent", async function() {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.init({
-                    apiDomain: BASE_URL
-                });
-                let userId = "testing-supertokens-website";
-
-                // send request to check if deviceInfo is beinf added to headers
-                let deviceInfoIsAdded = await fetch(`${BASE_URL}/checkDeviceInfo`);
-
-                let result = await deviceInfoIsAdded.text();
-                result = result === "1" ? "true" : result;
-                assertEqual(result, "true");
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
     // if any API throws error, it gets propogated to the user properly (with and without interception)******
     it("test with fetch that if an api throws an error it gets propagated to the user with interception", async () => {
         await startST();

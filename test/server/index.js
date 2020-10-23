@@ -169,12 +169,6 @@ app.get("/testHeader", async (req, res) => {
     res.send(JSON.stringify(data));
 });
 
-app.get("/checkDeviceInfo", (req, res) => {
-    let sdkName = req.headers["supertokens-sdk-name"];
-    let sdkVersion = req.headers["supertokens-sdk-version"];
-    res.send(sdkName === "website" && sdkVersion === package_version ? true : false);
-});
-
 app.post("/checkAllowCredentials", (req, res) => {
     res.send(req.headers["allow-credentials"] !== undefined ? true : false);
 });
