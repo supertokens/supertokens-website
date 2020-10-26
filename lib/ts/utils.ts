@@ -45,7 +45,7 @@ export function normaliseURLDomainOrThrowError(input: string, ignoreProtocol = f
             throw new Error("converting to proper URL");
         }
         let urlObj = new URL(input);
-        if (urlObj.protocol === "https:" && ignoreProtocol) {
+        if (ignoreProtocol) {
             if (urlObj.hostname.startsWith("localhost") || isAnIpAddress(urlObj.hostname)) {
                 input = "http://" + urlObj.host;
             } else {
