@@ -13,3 +13,5 @@
  * under the License.
  */
 export const package_version = "5.0.0";
+
+export const supported_fdi = ["1.3"];

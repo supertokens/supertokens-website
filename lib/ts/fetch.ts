@@ -13,7 +13,7 @@
  * under the License.
  */
 import { PROCESS_STATE, ProcessState } from "./processState";
-import { package_version } from "./version";
+import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import {
     InputType,
@@ -425,6 +425,10 @@ export async function onUnauthorisedResponse(
                         "anti-csrf": antiCsrfToken
                     };
                 }
+                headers = {
+                    ...headers,
+                    "fdi-version": supported_fdi.join(",")
+                };
                 let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
                     method: "post",
                     credentials: "include",
