@@ -127,30 +127,50 @@ export function normaliseURLPathOrThrowError(input: string): string {
 }
 
 export function normaliseSessionScopeOrThrowError(sessionScope: string): string {
-    sessionScope = sessionScope.trim().toLowerCase();
+    function helper(sessionScope: string): string {
+        sessionScope = sessionScope.trim().toLowerCase();
 
-    // first we convert it to a URL so that we can use the URL class
-    if (sessionScope.startsWith(".")) {
-        sessionScope = sessionScope.substr(1);
-    }
-
-    if (!sessionScope.startsWith("http://") && !sessionScope.startsWith("https://")) {
-        sessionScope = "http://" + sessionScope;
-    }
-
-    try {
-        let urlObj = new URL(sessionScope);
-        sessionScope = urlObj.hostname;
-
-        // add a leading dot
-        if (!sessionScope.startsWith(".")) {
-            sessionScope = "." + sessionScope;
+        // first we convert it to a URL so that we can use the URL class
+        if (sessionScope.startsWith(".")) {
+            sessionScope = sessionScope.substr(1);
         }
 
-        return sessionScope;
-    } catch (err) {
-        throw new Error("Please provide a valid sessionScope");
+        if (!sessionScope.startsWith("http://") && !sessionScope.startsWith("https://")) {
+            sessionScope = "http://" + sessionScope;
+        }
+
+        try {
+            let urlObj = new URL(sessionScope);
+            sessionScope = urlObj.hostname;
+
+            // remove leading dot
+            if (sessionScope.startsWith(".")) {
+                sessionScope = sessionScope.substr(1);
+            }
+
+            return sessionScope;
+        } catch (err) {
+            throw new Error("Please provide a valid sessionScope");
+        }
     }
+
+    function isAnIpAddress(ipaddress: string) {
+        return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+            ipaddress
+        );
+    }
+
+    let noDotNormalised = helper(sessionScope);
+
+    if (noDotNormalised === "localhost" || isAnIpAddress(noDotNormalised)) {
+        return noDotNormalised;
+    }
+
+    if (sessionScope.startsWith(".")) {
+        return "." + noDotNormalised;
+    }
+
+    return noDotNormalised;
 }
 
 export function validateAndNormaliseInputOrThrowError(options: InputType): NormalisedInputType {

@@ -35,19 +35,35 @@ describe("Config tests", function() {
     });
 
     it("testing sessionScope normalisation", async function() {
-        assert(normaliseSessionScopeOrThrowError("api.example.com") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("https://api.example.com") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com?hello=1") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com/hello") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com/") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com:8080") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("http://api.example.com#random2") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("api.example.com/") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError("api.example.com#random") === ".api.example.com");
+        assert(normaliseSessionScopeOrThrowError("api.example.com") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("https://api.example.com") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com?hello=1") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com/hello") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com/") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com:8080") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("http://api.example.com#random2") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("api.example.com/") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("api.example.com#random") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError("example.com") === "example.com");
+        assert(normaliseSessionScopeOrThrowError("api.example.com/?hello=1&bye=2") === "api.example.com");
+        assert(normaliseSessionScopeOrThrowError(window.location.hostname) === "localhost.org");
+        assert(normaliseSessionScopeOrThrowError("localhost") === "localhost");
+        assert(normaliseSessionScopeOrThrowError("localhost:8080") === "localhost");
+        assert(normaliseSessionScopeOrThrowError("localhost.org") === "localhost.org");
+        assert(normaliseSessionScopeOrThrowError("127.0.0.1") === "127.0.0.1");
+
+        assert(normaliseSessionScopeOrThrowError(".api.example.com") === ".api.example.com");
+        assert(normaliseSessionScopeOrThrowError(".api.example.com/") === ".api.example.com");
+        assert(normaliseSessionScopeOrThrowError(".api.example.com#random") === ".api.example.com");
         assert(normaliseSessionScopeOrThrowError(".example.com") === ".example.com");
-        assert(normaliseSessionScopeOrThrowError("api.example.com/?hello=1&bye=2") === ".api.example.com");
-        assert(normaliseSessionScopeOrThrowError(window.location.hostname) === ".localhost.org");
+        assert(normaliseSessionScopeOrThrowError(".api.example.com/?hello=1&bye=2") === ".api.example.com");
+        assert(normaliseSessionScopeOrThrowError("." + window.location.hostname) === ".localhost.org");
+        assert(normaliseSessionScopeOrThrowError(".localhost") === "localhost");
+        assert(normaliseSessionScopeOrThrowError(".localhost:8080") === "localhost");
+        assert(normaliseSessionScopeOrThrowError(".localhost.org") === ".localhost.org");
+        assert(normaliseSessionScopeOrThrowError(".127.0.0.1") === "127.0.0.1");
+
         try {
             normaliseSessionScopeOrThrowError("http://");
             assert(false);
@@ -205,7 +221,7 @@ describe("Config tests", function() {
                 apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === ".localhost.org");
+            assert(AuthHttpRequestFetch.sessionScope === "localhost.org");
             assert(Object.keys(AuthHttpRequestFetch.refreshAPICustomHeaders).length === 0);
         }
 
@@ -215,7 +231,7 @@ describe("Config tests", function() {
                 sessionScope: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === ".a.b.example.com");
+            assert(AuthHttpRequestFetch.sessionScope === "a.b.example.com");
         }
     });
 });
