@@ -348,11 +348,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                try {
-                    // TODO: remove try catch
-                    let data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(Object.keys(data).length, 0);
-                } catch (ignored) {}
+                let data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
                 let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
@@ -366,11 +363,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let data1 = await testResponse1.json();
                 assertEqual(data1.key, "data");
 
-                try {
-                    // TODO: remove try catch
-                    data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(data.key, "data");
-                } catch (ignored) {}
+                data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(data.key, "data");
 
                 // get jwt data
                 let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
@@ -390,12 +384,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(data3.key1, "data1");
                 assertEqual(data3.key, undefined);
 
-                try {
-                    // TODO: remove try catch
-                    data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(data.key1, "data1");
-                    assertEqual(data.key, undefined);
-                } catch (ignored) {}
+                data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(data.key1, "data1");
+                assertEqual(data.key, undefined);
 
                 // get jwt data
                 let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
@@ -558,11 +549,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await supertokens.doesSessionExist(), true);
                 assertEqual(getAntiCSRFromCookie() !== null, true);
-                try {
-                    // TODO: remove this try catch after all drivers have implemented front-token
-                    let userIdFromToken = supertokens.getUserId();
-                    assertEqual(userIdFromToken, userId);
-                } catch (ignored) {}
+
+                let userIdFromToken = supertokens.getUserId();
+                assertEqual(userIdFromToken, userId);
 
                 // send api request to logout
                 let logoutResponse = await fetch(`${BASE_URL}/logout`, {

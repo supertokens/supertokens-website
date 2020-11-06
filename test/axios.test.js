@@ -360,21 +360,15 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
 
-                try {
-                    // TODO: remove try catch
-                    let data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(Object.keys(data).length, 0);
-                } catch (ignored) {}
+                let data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
                 let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
                 assertEqual(testResponse1.data.key, "data");
 
-                try {
-                    // TODO: remove try catch
-                    data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(data.key, "data");
-                } catch (ignored) {}
+                data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(data.key, "data");
 
                 // get jwt data
                 let testResponse2 = await axios.get(`${BASE_URL}/update-jwt`);
@@ -385,12 +379,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(testResponse3.data.key1, "data1");
                 assertEqual(testResponse3.data.key, undefined);
 
-                try {
-                    // TODO: remove try catch
-                    data = await supertokens.getJWTPayloadSecurely();
-                    assertEqual(data.key1, "data1");
-                    assertEqual(data.key, undefined);
-                } catch (ignored) {}
+                data = await supertokens.getJWTPayloadSecurely();
+                assertEqual(data.key1, "data1");
+                assertEqual(data.key, undefined);
 
                 // get jwt data
                 let testResponse4 = await axios.get(`${BASE_URL}/update-jwt`);
@@ -541,11 +532,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
                 assertEqual(await supertokens.doesSessionExist(), true);
                 assertEqual(getAntiCSRFromCookie() !== null, true);
-                try {
-                    // TODO: remove this try catch after all drivers have implemented front-token
-                    let userIdFromToken = supertokens.getUserId();
-                    assertEqual(userIdFromToken, userId);
-                } catch (ignored) {}
+
+                let userIdFromToken = supertokens.getUserId();
+                assertEqual(userIdFromToken, userId);
 
                 // send api request to logout
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
