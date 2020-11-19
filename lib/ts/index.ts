@@ -573,8 +573,10 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
         cookieVal = splitted[0];
         expires = new Date(Number(splitted[1])).toUTCString();
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // if the domain is the same as the current hostname, then we want to not add a leading ".".
+        // So we do not set a domain explicitly since the browser always adds a leading dot
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
     } else {
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
@@ -613,8 +615,10 @@ export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: s
         cookieVal = antiCSRFToken;
         expires = undefined; // set cookie without expiry
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // if the domain is the same as the current hostname, then we want to not add a leading ".".
+        // So we do not set a domain explicitly since the browser always adds a leading dot
         if (expires !== undefined) {
             document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
@@ -658,8 +662,10 @@ export function setFrontTokenToCookie(frontToken: string | undefined, domain: st
         cookieVal = frontToken;
         expires = undefined; // set cookie without expiry
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // if the domain is the same as the current hostname, then we want to not add a leading ".".
+        // So we do not set a domain explicitly since the browser always adds a leading dot
         if (expires !== undefined) {
             document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
