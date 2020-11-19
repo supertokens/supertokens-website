@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -22,7 +22,7 @@
   "scripts": {
     "test": "TEST_MODE=testing npx mocha --timeout 500000",
     "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",
-    "build": "cd lib && npx tsc -p tsconfig.json && cd ../ && ./node_modules/.bin/webpack -p",
+    "build": "cd lib && rm -rf build && npx tsc -p tsconfig.json && cd ../ && ./node_modules/.bin/webpack -p",
     "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "build-pretty": "npm run build && npm run pretty",
     "pretty-check": "cd lib && npx prettier --check --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",

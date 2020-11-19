@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.1] - 2020-11-19
+### Changed
+- If the sessionScope is the same as the current domain, then we do not use it when setting cookies. This is because we do not want the browser to automatically add a leading dot. See https://github.com/supertokens/supertokens-website/issues/25
+
 ## [5.0.0] - 2020-10-24
 ### Changed
 - Enforce interception for fetch and axios for easier use - issue #19

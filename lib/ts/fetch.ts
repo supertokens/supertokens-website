@@ -506,8 +506,9 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
         cookieVal = splitted[0];
         expires = new Date(Number(splitted[1])).toUTCString();
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // see https://github.com/supertokens/supertokens-website/issues/25
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
     } else {
         document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
@@ -546,8 +547,9 @@ export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: s
         cookieVal = antiCSRFToken;
         expires = undefined; // set cookie without expiry
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // see https://github.com/supertokens/supertokens-website/issues/25
         if (expires !== undefined) {
             document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
@@ -591,8 +593,9 @@ export function setFrontTokenToCookie(frontToken: string | undefined, domain: st
         cookieVal = frontToken;
         expires = undefined; // set cookie without expiry
     }
-    if (domain === "localhost") {
+    if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
+        // see https://github.com/supertokens/supertokens-website/issues/25
         if (expires !== undefined) {
             document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
