@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.2] - 2020-11-30
+### Changed
+- Added compatibility with new FDI. No change needed for this SDK, but added this since it's still compatible
+
 ## [5.0.1] - 2020-11-19
 ### Changed
 - If the sessionScope is the same as the current domain, then we do not use it when setting cookies. This is because we do not want the browser to automatically add a leading dot. See https://github.com/supertokens/supertokens-website/issues/25
