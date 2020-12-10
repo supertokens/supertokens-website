@@ -18,3 +18,4 @@ export declare function normaliseURLDomainOrThrowError(input: string, ignoreProt
 export declare function normaliseURLPathOrThrowError(input: string): string;
 export declare function normaliseSessionScopeOrThrowError(sessionScope: string): string;
 export declare function validateAndNormaliseInputOrThrowError(options: InputType): NormalisedInputType;
+export declare function getWindowOrThrow(): any;
