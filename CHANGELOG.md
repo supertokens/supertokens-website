@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.3] - 2020-12-10
+### Fixes:
+- Better error messages for SSR.
+
 ## [5.0.2] - 2020-11-30
 ### Changed
 - Added compatibility with new FDI. No change needed for this SDK, but added this since it's still compatible

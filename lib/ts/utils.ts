@@ -181,7 +181,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let sessionScope = normaliseSessionScopeOrThrowError(window.location.hostname);
+    let sessionScope = normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname);
     if (options.sessionScope !== undefined) {
         sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
     }
@@ -209,4 +209,14 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         sessionExpiredStatusCode,
         autoAddCredentials
     };
+}
+
+export function getWindowOrThrow(): any {
+    if (typeof window === "undefined") {
+        throw Error(
+            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
+        );
+    }
+
+    return window;
 }

@@ -19,7 +19,8 @@ import {
     InputType,
     validateAndNormaliseInputOrThrowError,
     normaliseURLPathOrThrowError,
-    normaliseURLDomainOrThrowError
+    normaliseURLDomainOrThrowError,
+    getWindowOrThrow
 } from "./utils";
 
 export class AntiCsrfToken {
@@ -171,7 +172,7 @@ export default class AuthHttpRequest {
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         AuthHttpRequest.apiDomain = apiDomain;
 
-        let env: any = window.fetch === undefined ? global : window;
+        let env: any = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
         if (AuthHttpRequest.originalFetch === undefined) {
             AuthHttpRequest.originalFetch = env.fetch.bind(env);
         }
@@ -487,7 +488,7 @@ export async function onUnauthorisedResponse(
 
 // NOTE: we do not store this in memory and always read as to synchronize events across tabs
 export function getIDFromCookie(): string | undefined {
-    let value = "; " + document.cookie;
+    let value = "; " + getWindowOrThrow().document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
     if (parts.length >= 2) {
         let last = parts.pop();
@@ -509,14 +510,14 @@ export function setIDToCookie(idRefreshToken: string, domain: string) {
     if (domain === "localhost" || domain === window.location.hostname) {
         // since some browsers ignore cookies with domain set to localhost
         // see https://github.com/supertokens/supertokens-website/issues/25
-        document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+        getWindowOrThrow().document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
     } else {
-        document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+        getWindowOrThrow().document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
     }
 }
 
 export function getAntiCSRFromCookie(domain: string): string | null {
-    let value = "; " + document.cookie;
+    let value = "; " + getWindowOrThrow().document.cookie;
     let parts = value.split("; " + ANTI_CSRF_COOKIE_NAME + "=");
     if (parts.length >= 2) {
         let last = parts.pop();
@@ -530,10 +531,10 @@ export function getAntiCSRFromCookie(domain: string): string | null {
     }
 
     // check for backwards compatibility
-    let fromLocalstorage = window.localStorage.getItem("anti-csrf-localstorage");
+    let fromLocalstorage = getWindowOrThrow().localStorage.getItem("anti-csrf-localstorage");
     if (fromLocalstorage !== null) {
         setAntiCSRFToCookie(fromLocalstorage, domain);
-        window.localStorage.removeItem("anti-csrf-localstorage");
+        getWindowOrThrow().localStorage.removeItem("anti-csrf-localstorage");
         return fromLocalstorage;
     }
     return null;
@@ -551,26 +552,26 @@ export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: s
         // since some browsers ignore cookies with domain set to localhost
         // see https://github.com/supertokens/supertokens-website/issues/25
         if (expires !== undefined) {
-            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
-            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};path=/`;
         }
     } else {
         if (expires !== undefined) {
-            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         } else {
-            document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
         }
     }
 
     // for backwards compatibility
     if (antiCSRFToken === undefined) {
-        window.localStorage.removeItem("anti-csrf-localstorage");
+        getWindowOrThrow().localStorage.removeItem("anti-csrf-localstorage");
     }
 }
 
 export function getFrontTokenFromCookie(): string | null {
-    let value = "; " + document.cookie;
+    let value = "; " + getWindowOrThrow().document.cookie;
     let parts = value.split("; " + FRONT_TOKEN_COOKIE_NAME + "=");
     if (parts.length >= 2) {
         let last = parts.pop();
@@ -597,15 +598,15 @@ export function setFrontTokenToCookie(frontToken: string | undefined, domain: st
         // since some browsers ignore cookies with domain set to localhost
         // see https://github.com/supertokens/supertokens-website/issues/25
         if (expires !== undefined) {
-            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
-            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};path=/`;
         }
     } else {
         if (expires !== undefined) {
-            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         } else {
-            document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
         }
     }
 }
