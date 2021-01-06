@@ -1041,41 +1041,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.notDeepEqual(verifyRequestState, undefined);
     });
 
-    it("test with fetch interception should not happen when domain is not the one that they gave and the url is an object", async function() {
-        await startST(5);
-        AuthHttpRequest.init({
-            apiDomain: BASE_URL
-        });
-        let userId = "testing-supertokens-website";
-
-        // this is technically not doing interception, but it is equavalent to doing it since the inteceptor just calls the function below.
-        await fetch({ url: `https://www.google.com` });
-
-        let verifyRequestState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-            100
-        );
-
-        assert.deepEqual(verifyRequestState, undefined);
-
-        let loginResponse = await fetch(`${BASE_URL}/login`, {
-            method: "post",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ userId })
-        });
-
-        assert.deepEqual(await loginResponse.text(), userId);
-
-        verifyRequestState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-            5000
-        );
-        assert.notDeepEqual(verifyRequestState, undefined);
-    });
-
     //cross domain login, userinfo, logout
     it("test with fetch cross domain", async () => {
         await startST(5);
