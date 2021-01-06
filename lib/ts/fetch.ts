@@ -237,9 +237,13 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
         if (
-            typeof url === "string" &&
-            normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
-            AuthHttpRequest.addedFetchInterceptor
+            (typeof url === "string" &&
+                normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
+                AuthHttpRequest.addedFetchInterceptor) ||
+            (url !== undefined &&
+            typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
+                normaliseURLDomainOrThrowError(url.url) !== AuthHttpRequest.apiDomain &&
+                AuthHttpRequest.addedFetchInterceptor)
         ) {
             // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
             return await httpCall(config);

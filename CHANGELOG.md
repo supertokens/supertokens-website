@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.6] - 2021-01-06
+### Fixed:
+- Correctly handles fetch interception if the type of url is not a string
+
 ## [5.0.5] - 2020-12-19
 ### Changed:
 - Applies dependabot dependency changes
