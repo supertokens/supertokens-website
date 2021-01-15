@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.7] - 2021-01-15
+### Added:
+- Compatibility with new FDI version
+
 ## [5.0.6] - 2021-01-06
 ### Fixed:
 - Correctly handles fetch interception if the type of url is not a string
