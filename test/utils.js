@@ -57,3 +57,17 @@ module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf 
     });
     return response.data;
 };
+
+module.exports.addBrowserConsole = function(page) {
+    page.on("console", message =>
+        console.log(
+            `${message
+                .type()
+                .substr(0, 3)
+                .toUpperCase()} ${message.text()}`
+        )
+    )
+        .on("pageerror", ({ message }) => console.log(message))
+        .on("response", response => console.log(`${response.status()} ${response.url()}`))
+        .on("requestfailed", request => console.log(`${request.failure().errorText} ${request.url()}`));
+};

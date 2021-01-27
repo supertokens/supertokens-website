@@ -42,10 +42,25 @@ function getUrlFromConfig(config: AxiosRequestConfig) {
 
 export async function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig) {
     let url = getUrlFromConfig(config);
-    if (typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain) {
+
+    let doNotDoInterception = false;
+    try {
+        doNotDoInterception =
+            typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
+    } catch (err) {
+        if (err.message === "Please provide a valid domain name") {
+            // .origin gives the port as well..
+            doNotDoInterception =
+                normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain;
+        } else {
+            throw err;
+        }
+    }
+    if (doNotDoInterception) {
         // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
         return config;
     }
+
     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
     const preRequestIdToken = getIDFromCookie();
     const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
@@ -81,10 +96,25 @@ export function responseInterceptor(axiosInstance: any) {
                 throw new Error("init function not called");
             }
             let url = getUrlFromConfig(response.config);
-            if (typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain) {
+
+            let doNotDoInterception = false;
+            try {
+                doNotDoInterception =
+                    typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
+            } catch (err) {
+                if (err.message === "Please provide a valid domain name") {
+                    // .origin gives the port as well..
+                    doNotDoInterception =
+                        normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain;
+                } else {
+                    throw err;
+                }
+            }
+            if (doNotDoInterception) {
                 // this check means that if you are using axios via inteceptor, then we only do the refresh steps if you are calling your APIs.
                 return response;
             }
+
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
             let idRefreshToken = response.headers["id-refresh-token"];
@@ -147,19 +177,33 @@ export default class AuthHttpRequest {
         if (!AuthHttpRequestFetch.initCalled) {
             throw Error("init function not called");
         }
-        if (
-            typeof url === "string" &&
-            normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain &&
-            viaInterceptor
-        ) {
+
+        let doNotDoInterception = false;
+        try {
+            doNotDoInterception =
+                typeof url === "string" &&
+                normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain &&
+                viaInterceptor;
+        } catch (err) {
+            if (err.message === "Please provide a valid domain name") {
+                // .origin gives the port as well..
+                doNotDoInterception =
+                    normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain &&
+                    viaInterceptor;
+            } else {
+                throw err;
+            }
+        }
+
+        if (doNotDoInterception) {
             if (prevError !== undefined) {
                 throw prevError;
             } else if (prevResponse !== undefined) {
                 return prevResponse;
             }
-            // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
             return await httpCall(config);
         }
+
         try {
             let throwError = false;
             let returnObj = undefined;

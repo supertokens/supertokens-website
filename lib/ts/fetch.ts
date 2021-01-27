@@ -236,18 +236,32 @@ export default class AuthHttpRequest {
         if (!AuthHttpRequest.initCalled) {
             throw Error("init function not called");
         }
-        if (
-            (typeof url === "string" &&
-                normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
-                AuthHttpRequest.addedFetchInterceptor) ||
-            (url !== undefined &&
-            typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
-                normaliseURLDomainOrThrowError(url.url) !== AuthHttpRequest.apiDomain &&
-                AuthHttpRequest.addedFetchInterceptor)
-        ) {
-            // this check means that if you are using fetch via inteceptor, then we only do the refresh steps if you are calling your APIs.
+
+        let doNotDoInterception = false;
+        try {
+            doNotDoInterception =
+                (typeof url === "string" &&
+                    normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
+                    AuthHttpRequest.addedFetchInterceptor) ||
+                (url !== undefined &&
+                typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
+                    normaliseURLDomainOrThrowError(url.url) !== AuthHttpRequest.apiDomain &&
+                    AuthHttpRequest.addedFetchInterceptor);
+        } catch (err) {
+            if (err.message === "Please provide a valid domain name") {
+                // .origin gives the port as well..
+                doNotDoInterception =
+                    normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequest.apiDomain &&
+                    AuthHttpRequest.addedFetchInterceptor;
+            } else {
+                throw err;
+            }
+        }
+
+        if (doNotDoInterception) {
             return await httpCall(config);
         }
+
         if (AuthHttpRequest.addedFetchInterceptor) {
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         }

@@ -26,6 +26,12 @@
         }
     }
 
+    function assertNotEqual(a, b) {
+        if (a === b) {
+            throw new Error("assert failed");
+        }
+    }
+
     async function delay(time) {
         await new Promise(r => setTimeout(r, time * 1000));
     }
