@@ -47,7 +47,8 @@ SuperTokens.init({
                 onUnauthorised: (err, req, res) => {
                     res.status(401).send();
                 }
-            }
+            },
+            enableAntiCsrf: true
         })
     ]
 });
