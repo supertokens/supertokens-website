@@ -14,7 +14,8 @@ export declare type NormalisedInputType = {
     sessionExpiredStatusCode: number;
     autoAddCredentials: boolean;
 };
-export declare function normaliseURLDomainOrThrowError(input: string, ignoreProtocol?: boolean): string;
+export declare function isAnIpAddress(ipaddress: string): boolean;
+export declare function normaliseURLDomainOrThrowError(input: string): string;
 export declare function normaliseURLPathOrThrowError(input: string): string;
 export declare function normaliseSessionScopeOrThrowError(sessionScope: string): string;
 export declare function validateAndNormaliseInputOrThrowError(options: InputType): NormalisedInputType;

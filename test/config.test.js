@@ -117,6 +117,19 @@ describe("Config tests", function() {
         assert(normaliseURLPathOrThrowError("127.0.0.1:4000/one/two") === "/one/two");
         assert(normaliseURLPathOrThrowError("127.0.0.1/one/two") === "/one/two");
         assert(normaliseURLPathOrThrowError("https://127.0.0.1:80/one/two") === "/one/two");
+
+        assert(normaliseURLPathOrThrowError("/auth/email/exists?email=john.doe%40gmail.com") === "/auth/email/exists");
+        assert(normaliseURLPathOrThrowError("exists") === "/exists");
+        assert(normaliseURLPathOrThrowError("exists?email=john.doe%40gmail.com") === "/exists");
+
+        assert(normaliseURLPathOrThrowError("/.netlify/functions/api") === "/.netlify/functions/api");
+        assert(normaliseURLPathOrThrowError("/netlify/.functions/api") === "/netlify/.functions/api");
+        assert(normaliseURLPathOrThrowError("app.example.com/.netlify/functions/api") === "/.netlify/functions/api");
+        assert(normaliseURLPathOrThrowError("app.example.com/netlify/.functions/api") === "/netlify/.functions/api");
+        assert(normaliseURLPathOrThrowError("/app.example.com") === "/app.example.com");
+
+        assert(normaliseURLPathOrThrowError(".netlify/functions/api") === "/functions/api");
+        assert(normaliseURLPathOrThrowError("netlify/.functions/api") === "/netlify/.functions/api");
     });
 
     it("testing URL domain normalisation", async function() {
@@ -154,6 +167,13 @@ describe("Config tests", function() {
 
         try {
             normaliseURLDomainOrThrowError("/one/two");
+            assert(false);
+        } catch (err) {
+            assert(err.message === "Please provide a valid domain name");
+        }
+
+        try {
+            normaliseURLDomainOrThrowError("/.netlify/functions/api");
             assert(false);
         } catch (err) {
             assert(err.message === "Please provide a valid domain name");
