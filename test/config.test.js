@@ -164,6 +164,7 @@ describe("Config tests", function() {
         assert(normaliseURLDomainOrThrowError("127.0.0.1:4000") === "http://127.0.0.1:4000");
         assert(normaliseURLDomainOrThrowError("127.0.0.1") === "http://127.0.0.1");
         assert(normaliseURLDomainOrThrowError("https://127.0.0.1:80/") === "https://127.0.0.1:80");
+        assert(normaliseURLDomainOrThrowError("http://localhost.org:8080") === "http://localhost.org:8080");
 
         try {
             normaliseURLDomainOrThrowError("/one/two");

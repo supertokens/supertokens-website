@@ -40,7 +40,8 @@ export function isAnIpAddress(ipaddress: string) {
 }
 
 export function normaliseURLDomainOrThrowError(input: string): string {
-    return new NormalisedURLDomain(input).getAsStringDangerous();
+    let str = new NormalisedURLDomain(input).getAsStringDangerous();
+    return str;
 }
 
 export function normaliseURLPathOrThrowError(input: string): string {
