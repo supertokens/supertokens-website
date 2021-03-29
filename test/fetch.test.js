@@ -297,7 +297,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 });
 
                 assertEqual(await loginResponse.text(), userId);
-                await delay(3);
+                await delay(5);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 await supertokens.signOut();
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
