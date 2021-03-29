@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.0] - 2021-03-29
+### Added:
+- Sign out support
+- Support for FDI 1.7
+
 ## [5.0.10] - 2021-03-05
 ### Changed:
 - Fixes normalisation of URL and path in case the path has a dot in it
