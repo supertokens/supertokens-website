@@ -26,6 +26,7 @@ export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken
  */
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
+    static signOutUrl: string;
     static sessionExpiredStatusCode: number;
     static initCalled: boolean;
     static originalFetch: any;
@@ -43,6 +44,7 @@ export default class AuthHttpRequest {
     static getRefreshURLDomain: () => string;
     static getUserId(): string;
     static getJWTPayloadSecurely(): Promise<any>;
+    static signOut(): Promise<void>;
     /**
      * @description sends the actual http request and returns a response if successful/
      * If not successful due to session expiry reasons, it

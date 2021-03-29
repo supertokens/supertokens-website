@@ -16,6 +16,7 @@ export default class AuthHttpRequest {
     static attemptRefreshingSession: () => Promise<boolean>;
     static doesSessionExist: () => boolean;
     static addAxiosInterceptors: (axiosInstance: any) => void;
+    static signOut: () => Promise<void>;
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let setAuth0API: typeof AuthHttpRequest.setAuth0API;
@@ -28,3 +29,4 @@ export declare let getJWTPayloadSecurely: typeof AuthHttpRequest.getJWTPayloadSe
 export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: () => boolean;
 export declare let addAxiosInterceptors: (axiosInstance: any) => void;
+export declare let signOut: () => Promise<void>;
