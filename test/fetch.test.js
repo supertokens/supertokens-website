@@ -252,7 +252,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                //delay for 3 seconds for access token validity expiry
+                //delay for 5 seconds for access token validity expiry
                 await delay(5);
 
                 //check that the number of times the refreshAPI was called is 0
@@ -265,6 +265,79 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 //check that the number of time the refreshAPI was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("signout with expired access token", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+                await delay(5);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                await supertokens.signOut();
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assertEqual(supertokens.doesSessionExist(), false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("signout with not expired access token", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                await supertokens.signOut();
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(supertokens.doesSessionExist(), false);
             });
         } finally {
             await browser.close();

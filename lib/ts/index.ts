@@ -58,6 +58,10 @@ export default class AuthHttpRequest {
     static addAxiosInterceptors = (axiosInstance: any) => {
         return AuthHttpRequestAxios.addAxiosInterceptors(axiosInstance);
     };
+
+    static signOut = () => {
+        return AuthHttpRequestFetch.signOut();
+    };
 }
 
 export let init = AuthHttpRequest.init;
@@ -69,3 +73,4 @@ export let getJWTPayloadSecurely = AuthHttpRequest.getJWTPayloadSecurely;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
+export let signOut = AuthHttpRequest.signOut;

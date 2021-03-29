@@ -135,6 +135,7 @@ export async function handleUnauthorised(
  */
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
+    static signOutUrl: string;
     static sessionExpiredStatusCode: number;
     static initCalled = false;
     static originalFetch: any;
@@ -167,6 +168,7 @@ export default class AuthHttpRequest {
 
         AuthHttpRequest.autoAddCredentials = autoAddCredentials;
         AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
+        AuthHttpRequest.signOutUrl = apiDomain + apiBasePath + "/signout";
         AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders;
         AuthHttpRequest.sessionScope = sessionScope;
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
@@ -220,6 +222,25 @@ export default class AuthHttpRequest {
             }
         }
         return tokenInfo.up;
+    }
+
+    static async signOut() {
+        if (!AuthHttpRequest.doesSessionExist()) {
+            return;
+        }
+
+        let resp = await fetch(AuthHttpRequest.signOutUrl, {
+            method: "post",
+            credentials: "include"
+        });
+
+        if (resp.status === AuthHttpRequest.sessionExpiredStatusCode) {
+            return;
+        }
+
+        if (resp.status >= 300) {
+            throw resp;
+        }
     }
 
     /**

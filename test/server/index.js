@@ -48,7 +48,10 @@ SuperTokens.init({
                     res.status(401).send();
                 }
             },
-            enableAntiCsrf: true
+            enableAntiCsrf: true,
+            sessionRefreshFeature: {
+                disableDefaultImplementation: true
+            }
         })
     ]
 });
@@ -61,6 +64,8 @@ app.use(
         credentials: true
     })
 );
+
+app.use(SuperTokens.middleware());
 
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
