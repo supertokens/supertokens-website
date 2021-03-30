@@ -34,6 +34,7 @@ export default class AuthHttpRequest {
     static addedFetchInterceptor: boolean;
     static sessionScope: string;
     static refreshAPICustomHeaders: any;
+    static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
     static setAuth0API(apiPath: string): void;

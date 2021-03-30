@@ -3,6 +3,7 @@ export declare type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     refreshAPICustomHeaders?: any;
+    signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode?: number;
     autoAddCredentials?: boolean;
 };
@@ -11,6 +12,7 @@ export declare type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     refreshAPICustomHeaders?: any;
+    signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode: number;
     autoAddCredentials: boolean;
 };

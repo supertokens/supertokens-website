@@ -143,6 +143,7 @@ export default class AuthHttpRequest {
     static addedFetchInterceptor: boolean = false;
     static sessionScope: string;
     static refreshAPICustomHeaders: any;
+    static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
 
@@ -162,6 +163,7 @@ export default class AuthHttpRequest {
             apiBasePath,
             sessionScope,
             refreshAPICustomHeaders,
+            signoutAPICustomHeaders,
             sessionExpiredStatusCode,
             autoAddCredentials
         } = validateAndNormaliseInputOrThrowError(options);
@@ -170,6 +172,7 @@ export default class AuthHttpRequest {
         AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = apiDomain + apiBasePath + "/signout";
         AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders;
+        AuthHttpRequest.signoutAPICustomHeaders = signoutAPICustomHeaders;
         AuthHttpRequest.sessionScope = sessionScope;
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         AuthHttpRequest.apiDomain = apiDomain;
@@ -231,7 +234,13 @@ export default class AuthHttpRequest {
 
         let resp = await fetch(AuthHttpRequest.signOutUrl, {
             method: "post",
-            credentials: "include"
+            credentials: "include",
+            headers:
+                AuthHttpRequest.signoutAPICustomHeaders === undefined
+                    ? undefined
+                    : {
+                          ...AuthHttpRequest.signoutAPICustomHeaders
+                      }
         });
 
         if (resp.status === AuthHttpRequest.sessionExpiredStatusCode) {
