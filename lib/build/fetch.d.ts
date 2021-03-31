@@ -4,7 +4,7 @@ export declare class AntiCsrfToken {
     private constructor();
     static getToken(associatedIdRefreshToken: string | undefined): string | undefined;
     static removeToken(): void;
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): undefined;
+    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): void;
 }
 export declare class FrontToken {
     private constructor();

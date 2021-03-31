@@ -63,7 +63,7 @@ export class AntiCsrfToken {
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
         if (associatedIdRefreshToken === undefined) {
             AntiCsrfToken.tokenInfo = undefined;
-            return undefined;
+            return;
         }
         setAntiCSRFToCookie(antiCsrf, AuthHttpRequest.sessionScope);
         AntiCsrfToken.tokenInfo = {
