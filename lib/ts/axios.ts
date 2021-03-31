@@ -22,7 +22,6 @@ import AuthHttpRequestFetch, {
     FrontToken
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
-import { package_version } from "./version";
 import { normaliseURLDomainOrThrowError } from "./utils";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
