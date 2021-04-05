@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.11] - 2021-04-05
+### Fixed:
+- Sets the cookies set by the frontend to never expire. Previously they were being set as Session cookies which cause them to be removed on browser restart, resulting in an inconsistent state.
+
 ## [5.0.10] - 2021-03-05
 ### Changed:
 - Fixes normalisation of URL and path in case the path has a dot in it

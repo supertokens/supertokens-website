@@ -572,13 +572,13 @@ export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: s
         if (expires !== undefined) {
             getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
         }
     } else {
         if (expires !== undefined) {
             getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         } else {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
         }
     }
 
@@ -618,13 +618,13 @@ export function setFrontTokenToCookie(frontToken: string | undefined, domain: st
         if (expires !== undefined) {
             getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
         }
     } else {
         if (expires !== undefined) {
             getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         } else {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};path=/`;
+            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
         }
     }
 }
