@@ -7,6 +7,7 @@ export default class CrossDomainLocalstorage {
         scope: string;
         authDomain: string;
     } | undefined);
+    isInIFrame: () => boolean;
     getItem: (key: string) => string | null;
     removeItem: (key: string) => any;
     setItem: (key: string, value: string) => any;
