@@ -539,7 +539,14 @@ export async function onUnauthorisedResponse(
 export function getIdRefreshToken(): string | undefined {
     let fromLocalstorage = getWindowOrThrow().localStorage.getItem(ID_REFRESH_TOKEN_NAME);
     if (fromLocalstorage !== null) {
-        return fromLocalstorage;
+        let splitted = fromLocalstorage.split(";");
+        let value = splitted[0];
+        let expires = Number(splitted[1]);
+        if (expires < Date.now()) {
+            setIdRefreshToken("remove");
+            value = undefined;
+        }
+        return value;
     }
 
     // for backwards compatibility
@@ -556,7 +563,7 @@ export function getIdRefreshToken(): string | undefined {
     }
     let fromCookie = getIDFromCookieOld();
     if (fromCookie !== undefined) {
-        setIdRefreshToken(fromCookie);
+        setIdRefreshToken(fromCookie + ";9999999999999");
     }
     return fromCookie;
 }
