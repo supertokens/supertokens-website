@@ -1,4 +1,5 @@
 import { InputType } from "./utils";
+import CrossDomainLocalstorage from "./crossDomainLocalstorage";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -19,7 +20,7 @@ export declare class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: string | undefined, sessionScope: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
+export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: string | undefined, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -32,11 +33,15 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     static apiDomain: string;
     static addedFetchInterceptor: boolean;
-    static sessionScope: string;
+    static sessionScope: {
+        scope: string;
+        authDomain: string;
+    } | undefined;
     static refreshAPICustomHeaders: any;
     static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
+    static crossDomainLocalstorage: CrossDomainLocalstorage;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;
@@ -66,7 +71,7 @@ export default class AuthHttpRequest {
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, sessionScope: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
+export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
     result: "SESSION_EXPIRED";
 } | {
     result: "API_ERROR";

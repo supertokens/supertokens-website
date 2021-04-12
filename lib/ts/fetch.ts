@@ -20,8 +20,10 @@ import {
     validateAndNormaliseInputOrThrowError,
     normaliseURLPathOrThrowError,
     normaliseURLDomainOrThrowError,
-    getWindowOrThrow
+    getWindowOrThrow,
+    normaliseSessionScopeOrThrowError
 } from "./utils";
+import CrossDomainLocalstorage from "./crossDomainLocalstorage";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -107,7 +109,6 @@ export class FrontToken {
 export async function handleUnauthorised(
     refreshAPI: string,
     preRequestIdToken: string | undefined,
-    sessionScope: string,
     refreshAPICustomHeaders: any,
     sessionExpiredStatusCode: number
 ): Promise<boolean> {
@@ -117,7 +118,6 @@ export async function handleUnauthorised(
     let result = await onUnauthorisedResponse(
         refreshAPI,
         preRequestIdToken,
-        sessionScope,
         refreshAPICustomHeaders,
         sessionExpiredStatusCode
     );
@@ -141,11 +141,17 @@ export default class AuthHttpRequest {
     static originalFetch: any;
     static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
-    static sessionScope: string;
+    static sessionScope:
+        | {
+              scope: string;
+              authDomain: string;
+          }
+        | undefined;
     static refreshAPICustomHeaders: any;
     static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
+    static crossDomainLocalstorage: CrossDomainLocalstorage;
 
     static setAuth0API(apiPath: string) {
         AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
@@ -176,6 +182,7 @@ export default class AuthHttpRequest {
         AuthHttpRequest.sessionScope = sessionScope;
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         AuthHttpRequest.apiDomain = apiDomain;
+        AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
 
         let env: any = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
         if (AuthHttpRequest.originalFetch === undefined) {
@@ -214,7 +221,6 @@ export default class AuthHttpRequest {
             let retry = await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.sessionScope,
                 AuthHttpRequest.refreshAPICustomHeaders,
                 AuthHttpRequest.sessionExpiredStatusCode
             );
@@ -342,7 +348,6 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.sessionScope,
                             AuthHttpRequest.refreshAPICustomHeaders,
                             AuthHttpRequest.sessionExpiredStatusCode
                         );
@@ -365,7 +370,6 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.sessionScope,
                             AuthHttpRequest.refreshAPICustomHeaders,
                             AuthHttpRequest.sessionExpiredStatusCode
                         );
@@ -407,7 +411,6 @@ export default class AuthHttpRequest {
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.sessionScope,
                 AuthHttpRequest.refreshAPICustomHeaders,
                 AuthHttpRequest.sessionExpiredStatusCode
             );
@@ -447,9 +450,6 @@ const FRONT_TOKEN_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
     preRequestIdToken: string,
-
-    // @ts-ignore
-    sessionScope: string,
     refreshAPICustomHeaders: any,
     sessionExpiredStatusCode: number
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
@@ -537,10 +537,10 @@ export async function onUnauthorisedResponse(
 }
 
 export function getIdRefreshToken(): string | undefined {
-    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(ID_REFRESH_TOKEN_NAME);
+    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
     if (fromLocalstorage !== null) {
         let splitted = fromLocalstorage.split(";");
-        let value = splitted[0];
+        let value: string | undefined = splitted[0];
         let expires = Number(splitted[1]);
         if (expires < Date.now()) {
             setIdRefreshToken("remove");
@@ -570,9 +570,9 @@ export function getIdRefreshToken(): string | undefined {
 
 export function setIdRefreshToken(idRefreshToken: string) {
     if (idRefreshToken === "remove") {
-        getWindowOrThrow().localStorage.removeItem(ID_REFRESH_TOKEN_NAME);
+        AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
     } else {
-        getWindowOrThrow().localStorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
+        AuthHttpRequest.crossDomainLocalstorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
     }
 
     // for backwards compatibility
@@ -592,11 +592,16 @@ export function setIdRefreshToken(idRefreshToken: string) {
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         }
     }
-    setIDToCookieOld("remove", AuthHttpRequest.sessionScope);
+    setIDToCookieOld(
+        "remove",
+        AuthHttpRequest.sessionScope === undefined
+            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
+            : AuthHttpRequest.sessionScope.scope
+    );
 }
 
 function getAntiCSRFToken(): string | null {
-    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(ANTI_CSRF_NAME);
+    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
     if (fromLocalstorage !== null) {
         return fromLocalstorage;
     }
@@ -627,9 +632,9 @@ function getAntiCSRFToken(): string | null {
 // give antiCSRFToken as undefined to remove it.
 export function setAntiCSRF(antiCSRFToken: string | undefined) {
     if (antiCSRFToken === undefined) {
-        getWindowOrThrow().localStorage.removeItem(ANTI_CSRF_NAME);
+        AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
     } else {
-        getWindowOrThrow().localStorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
+        AuthHttpRequest.crossDomainLocalstorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
     }
 
     // for backwards compatibility
@@ -656,11 +661,16 @@ export function setAntiCSRF(antiCSRFToken: string | undefined) {
             }
         }
     }
-    setAntiCSRFToCookieOld(undefined, AuthHttpRequest.sessionScope);
+    setAntiCSRFToCookieOld(
+        undefined,
+        AuthHttpRequest.sessionScope === undefined
+            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
+            : AuthHttpRequest.sessionScope.scope
+    );
 }
 
 export function getFrontToken(): string | null {
-    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(FRONT_TOKEN_NAME);
+    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
     if (fromLocalstorage !== null) {
         return fromLocalstorage;
     }
@@ -690,9 +700,9 @@ export function getFrontToken(): string | null {
 
 export function setFrontToken(frontToken: string | undefined) {
     if (frontToken === undefined) {
-        getWindowOrThrow().localStorage.removeItem(FRONT_TOKEN_NAME);
+        AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
     } else {
-        getWindowOrThrow().localStorage.setItem(FRONT_TOKEN_NAME, frontToken);
+        AuthHttpRequest.crossDomainLocalstorage.setItem(FRONT_TOKEN_NAME, frontToken);
     }
 
     // backwards compatibility
@@ -720,5 +730,10 @@ export function setFrontToken(frontToken: string | undefined) {
         }
     }
 
-    setFrontTokenToCookieOld(undefined, AuthHttpRequest.sessionScope);
+    setFrontTokenToCookieOld(
+        undefined,
+        AuthHttpRequest.sessionScope === undefined
+            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
+            : AuthHttpRequest.sessionScope.scope
+    );
 }

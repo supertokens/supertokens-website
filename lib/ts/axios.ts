@@ -251,7 +251,6 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
@@ -278,7 +277,6 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
