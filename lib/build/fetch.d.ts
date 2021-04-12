@@ -74,9 +74,8 @@ export declare function onUnauthorisedResponse(refreshTokenUrl: string, preReque
 } | {
     result: "RETRY";
 }>;
-export declare function getIDFromCookie(): string | undefined;
-export declare function setIDToCookie(idRefreshToken: string, domain: string): void;
-export declare function getAntiCSRFromCookie(domain: string): string | null;
-export declare function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string): void;
-export declare function getFrontTokenFromCookie(): string | null;
-export declare function setFrontTokenToCookie(frontToken: string | undefined, domain: string): void;
+export declare function getIdRefreshToken(): string | undefined;
+export declare function setIdRefreshToken(idRefreshToken: string): void;
+export declare function setAntiCSRF(antiCSRFToken: string | undefined): void;
+export declare function getFrontToken(): string | null;
+export declare function setFrontToken(frontToken: string | undefined): void;

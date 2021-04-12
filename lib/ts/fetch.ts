@@ -39,7 +39,7 @@ export class AntiCsrfToken {
             return undefined;
         }
         if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = getAntiCSRFromCookie(AuthHttpRequest.sessionScope);
+            let antiCsrf = getAntiCSRFToken();
             if (antiCsrf === null) {
                 return undefined;
             }
@@ -57,7 +57,7 @@ export class AntiCsrfToken {
 
     static removeToken() {
         AntiCsrfToken.tokenInfo = undefined;
-        setAntiCSRFToCookie(undefined, AuthHttpRequest.sessionScope);
+        setAntiCSRF(undefined);
     }
 
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
@@ -65,7 +65,7 @@ export class AntiCsrfToken {
             AntiCsrfToken.tokenInfo = undefined;
             return;
         }
-        setAntiCSRFToCookie(antiCsrf, AuthHttpRequest.sessionScope);
+        setAntiCSRF(antiCsrf);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
             associatedIdRefreshToken
@@ -85,7 +85,7 @@ export class FrontToken {
               up: any;
           }
         | undefined {
-        let frontToken = getFrontTokenFromCookie();
+        let frontToken = getFrontToken();
         if (frontToken === null) {
             return undefined;
         }
@@ -93,11 +93,11 @@ export class FrontToken {
     }
 
     static removeToken() {
-        setFrontTokenToCookie(undefined, AuthHttpRequest.sessionScope);
+        setFrontToken(undefined);
     }
 
     static setItem(frontToken: string) {
-        setFrontTokenToCookie(frontToken, AuthHttpRequest.sessionScope);
+        setFrontToken(frontToken);
     }
 }
 
@@ -112,7 +112,7 @@ export async function handleUnauthorised(
     sessionExpiredStatusCode: number
 ): Promise<boolean> {
     if (preRequestIdToken === undefined) {
-        return getIDFromCookie() !== undefined;
+        return getIdRefreshToken() !== undefined;
     }
     let result = await onUnauthorisedResponse(
         refreshAPI,
@@ -210,7 +210,7 @@ export default class AuthHttpRequest {
         }
 
         if (tokenInfo.ate < Date.now()) {
-            const preRequestIdToken = getIDFromCookie();
+            const preRequestIdToken = getIdRefreshToken();
             let retry = await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
@@ -301,7 +301,7 @@ export default class AuthHttpRequest {
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
-                const preRequestIdToken = getIDFromCookie();
+                const preRequestIdToken = getIdRefreshToken();
                 const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
                 let configWithAntiCsrf: RequestInit | undefined = config;
                 if (antiCsrfToken !== undefined) {
@@ -335,7 +335,7 @@ export default class AuthHttpRequest {
                     let response = await httpCall(configWithAntiCsrf);
                     response.headers.forEach((value: any, key: any) => {
                         if (key.toString() === "id-refresh-token") {
-                            setIDToCookie(value, AuthHttpRequest.sessionScope);
+                            setIdRefreshToken(value);
                         }
                     });
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
@@ -353,7 +353,7 @@ export default class AuthHttpRequest {
                     } else {
                         response.headers.forEach((value, key) => {
                             if (key.toString() === "anti-csrf") {
-                                AntiCsrfToken.setItem(getIDFromCookie(), value);
+                                AntiCsrfToken.setItem(getIdRefreshToken(), value);
                             } else if (key.toString() === "front-token") {
                                 FrontToken.setItem(value);
                             }
@@ -386,7 +386,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (getIDFromCookie() === undefined) {
+            if (getIdRefreshToken() === undefined) {
                 AntiCsrfToken.removeToken();
                 FrontToken.removeToken();
             }
@@ -403,7 +403,7 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
         try {
-            const preRequestIdToken = getIDFromCookie();
+            const preRequestIdToken = getIdRefreshToken();
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
@@ -412,7 +412,7 @@ export default class AuthHttpRequest {
                 AuthHttpRequest.sessionExpiredStatusCode
             );
         } finally {
-            if (getIDFromCookie() === undefined) {
+            if (getIdRefreshToken() === undefined) {
                 AntiCsrfToken.removeToken();
                 FrontToken.removeToken();
             }
@@ -432,13 +432,13 @@ export default class AuthHttpRequest {
     };
 
     static doesSessionExist = () => {
-        return getIDFromCookie() !== undefined;
+        return getIdRefreshToken() !== undefined;
     };
 }
 
-const ID_COOKIE_NAME = "sIRTFrontend";
-const ANTI_CSRF_COOKIE_NAME = "sAntiCsrf";
-const FRONT_TOKEN_COOKIE_NAME = "sFrontToken";
+const ID_REFRESH_TOKEN_NAME = "sIRTFrontend";
+const ANTI_CSRF_NAME = "sAntiCsrf";
+const FRONT_TOKEN_NAME = "sFrontToken";
 
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -447,6 +447,8 @@ const FRONT_TOKEN_COOKIE_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     refreshTokenUrl: string,
     preRequestIdToken: string,
+
+    // @ts-ignore
     sessionScope: string,
     refreshAPICustomHeaders: any,
     sessionExpiredStatusCode: number
@@ -456,7 +458,7 @@ export async function onUnauthorisedResponse(
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
             // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
             try {
-                let postLockID = getIDFromCookie();
+                let postLockID = getIdRefreshToken();
                 if (postLockID === undefined) {
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -486,33 +488,33 @@ export async function onUnauthorisedResponse(
                 let removeIdRefreshToken = true;
                 response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
-                        setIDToCookie(value, sessionScope);
+                        setIdRefreshToken(value);
                         removeIdRefreshToken = false;
                     }
                 });
                 if (response.status === sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
-                        setIDToCookie("remove", sessionScope);
+                        setIdRefreshToken("remove");
                     }
                 }
                 if (response.status >= 300) {
                     throw response;
                 }
-                if (getIDFromCookie() === undefined) {
+                if (getIdRefreshToken() === undefined) {
                     // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }
                 response.headers.forEach((value: any, key: any) => {
                     if (key.toString() === "anti-csrf") {
-                        AntiCsrfToken.setItem(getIDFromCookie(), value);
+                        AntiCsrfToken.setItem(getIdRefreshToken(), value);
                     } else if (key.toString() === "front-token") {
                         FrontToken.setItem(value);
                     }
                 });
                 return { result: "RETRY" };
             } catch (error) {
-                if (getIDFromCookie() === undefined) {
+                if (getIdRefreshToken() === undefined) {
                     // removed by server.
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -521,7 +523,7 @@ export async function onUnauthorisedResponse(
                 lock.releaseLock("REFRESH_TOKEN_USE");
             }
         }
-        let idCookieValue = getIDFromCookie();
+        let idCookieValue = getIdRefreshToken();
         if (idCookieValue === undefined) {
             // removed by server. So we logout
             return { result: "SESSION_EXPIRED" };
@@ -534,127 +536,182 @@ export async function onUnauthorisedResponse(
     }
 }
 
-// NOTE: we do not store this in memory and always read as to synchronize events across tabs
-export function getIDFromCookie(): string | undefined {
-    let value = "; " + getWindowOrThrow().document.cookie;
-    let parts = value.split("; " + ID_COOKIE_NAME + "=");
-    if (parts.length >= 2) {
-        let last = parts.pop();
-        if (last !== undefined) {
-            return last.split(";").shift();
-        }
-    }
-    return undefined;
-}
-
-export function setIDToCookie(idRefreshToken: string, domain: string) {
-    let expires = "Thu, 01 Jan 1970 00:00:01 GMT";
-    let cookieVal = "";
-    if (idRefreshToken !== "remove") {
-        let splitted = idRefreshToken.split(";");
-        cookieVal = splitted[0];
-        expires = new Date(Number(splitted[1])).toUTCString();
-    }
-    if (domain === "localhost" || domain === window.location.hostname) {
-        // since some browsers ignore cookies with domain set to localhost
-        // see https://github.com/supertokens/supertokens-website/issues/25
-        getWindowOrThrow().document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
-    } else {
-        getWindowOrThrow().document.cookie = `${ID_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
-    }
-}
-
-export function getAntiCSRFromCookie(domain: string): string | null {
-    let value = "; " + getWindowOrThrow().document.cookie;
-    let parts = value.split("; " + ANTI_CSRF_COOKIE_NAME + "=");
-    if (parts.length >= 2) {
-        let last = parts.pop();
-        if (last !== undefined) {
-            let temp = last.split(";").shift();
-            if (temp === undefined) {
-                return null;
-            }
-            return temp;
-        }
-    }
-
-    // check for backwards compatibility
-    let fromLocalstorage = getWindowOrThrow().localStorage.getItem("anti-csrf-localstorage");
+export function getIdRefreshToken(): string | undefined {
+    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(ID_REFRESH_TOKEN_NAME);
     if (fromLocalstorage !== null) {
-        setAntiCSRFToCookie(fromLocalstorage, domain);
-        getWindowOrThrow().localStorage.removeItem("anti-csrf-localstorage");
         return fromLocalstorage;
-    }
-    return null;
-}
-
-// give antiCSRFToken as undefined to remove it.
-export function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string) {
-    let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
-    let cookieVal = "";
-    if (antiCSRFToken !== undefined) {
-        cookieVal = antiCSRFToken;
-        expires = undefined; // set cookie without expiry
-    }
-    if (domain === "localhost" || domain === window.location.hostname) {
-        // since some browsers ignore cookies with domain set to localhost
-        // see https://github.com/supertokens/supertokens-website/issues/25
-        if (expires !== undefined) {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
-        } else {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
-        }
-    } else {
-        if (expires !== undefined) {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
-        } else {
-            getWindowOrThrow().document.cookie = `${ANTI_CSRF_COOKIE_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
-        }
     }
 
     // for backwards compatibility
-    if (antiCSRFToken === undefined) {
-        getWindowOrThrow().localStorage.removeItem("anti-csrf-localstorage");
-    }
-}
-
-export function getFrontTokenFromCookie(): string | null {
-    let value = "; " + getWindowOrThrow().document.cookie;
-    let parts = value.split("; " + FRONT_TOKEN_COOKIE_NAME + "=");
-    if (parts.length >= 2) {
-        let last = parts.pop();
-        if (last !== undefined) {
-            let temp = last.split(";").shift();
-            if (temp === undefined) {
-                return null;
+    function getIDFromCookieOld(): string | undefined {
+        let value = "; " + getWindowOrThrow().document.cookie;
+        let parts = value.split("; " + ID_REFRESH_TOKEN_NAME + "=");
+        if (parts.length >= 2) {
+            let last = parts.pop();
+            if (last !== undefined) {
+                return last.split(";").shift();
             }
-            return temp;
         }
+        return undefined;
     }
-    return null;
+    let fromCookie = getIDFromCookieOld();
+    if (fromCookie !== undefined) {
+        setIdRefreshToken(fromCookie);
+    }
+    return fromCookie;
 }
 
-// give frontToken as undefined to remove it.
-export function setFrontTokenToCookie(frontToken: string | undefined, domain: string) {
-    let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
-    let cookieVal = "";
-    if (frontToken !== undefined) {
-        cookieVal = frontToken;
-        expires = undefined; // set cookie without expiry
-    }
-    if (domain === "localhost" || domain === window.location.hostname) {
-        // since some browsers ignore cookies with domain set to localhost
-        // see https://github.com/supertokens/supertokens-website/issues/25
-        if (expires !== undefined) {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};path=/`;
-        } else {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
-        }
+export function setIdRefreshToken(idRefreshToken: string) {
+    if (idRefreshToken === "remove") {
+        getWindowOrThrow().localStorage.removeItem(ID_REFRESH_TOKEN_NAME);
     } else {
-        if (expires !== undefined) {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+        getWindowOrThrow().localStorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
+    }
+
+    // for backwards compatibility
+    function setIDToCookieOld(idRefreshToken: string, domain: string) {
+        let expires = "Thu, 01 Jan 1970 00:00:01 GMT";
+        let cookieVal = "";
+        if (idRefreshToken !== "remove") {
+            let splitted = idRefreshToken.split(";");
+            cookieVal = splitted[0];
+            expires = new Date(Number(splitted[1])).toUTCString();
+        }
+        if (domain === "localhost" || domain === window.location.hostname) {
+            // since some browsers ignore cookies with domain set to localhost
+            // see https://github.com/supertokens/supertokens-website/issues/25
+            getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/`;
         } else {
-            getWindowOrThrow().document.cookie = `${FRONT_TOKEN_COOKIE_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
+            getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         }
     }
+    setIDToCookieOld("remove", AuthHttpRequest.sessionScope);
+}
+
+function getAntiCSRFToken(): string | null {
+    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(ANTI_CSRF_NAME);
+    if (fromLocalstorage !== null) {
+        return fromLocalstorage;
+    }
+
+    // for backwards compatibility
+    function getAntiCSRFromCookieOld(): string | null {
+        let value = "; " + getWindowOrThrow().document.cookie;
+        let parts = value.split("; " + ANTI_CSRF_NAME + "=");
+        if (parts.length >= 2) {
+            let last = parts.pop();
+            if (last !== undefined) {
+                let temp = last.split(";").shift();
+                if (temp === undefined) {
+                    return null;
+                }
+                return temp;
+            }
+        }
+        return null;
+    }
+    let fromCookie = getAntiCSRFromCookieOld();
+    if (fromCookie !== null) {
+        setAntiCSRF(fromCookie);
+    }
+    return fromCookie;
+}
+
+// give antiCSRFToken as undefined to remove it.
+export function setAntiCSRF(antiCSRFToken: string | undefined) {
+    if (antiCSRFToken === undefined) {
+        getWindowOrThrow().localStorage.removeItem(ANTI_CSRF_NAME);
+    } else {
+        getWindowOrThrow().localStorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
+    }
+
+    // for backwards compatibility
+    function setAntiCSRFToCookieOld(antiCSRFToken: string | undefined, domain: string) {
+        let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
+        let cookieVal = "";
+        if (antiCSRFToken !== undefined) {
+            cookieVal = antiCSRFToken;
+            expires = undefined; // set cookie without expiry
+        }
+        if (domain === "localhost" || domain === window.location.hostname) {
+            // since some browsers ignore cookies with domain set to localhost
+            // see https://github.com/supertokens/supertokens-website/issues/25
+            if (expires !== undefined) {
+                getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/`;
+            } else {
+                getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
+            }
+        } else {
+            if (expires !== undefined) {
+                getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+            } else {
+                getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
+            }
+        }
+    }
+    setAntiCSRFToCookieOld(undefined, AuthHttpRequest.sessionScope);
+}
+
+export function getFrontToken(): string | null {
+    let fromLocalstorage = getWindowOrThrow().localStorage.getItem(FRONT_TOKEN_NAME);
+    if (fromLocalstorage !== null) {
+        return fromLocalstorage;
+    }
+
+    // for backwards compatibility
+    function getFrontTokenFromCookie(): string | null {
+        let value = "; " + getWindowOrThrow().document.cookie;
+        let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
+        if (parts.length >= 2) {
+            let last = parts.pop();
+            if (last !== undefined) {
+                let temp = last.split(";").shift();
+                if (temp === undefined) {
+                    return null;
+                }
+                return temp;
+            }
+        }
+        return null;
+    }
+    let fromCookie = getFrontTokenFromCookie();
+    if (fromCookie !== null) {
+        setFrontToken(fromCookie);
+    }
+    return fromCookie;
+}
+
+export function setFrontToken(frontToken: string | undefined) {
+    if (frontToken === undefined) {
+        getWindowOrThrow().localStorage.removeItem(FRONT_TOKEN_NAME);
+    } else {
+        getWindowOrThrow().localStorage.setItem(FRONT_TOKEN_NAME, frontToken);
+    }
+
+    // backwards compatibility
+    function setFrontTokenToCookieOld(frontToken: string | undefined, domain: string) {
+        let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
+        let cookieVal = "";
+        if (frontToken !== undefined) {
+            cookieVal = frontToken;
+            expires = undefined; // set cookie without expiry
+        }
+        if (domain === "localhost" || domain === window.location.hostname) {
+            // since some browsers ignore cookies with domain set to localhost
+            // see https://github.com/supertokens/supertokens-website/issues/25
+            if (expires !== undefined) {
+                getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/`;
+            } else {
+                getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
+            }
+        } else {
+            if (expires !== undefined) {
+                getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
+            } else {
+                getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/`;
+            }
+        }
+    }
+
+    setFrontTokenToCookieOld(undefined, AuthHttpRequest.sessionScope);
 }
