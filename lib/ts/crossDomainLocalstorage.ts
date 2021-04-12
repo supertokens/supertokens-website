@@ -17,6 +17,18 @@ export default class CrossDomainLocalstorage {
             | undefined
     ) {
         this.sessionScope = sessionScope;
+        if (sessionScope !== undefined) {
+            // if we are currently in the same domain as the authDomain, we can
+            // treat sessionScope as undefined
+            let url = new URL(sessionScope.authDomain); // we do this so that the port is removed.
+            if (url.hostname == getWindowOrThrow().location.hostname) {
+                this.sessionScope = undefined;
+                return;
+            }
+
+            // we must load the iframe for the auth domain now.
+            // TODO:
+        }
     }
 
     getItem = (key: string): string | null => {
