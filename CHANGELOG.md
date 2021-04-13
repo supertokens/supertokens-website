@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.0] - 2021-04-13
+### Changed:
+- Uses localstorage and iframes (for cross domain communication of localstorage) for session storage instead of cookies
+- `getUserId` and `doesSessionExist` now return `Promises` 
+
 ## [5.1.0] - 2021-03-29
 ### Added:
 - Sign out support
