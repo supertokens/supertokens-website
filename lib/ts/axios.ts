@@ -62,7 +62,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
 
     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
     const preRequestIdToken = await getIdRefreshToken();
-    const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
     let configWithAntiCsrf: AxiosRequestConfig = config;
     if (antiCsrfToken !== undefined) {
         configWithAntiCsrf = {

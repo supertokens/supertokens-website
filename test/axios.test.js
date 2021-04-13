@@ -321,7 +321,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 await supertokens.signOut();
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-                assertEqual(supertokens.doesSessionExist(), false);
+                assertEqual(await supertokens.doesSessionExist(), false);
             });
         } finally {
             await browser.close();
@@ -356,7 +356,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 await supertokens.signOut();
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(supertokens.doesSessionExist(), false);
+                assertEqual(await supertokens.doesSessionExist(), false);
             });
         } finally {
             await browser.close();
@@ -577,15 +577,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
                 function getAntiCSRFromCookie() {
-                    let value = "; " + document.cookie;
-                    let parts = value.split("; sAntiCsrf=");
-                    if (parts.length >= 2) {
-                        let last = parts.pop();
-                        if (last !== undefined) {
-                            return last;
-                        }
-                    }
-                    return null;
+                    return window.localStorage.getItem("sAntiCsrf");
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
@@ -605,7 +597,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await supertokens.doesSessionExist(), true);
                 assertEqual(getAntiCSRFromCookie() !== null, true);
 
-                let userIdFromToken = supertokens.getUserId();
+                let userIdFromToken = await supertokens.getUserId();
                 assertEqual(userIdFromToken, userId);
 
                 // send api request to logout
@@ -622,7 +614,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(getAntiCSRFromCookie() === null, true);
 
                 try {
-                    supertokens.getUserId();
+                    await supertokens.getUserId();
                     throw new Error("test failed");
                 } catch (err) {
                     assertEqual(err.message, "No session exists");
