@@ -18,7 +18,10 @@ import NormalisedURLPath from "./normalisedURLPath";
 export type InputType = {
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionScope?: {
+        scope: string;
+        authDomain: string;
+    };
     refreshAPICustomHeaders?: any;
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode?: number;
@@ -28,7 +31,12 @@ export type InputType = {
 export type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionScope:
+        | {
+              scope: string;
+              authDomain: string;
+          }
+        | undefined;
     refreshAPICustomHeaders?: any;
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode: number;
@@ -105,9 +113,12 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let sessionScope = normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname);
+    let sessionScope = undefined;
     if (options.sessionScope !== undefined) {
-        sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
+        sessionScope = {
+            scope: normaliseSessionScopeOrThrowError(options.sessionScope.scope),
+            authDomain: normaliseURLDomainOrThrowError(options.sessionScope.authDomain)
+        };
     }
 
     let refreshAPICustomHeaders = {};

@@ -6,7 +6,7 @@ export default class AuthHttpRequest {
         apiPath: string | undefined;
     };
     static getRefreshURLDomain: () => string | undefined;
-    static getUserId(): string;
+    static getUserId(): Promise<string>;
     static getJWTPayloadSecurely(): Promise<any>;
     /**
      * @description attempts to refresh session regardless of expiry
@@ -14,7 +14,7 @@ export default class AuthHttpRequest {
      * @throws error if anything goes wrong
      */
     static attemptRefreshingSession: () => Promise<boolean>;
-    static doesSessionExist: () => boolean;
+    static doesSessionExist: () => Promise<boolean>;
     static addAxiosInterceptors: (axiosInstance: any) => void;
     static signOut: () => Promise<void>;
 }
@@ -27,6 +27,6 @@ export declare let getRefreshURLDomain: () => string | undefined;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
 export declare let getJWTPayloadSecurely: typeof AuthHttpRequest.getJWTPayloadSecurely;
 export declare let attemptRefreshingSession: () => Promise<boolean>;
-export declare let doesSessionExist: () => boolean;
+export declare let doesSessionExist: () => Promise<boolean>;
 export declare let addAxiosInterceptors: (axiosInstance: any) => void;
 export declare let signOut: () => Promise<void>;

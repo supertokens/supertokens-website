@@ -1,7 +1,10 @@
 export declare type InputType = {
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionScope?: {
+        scope: string;
+        authDomain: string;
+    };
     refreshAPICustomHeaders?: any;
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode?: number;
@@ -10,7 +13,10 @@ export declare type InputType = {
 export declare type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionScope: {
+        scope: string;
+        authDomain: string;
+    } | undefined;
     refreshAPICustomHeaders?: any;
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode: number;

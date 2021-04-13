@@ -34,7 +34,7 @@ export default class AuthHttpRequest {
         return AuthHttpRequestFetch.getRefreshURLDomain();
     };
 
-    static getUserId(): string {
+    static getUserId(): Promise<string> {
         return AuthHttpRequestFetch.getUserId();
     }
 

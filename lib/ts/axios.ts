@@ -17,8 +17,8 @@ import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
     handleUnauthorised,
-    getIDFromCookie,
-    setIDToCookie,
+    getIdRefreshToken,
+    setIdRefreshToken,
     FrontToken
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
@@ -61,8 +61,8 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     }
 
     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
-    const preRequestIdToken = getIDFromCookie();
-    const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+    const preRequestIdToken = await getIdRefreshToken();
+    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
     let configWithAntiCsrf: AxiosRequestConfig = config;
     if (antiCsrfToken !== undefined) {
         configWithAntiCsrf = {
@@ -118,7 +118,7 @@ export function responseInterceptor(axiosInstance: any) {
 
             let idRefreshToken = response.headers["id-refresh-token"];
             if (idRefreshToken !== undefined) {
-                setIDToCookie(idRefreshToken, AuthHttpRequestFetch.sessionScope);
+                await setIdRefreshToken(idRefreshToken);
             }
             if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                 let config = response.config;
@@ -137,18 +137,18 @@ export function responseInterceptor(axiosInstance: any) {
             } else {
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {
-                    AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                    await AntiCsrfToken.setItem(await getIdRefreshToken(), antiCsrfToken);
                 }
                 let frontToken = response.headers["front-token"];
                 if (frontToken !== undefined) {
-                    FrontToken.setItem(frontToken);
+                    await FrontToken.setItem(frontToken);
                 }
                 return response;
             }
         } finally {
-            if (getIDFromCookie() === undefined) {
-                AntiCsrfToken.removeToken();
-                FrontToken.removeToken();
+            if ((await getIdRefreshToken()) === undefined) {
+                await AntiCsrfToken.removeToken();
+                await FrontToken.removeToken();
             }
         }
     };
@@ -209,8 +209,8 @@ export default class AuthHttpRequest {
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
-                const preRequestIdToken = getIDFromCookie();
-                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                const preRequestIdToken = await getIdRefreshToken();
+                const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
                 let configWithAntiCsrf: AxiosRequestConfig = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
@@ -245,13 +245,12 @@ export default class AuthHttpRequest {
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
-                        setIDToCookie(idRefreshToken, AuthHttpRequestFetch.sessionScope);
+                        await setIdRefreshToken(idRefreshToken);
                     }
                     if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
@@ -262,11 +261,11 @@ export default class AuthHttpRequest {
                     } else {
                         let antiCsrfToken = response.headers["anti-csrf"];
                         if (antiCsrfToken !== undefined) {
-                            AntiCsrfToken.setItem(getIDFromCookie(), antiCsrfToken);
+                            await AntiCsrfToken.setItem(await getIdRefreshToken(), antiCsrfToken);
                         }
                         let frontToken = response.headers["front-token"];
                         if (frontToken !== undefined) {
-                            FrontToken.setItem(frontToken);
+                            await FrontToken.setItem(frontToken);
                         }
                         return response;
                     }
@@ -278,7 +277,6 @@ export default class AuthHttpRequest {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.sessionScope,
                             AuthHttpRequestFetch.refreshAPICustomHeaders,
                             AuthHttpRequestFetch.sessionExpiredStatusCode
                         );
@@ -299,9 +297,9 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (getIDFromCookie() === undefined) {
-                AntiCsrfToken.removeToken();
-                FrontToken.removeToken();
+            if ((await getIdRefreshToken()) === undefined) {
+                await AntiCsrfToken.removeToken();
+                await FrontToken.removeToken();
             }
         }
     };
@@ -347,9 +345,9 @@ export default class AuthHttpRequest {
                     throw error;
                 }
             } finally {
-                if (getIDFromCookie() === undefined) {
-                    AntiCsrfToken.removeToken();
-                    FrontToken.removeToken();
+                if ((await getIdRefreshToken()) === undefined) {
+                    await AntiCsrfToken.removeToken();
+                    await FrontToken.removeToken();
                 }
             }
         });
