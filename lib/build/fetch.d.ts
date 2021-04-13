@@ -3,19 +3,19 @@ import CrossDomainLocalstorage from "./crossDomainLocalstorage";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
-    static getToken(associatedIdRefreshToken: string | undefined): string | undefined;
-    static removeToken(): void;
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): void;
+    static getToken(associatedIdRefreshToken: string | undefined): Promise<string | undefined>;
+    static removeToken(): Promise<void>;
+    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
     private constructor();
-    static getTokenInfo(): {
+    static getTokenInfo(): Promise<{
         uid: string;
         ate: number;
         up: any;
-    } | undefined;
-    static removeToken(): void;
-    static setItem(frontToken: string): void;
+    } | undefined>;
+    static removeToken(): Promise<void>;
+    static setItem(frontToken: string): Promise<void>;
 }
 /**
  * @description returns true if retry, else false is session has expired completely.
@@ -48,7 +48,7 @@ export default class AuthHttpRequest {
     };
     static init(options: InputType): void;
     static getRefreshURLDomain: () => string;
-    static getUserId(): string;
+    static getUserId(): Promise<string>;
     static getJWTPayloadSecurely(): Promise<any>;
     static signOut(): Promise<void>;
     /**
@@ -65,7 +65,7 @@ export default class AuthHttpRequest {
      */
     static attemptRefreshingSession: () => Promise<boolean>;
     private static fetch;
-    static doesSessionExist: () => boolean;
+    static doesSessionExist: () => Promise<boolean>;
 }
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
@@ -79,8 +79,8 @@ export declare function onUnauthorisedResponse(refreshTokenUrl: string, preReque
 } | {
     result: "RETRY";
 }>;
-export declare function getIdRefreshToken(): string | undefined;
-export declare function setIdRefreshToken(idRefreshToken: string): void;
-export declare function setAntiCSRF(antiCSRFToken: string | undefined): void;
-export declare function getFrontToken(): string | null;
-export declare function setFrontToken(frontToken: string | undefined): void;
+export declare function getIdRefreshToken(): Promise<string | undefined>;
+export declare function setIdRefreshToken(idRefreshToken: string): Promise<void>;
+export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
+export declare function getFrontToken(): Promise<string | null>;
+export declare function setFrontToken(frontToken: string | undefined): Promise<void>;

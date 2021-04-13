@@ -35,13 +35,13 @@ export class AntiCsrfToken {
 
     private constructor() {}
 
-    static getToken(associatedIdRefreshToken: string | undefined): string | undefined {
+    static async getToken(associatedIdRefreshToken: string | undefined): Promise<string | undefined> {
         if (associatedIdRefreshToken === undefined) {
             AntiCsrfToken.tokenInfo = undefined;
             return undefined;
         }
         if (AntiCsrfToken.tokenInfo === undefined) {
-            let antiCsrf = getAntiCSRFToken();
+            let antiCsrf = await getAntiCSRFToken();
             if (antiCsrf === null) {
                 return undefined;
             }
@@ -52,22 +52,22 @@ export class AntiCsrfToken {
         } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
             // csrf token has changed.
             AntiCsrfToken.tokenInfo = undefined;
-            return AntiCsrfToken.getToken(associatedIdRefreshToken);
+            return await AntiCsrfToken.getToken(associatedIdRefreshToken);
         }
         return AntiCsrfToken.tokenInfo.antiCsrf;
     }
 
-    static removeToken() {
+    static async removeToken() {
         AntiCsrfToken.tokenInfo = undefined;
-        setAntiCSRF(undefined);
+        await setAntiCSRF(undefined);
     }
 
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
+    static async setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string) {
         if (associatedIdRefreshToken === undefined) {
             AntiCsrfToken.tokenInfo = undefined;
             return;
         }
-        setAntiCSRF(antiCsrf);
+        await setAntiCSRF(antiCsrf);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
             associatedIdRefreshToken
@@ -80,26 +80,27 @@ export class AntiCsrfToken {
 export class FrontToken {
     private constructor() {}
 
-    static getTokenInfo():
+    static async getTokenInfo(): Promise<
         | {
               uid: string;
               ate: number;
               up: any;
           }
-        | undefined {
-        let frontToken = getFrontToken();
+        | undefined
+    > {
+        let frontToken = await getFrontToken();
         if (frontToken === null) {
             return undefined;
         }
         return JSON.parse(atob(frontToken));
     }
 
-    static removeToken() {
-        setFrontToken(undefined);
+    static async removeToken() {
+        await setFrontToken(undefined);
     }
 
-    static setItem(frontToken: string) {
-        setFrontToken(frontToken);
+    static async setItem(frontToken: string) {
+        await setFrontToken(frontToken);
     }
 }
 
@@ -113,7 +114,7 @@ export async function handleUnauthorised(
     sessionExpiredStatusCode: number
 ): Promise<boolean> {
     if (preRequestIdToken === undefined) {
-        return getIdRefreshToken() !== undefined;
+        return (await getIdRefreshToken()) !== undefined;
     }
     let result = await onUnauthorisedResponse(
         refreshAPI,
@@ -202,8 +203,8 @@ export default class AuthHttpRequest {
         return normaliseURLDomainOrThrowError(AuthHttpRequest.refreshTokenUrl);
     };
 
-    static getUserId(): string {
-        let tokenInfo = FrontToken.getTokenInfo();
+    static async getUserId(): Promise<string> {
+        let tokenInfo = await FrontToken.getTokenInfo();
         if (tokenInfo === undefined) {
             throw new Error("No session exists");
         }
@@ -211,13 +212,13 @@ export default class AuthHttpRequest {
     }
 
     static async getJWTPayloadSecurely(): Promise<any> {
-        let tokenInfo = FrontToken.getTokenInfo();
+        let tokenInfo = await FrontToken.getTokenInfo();
         if (tokenInfo === undefined) {
             throw new Error("No session exists");
         }
 
         if (tokenInfo.ate < Date.now()) {
-            const preRequestIdToken = getIdRefreshToken();
+            const preRequestIdToken = await getIdRefreshToken();
             let retry = await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
@@ -234,7 +235,7 @@ export default class AuthHttpRequest {
     }
 
     static async signOut() {
-        if (!AuthHttpRequest.doesSessionExist()) {
+        if (!(await AuthHttpRequest.doesSessionExist())) {
             return;
         }
 
@@ -307,8 +308,8 @@ export default class AuthHttpRequest {
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
-                const preRequestIdToken = getIdRefreshToken();
-                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                const preRequestIdToken = await getIdRefreshToken();
+                const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
                 let configWithAntiCsrf: RequestInit | undefined = config;
                 if (antiCsrfToken !== undefined) {
                     configWithAntiCsrf = {
@@ -339,9 +340,9 @@ export default class AuthHttpRequest {
                 }
                 try {
                     let response = await httpCall(configWithAntiCsrf);
-                    response.headers.forEach((value: any, key: any) => {
+                    await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                         if (key.toString() === "id-refresh-token") {
-                            setIdRefreshToken(value);
+                            await setIdRefreshToken(value);
                         }
                     });
                     if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
@@ -356,11 +357,11 @@ export default class AuthHttpRequest {
                             break;
                         }
                     } else {
-                        response.headers.forEach((value, key) => {
+                        await loopThroughResponseHeadersAndApplyFunction(response, async (value, key) => {
                             if (key.toString() === "anti-csrf") {
-                                AntiCsrfToken.setItem(getIdRefreshToken(), value);
+                                await AntiCsrfToken.setItem(await getIdRefreshToken(), value);
                             } else if (key.toString() === "front-token") {
-                                FrontToken.setItem(value);
+                                await FrontToken.setItem(value);
                             }
                         });
                         return response;
@@ -390,9 +391,9 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (getIdRefreshToken() === undefined) {
-                AntiCsrfToken.removeToken();
-                FrontToken.removeToken();
+            if ((await getIdRefreshToken()) === undefined) {
+                await AntiCsrfToken.removeToken();
+                await FrontToken.removeToken();
             }
         }
     };
@@ -407,7 +408,7 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
         try {
-            const preRequestIdToken = getIdRefreshToken();
+            const preRequestIdToken = await getIdRefreshToken();
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
@@ -415,9 +416,9 @@ export default class AuthHttpRequest {
                 AuthHttpRequest.sessionExpiredStatusCode
             );
         } finally {
-            if (getIdRefreshToken() === undefined) {
-                AntiCsrfToken.removeToken();
-                FrontToken.removeToken();
+            if ((await getIdRefreshToken()) === undefined) {
+                await AntiCsrfToken.removeToken();
+                await FrontToken.removeToken();
             }
         }
     };
@@ -434,9 +435,22 @@ export default class AuthHttpRequest {
         );
     };
 
-    static doesSessionExist = () => {
-        return getIdRefreshToken() !== undefined;
+    static doesSessionExist = async () => {
+        return (await getIdRefreshToken()) !== undefined;
     };
+}
+
+async function loopThroughResponseHeadersAndApplyFunction(
+    response: any,
+    func: (value: any, key: any) => Promise<void>
+) {
+    let keys: any[] = [];
+    response.headers.forEach((_: any, key: any) => {
+        keys.push(key);
+    });
+    for (let i = 0; i < keys.length; i++) {
+        await func(response.headers.get(keys[i].toString()), keys[i]);
+    }
 }
 
 const ID_REFRESH_TOKEN_NAME = "sIRTFrontend";
@@ -458,7 +472,7 @@ export async function onUnauthorisedResponse(
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
             // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
             try {
-                let postLockID = getIdRefreshToken();
+                let postLockID = await getIdRefreshToken();
                 if (postLockID === undefined) {
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -466,7 +480,7 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                const antiCsrfToken = AntiCsrfToken.getToken(preRequestIdToken);
+                const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
                 let headers: any = {
                     ...refreshAPICustomHeaders
                 };
@@ -486,35 +500,35 @@ export async function onUnauthorisedResponse(
                     headers
                 });
                 let removeIdRefreshToken = true;
-                response.headers.forEach((value: any, key: any) => {
+                await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
-                        setIdRefreshToken(value);
+                        await setIdRefreshToken(value);
                         removeIdRefreshToken = false;
                     }
                 });
                 if (response.status === sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
-                        setIdRefreshToken("remove");
+                        await setIdRefreshToken("remove");
                     }
                 }
                 if (response.status >= 300) {
                     throw response;
                 }
-                if (getIdRefreshToken() === undefined) {
+                if ((await getIdRefreshToken()) === undefined) {
                     // removed by server. So we logout
                     return { result: "SESSION_EXPIRED" };
                 }
-                response.headers.forEach((value: any, key: any) => {
+                await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                     if (key.toString() === "anti-csrf") {
-                        AntiCsrfToken.setItem(getIdRefreshToken(), value);
+                        await AntiCsrfToken.setItem(await getIdRefreshToken(), value);
                     } else if (key.toString() === "front-token") {
-                        FrontToken.setItem(value);
+                        await FrontToken.setItem(value);
                     }
                 });
                 return { result: "RETRY" };
             } catch (error) {
-                if (getIdRefreshToken() === undefined) {
+                if ((await getIdRefreshToken()) === undefined) {
                     // removed by server.
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -523,7 +537,7 @@ export async function onUnauthorisedResponse(
                 lock.releaseLock("REFRESH_TOKEN_USE");
             }
         }
-        let idCookieValue = getIdRefreshToken();
+        let idCookieValue = await getIdRefreshToken();
         if (idCookieValue === undefined) {
             // removed by server. So we logout
             return { result: "SESSION_EXPIRED" };
@@ -536,14 +550,14 @@ export async function onUnauthorisedResponse(
     }
 }
 
-export function getIdRefreshToken(): string | undefined {
-    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
+export async function getIdRefreshToken(): Promise<string | undefined> {
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
     if (fromLocalstorage !== null) {
         let splitted = fromLocalstorage.split(";");
         let value: string | undefined = splitted[0];
         let expires = Number(splitted[1]);
         if (expires < Date.now()) {
-            setIdRefreshToken("remove");
+            await setIdRefreshToken("remove");
             value = undefined;
         }
         return value;
@@ -563,16 +577,16 @@ export function getIdRefreshToken(): string | undefined {
     }
     let fromCookie = getIDFromCookieOld();
     if (fromCookie !== undefined) {
-        setIdRefreshToken(fromCookie + ";9999999999999");
+        await setIdRefreshToken(fromCookie + ";9999999999999");
     }
     return fromCookie;
 }
 
-export function setIdRefreshToken(idRefreshToken: string) {
+export async function setIdRefreshToken(idRefreshToken: string) {
     if (idRefreshToken === "remove") {
-        AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
+        await AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
     } else {
-        AuthHttpRequest.crossDomainLocalstorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
+        await AuthHttpRequest.crossDomainLocalstorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
     }
 
     // for backwards compatibility
@@ -600,8 +614,8 @@ export function setIdRefreshToken(idRefreshToken: string) {
     );
 }
 
-function getAntiCSRFToken(): string | null {
-    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
+async function getAntiCSRFToken(): Promise<string | null> {
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
     if (fromLocalstorage !== null) {
         return fromLocalstorage;
     }
@@ -624,17 +638,17 @@ function getAntiCSRFToken(): string | null {
     }
     let fromCookie = getAntiCSRFromCookieOld();
     if (fromCookie !== null) {
-        setAntiCSRF(fromCookie);
+        await setAntiCSRF(fromCookie);
     }
     return fromCookie;
 }
 
 // give antiCSRFToken as undefined to remove it.
-export function setAntiCSRF(antiCSRFToken: string | undefined) {
+export async function setAntiCSRF(antiCSRFToken: string | undefined) {
     if (antiCSRFToken === undefined) {
-        AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
+        await AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
     } else {
-        AuthHttpRequest.crossDomainLocalstorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
+        await AuthHttpRequest.crossDomainLocalstorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
     }
 
     // for backwards compatibility
@@ -669,8 +683,8 @@ export function setAntiCSRF(antiCSRFToken: string | undefined) {
     );
 }
 
-export function getFrontToken(): string | null {
-    let fromLocalstorage = AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
+export async function getFrontToken(): Promise<string | null> {
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
     if (fromLocalstorage !== null) {
         return fromLocalstorage;
     }
@@ -693,16 +707,16 @@ export function getFrontToken(): string | null {
     }
     let fromCookie = getFrontTokenFromCookie();
     if (fromCookie !== null) {
-        setFrontToken(fromCookie);
+        await setFrontToken(fromCookie);
     }
     return fromCookie;
 }
 
-export function setFrontToken(frontToken: string | undefined) {
+export async function setFrontToken(frontToken: string | undefined) {
     if (frontToken === undefined) {
-        AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
+        await AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
     } else {
-        AuthHttpRequest.crossDomainLocalstorage.setItem(FRONT_TOKEN_NAME, frontToken);
+        await AuthHttpRequest.crossDomainLocalstorage.setItem(FRONT_TOKEN_NAME, frontToken);
     }
 
     // backwards compatibility
