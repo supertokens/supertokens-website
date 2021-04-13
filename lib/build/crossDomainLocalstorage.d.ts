@@ -4,11 +4,15 @@ export default class CrossDomainLocalstorage {
         authDomain: string;
     } | undefined;
     iframe: any | undefined;
+    nextMessageID: number;
+    toSendMessageQueueBeforeIframeLoads: any[];
+    waiterFunctionsForResultFromIframe: ((data: any) => void)[];
     constructor(sessionScope: {
         scope: string;
         authDomain: string;
     } | undefined);
     sendMessageAndGetResponseToDestinationIframe: (message: any) => Promise<string | null>;
+    messageFromIFrameListener: (event: any) => void;
     iFrameListener: (event: any) => void;
     isAuthDomain: () => boolean;
     isInIFrame: () => boolean;

@@ -10,6 +10,12 @@ export default class CrossDomainLocalstorage {
 
     iframe: any | undefined;
 
+    nextMessageID = 0;
+
+    toSendMessageQueueBeforeIframeLoads: any[] = [];
+
+    waiterFunctionsForResultFromIframe: ((data: any) => void)[] = [];
+
     constructor(
         sessionScope:
             | {
@@ -31,12 +37,20 @@ export default class CrossDomainLocalstorage {
             let iframe = getWindowOrThrow().document.createElement("iframe");
             iframe.addEventListener("load", () => {
                 this.iframe = iframe;
+                for (let i = 0; i < this.toSendMessageQueueBeforeIframeLoads.length; i++) {
+                    this.iframe.contentWindow.postMessage(
+                        this.toSendMessageQueueBeforeIframeLoads[i],
+                        sessionScope.authDomain
+                    );
+                }
+                this.toSendMessageQueueBeforeIframeLoads = [];
             });
             iframe.src = sessionScope.authDomain + "?is-supertokens-website-iframe=true";
             iframe.style.height = "0px";
             iframe.style.width = "0px";
             iframe.style.display = "none";
             getWindowOrThrow().document.body.appendChild(iframe);
+            getWindowOrThrow().addEventListener("message", this.messageFromIFrameListener, false);
         }
     }
 
@@ -44,15 +58,56 @@ export default class CrossDomainLocalstorage {
         if (this.sessionScope === undefined) {
             return null;
         }
+
+        let currId = this.nextMessageID;
+        this.nextMessageID = this.nextMessageID + 1;
+
+        let dataPromise: Promise<string | null> = new Promise(res => {
+            let waiterFunction = (data: any) => {
+                if (data.id === currId) {
+                    res(data.value === undefined ? null : data.value);
+                    this.waiterFunctionsForResultFromIframe = this.waiterFunctionsForResultFromIframe.filter(
+                        func => func !== waiterFunction
+                    );
+                }
+            };
+
+            this.waiterFunctionsForResultFromIframe.push(waiterFunction);
+
+            // TODO: add a timeout for this in case the Iframe has failed to load or something...
+        });
+
+        message = {
+            ...message,
+            id: currId,
+            from: "supertokens"
+        };
         if (this.iframe === undefined) {
-            // TODO: we need to wait for the iframe to load...
+            // we need to wait for the iframe to load...
+            this.toSendMessageQueueBeforeIframeLoads.push(message);
         } else {
             this.iframe.contentWindow.postMessage(message, this.sessionScope.authDomain);
         }
 
-        // wait for reply...
+        let data = await dataPromise;
 
-        return null;
+        return data;
+    };
+
+    messageFromIFrameListener = (event: any) => {
+        if (this.sessionScope === undefined) {
+            return;
+        }
+
+        let authDomainURL = new URL(this.sessionScope.authDomain);
+        let originDomainURL = new URL(event.origin);
+        if (authDomainURL.hostname !== originDomainURL.hostname || event.data.from !== "supertokens") {
+            return;
+        }
+
+        for (let i = 0; i < this.waiterFunctionsForResultFromIframe.length; i++) {
+            this.waiterFunctionsForResultFromIframe[i](event.data);
+        }
     };
 
     // this is in the auth domain...
@@ -69,22 +124,35 @@ export default class CrossDomainLocalstorage {
         // session scope with and without the port.
 
         if (
-            !new URL(event.origin).hostname.endsWith(this.sessionScope.scope) ||
-            event.origin.endsWith(this.sessionScope.scope)
+            !new URL(event.origin).hostname.endsWith(this.sessionScope.scope) &&
+            !event.origin.endsWith(this.sessionScope.scope)
         ) {
             return;
         }
 
-        // const { action, key, value } = event.data
-        // if (action == 'save') {
-        //     window.localStorage.setItem(key, JSON.stringify(value))
-        // } else if (action == 'get') {
-        //     event.source.postMessage({
-        //         action: 'returnData',
-        //         key,
-        //         value: JSON.parse(window.localStorage.getItem(key))
-        //     },
-        // }
+        if (event.data.from !== "supertokens") {
+            return;
+        }
+
+        let data = event.data;
+        let key = data.key;
+        let result: any = {
+            id: data.id,
+            from: "supertokens"
+        };
+        if (data.action === "getItem") {
+            result = {
+                ...result,
+                value: getWindowOrThrow().localStorage.getItem(key)
+            };
+        } else if (data.action === "removeItem") {
+            getWindowOrThrow().localStorage.removeItem(key);
+        } else if (data.action === "setItem") {
+            let value = data.value;
+            getWindowOrThrow().localStorage.setItem(key, value);
+        }
+
+        event.source.postMessage(result, "*");
     };
 
     isAuthDomain = () => {
