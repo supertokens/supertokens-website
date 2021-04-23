@@ -13,7 +13,7 @@ This is a website / JavaScript SDK that is responsible for maintaining a SuperTo
 Learn more at https://supertokens.io
 
 ## Documentation
-To see documentation, please click [here](https://supertokens.io/docs/website/installation).
+To see documentation, please click [here](https://supertokens.io/docs/community/introduction).
 
 ## Contributing
 Please refer to the [CONTRIBUTING.md](https://github.com/supertokens/supertokens-website/blob/master/CONTRIBUTING.md) file in this repo.
