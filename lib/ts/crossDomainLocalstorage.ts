@@ -170,6 +170,9 @@ export default class CrossDomainLocalstorage {
 
     getItem = async (key: string): Promise<string | null> => {
         if (this.isInIFrame()) {
+            // we wait forever since the child iframe will probably not load their content.
+            // therefore no redirect etc..
+            await new Promise(_ => {});
             return null;
         }
         if (this.isAuthDomain()) {
