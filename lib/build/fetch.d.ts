@@ -20,7 +20,7 @@ export declare class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: string | undefined, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
+export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: IdRefreshTokenType, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -72,7 +72,7 @@ export default class AuthHttpRequest {
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: string, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
+export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: IdRefreshTokenType, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
     result: "SESSION_EXPIRED";
 } | {
     result: "API_ERROR";
@@ -80,8 +80,15 @@ export declare function onUnauthorisedResponse(refreshTokenUrl: string, preReque
 } | {
     result: "RETRY";
 }>;
-export declare function getIdRefreshToken(): Promise<string | undefined>;
+declare type IdRefreshTokenType = {
+    status: "NOT_EXISTS" | "MAY_EXIST";
+} | {
+    status: "EXISTS";
+    token: string;
+};
+export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
 export declare function setIdRefreshToken(idRefreshToken: string): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
+export {};
