@@ -49,6 +49,12 @@ module.exports.getNumberOfTimesRefreshCalled = async function(BASE = module.expo
     return response.data;
 };
 
+module.exports.getNumberOfTimesRefreshAttempted = async function(BASE = module.exports.BASE_URL) {
+    let instance = axios.create();
+    let response = await instance.get(BASE + "/refreshAttemptedTime");
+    return response.data;
+};
+
 module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf = true) {
     let instance = axios.create();
     let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
