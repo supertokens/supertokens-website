@@ -551,19 +551,6 @@ export async function onUnauthorisedResponse(
 }
 
 export async function getIdRefreshToken(): Promise<string | undefined> {
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
-    if (fromLocalstorage !== null) {
-        let splitted = fromLocalstorage.split(";");
-        let value: string | undefined = splitted[0];
-        let expires = Number(splitted[1]);
-        if (expires < Date.now()) {
-            await setIdRefreshToken("remove");
-            value = undefined;
-        }
-        return value;
-    }
-
-    // for backwards compatibility
     function getIDFromCookieOld(): string | undefined {
         let value = "; " + getWindowOrThrow().document.cookie;
         let parts = value.split("; " + ID_REFRESH_TOKEN_NAME + "=");
@@ -575,22 +562,22 @@ export async function getIdRefreshToken(): Promise<string | undefined> {
         }
         return undefined;
     }
+
     let fromCookie = getIDFromCookieOld();
     if (fromCookie !== undefined) {
-        await setIdRefreshToken(fromCookie + ";9999999999999");
+        return fromCookie;
     }
-    return fromCookie;
+
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
+    if (fromLocalstorage !== null) {
+        await setIdRefreshToken(fromLocalstorage);
+    }
+
+    return fromLocalstorage === null ? undefined : fromLocalstorage;
 }
 
 export async function setIdRefreshToken(idRefreshToken: string) {
-    if (idRefreshToken === "remove") {
-        await AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
-    } else {
-        await AuthHttpRequest.crossDomainLocalstorage.setItem(ID_REFRESH_TOKEN_NAME, idRefreshToken);
-    }
-
-    // for backwards compatibility
-    function setIDToCookieOld(idRefreshToken: string, domain: string) {
+    function setIDToCookie(idRefreshToken: string, domain: string) {
         let expires = "Thu, 01 Jan 1970 00:00:01 GMT";
         let cookieVal = "";
         if (idRefreshToken !== "remove") {
@@ -606,22 +593,19 @@ export async function setIdRefreshToken(idRefreshToken: string) {
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/`;
         }
     }
-    setIDToCookieOld(
-        "remove",
+
+    setIDToCookie(
+        idRefreshToken,
         AuthHttpRequest.sessionScope === undefined
             ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
             : AuthHttpRequest.sessionScope.scope
     );
+
+    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
-    if (fromLocalstorage !== null) {
-        return fromLocalstorage;
-    }
-
-    // for backwards compatibility
-    function getAntiCSRFromCookieOld(): string | null {
+    function getAntiCSRFromCookie(): string | null {
         let value = "; " + getWindowOrThrow().document.cookie;
         let parts = value.split("; " + ANTI_CSRF_NAME + "=");
         if (parts.length >= 2) {
@@ -636,23 +620,23 @@ async function getAntiCSRFToken(): Promise<string | null> {
         }
         return null;
     }
-    let fromCookie = getAntiCSRFromCookieOld();
+
+    let fromCookie = getAntiCSRFromCookie();
     if (fromCookie !== null) {
-        await setAntiCSRF(fromCookie);
+        return fromCookie;
     }
-    return fromCookie;
+
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
+    if (fromLocalstorage !== null) {
+        await setAntiCSRF(fromLocalstorage);
+    }
+
+    return fromLocalstorage;
 }
 
 // give antiCSRFToken as undefined to remove it.
 export async function setAntiCSRF(antiCSRFToken: string | undefined) {
-    if (antiCSRFToken === undefined) {
-        await AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
-    } else {
-        await AuthHttpRequest.crossDomainLocalstorage.setItem(ANTI_CSRF_NAME, antiCSRFToken);
-    }
-
-    // for backwards compatibility
-    function setAntiCSRFToCookieOld(antiCSRFToken: string | undefined, domain: string) {
+    function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string) {
         let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
         let cookieVal = "";
         if (antiCSRFToken !== undefined) {
@@ -675,21 +659,18 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             }
         }
     }
-    setAntiCSRFToCookieOld(
-        undefined,
+
+    setAntiCSRFToCookie(
+        antiCSRFToken,
         AuthHttpRequest.sessionScope === undefined
             ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
             : AuthHttpRequest.sessionScope.scope
     );
+
+    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
 }
 
 export async function getFrontToken(): Promise<string | null> {
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
-    if (fromLocalstorage !== null) {
-        return fromLocalstorage;
-    }
-
-    // for backwards compatibility
     function getFrontTokenFromCookie(): string | null {
         let value = "; " + getWindowOrThrow().document.cookie;
         let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
@@ -705,22 +686,22 @@ export async function getFrontToken(): Promise<string | null> {
         }
         return null;
     }
+
     let fromCookie = getFrontTokenFromCookie();
     if (fromCookie !== null) {
-        await setFrontToken(fromCookie);
+        return fromCookie;
     }
-    return fromCookie;
+
+    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
+    if (fromLocalstorage !== null) {
+        await setFrontToken(fromLocalstorage);
+    }
+
+    return fromLocalstorage;
 }
 
 export async function setFrontToken(frontToken: string | undefined) {
-    if (frontToken === undefined) {
-        await AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
-    } else {
-        await AuthHttpRequest.crossDomainLocalstorage.setItem(FRONT_TOKEN_NAME, frontToken);
-    }
-
-    // backwards compatibility
-    function setFrontTokenToCookieOld(frontToken: string | undefined, domain: string) {
+    function setFrontTokenToCookie(frontToken: string | undefined, domain: string) {
         let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
         let cookieVal = "";
         if (frontToken !== undefined) {
@@ -744,10 +725,12 @@ export async function setFrontToken(frontToken: string | undefined) {
         }
     }
 
-    setFrontTokenToCookieOld(
-        undefined,
+    setFrontTokenToCookie(
+        frontToken,
         AuthHttpRequest.sessionScope === undefined
             ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
             : AuthHttpRequest.sessionScope.scope
     );
+
+    await AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
 }
