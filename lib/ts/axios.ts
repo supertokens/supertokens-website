@@ -107,13 +107,13 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
 
 export function responseInterceptor(axiosInstance: any) {
     return async (response: AxiosResponse) => {
+        let doNotDoInterception = false;
         try {
             if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
             let url = getUrlFromConfig(response.config);
 
-            let doNotDoInterception = false;
             try {
                 doNotDoInterception =
                     typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
@@ -166,7 +166,7 @@ export function responseInterceptor(axiosInstance: any) {
                 return response;
             }
         } finally {
-            if (!(await AuthHttpRequestFetch.doesSessionExist())) {
+            if (!doNotDoInterception && !(await AuthHttpRequestFetch.doesSessionExist())) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -362,33 +362,26 @@ export default class AuthHttpRequest {
             if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
-            try {
-                if (
-                    error.response !== undefined &&
-                    error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
-                ) {
-                    let config = error.config;
-                    return AuthHttpRequest.doRequest(
-                        (config: AxiosRequestConfig) => {
-                            // we create an instance since we don't want to intercept this.
-                            // const instance = axios.create();
-                            // return instance(config);
-                            return axiosInstance(config);
-                        },
-                        config,
-                        getUrlFromConfig(config),
-                        undefined,
-                        error,
-                        true
-                    );
-                } else {
-                    throw error;
-                }
-            } finally {
-                if (!(await AuthHttpRequestFetch.doesSessionExist())) {
-                    await AntiCsrfToken.removeToken();
-                    await FrontToken.removeToken();
-                }
+            if (
+                error.response !== undefined &&
+                error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
+            ) {
+                let config = error.config;
+                return AuthHttpRequest.doRequest(
+                    (config: AxiosRequestConfig) => {
+                        // we create an instance since we don't want to intercept this.
+                        // const instance = axios.create();
+                        // return instance(config);
+                        return axiosInstance(config);
+                    },
+                    config,
+                    getUrlFromConfig(config),
+                    undefined,
+                    error,
+                    true
+                );
+            } else {
+                throw error;
             }
         });
     };

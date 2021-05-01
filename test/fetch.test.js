@@ -1218,7 +1218,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(document.cookie, "");
             });
         } finally {
             await browser.close();

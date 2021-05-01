@@ -1195,8 +1195,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
 
                 assertEqual(loginResponse.data, userId);
-
-                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(document.cookie, "");
             });
         } finally {
             await browser.close();
