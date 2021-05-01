@@ -85,6 +85,21 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             withCredentials: true
         };
     }
+
+    // adding rid for anti-csrf protection: Anti-csrf via custom header
+    configWithAntiCsrf = {
+        ...configWithAntiCsrf,
+        headers:
+            configWithAntiCsrf === undefined
+                ? {
+                      rid: AuthHttpRequestFetch.rid
+                  }
+                : {
+                      rid: AuthHttpRequestFetch.rid,
+                      ...configWithAntiCsrf.headers
+                  }
+    };
+
     return configWithAntiCsrf;
 }
 
@@ -233,6 +248,20 @@ export default class AuthHttpRequest {
                         withCredentials: true
                     };
                 }
+
+                // adding rid for anti-csrf protection: Anti-csrf via custom header
+                configWithAntiCsrf = {
+                    ...configWithAntiCsrf,
+                    headers:
+                        configWithAntiCsrf === undefined
+                            ? {
+                                  rid: AuthHttpRequestFetch.rid
+                              }
+                            : {
+                                  rid: AuthHttpRequestFetch.rid,
+                                  ...configWithAntiCsrf.headers
+                              }
+                };
                 try {
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;

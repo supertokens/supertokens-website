@@ -292,6 +292,40 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
+    it("test rid is there", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let userIdFromResponse = loginResponse.data;
+                assertEqual(userId, userIdFromResponse);
+
+                let getResponse = await axios({ url: `${BASE_URL}/check-rid`, method: "GET" });
+
+                assertEqual(await getResponse.data, "success");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("signout with expired access token", async function() {
         await startST();
         const browser = await puppeteer.launch({

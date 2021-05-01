@@ -42,6 +42,7 @@ export default class AuthHttpRequest {
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
     static crossDomainLocalstorage: CrossDomainLocalstorage;
+    static rid: string;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;

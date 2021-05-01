@@ -118,6 +118,11 @@ app.get("/", Session.verifySession(true), async (req, res) => {
     res.send(req.session.getUserId());
 });
 
+app.get("/check-rid", Session.verifySession(true), async (req, res) => {
+    let response = req.headers["rid"];
+    res.send(response === undefined ? "fail" : "success");
+});
+
 app.get("/update-jwt", Session.verifySession(true), async (req, res) => {
     res.json(req.session.getJWTPayload());
 });
@@ -147,9 +152,13 @@ app.post("/revokeAll", Session.verifySession(), async (req, res) => {
 });
 
 app.post("/auth/session/refresh", Session.verifySession(), async (req, res) => {
-    refreshCalled = true;
-    noOfTimesRefreshCalledDuringTest += 1;
-    res.send("refresh success");
+    if (req.headers["rid"] === undefined) {
+        res.send("refresh failed");
+    } else {
+        refreshCalled = true;
+        noOfTimesRefreshCalledDuringTest += 1;
+        res.send("refresh success");
+    }
 });
 
 app.get("/refreshCalledTime", async (req, res) => {

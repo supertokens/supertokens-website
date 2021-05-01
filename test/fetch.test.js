@@ -271,6 +271,42 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
+    it("test rid is there", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                let getResponse = await fetch(`${BASE_URL}/check-rid`);
+
+                assertEqual(await getResponse.text(), "success");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("signout with expired access token", async function() {
         await startST();
         const browser = await puppeteer.launch({

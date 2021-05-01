@@ -153,6 +153,7 @@ export default class AuthHttpRequest {
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
     static crossDomainLocalstorage: CrossDomainLocalstorage;
+    static rid: string;
 
     static setAuth0API(apiPath: string) {
         AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
@@ -184,6 +185,7 @@ export default class AuthHttpRequest {
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         AuthHttpRequest.apiDomain = apiDomain;
         AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
+        AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
 
         let env: any = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
         if (AuthHttpRequest.originalFetch === undefined) {
@@ -338,6 +340,20 @@ export default class AuthHttpRequest {
                         };
                     }
                 }
+
+                // adding rid for anti-csrf protection: Anti-csrf via custom header
+                configWithAntiCsrf = {
+                    ...configWithAntiCsrf,
+                    headers:
+                        configWithAntiCsrf === undefined
+                            ? {
+                                  rid: AuthHttpRequest.rid
+                              }
+                            : {
+                                  rid: AuthHttpRequest.rid,
+                                  ...configWithAntiCsrf.headers
+                              }
+                };
                 try {
                     let response = await httpCall(configWithAntiCsrf);
                     await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
@@ -491,6 +507,7 @@ export async function onUnauthorisedResponse(
                     };
                 }
                 headers = {
+                    rid: AuthHttpRequest.rid, // adding for anti-csrf protection (via custom header)
                     ...headers,
                     "fdi-version": supported_fdi.join(",")
                 };
