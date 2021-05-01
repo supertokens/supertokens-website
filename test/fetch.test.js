@@ -594,7 +594,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 function getAntiCSRFromCookie() {
-                    return window.localStorage.getItem("sAntiCsrf");
+                    let value = "; " + document.cookie;
+                    let parts = value.split("; sAntiCsrf=");
+                    if (parts.length >= 2) {
+                        let last = parts.pop();
+                        if (last !== undefined) {
+                            return last;
+                        }
+                    }
+                    return null;
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
