@@ -61,22 +61,24 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     }
 
     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
-    const preRequestIdToken = await getIdRefreshToken();
-    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
+    const preRequestIdToken = await getIdRefreshToken(true);
     let configWithAntiCsrf: AxiosRequestConfig = config;
-    if (antiCsrfToken !== undefined) {
-        configWithAntiCsrf = {
-            ...configWithAntiCsrf,
-            headers:
-                configWithAntiCsrf === undefined
-                    ? {
-                          "anti-csrf": antiCsrfToken
-                      }
-                    : {
-                          ...configWithAntiCsrf.headers,
-                          "anti-csrf": antiCsrfToken
-                      }
-        };
+    if (preRequestIdToken.status === "EXISTS") {
+        const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
+        if (antiCsrfToken !== undefined) {
+            configWithAntiCsrf = {
+                ...configWithAntiCsrf,
+                headers:
+                    configWithAntiCsrf === undefined
+                        ? {
+                              "anti-csrf": antiCsrfToken
+                          }
+                        : {
+                              ...configWithAntiCsrf.headers,
+                              "anti-csrf": antiCsrfToken
+                          }
+            };
+        }
     }
 
     if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
@@ -85,18 +87,33 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             withCredentials: true
         };
     }
+
+    // adding rid for anti-csrf protection: Anti-csrf via custom header
+    configWithAntiCsrf = {
+        ...configWithAntiCsrf,
+        headers:
+            configWithAntiCsrf === undefined
+                ? {
+                      rid: AuthHttpRequestFetch.rid
+                  }
+                : {
+                      rid: AuthHttpRequestFetch.rid,
+                      ...configWithAntiCsrf.headers
+                  }
+    };
+
     return configWithAntiCsrf;
 }
 
 export function responseInterceptor(axiosInstance: any) {
     return async (response: AxiosResponse) => {
+        let doNotDoInterception = false;
         try {
             if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
             let url = getUrlFromConfig(response.config);
 
-            let doNotDoInterception = false;
             try {
                 doNotDoInterception =
                     typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
@@ -137,7 +154,10 @@ export function responseInterceptor(axiosInstance: any) {
             } else {
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {
-                    await AntiCsrfToken.setItem(await getIdRefreshToken(), antiCsrfToken);
+                    let tok = await getIdRefreshToken(true);
+                    if (tok.status === "EXISTS") {
+                        await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
+                    }
                 }
                 let frontToken = response.headers["front-token"];
                 if (frontToken !== undefined) {
@@ -146,7 +166,7 @@ export function responseInterceptor(axiosInstance: any) {
                 return response;
             }
         } finally {
-            if ((await getIdRefreshToken()) === undefined) {
+            if (!doNotDoInterception && !(await AuthHttpRequestFetch.doesSessionExist())) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -209,22 +229,25 @@ export default class AuthHttpRequest {
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
-                const preRequestIdToken = await getIdRefreshToken();
-                const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken);
+                const preRequestIdToken = await getIdRefreshToken(true);
                 let configWithAntiCsrf: AxiosRequestConfig = config;
-                if (antiCsrfToken !== undefined) {
-                    configWithAntiCsrf = {
-                        ...configWithAntiCsrf,
-                        headers:
-                            configWithAntiCsrf === undefined
-                                ? {
-                                      "anti-csrf": antiCsrfToken
-                                  }
-                                : {
-                                      ...configWithAntiCsrf.headers,
-                                      "anti-csrf": antiCsrfToken
-                                  }
-                    };
+
+                if (preRequestIdToken.status === "EXISTS") {
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
+                    if (antiCsrfToken !== undefined) {
+                        configWithAntiCsrf = {
+                            ...configWithAntiCsrf,
+                            headers:
+                                configWithAntiCsrf === undefined
+                                    ? {
+                                          "anti-csrf": antiCsrfToken
+                                      }
+                                    : {
+                                          ...configWithAntiCsrf.headers,
+                                          "anti-csrf": antiCsrfToken
+                                      }
+                        };
+                    }
                 }
 
                 if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
@@ -233,6 +256,20 @@ export default class AuthHttpRequest {
                         withCredentials: true
                     };
                 }
+
+                // adding rid for anti-csrf protection: Anti-csrf via custom header
+                configWithAntiCsrf = {
+                    ...configWithAntiCsrf,
+                    headers:
+                        configWithAntiCsrf === undefined
+                            ? {
+                                  rid: AuthHttpRequestFetch.rid
+                              }
+                            : {
+                                  rid: AuthHttpRequestFetch.rid,
+                                  ...configWithAntiCsrf.headers
+                              }
+                };
                 try {
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;
@@ -261,7 +298,10 @@ export default class AuthHttpRequest {
                     } else {
                         let antiCsrfToken = response.headers["anti-csrf"];
                         if (antiCsrfToken !== undefined) {
-                            await AntiCsrfToken.setItem(await getIdRefreshToken(), antiCsrfToken);
+                            let tok = await getIdRefreshToken(true);
+                            if (tok.status === "EXISTS") {
+                                await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
+                            }
                         }
                         let frontToken = response.headers["front-token"];
                         if (frontToken !== undefined) {
@@ -297,7 +337,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if ((await getIdRefreshToken()) === undefined) {
+            if (!(await AuthHttpRequestFetch.doesSessionExist())) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -322,33 +362,26 @@ export default class AuthHttpRequest {
             if (!AuthHttpRequestFetch.initCalled) {
                 throw new Error("init function not called");
             }
-            try {
-                if (
-                    error.response !== undefined &&
-                    error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
-                ) {
-                    let config = error.config;
-                    return AuthHttpRequest.doRequest(
-                        (config: AxiosRequestConfig) => {
-                            // we create an instance since we don't want to intercept this.
-                            // const instance = axios.create();
-                            // return instance(config);
-                            return axiosInstance(config);
-                        },
-                        config,
-                        getUrlFromConfig(config),
-                        undefined,
-                        error,
-                        true
-                    );
-                } else {
-                    throw error;
-                }
-            } finally {
-                if ((await getIdRefreshToken()) === undefined) {
-                    await AntiCsrfToken.removeToken();
-                    await FrontToken.removeToken();
-                }
+            if (
+                error.response !== undefined &&
+                error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
+            ) {
+                let config = error.config;
+                return AuthHttpRequest.doRequest(
+                    (config: AxiosRequestConfig) => {
+                        // we create an instance since we don't want to intercept this.
+                        // const instance = axios.create();
+                        // return instance(config);
+                        return axiosInstance(config);
+                    },
+                    config,
+                    getUrlFromConfig(config),
+                    undefined,
+                    error,
+                    true
+                );
+            } else {
+                throw error;
             }
         });
     };

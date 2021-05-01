@@ -271,6 +271,42 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
+    it("test rid is there", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                let getResponse = await fetch(`${BASE_URL}/check-rid`);
+
+                assertEqual(await getResponse.text(), "success");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("signout with expired access token", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -594,7 +630,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 function getAntiCSRFromCookie() {
-                    return window.localStorage.getItem("sAntiCsrf");
+                    let value = "; " + document.cookie;
+                    let parts = value.split("; sAntiCsrf=");
+                    if (parts.length >= 2) {
+                        let last = parts.pop();
+                        if (last !== undefined) {
+                            return last;
+                        }
+                    }
+                    return null;
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
@@ -1174,7 +1218,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(document.cookie, "");
             });
         } finally {
             await browser.close();
@@ -1457,5 +1501,187 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.deepEqual(multipleInterceptorResponse.body.key, "success");
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception3, undefined);
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception4, undefined);
+    });
+
+    it("fetch check sessionDoes exist calls refresh API just once", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // check document cookie = ""
+                assertEqual(document.cookie, "");
+
+                // call sessionDoesExist
+                assertEqual(await supertokens.doesSessionExist(), false);
+
+                // check refresh API was called once + document.cookie has removed
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(document.cookie, "sIRTFrontend=remove");
+
+                // call sessionDoesExist
+                assertEqual(await supertokens.doesSessionExist(), false);
+                // check refresh API not called
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(document.cookie, "sIRTFrontend=remove");
+
+                await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                // call sessionDoesExist
+                assertEqual(await supertokens.doesSessionExist(), true);
+                // check refresh API not called
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("fetch check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+        await startST(3, false);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                function deleteAllCookies() {
+                    var cookies = document.cookie.split(";");
+
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i];
+                        var eqPos = cookie.indexOf("=");
+                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    }
+                }
+
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                // check document cookie = ""
+                assertEqual(document.cookie, "");
+
+                await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                // call sessionDoesExist
+                assertEqual(await supertokens.doesSessionExist(), true);
+                // check refresh API not called
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+
+                // clear all cookies
+                deleteAllCookies();
+                // call sessionDoesExist (returns true) + call to refresh
+                assertEqual(await supertokens.doesSessionExist(), true);
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                // call sessionDoesExist (returns true) + no call to refresh
+                assertEqual(await supertokens.doesSessionExist(), true);
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("fetch check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                function deleteAllCookies() {
+                    var cookies = document.cookie.split(";");
+
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i];
+                        var eqPos = cookie.indexOf("=");
+                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    }
+                }
+
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                // check document cookie = ""
+                assertEqual(document.cookie, "");
+
+                await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                // call sessionDoesExist
+                assertEqual(await supertokens.doesSessionExist(), true);
+                // check refresh API not called
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+
+                // clear all cookies
+                deleteAllCookies();
+                // call sessionDoesExist (returns false) + call to refresh
+                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                // call sessionDoesExist (returns false) + no call to refresh
+                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+            });
+        } finally {
+            await browser.close();
+        }
     });
 });
