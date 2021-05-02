@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uses frontend set cookies instead of localstorage so that sub domain session works on Safari
 - Sends `rid` on each request - acts as a CSRF protection measure (see https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers)
 - Refreshes session if the frontend set cookies are deleted (due to privacy features in Safari).
+- New FDI 1.8
 
 ## [6.0.1] - 2021-04-29
 ### Changed:
