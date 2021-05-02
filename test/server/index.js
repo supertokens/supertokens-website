@@ -52,7 +52,7 @@ function getConfig(enableAntiCsrf) {
                         res.status(401).send();
                     }
                 },
-                enableAntiCsrf,
+                antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
                 sessionRefreshFeature: {
                     disableDefaultImplementation: true
                 }
