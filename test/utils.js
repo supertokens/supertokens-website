@@ -56,12 +56,22 @@ module.exports.getNumberOfTimesRefreshAttempted = async function(BASE = module.e
 };
 
 module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf = true) {
-    let instance = axios.create();
-    let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
-        accessTokenValidity,
-        enableAntiCsrf
-    });
-    return response.data;
+    {
+        if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
+            let instance = axios.create();
+            await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
+                enableAntiCsrf
+            });
+        }
+    }
+    {
+        let instance = axios.create();
+        let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
+            accessTokenValidity,
+            enableAntiCsrf
+        });
+        return response.data;
+    }
 };
 
 module.exports.addBrowserConsole = function(page) {
