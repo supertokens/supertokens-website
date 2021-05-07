@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.0.1] - 2021-05-07
 ### Fixed:
 - https://github.com/supertokens/supertokens-website/issues/50: originalFetch was being assigned twice such that the the refresh call was calling it too, resulting in a refresh inside a refresh -> deadlock
+- When fetching the idRefreshToken from the frontend, if the backend is not working, we assume that the session doesn't exist.
 
 
 ## [7.0.0] - 2021-05-01

@@ -644,12 +644,19 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
         if (tryRefresh) {
             // either session doesn't exist, or the
             // cookies have expired (privacy feature that caps lifetime of cookies to 7 days)
-            await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                response,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
+            try {
+                await handleUnauthorised(
+                    AuthHttpRequest.refreshTokenUrl,
+                    response,
+                    AuthHttpRequest.refreshAPICustomHeaders,
+                    AuthHttpRequest.sessionExpiredStatusCode
+                );
+            } catch (err) {
+                // in case the backend is not working, we treat it as the session not existing...
+                return {
+                    status: "NOT_EXISTS"
+                };
+            }
             return await getIdRefreshToken(tryRefresh);
         } else {
             return response;
