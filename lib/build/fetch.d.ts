@@ -30,7 +30,6 @@ export default class AuthHttpRequest {
     static signOutUrl: string;
     static sessionExpiredStatusCode: number;
     static initCalled: boolean;
-    static originalFetch: any;
     static apiDomain: string;
     static addedFetchInterceptor: boolean;
     static sessionScope: {
@@ -43,6 +42,7 @@ export default class AuthHttpRequest {
     static autoAddCredentials: boolean;
     static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
+    static env: any;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;

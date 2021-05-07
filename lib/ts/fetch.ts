@@ -137,7 +137,6 @@ export default class AuthHttpRequest {
     static signOutUrl: string;
     static sessionExpiredStatusCode: number;
     static initCalled = false;
-    static originalFetch: any;
     static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
     static sessionScope:
@@ -152,6 +151,7 @@ export default class AuthHttpRequest {
     static autoAddCredentials: boolean;
     static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
+    static env: any;
 
     static setAuth0API(apiPath: string) {
         AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
@@ -173,6 +173,7 @@ export default class AuthHttpRequest {
             sessionExpiredStatusCode,
             autoAddCredentials
         } = validateAndNormaliseInputOrThrowError(options);
+        AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
         AuthHttpRequest.autoAddCredentials = autoAddCredentials;
         AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
@@ -185,13 +186,12 @@ export default class AuthHttpRequest {
         AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
         AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
 
-        let env: any = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
-        if (AuthHttpRequest.originalFetch === undefined) {
-            AuthHttpRequest.originalFetch = env.fetch.bind(env);
+        if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
+            AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
         }
         if (!AuthHttpRequest.addedFetchInterceptor) {
             AuthHttpRequest.addedFetchInterceptor = true;
-            env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
+            AuthHttpRequest.env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
                 return AuthHttpRequest.fetch(url, config);
             };
         }
@@ -445,7 +445,7 @@ export default class AuthHttpRequest {
     private static fetch = async (url: RequestInfo, config?: RequestInit) => {
         return await AuthHttpRequest.doRequest(
             (config?: RequestInit) => {
-                return AuthHttpRequest.originalFetch(url, {
+                return AuthHttpRequest.env.__supertokensOriginalFetch(url, {
                     ...config
                 });
             },
@@ -489,7 +489,7 @@ export async function onUnauthorisedResponse(
     let lock = new Lock();
     while (true) {
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
-            // to sync across tabs. the 1000 ms wait is for how much time to try and azquire the lock.
+            // to sync across tabs. the 1000 ms wait is for how much time to try and acquire the lock
             try {
                 let postLockID = await getIdRefreshToken(false);
                 if (postLockID.status === "NOT_EXISTS") {
@@ -521,7 +521,7 @@ export async function onUnauthorisedResponse(
                     ...headers,
                     "fdi-version": supported_fdi.join(",")
                 };
-                let response = await AuthHttpRequest.originalFetch(refreshTokenUrl, {
+                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(refreshTokenUrl, {
                     method: "post",
                     credentials: "include",
                     headers
