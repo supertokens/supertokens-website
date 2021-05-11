@@ -43,6 +43,7 @@ export default class AuthHttpRequest {
     static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
     static env: any;
+    static isInIframe: boolean;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;

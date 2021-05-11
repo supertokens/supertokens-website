@@ -9,6 +9,7 @@ export declare type InputType = {
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode?: number;
     autoAddCredentials?: boolean;
+    isInIframe?: boolean;
 };
 export declare type NormalisedInputType = {
     apiDomain: string;
@@ -21,6 +22,7 @@ export declare type NormalisedInputType = {
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode: number;
     autoAddCredentials: boolean;
+    isInIframe: boolean;
 };
 export declare function isAnIpAddress(ipaddress: string): boolean;
 export declare function normaliseURLDomainOrThrowError(input: string): string;
