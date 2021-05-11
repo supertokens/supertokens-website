@@ -26,6 +26,7 @@ export type InputType = {
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode?: number;
     autoAddCredentials?: boolean;
+    isInIframe?: boolean;
 };
 
 export type NormalisedInputType = {
@@ -41,6 +42,7 @@ export type NormalisedInputType = {
     signoutAPICustomHeaders?: any;
     sessionExpiredStatusCode: number;
     autoAddCredentials: boolean;
+    isInIframe: boolean;
 };
 
 export function isAnIpAddress(ipaddress: string) {
@@ -136,13 +138,19 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         autoAddCredentials = options.autoAddCredentials;
     }
 
+    let isInIframe = false;
+    if (options.isInIframe !== undefined) {
+        isInIframe = options.isInIframe;
+    }
+
     return {
         apiDomain,
         apiBasePath,
         sessionScope,
         refreshAPICustomHeaders,
         sessionExpiredStatusCode,
-        autoAddCredentials
+        autoAddCredentials,
+        isInIframe
     };
 }
 
