@@ -1,3 +1,1 @@
-import SuperTokens from './lib/build';
-
-export default SuperTokens;
+export * from "./lib/build/";
