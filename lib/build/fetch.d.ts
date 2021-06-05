@@ -44,6 +44,7 @@ export default class AuthHttpRequest {
     static rid: string;
     static env: any;
     static isInIframe: boolean;
+    static cookieDomain: string | undefined;
     static setAuth0API(apiPath: string): void;
     static getAuth0API: () => {
         apiPath: string | undefined;

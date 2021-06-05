@@ -19,7 +19,8 @@ let AuthHttpRequest = require("../index.js").default;
 let {
     normaliseSessionScopeOrThrowError,
     normaliseURLPathOrThrowError,
-    normaliseURLDomainOrThrowError
+    normaliseURLDomainOrThrowError,
+    shouldDoInterceptionBasedOnUrl
 } = require("../lib/build/utils");
 let assert = require("assert");
 let AuthHttpRequestFetch = require("../lib/build/fetch").default;
@@ -32,6 +33,104 @@ describe("Config tests", function() {
     beforeEach(async function() {
         AuthHttpRequestFetch.initCalled = false;
         global.document = {};
+    });
+
+    it("testing shouldDoInterceptionBasedOnUrl", async function() {
+        // true cases without cookieDomain
+        assert(shouldDoInterceptionBasedOnUrl("api.example.com", "https://api.example.com", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://api.example.com", "http://api.example.com", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("api.example.com", "http://api.example.com", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.com", "http://api.example.com", undefined));
+        assert(
+            shouldDoInterceptionBasedOnUrl("https://api.example.com:3000", "http://api.example.com:3000", undefined)
+        );
+        assert(shouldDoInterceptionBasedOnUrl("localhost:3000", "localhost:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("https://localhost:3000", "https://localhost:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://localhost:3000", "http://localhost:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("localhost:3000", "https://localhost:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("localhost", "https://localhost", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://localhost:3000", "https://localhost:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("127.0.0.1:3000", "127.0.0.1:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("https://127.0.0.1:3000", "https://127.0.0.1:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "http://127.0.0.1:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("127.0.0.1:3000", "https://127.0.0.1:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "https://127.0.0.1:3000", undefined));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1", "https://127.0.0.1", undefined));
+        assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "localhost.org", undefined));
+        assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "http://localhost.org", undefined));
+
+        // true cases with cookieDomain
+        assert(shouldDoInterceptionBasedOnUrl("api.example.com", "", "api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("http://api.example.com", "", "http://api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("api.example.com", "", ".example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.com", "", "http://api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.com", "", "https://api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", ".example.com:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", ".example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", "https://sub.api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.com:3000", "", ".api.example.com"));
+        assert(shouldDoInterceptionBasedOnUrl("localhost:3000", "", "localhost:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("https://localhost:3000", "", ".localhost:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("localhost", "", "localhost"));
+        assert(shouldDoInterceptionBasedOnUrl("http://a.localhost:3000", "", ".localhost:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("127.0.0.1:3000", "", "127.0.0.1:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("https://127.0.0.1:3000", "", "https://127.0.0.1:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "", "http://127.0.0.1:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("127.0.0.1:3000", "", "https://127.0.0.1:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "", "https://127.0.0.1:3000"));
+        assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1", "", "https://127.0.0.1"));
+        assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "", ".localhost.org"));
+        assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "", "localhost.org"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", ".com"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub.api.example.co.uk:3000", "", ".api.example.co.uk"));
+        assert(shouldDoInterceptionBasedOnUrl("https://sub1.api.example.co.uk:3000", "", ".api.example.co.uk"));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.co.uk:3000", "", ".api.example.co.uk"));
+        assert(shouldDoInterceptionBasedOnUrl("https://api.example.co.uk:3000", "", "api.example.co.uk"));
+
+        // false cases with api
+        assert(!shouldDoInterceptionBasedOnUrl("localhost:3001", "localhost:3000", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("localhost:3001", "example.com", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("localhost:3001", "localhost", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("https://example.com", "https://api.example.com", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("https://api.example.com", "https://a.api.example.com", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("https://api.example.com", "https://example.com", undefined));
+        assert(!shouldDoInterceptionBasedOnUrl("https://example.com:3001", "https://api.example.com:3001", undefined));
+        assert(
+            !shouldDoInterceptionBasedOnUrl("https://api.example.com:3002", "https://api.example.com:3001", undefined)
+        );
+        assert(!shouldDoInterceptionBasedOnUrl(window.location.hostname, "localhost.org:2000", undefined));
+
+        // false cases with cookieDomain
+        assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", ".example.com:3001"));
+        assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", "example.com"));
+        assert(!shouldDoInterceptionBasedOnUrl("https://api.example.com:3000", "", ".a.api.example.com"));
+        assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.com:3000", "", "localhost"));
+        assert(!shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "", "https://127.0.0.1:3010"));
+        assert(!shouldDoInterceptionBasedOnUrl(window.location.hostname, "", "localhost"));
+        assert(!shouldDoInterceptionBasedOnUrl(window.location.hostname, "", ".localhost"));
+        assert(!shouldDoInterceptionBasedOnUrl(window.location.hostname, "", "localhost:2000"));
+        assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.co.uk:3000", "", "api.example.co.uk"));
+        assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.co.uk", "", "api.example.co.uk"));
+
+        // errors in input
+        try {
+            assert(shouldDoInterceptionBasedOnUrl("/some/path", "", "api.example.co.uk"));
+            assert(false);
+        } catch (err) {
+            if (err.message !== "Please provide a valid domain name") {
+                throw err;
+            }
+        }
+        try {
+            assert(shouldDoInterceptionBasedOnUrl("/some/path", "api.example.co.uk", undefined));
+            assert(false);
+        } catch (err) {
+            if (err.message !== "Please provide a valid domain name") {
+                throw err;
+            }
+        }
     });
 
     it("testing sessionScope normalisation", async function() {
