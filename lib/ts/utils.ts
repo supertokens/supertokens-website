@@ -27,6 +27,7 @@ export type InputType = {
     sessionExpiredStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
+    cookieDomain?: string;
 };
 
 export type NormalisedInputType = {
@@ -43,6 +44,7 @@ export type NormalisedInputType = {
     sessionExpiredStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
+    cookieDomain: string | undefined;
 };
 
 export function isAnIpAddress(ipaddress: string) {
@@ -143,6 +145,11 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe = options.isInIframe;
     }
 
+    let cookieDomain: string | undefined = undefined;
+    if (options.cookieDomain !== undefined) {
+        cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
+    }
+
     return {
         apiDomain,
         apiBasePath,
@@ -150,7 +157,8 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         refreshAPICustomHeaders,
         sessionExpiredStatusCode,
         autoAddCredentials,
-        isInIframe
+        isInIframe,
+        cookieDomain
     };
 }
 
@@ -162,4 +170,25 @@ export function getWindowOrThrow(): any {
     }
 
     return window;
+}
+
+// TODO: test
+// - with port as well and cookie domain too.
+export function shouldDoInterceptionBasedOnUrl(
+    toCheckUrl: string,
+    apiDomain: string,
+    cookieDomain: string | undefined
+): boolean {
+    let normalisedURL = normaliseURLDomainOrThrowError(toCheckUrl);
+    if (cookieDomain === undefined) {
+        return normalisedURL === apiDomain;
+    } else {
+        let urlObj = new URL(normalisedURL);
+        let domain = urlObj.hostname;
+        if (cookieDomain.startsWith(".")) {
+            return domain.endsWith(cookieDomain);
+        } else {
+            return domain === apiDomain;
+        }
+    }
 }

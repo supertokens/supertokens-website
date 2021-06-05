@@ -22,7 +22,7 @@ import AuthHttpRequestFetch, {
     FrontToken
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
-import { normaliseURLDomainOrThrowError } from "./utils";
+import { shouldDoInterceptionBasedOnUrl } from "./utils";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;
@@ -45,12 +45,16 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     let doNotDoInterception = false;
     try {
         doNotDoInterception =
-            typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
+            typeof url === "string" &&
+            !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequestFetch.apiDomain, AuthHttpRequestFetch.cookieDomain);
     } catch (err) {
         if (err.message === "Please provide a valid domain name") {
             // .origin gives the port as well..
-            doNotDoInterception =
-                normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain;
+            doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                window.location.origin,
+                AuthHttpRequestFetch.apiDomain,
+                AuthHttpRequestFetch.cookieDomain
+            );
         } else {
             throw err;
         }
@@ -116,12 +120,20 @@ export function responseInterceptor(axiosInstance: any) {
 
             try {
                 doNotDoInterception =
-                    typeof url === "string" && normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain;
+                    typeof url === "string" &&
+                    !shouldDoInterceptionBasedOnUrl(
+                        url,
+                        AuthHttpRequestFetch.apiDomain,
+                        AuthHttpRequestFetch.cookieDomain
+                    );
             } catch (err) {
                 if (err.message === "Please provide a valid domain name") {
                     // .origin gives the port as well..
-                    doNotDoInterception =
-                        normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain;
+                    doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                        window.location.origin,
+                        AuthHttpRequestFetch.apiDomain,
+                        AuthHttpRequestFetch.cookieDomain
+                    );
                 } else {
                     throw err;
                 }
@@ -201,14 +213,21 @@ export default class AuthHttpRequest {
         try {
             doNotDoInterception =
                 typeof url === "string" &&
-                normaliseURLDomainOrThrowError(url) !== AuthHttpRequestFetch.apiDomain &&
+                !shouldDoInterceptionBasedOnUrl(
+                    url,
+                    AuthHttpRequestFetch.apiDomain,
+                    AuthHttpRequestFetch.cookieDomain
+                ) &&
                 viaInterceptor;
         } catch (err) {
             if (err.message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception =
-                    normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequestFetch.apiDomain &&
-                    viaInterceptor;
+                    !shouldDoInterceptionBasedOnUrl(
+                        window.location.origin,
+                        AuthHttpRequestFetch.apiDomain,
+                        AuthHttpRequestFetch.cookieDomain
+                    ) && viaInterceptor;
             } else {
                 throw err;
             }

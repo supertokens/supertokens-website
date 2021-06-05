@@ -21,7 +21,8 @@ import {
     normaliseURLPathOrThrowError,
     normaliseURLDomainOrThrowError,
     getWindowOrThrow,
-    normaliseSessionScopeOrThrowError
+    normaliseSessionScopeOrThrowError,
+    shouldDoInterceptionBasedOnUrl
 } from "./utils";
 import CrossDomainLocalstorage from "./crossDomainLocalstorage";
 import { doesSessionExist } from "./index";
@@ -153,6 +154,7 @@ export default class AuthHttpRequest {
     static rid: string;
     static env: any;
     static isInIframe: boolean;
+    static cookieDomain: string | undefined;
 
     static setAuth0API(apiPath: string) {
         AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
@@ -173,7 +175,8 @@ export default class AuthHttpRequest {
             signoutAPICustomHeaders,
             sessionExpiredStatusCode,
             autoAddCredentials,
-            isInIframe
+            isInIframe,
+            cookieDomain
         } = validateAndNormaliseInputOrThrowError(options);
         AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
@@ -188,6 +191,7 @@ export default class AuthHttpRequest {
         AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
         AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
         AuthHttpRequest.isInIframe = isInIframe;
+        AuthHttpRequest.cookieDomain = cookieDomain;
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
@@ -281,18 +285,21 @@ export default class AuthHttpRequest {
         try {
             doNotDoInterception =
                 (typeof url === "string" &&
-                    normaliseURLDomainOrThrowError(url) !== AuthHttpRequest.apiDomain &&
+                    !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
                     AuthHttpRequest.addedFetchInterceptor) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
-                    normaliseURLDomainOrThrowError(url.url) !== AuthHttpRequest.apiDomain &&
+                    !shouldDoInterceptionBasedOnUrl(url.url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
                     AuthHttpRequest.addedFetchInterceptor);
         } catch (err) {
             if (err.message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception =
-                    normaliseURLDomainOrThrowError(window.location.origin) !== AuthHttpRequest.apiDomain &&
-                    AuthHttpRequest.addedFetchInterceptor;
+                    !shouldDoInterceptionBasedOnUrl(
+                        window.location.origin,
+                        AuthHttpRequest.apiDomain,
+                        AuthHttpRequest.cookieDomain
+                    ) && AuthHttpRequest.addedFetchInterceptor;
             } else {
                 throw err;
             }
