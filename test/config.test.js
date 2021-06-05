@@ -57,6 +57,7 @@ describe("Config tests", function() {
         assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1:3000", "https://127.0.0.1:3000", undefined));
         assert(shouldDoInterceptionBasedOnUrl("http://127.0.0.1", "https://127.0.0.1", undefined));
         assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "localhost.org", undefined));
+        assert(shouldDoInterceptionBasedOnUrl(window.location.hostname, "http://localhost.org", undefined));
 
         // true cases with cookieDomain
         assert(shouldDoInterceptionBasedOnUrl("api.example.com", "", "api.example.com"));
@@ -114,6 +115,22 @@ describe("Config tests", function() {
         assert(!shouldDoInterceptionBasedOnUrl("https://sub.api.example.co.uk", "", "api.example.co.uk"));
 
         // errors in input
+        try {
+            assert(shouldDoInterceptionBasedOnUrl("/some/path", "", "api.example.co.uk"));
+            assert(false);
+        } catch (err) {
+            if (err.message !== "Please provide a valid domain name") {
+                throw err;
+            }
+        }
+        try {
+            assert(shouldDoInterceptionBasedOnUrl("/some/path", "api.example.co.uk", undefined));
+            assert(false);
+        } catch (err) {
+            if (err.message !== "Please provide a valid domain name") {
+                throw err;
+            }
+        }
     });
 
     it("testing sessionScope normalisation", async function() {
