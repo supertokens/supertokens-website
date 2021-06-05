@@ -172,23 +172,39 @@ export function getWindowOrThrow(): any {
     return window;
 }
 
-// TODO: test
-// - with port as well and cookie domain too.
 export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl: string,
     apiDomain: string,
     cookieDomain: string | undefined
 ): boolean {
-    let normalisedURL = normaliseURLDomainOrThrowError(toCheckUrl);
+    function isNumeric(str: any) {
+        if (typeof str != "string") return false; // we only process strings!
+        return (
+            !isNaN(str as any) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+        ); // ...and ensure strings of whitespace fail
+    }
+    toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
+    let urlObj = new URL(toCheckUrl);
+    let domain = urlObj.hostname;
     if (cookieDomain === undefined) {
-        return normalisedURL === apiDomain;
+        domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
+        apiDomain = normaliseURLDomainOrThrowError(apiDomain);
+        let apiUrlObj = new URL(apiDomain);
+        return domain === (apiUrlObj.port === "" ? apiUrlObj.hostname : apiUrlObj.hostname + ":" + apiUrlObj.port);
     } else {
-        let urlObj = new URL(normalisedURL);
-        let domain = urlObj.hostname;
+        let normalisedCookieDomain = normaliseSessionScopeOrThrowError(cookieDomain);
+        if (cookieDomain.split(":").length > 1) {
+            // means port may provided
+            let portStr = cookieDomain.split(":")[cookieDomain.split(":").length - 1];
+            if (isNumeric(portStr)) {
+                normalisedCookieDomain += ":" + portStr;
+                domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
+            }
+        }
         if (cookieDomain.startsWith(".")) {
-            return domain.endsWith(cookieDomain);
+            return ("." + domain).endsWith(normalisedCookieDomain);
         } else {
-            return domain === apiDomain;
+            return domain === normalisedCookieDomain;
         }
     }
 }
