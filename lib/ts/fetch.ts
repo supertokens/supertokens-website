@@ -325,6 +325,23 @@ export default class AuthHttpRequest {
             }
         }
     };
+
+    static attemptRefreshingSession = async (): Promise<boolean> => {
+        try {
+            const preRequestIdToken = await getIdRefreshToken(false);
+            return await handleUnauthorised(
+                AuthHttpRequest.refreshTokenUrl,
+                preRequestIdToken,
+                AuthHttpRequest.config.refreshAPICustomHeaders,
+                AuthHttpRequest.config.sessionExpiredStatusCode
+            );
+        } finally {
+            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
+                await AntiCsrfToken.removeToken();
+                await FrontToken.removeToken();
+            }
+        }
+    };
 }
 
 async function loopThroughResponseHeadersAndApplyFunction(

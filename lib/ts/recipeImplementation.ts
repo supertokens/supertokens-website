@@ -1,5 +1,5 @@
 import { RecipeInterface, NormalisedInputType } from "./types";
-import AuthHttpRequest, { FrontToken, getIdRefreshToken, handleUnauthorised, AntiCsrfToken } from "./fetch";
+import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 
 export class RecipeImplementation implements RecipeInterface {
@@ -56,7 +56,7 @@ export class RecipeImplementation implements RecipeInterface {
         }
 
         if (tokenInfo.ate < Date.now()) {
-            let retry = await this.attemptRefreshingSession(config);
+            let retry = await AuthHttpRequest.attemptRefreshingSession();
             if (retry) {
                 return await this.getJWTPayloadSecurely(config);
             } else {
@@ -64,23 +64,6 @@ export class RecipeImplementation implements RecipeInterface {
             }
         }
         return tokenInfo.up;
-    };
-
-    attemptRefreshingSession = async (config: NormalisedInputType): Promise<boolean> => {
-        try {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                config.refreshAPICustomHeaders,
-                config.sessionExpiredStatusCode
-            );
-        } finally {
-            if (!(await this.doesSessionExist(config))) {
-                await AntiCsrfToken.removeToken();
-                await FrontToken.removeToken();
-            }
-        }
     };
 
     doesSessionExist = async (_: NormalisedInputType): Promise<boolean> => {

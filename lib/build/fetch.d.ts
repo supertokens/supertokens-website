@@ -35,6 +35,7 @@ export default class AuthHttpRequest {
     static config: NormalisedInputType;
     static init(options: InputType): void;
     static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
+    static attemptRefreshingSession: () => Promise<boolean>;
 }
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,

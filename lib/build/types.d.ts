@@ -32,7 +32,6 @@ export interface RecipeInterface {
     addAxiosInterceptors: (axiosInstance: any, config: NormalisedInputType) => Promise<void>;
     getUserId: (config: NormalisedInputType) => Promise<string>;
     getJWTPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
-    attemptRefreshingSession: (config: NormalisedInputType) => Promise<boolean>;
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
     signOut: (config: NormalisedInputType) => Promise<void>;
 }

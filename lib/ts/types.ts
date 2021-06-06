@@ -51,8 +51,6 @@ export interface RecipeInterface {
 
     getJWTPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
 
-    attemptRefreshingSession: (config: NormalisedInputType) => Promise<boolean>;
-
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
 
     signOut: (config: NormalisedInputType) => Promise<void>;

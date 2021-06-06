@@ -36,7 +36,7 @@ export default class AuthHttpRequest {
     }
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        return AuthHttpRequestFetch.recipeImpl.attemptRefreshingSession(AuthHttpRequestFetch.config);
+        return AuthHttpRequestFetch.attemptRefreshingSession();
     };
 
     static doesSessionExist = () => {
