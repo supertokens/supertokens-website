@@ -1,4 +1,4 @@
-import RecipeImplementation from './recipeImplementation';
+import RecipeImplementation from "./recipeImplementation";
 export declare type InputType = {
     apiDomain: string;
     apiBasePath?: string;

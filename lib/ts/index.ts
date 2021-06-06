@@ -14,7 +14,8 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import { InputType } from "./types";
+import { InputType, RecipeInterface } from "./types";
+import RecipeImplementation from "./recipeImplementation";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -68,3 +69,4 @@ export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
+export { RecipeImplementation, RecipeInterface, InputType };
