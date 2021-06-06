@@ -15,7 +15,9 @@
 
 import NormalisedURLDomain from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
-import { InputType, NormalisedInputType } from "./types";
+import { InputType, NormalisedInputType, RecipeInterface } from "./types";
+import RecipeImplementation from "./recipeImplementation";
+
 export function isAnIpAddress(ipaddress: string) {
     return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
         ipaddress
@@ -127,6 +129,13 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         onHandleEvent = options.onHandleEvent;
     }
 
+    let override: {
+        functions: (originalImplementation: RecipeImplementation) => RecipeInterface;
+    } = {
+        functions: oI => oI,
+        ...options.override
+    };
+
     return {
         apiDomain,
         apiBasePath,
@@ -136,7 +145,8 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe,
         cookieDomain,
         preAPIHook,
-        onHandleEvent
+        onHandleEvent,
+        override
     };
 }
 

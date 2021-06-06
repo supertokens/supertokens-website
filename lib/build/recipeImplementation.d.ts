@@ -1,5 +1,5 @@
 import { RecipeInterface, NormalisedInputType } from "./types";
-export declare class RecipeImplementation implements RecipeInterface {
+export default class RecipeImplementation implements RecipeInterface {
     addFetchInterceptorsAndReturnModifiedFetch: (originalFetch: any, _: NormalisedInputType) => typeof fetch;
     addAxiosInterceptors: (axiosInstance: any, _: NormalisedInputType) => void;
     getUserId: (_: NormalisedInputType) => Promise<string>;

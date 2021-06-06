@@ -2,7 +2,7 @@ import { RecipeInterface, NormalisedInputType } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 
-export class RecipeImplementation implements RecipeInterface {
+export default class RecipeImplementation implements RecipeInterface {
     addFetchInterceptorsAndReturnModifiedFetch = (originalFetch: any, _: NormalisedInputType): typeof fetch => {
         return async (url: RequestInfo, config?: RequestInit): Promise<Response> => {
             return await AuthHttpRequest.doRequest(

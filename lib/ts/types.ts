@@ -13,6 +13,8 @@
  * under the License.
  */
 
+import RecipeImplementation from "./recipeImplementation";
+
 export type InputType = {
     apiDomain: string;
     apiBasePath?: string;
@@ -27,6 +29,9 @@ export type InputType = {
         url: string;
     }) => Promise<{ url: string; requestInit: RequestInit }>;
     onHandleEvent?: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => void;
+    override?: {
+        functions?: (originalImplementation: RecipeImplementation) => RecipeInterface;
+    };
 };
 
 export type NormalisedInputType = {
@@ -43,6 +48,9 @@ export type NormalisedInputType = {
         url: string;
     }) => Promise<{ url: string; requestInit: RequestInit }>;
     onHandleEvent: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => void;
+    override: {
+        functions: (originalImplementation: RecipeImplementation) => RecipeInterface;
+    };
 };
 
 export type PreAPIHookFunction = (context: {

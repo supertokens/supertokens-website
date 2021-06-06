@@ -18,7 +18,7 @@ import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import { doesSessionExist } from "./index";
-import { RecipeImplementation } from "./recipeImplementation";
+import RecipeImplementation from "./recipeImplementation";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -138,7 +138,7 @@ export default class AuthHttpRequest {
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             // this block contains code that is run just once per page load..
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
-            AuthHttpRequest.recipeImpl = new RecipeImplementation();
+            AuthHttpRequest.recipeImpl = config.override.functions(new RecipeImplementation());
         }
         if (!AuthHttpRequest.addedFetchInterceptor) {
             AuthHttpRequest.addedFetchInterceptor = true;
