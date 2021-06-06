@@ -1,9 +1,9 @@
-import { RecipeInterface } from "./types";
+import { RecipeInterface, NormalisedInputType } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken, handleUnauthorised, AntiCsrfToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 
 export class RecipeImplementation implements RecipeInterface {
-    addFetchInterceptors = async (env: any, originalFetch: any): Promise<void> => {
+    addFetchInterceptors = async (env: any, originalFetch: any, _: NormalisedInputType): Promise<void> => {
         let fetchInterceptor = async (url: RequestInfo, config?: RequestInit) => {
             return await AuthHttpRequest.doRequest(
                 (config?: RequestInit) => {
@@ -21,7 +21,7 @@ export class RecipeImplementation implements RecipeInterface {
         };
     };
 
-    addAxiosInterceptors = async (axiosInstance: any): Promise<void> => {
+    addAxiosInterceptors = async (axiosInstance: any, _: NormalisedInputType): Promise<void> => {
         // we first check if this axiosInstance already has our interceptors.
         let requestInterceptors = axiosInstance.interceptors.request;
         for (let i = 0; i < requestInterceptors.handlers.length; i++) {
@@ -41,7 +41,7 @@ export class RecipeImplementation implements RecipeInterface {
         );
     };
 
-    getUserId = async (): Promise<string> => {
+    getUserId = async (_: NormalisedInputType): Promise<string> => {
         let tokenInfo = await FrontToken.getTokenInfo();
         if (tokenInfo === undefined) {
             throw new Error("No session exists");
@@ -49,16 +49,16 @@ export class RecipeImplementation implements RecipeInterface {
         return tokenInfo.uid;
     };
 
-    getJWTPayloadSecurely = async (): Promise<any> => {
+    getJWTPayloadSecurely = async (config: NormalisedInputType): Promise<any> => {
         let tokenInfo = await FrontToken.getTokenInfo();
         if (tokenInfo === undefined) {
             throw new Error("No session exists");
         }
 
         if (tokenInfo.ate < Date.now()) {
-            let retry = await this.attemptRefreshingSession();
+            let retry = await this.attemptRefreshingSession(config);
             if (retry) {
-                return await this.getJWTPayloadSecurely();
+                return await this.getJWTPayloadSecurely(config);
             } else {
                 throw new Error("Could not refresh session");
             }
@@ -66,29 +66,29 @@ export class RecipeImplementation implements RecipeInterface {
         return tokenInfo.up;
     };
 
-    attemptRefreshingSession = async (): Promise<boolean> => {
+    attemptRefreshingSession = async (config: NormalisedInputType): Promise<boolean> => {
         try {
             const preRequestIdToken = await getIdRefreshToken(false);
             return await handleUnauthorised(
                 AuthHttpRequest.refreshTokenUrl,
                 preRequestIdToken,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
+                config.refreshAPICustomHeaders,
+                config.sessionExpiredStatusCode
             );
         } finally {
-            if (!(await this.doesSessionExist())) {
+            if (!(await this.doesSessionExist(config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
         }
     };
 
-    doesSessionExist = async (): Promise<boolean> => {
+    doesSessionExist = async (_: NormalisedInputType): Promise<boolean> => {
         return (await getIdRefreshToken(true)).status === "EXISTS";
     };
 
-    signOut = async (): Promise<void> => {
-        if (!(await this.doesSessionExist())) {
+    signOut = async (config: NormalisedInputType): Promise<void> => {
+        if (!(await this.doesSessionExist(config))) {
             return;
         }
 
@@ -96,14 +96,14 @@ export class RecipeImplementation implements RecipeInterface {
             method: "post",
             credentials: "include",
             headers:
-                AuthHttpRequest.signoutAPICustomHeaders === undefined
+                config.signoutAPICustomHeaders === undefined
                     ? undefined
                     : {
-                          ...AuthHttpRequest.signoutAPICustomHeaders
+                          ...config.signoutAPICustomHeaders
                       }
         });
 
-        if (resp.status === AuthHttpRequest.sessionExpiredStatusCode) {
+        if (resp.status === config.sessionExpiredStatusCode) {
             return;
         }
 

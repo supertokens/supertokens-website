@@ -295,7 +295,7 @@ describe("Config tests", function() {
                 apiBasePath: "/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://example.com");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://example.com");
         }
 
         {
@@ -304,7 +304,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://api.example.com/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://api.example.com");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://api.example.com");
         }
 
         {
@@ -313,7 +313,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "http://localhost");
+            assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost");
         }
 
         {
@@ -322,7 +322,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost:9000/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "http://localhost:9000");
+            assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost:9000");
         }
 
         {
@@ -331,7 +331,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://localhost:9000/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://localhost:9000");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://localhost:9000");
         }
 
         {
@@ -341,7 +341,7 @@ describe("Config tests", function() {
                 sessionExpiredStatusCode: 402
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.sessionExpiredStatusCode === 402);
+            assert(AuthHttpRequestFetch.config.sessionExpiredStatusCode === 402);
         }
 
         {
@@ -349,8 +349,8 @@ describe("Config tests", function() {
                 apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === "localhost.org");
-            assert(Object.keys(AuthHttpRequestFetch.refreshAPICustomHeaders).length === 0);
+            assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
+            assert(Object.keys(AuthHttpRequestFetch.config.refreshAPICustomHeaders).length === 0);
         }
 
         {
@@ -359,7 +359,7 @@ describe("Config tests", function() {
                 sessionScope: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === "a.b.example.com");
+            assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");
         }
     });
 });

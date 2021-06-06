@@ -16,7 +16,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
-import { InputType, RecipeInterface } from "./types";
+import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import { doesSessionExist } from "./index";
 import { RecipeImplementation } from "./recipeImplementation";
 
@@ -129,45 +129,22 @@ export async function handleUnauthorised(
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
-    static sessionExpiredStatusCode: number;
     static initCalled = false;
-    static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
-    static sessionScope: string;
-    static refreshAPICustomHeaders: any;
-    static signoutAPICustomHeaders: any;
-    static autoAddCredentials: boolean;
     static rid: string;
     static env: any;
-    static isInIframe: boolean;
-    static cookieDomain: string | undefined;
     static recipeImpl: RecipeInterface;
+    static config: NormalisedInputType;
 
     static init(options: InputType) {
-        let {
-            apiDomain,
-            apiBasePath,
-            sessionScope,
-            refreshAPICustomHeaders,
-            signoutAPICustomHeaders,
-            sessionExpiredStatusCode,
-            autoAddCredentials,
-            isInIframe,
-            cookieDomain
-        } = validateAndNormaliseInputOrThrowError(options);
+        let config = validateAndNormaliseInputOrThrowError(options);
         AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
-        AuthHttpRequest.autoAddCredentials = autoAddCredentials;
-        AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
-        AuthHttpRequest.signOutUrl = apiDomain + apiBasePath + "/signout";
-        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders;
-        AuthHttpRequest.signoutAPICustomHeaders = signoutAPICustomHeaders;
-        AuthHttpRequest.sessionScope = sessionScope;
-        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
-        AuthHttpRequest.apiDomain = apiDomain;
-        AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
-        AuthHttpRequest.isInIframe = isInIframe;
-        AuthHttpRequest.cookieDomain = cookieDomain;
+        AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
+        AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
+        AuthHttpRequest.rid =
+            config.refreshAPICustomHeaders["rid"] === undefined ? "session" : config.refreshAPICustomHeaders["rid"];
+        AuthHttpRequest.config = config;
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             // this block contains code that is run just once per page load..
@@ -178,7 +155,8 @@ export default class AuthHttpRequest {
             AuthHttpRequest.addedFetchInterceptor = true;
             AuthHttpRequest.recipeImpl.addFetchInterceptors(
                 AuthHttpRequest.env,
-                AuthHttpRequest.env.__supertokensOriginalFetch
+                AuthHttpRequest.env.__supertokensOriginalFetch,
+                config
             );
         }
 
@@ -198,11 +176,19 @@ export default class AuthHttpRequest {
         try {
             doNotDoInterception =
                 (typeof url === "string" &&
-                    !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
+                    !shouldDoInterceptionBasedOnUrl(
+                        url,
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
+                    ) &&
                     AuthHttpRequest.addedFetchInterceptor) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
-                    !shouldDoInterceptionBasedOnUrl(url.url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
+                    !shouldDoInterceptionBasedOnUrl(
+                        url.url,
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
+                    ) &&
                     AuthHttpRequest.addedFetchInterceptor);
         } catch (err) {
             if (err.message === "Please provide a valid domain name") {
@@ -210,8 +196,8 @@ export default class AuthHttpRequest {
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequest.apiDomain,
-                        AuthHttpRequest.cookieDomain
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
                     ) && AuthHttpRequest.addedFetchInterceptor;
             } else {
                 throw err;
@@ -251,7 +237,7 @@ export default class AuthHttpRequest {
                     }
                 }
 
-                if (AuthHttpRequest.autoAddCredentials) {
+                if (AuthHttpRequest.config.autoAddCredentials) {
                     if (configWithAntiCsrf === undefined) {
                         configWithAntiCsrf = {
                             credentials: "include"
@@ -284,12 +270,12 @@ export default class AuthHttpRequest {
                             await setIdRefreshToken(value);
                         }
                     });
-                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
+                            AuthHttpRequest.config.refreshAPICustomHeaders,
+                            AuthHttpRequest.config.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             returnObj = response;
@@ -309,12 +295,12 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
+                    if (err.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequest.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
+                            AuthHttpRequest.config.refreshAPICustomHeaders,
+                            AuthHttpRequest.config.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             throwError = true;
@@ -521,8 +507,8 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
                 await handleUnauthorised(
                     AuthHttpRequest.refreshTokenUrl,
                     response,
-                    AuthHttpRequest.refreshAPICustomHeaders,
-                    AuthHttpRequest.sessionExpiredStatusCode
+                    AuthHttpRequest.config.refreshAPICustomHeaders,
+                    AuthHttpRequest.config.sessionExpiredStatusCode
                 );
             } catch (err) {
                 // in case the backend is not working, we treat it as the session not existing...
@@ -561,20 +547,20 @@ export async function setIdRefreshToken(idRefreshToken: string) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
             }`;
         } else {
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
             }`;
         }
     }
 
-    setIDToCookie(idRefreshToken, AuthHttpRequest.sessionScope);
+    setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
         return null;
     }
 
@@ -612,31 +598,31 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         } else {
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         }
     }
 
-    setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.sessionScope);
+    setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
 }
 
 export async function getFrontToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
         return null;
     }
 
@@ -673,25 +659,25 @@ export async function setFrontToken(frontToken: string | undefined) {
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         } else {
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         }
     }
 
-    setFrontTokenToCookie(frontToken, AuthHttpRequest.sessionScope);
+    setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
 }

@@ -28,19 +28,19 @@ export default class AuthHttpRequest {
     }
 
     static getUserId(): Promise<string> {
-        return AuthHttpRequestFetch.recipeImpl.getUserId();
+        return AuthHttpRequestFetch.recipeImpl.getUserId(AuthHttpRequestFetch.config);
     }
 
     static async getJWTPayloadSecurely(): Promise<any> {
-        return AuthHttpRequestFetch.recipeImpl.getJWTPayloadSecurely();
+        return AuthHttpRequestFetch.recipeImpl.getJWTPayloadSecurely(AuthHttpRequestFetch.config);
     }
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        return AuthHttpRequestFetch.recipeImpl.attemptRefreshingSession();
+        return AuthHttpRequestFetch.recipeImpl.attemptRefreshingSession(AuthHttpRequestFetch.config);
     };
 
     static doesSessionExist = () => {
-        return AuthHttpRequestFetch.recipeImpl.doesSessionExist();
+        return AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config);
     };
 
     static addAxiosInterceptors = (axiosInstance: any) => {
@@ -49,15 +49,15 @@ export default class AuthHttpRequest {
             // this to the queue and wait for it to be initialised, and then on
             // init call, we add all the interceptors.
             AuthHttpRequest.axiosInterceptorQueue.push(() => {
-                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance);
+                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
             });
         } else {
-            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance);
+            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
         }
     };
 
     static signOut = () => {
-        return AuthHttpRequestFetch.recipeImpl.signOut();
+        return AuthHttpRequestFetch.recipeImpl.signOut(AuthHttpRequestFetch.config);
     };
 }
 

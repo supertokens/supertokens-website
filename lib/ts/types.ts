@@ -43,19 +43,19 @@ export type PreAPIHookFunction = (context: {
 }) => Promise<{ url: string; requestInit: RequestInit }>;
 
 export interface RecipeInterface {
-    addFetchInterceptors: (env: any, originalFetch: any) => Promise<void>;
+    addFetchInterceptors: (env: any, originalFetch: any, config: NormalisedInputType) => Promise<void>;
 
-    addAxiosInterceptors: (axiosInstance: any) => Promise<void>;
+    addAxiosInterceptors: (axiosInstance: any, config: NormalisedInputType) => Promise<void>;
 
-    getUserId: () => Promise<string>;
+    getUserId: (config: NormalisedInputType) => Promise<string>;
 
-    getJWTPayloadSecurely: () => Promise<any>;
+    getJWTPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
 
-    attemptRefreshingSession: () => Promise<boolean>;
+    attemptRefreshingSession: (config: NormalisedInputType) => Promise<boolean>;
 
-    doesSessionExist: () => Promise<boolean>;
+    doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
 
-    signOut: () => Promise<void>;
+    signOut: (config: NormalisedInputType) => Promise<void>;
 
     // saveSessionFromResponse: (context: { requestInit: RequestInit; url: string; response: Response }) => Promise<void>;
 

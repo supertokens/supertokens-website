@@ -1,4 +1,4 @@
-import { InputType, RecipeInterface } from "./types";
+import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -27,19 +27,12 @@ export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
-    static sessionExpiredStatusCode: number;
     static initCalled: boolean;
-    static apiDomain: string;
     static addedFetchInterceptor: boolean;
-    static sessionScope: string;
-    static refreshAPICustomHeaders: any;
-    static signoutAPICustomHeaders: any;
-    static autoAddCredentials: boolean;
     static rid: string;
     static env: any;
-    static isInIframe: boolean;
-    static cookieDomain: string | undefined;
     static recipeImpl: RecipeInterface;
+    static config: NormalisedInputType;
     static init(options: InputType): void;
     static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
 }

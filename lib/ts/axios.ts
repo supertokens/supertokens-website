@@ -46,14 +46,18 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     try {
         doNotDoInterception =
             typeof url === "string" &&
-            !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequestFetch.apiDomain, AuthHttpRequestFetch.cookieDomain);
+            !shouldDoInterceptionBasedOnUrl(
+                url,
+                AuthHttpRequestFetch.config.apiDomain,
+                AuthHttpRequestFetch.config.cookieDomain
+            );
     } catch (err) {
         if (err.message === "Please provide a valid domain name") {
             // .origin gives the port as well..
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 window.location.origin,
-                AuthHttpRequestFetch.apiDomain,
-                AuthHttpRequestFetch.cookieDomain
+                AuthHttpRequestFetch.config.apiDomain,
+                AuthHttpRequestFetch.config.cookieDomain
             );
         } else {
             throw err;
@@ -85,7 +89,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         }
     }
 
-    if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+    if (AuthHttpRequestFetch.config.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
         configWithAntiCsrf = {
             ...configWithAntiCsrf,
             withCredentials: true
@@ -123,16 +127,16 @@ export function responseInterceptor(axiosInstance: any) {
                     typeof url === "string" &&
                     !shouldDoInterceptionBasedOnUrl(
                         url,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     );
             } catch (err) {
                 if (err.message === "Please provide a valid domain name") {
                     // .origin gives the port as well..
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     );
                 } else {
                     throw err;
@@ -149,7 +153,7 @@ export function responseInterceptor(axiosInstance: any) {
             if (idRefreshToken !== undefined) {
                 await setIdRefreshToken(idRefreshToken);
             }
-            if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
+            if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                 let config = response.config;
                 return AuthHttpRequest.doRequest(
                     (config: AxiosRequestConfig) => {
@@ -178,7 +182,10 @@ export function responseInterceptor(axiosInstance: any) {
                 return response;
             }
         } finally {
-            if (!doNotDoInterception && !(await AuthHttpRequestFetch.recipeImpl.doesSessionExist())) {
+            if (
+                !doNotDoInterception &&
+                !(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))
+            ) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -188,7 +195,10 @@ export function responseInterceptor(axiosInstance: any) {
 
 export function responseErrorInterceptor(axiosInstance: any) {
     return (error: any) => {
-        if (error.response !== undefined && error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
+        if (
+            error.response !== undefined &&
+            error.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
+        ) {
             let config = error.config;
             return AuthHttpRequest.doRequest(
                 (config: AxiosRequestConfig) => {
@@ -238,8 +248,8 @@ export default class AuthHttpRequest {
                 typeof url === "string" &&
                 !shouldDoInterceptionBasedOnUrl(
                     url,
-                    AuthHttpRequestFetch.apiDomain,
-                    AuthHttpRequestFetch.cookieDomain
+                    AuthHttpRequestFetch.config.apiDomain,
+                    AuthHttpRequestFetch.config.cookieDomain
                 ) &&
                 viaInterceptor;
         } catch (err) {
@@ -248,8 +258,8 @@ export default class AuthHttpRequest {
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     ) && viaInterceptor;
             } else {
                 throw err;
@@ -292,7 +302,10 @@ export default class AuthHttpRequest {
                     }
                 }
 
-                if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+                if (
+                    AuthHttpRequestFetch.config.autoAddCredentials &&
+                    configWithAntiCsrf.withCredentials === undefined
+                ) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
                         withCredentials: true
@@ -326,12 +339,12 @@ export default class AuthHttpRequest {
                     if (idRefreshToken !== undefined) {
                         await setIdRefreshToken(idRefreshToken);
                     }
-                    if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
+                    if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.sessionExpiredStatusCode
+                            AuthHttpRequestFetch.config.refreshAPICustomHeaders,
+                            AuthHttpRequestFetch.config.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             returnObj = response;
@@ -354,13 +367,13 @@ export default class AuthHttpRequest {
                 } catch (err) {
                     if (
                         err.response !== undefined &&
-                        err.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
+                        err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
                         let retry = await handleUnauthorised(
                             AuthHttpRequestFetch.refreshTokenUrl,
                             preRequestIdToken,
-                            AuthHttpRequestFetch.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.sessionExpiredStatusCode
+                            AuthHttpRequestFetch.config.refreshAPICustomHeaders,
+                            AuthHttpRequestFetch.config.sessionExpiredStatusCode
                         );
                         if (!retry) {
                             throwError = true;
@@ -379,7 +392,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist())) {
+            if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
