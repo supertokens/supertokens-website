@@ -15,15 +15,10 @@
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
-import {
-    validateAndNormaliseInputOrThrowError,
-    normaliseURLPathOrThrowError,
-    normaliseURLDomainOrThrowError,
-    getWindowOrThrow,
-    shouldDoInterceptionBasedOnUrl
-} from "./utils";
-import { InputType } from "./types";
+import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
+import { InputType, RecipeInterface } from "./types";
 import { doesSessionExist } from "./index";
+import { RecipeImplementation } from "./recipeImplementation";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -141,22 +136,12 @@ export default class AuthHttpRequest {
     static sessionScope: string;
     static refreshAPICustomHeaders: any;
     static signoutAPICustomHeaders: any;
-    static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
     static rid: string;
     static env: any;
     static isInIframe: boolean;
     static cookieDomain: string | undefined;
-
-    static setAuth0API(apiPath: string) {
-        AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
-    }
-
-    static getAuth0API = () => {
-        return {
-            apiPath: AuthHttpRequest.auth0Path
-        };
-    };
+    static recipeImpl: RecipeInterface;
 
     static init(options: InputType) {
         let {
@@ -185,21 +170,20 @@ export default class AuthHttpRequest {
         AuthHttpRequest.cookieDomain = cookieDomain;
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
+            // this block contains code that is run just once per page load..
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
+            AuthHttpRequest.recipeImpl = new RecipeImplementation();
         }
         if (!AuthHttpRequest.addedFetchInterceptor) {
             AuthHttpRequest.addedFetchInterceptor = true;
-            AuthHttpRequest.env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
-                return AuthHttpRequest.fetch(url, config);
-            };
+            AuthHttpRequest.recipeImpl.addFetchInterceptors(
+                AuthHttpRequest.env,
+                AuthHttpRequest.env.__supertokensOriginalFetch
+            );
         }
 
         AuthHttpRequest.initCalled = true;
     }
-
-    static getRefreshURLDomain = (): string => {
-        return normaliseURLDomainOrThrowError(AuthHttpRequest.refreshTokenUrl);
-    };
 
     static async getUserId(): Promise<string> {
         let tokenInfo = await FrontToken.getTokenInfo();
@@ -263,7 +247,7 @@ export default class AuthHttpRequest {
      * attempts to call the refresh token API and if that is successful, calls this API again.
      * @throws Error
      */
-    private static doRequest = async (
+    static doRequest = async (
         httpCall: (config?: RequestInit) => Promise<Response>,
         config?: RequestInit,
         url?: any
@@ -441,18 +425,6 @@ export default class AuthHttpRequest {
                 await FrontToken.removeToken();
             }
         }
-    };
-
-    private static fetch = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.env.__supertokensOriginalFetch(url, {
-                    ...config
-                });
-            },
-            config,
-            url
-        );
     };
 
     static doesSessionExist = async () => {

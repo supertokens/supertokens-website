@@ -186,6 +186,29 @@ export function responseInterceptor(axiosInstance: any) {
     };
 }
 
+export function responseErrorInterceptor(axiosInstance: any) {
+    return (error: any) => {
+        if (error.response !== undefined && error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
+            let config = error.config;
+            return AuthHttpRequest.doRequest(
+                (config: AxiosRequestConfig) => {
+                    // we create an instance since we don't want to intercept this.
+                    // const instance = axios.create();
+                    // return instance(config);
+                    return axiosInstance(config);
+                },
+                config,
+                getUrlFromConfig(config),
+                undefined,
+                error,
+                true
+            );
+        } else {
+            throw error;
+        }
+    };
+}
+
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -361,47 +384,5 @@ export default class AuthHttpRequest {
                 await FrontToken.removeToken();
             }
         }
-    };
-
-    static addAxiosInterceptors = (axiosInstance: any) => {
-        // we first check if this axiosInstance already has our interceptors.
-        let requestInterceptors = axiosInstance.interceptors.request;
-        for (let i = 0; i < requestInterceptors.handlers.length; i++) {
-            if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
-                return;
-            }
-        }
-        // Add a request interceptor
-        axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(error: any) {
-            throw error;
-        });
-
-        // Add a response interceptor
-        axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance), async function(error: any) {
-            if (!AuthHttpRequestFetch.initCalled) {
-                throw new Error("init function not called");
-            }
-            if (
-                error.response !== undefined &&
-                error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
-            ) {
-                let config = error.config;
-                return AuthHttpRequest.doRequest(
-                    (config: AxiosRequestConfig) => {
-                        // we create an instance since we don't want to intercept this.
-                        // const instance = axios.create();
-                        // return instance(config);
-                        return axiosInstance(config);
-                    },
-                    config,
-                    getUrlFromConfig(config),
-                    undefined,
-                    error,
-                    true
-                );
-            } else {
-                throw error;
-            }
-        });
     };
 }

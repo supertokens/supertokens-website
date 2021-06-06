@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed:
 - Backward compatibility with cross domain localstorage
+- Removes `setAuth0API`, `getAuth0API` and `getRefreshURLDomain` functions.
 
 ## [7.2.0] - 2021-06-05
 ### Added:

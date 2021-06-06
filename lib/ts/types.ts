@@ -36,3 +36,26 @@ export type NormalisedInputType = {
     isInIframe: boolean;
     cookieDomain: string | undefined;
 };
+
+export type PreAPIHookFunction = (context: {
+    requestInit: RequestInit;
+    url: string;
+}) => Promise<{ url: string; requestInit: RequestInit }>;
+
+export interface RecipeInterface {
+    addFetchInterceptors: (env: any, originalFetch: any) => Promise<void>;
+
+    addAxiosInterceptors: (axiosInstance: any) => Promise<void>;
+
+    // getUserId: () => Promise<string>;
+
+    // getJWTPayloadSecurely: () => Promise<any>;
+
+    // doesSessionExist: () => Promise<boolean>;
+
+    // signOut: () => Promise<void>;
+
+    // saveSessionFromResponse: (context: { requestInit: RequestInit; url: string; response: Response }) => Promise<void>;
+
+    // attachSessionToRequest: PreAPIHookFunction;
+}

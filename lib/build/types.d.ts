@@ -20,3 +20,14 @@ export declare type NormalisedInputType = {
     isInIframe: boolean;
     cookieDomain: string | undefined;
 };
+export declare type PreAPIHookFunction = (context: {
+    requestInit: RequestInit;
+    url: string;
+}) => Promise<{
+    url: string;
+    requestInit: RequestInit;
+}>;
+export interface RecipeInterface {
+    addFetchInterceptors: (env: any, originalFetch: any) => Promise<void>;
+    addAxiosInterceptors: (axiosInstance: any) => Promise<void>;
+}

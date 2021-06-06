@@ -132,13 +132,6 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponse, expectedResponse);
     });
 
-    it("testing getDomain", async function() {
-        AuthHttpRequest.init({
-            apiDomain: "https://hello.com"
-        });
-        assert.strictEqual(AuthHttpRequest.getRefreshURLDomain(), "https://hello.com");
-    });
-
     it("testing api methods with config", async function() {
         AuthHttpRequest.init({
             apiDomain: BASE_URL

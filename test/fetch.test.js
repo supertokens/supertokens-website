@@ -77,13 +77,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("testing getDomain", async function() {
-        AuthHttpRequest.init({
-            apiDomain: `https://hello.com/`
-        });
-        assert.strictEqual(AuthHttpRequest.getRefreshURLDomain(), "https://hello.com");
-    });
-
     it("testing with fetch for init check in doRequest", async function() {
         let failed = false;
         try {

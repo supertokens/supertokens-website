@@ -14,25 +14,18 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import AuthHttpRequestAxios from "./axios";
 import { InputType } from "./types";
 
 export default class AuthHttpRequest {
+    private static axiosInterceptorQueue: (() => void)[] = [];
+
     static init(options: InputType) {
         AuthHttpRequestFetch.init(options);
+        AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
+            f();
+        });
+        AuthHttpRequest.axiosInterceptorQueue = [];
     }
-
-    static setAuth0API(apiPath: string) {
-        return AuthHttpRequestFetch.setAuth0API(apiPath);
-    }
-
-    static getAuth0API = () => {
-        return AuthHttpRequestFetch.getAuth0API();
-    };
-
-    static getRefreshURLDomain = (): string | undefined => {
-        return AuthHttpRequestFetch.getRefreshURLDomain();
-    };
 
     static getUserId(): Promise<string> {
         return AuthHttpRequestFetch.getUserId();
@@ -42,11 +35,6 @@ export default class AuthHttpRequest {
         return AuthHttpRequestFetch.getJWTPayloadSecurely();
     }
 
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
     static attemptRefreshingSession = async (): Promise<boolean> => {
         return AuthHttpRequestFetch.attemptRefreshingSession();
     };
@@ -56,7 +44,16 @@ export default class AuthHttpRequest {
     };
 
     static addAxiosInterceptors = (axiosInstance: any) => {
-        return AuthHttpRequestAxios.addAxiosInterceptors(axiosInstance);
+        if (!AuthHttpRequestFetch.initCalled) {
+            // the recipe implementation has not been initialised yet, so add
+            // this to the queue and wait for it to be initialised, and then on
+            // init call, we add all the interceptors.
+            AuthHttpRequest.axiosInterceptorQueue.push(() => {
+                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance);
+            });
+        } else {
+            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance);
+        }
     };
 
     static signOut = () => {
@@ -65,9 +62,6 @@ export default class AuthHttpRequest {
 }
 
 export let init = AuthHttpRequest.init;
-export let setAuth0API = AuthHttpRequest.setAuth0API;
-export let getAuth0API = AuthHttpRequest.getAuth0API;
-export let getRefreshURLDomain = AuthHttpRequest.getRefreshURLDomain;
 export let getUserId = AuthHttpRequest.getUserId;
 export let getJWTPayloadSecurely = AuthHttpRequest.getJWTPayloadSecurely;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
