@@ -41,23 +41,7 @@ export default class AuthHttpRequest {
     static cookieDomain: string | undefined;
     static recipeImpl: RecipeInterface;
     static init(options: InputType): void;
-    static getUserId(): Promise<string>;
-    static getJWTPayloadSecurely(): Promise<any>;
-    static signOut(): Promise<void>;
-    /**
-     * @description sends the actual http request and returns a response if successful/
-     * If not successful due to session expiry reasons, it
-     * attempts to call the refresh token API and if that is successful, calls this API again.
-     * @throws Error
-     */
     static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
-    static attemptRefreshingSession: () => Promise<boolean>;
-    static doesSessionExist: () => Promise<boolean>;
 }
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,

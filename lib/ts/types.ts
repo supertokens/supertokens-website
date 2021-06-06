@@ -47,13 +47,15 @@ export interface RecipeInterface {
 
     addAxiosInterceptors: (axiosInstance: any) => Promise<void>;
 
-    // getUserId: () => Promise<string>;
+    getUserId: () => Promise<string>;
 
-    // getJWTPayloadSecurely: () => Promise<any>;
+    getJWTPayloadSecurely: () => Promise<any>;
 
-    // doesSessionExist: () => Promise<boolean>;
+    attemptRefreshingSession: () => Promise<boolean>;
 
-    // signOut: () => Promise<void>;
+    doesSessionExist: () => Promise<boolean>;
+
+    signOut: () => Promise<void>;
 
     // saveSessionFromResponse: (context: { requestInit: RequestInit; url: string; response: Response }) => Promise<void>;
 

@@ -178,7 +178,7 @@ export function responseInterceptor(axiosInstance: any) {
                 return response;
             }
         } finally {
-            if (!doNotDoInterception && !(await AuthHttpRequestFetch.doesSessionExist())) {
+            if (!doNotDoInterception && !(await AuthHttpRequestFetch.recipeImpl.doesSessionExist())) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -379,7 +379,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (!(await AuthHttpRequestFetch.doesSessionExist())) {
+            if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist())) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }

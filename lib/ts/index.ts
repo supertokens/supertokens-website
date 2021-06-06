@@ -28,19 +28,19 @@ export default class AuthHttpRequest {
     }
 
     static getUserId(): Promise<string> {
-        return AuthHttpRequestFetch.getUserId();
+        return AuthHttpRequestFetch.recipeImpl.getUserId();
     }
 
     static async getJWTPayloadSecurely(): Promise<any> {
-        return AuthHttpRequestFetch.getJWTPayloadSecurely();
+        return AuthHttpRequestFetch.recipeImpl.getJWTPayloadSecurely();
     }
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        return AuthHttpRequestFetch.attemptRefreshingSession();
+        return AuthHttpRequestFetch.recipeImpl.attemptRefreshingSession();
     };
 
     static doesSessionExist = () => {
-        return AuthHttpRequestFetch.doesSessionExist();
+        return AuthHttpRequestFetch.recipeImpl.doesSessionExist();
     };
 
     static addAxiosInterceptors = (axiosInstance: any) => {
@@ -57,7 +57,7 @@ export default class AuthHttpRequest {
     };
 
     static signOut = () => {
-        return AuthHttpRequestFetch.signOut();
+        return AuthHttpRequestFetch.recipeImpl.signOut();
     };
 }
 

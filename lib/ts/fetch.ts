@@ -185,68 +185,6 @@ export default class AuthHttpRequest {
         AuthHttpRequest.initCalled = true;
     }
 
-    static async getUserId(): Promise<string> {
-        let tokenInfo = await FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-        return tokenInfo.uid;
-    }
-
-    static async getJWTPayloadSecurely(): Promise<any> {
-        let tokenInfo = await FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-
-        if (tokenInfo.ate < Date.now()) {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            let retry = await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
-            if (retry) {
-                return await AuthHttpRequest.getJWTPayloadSecurely();
-            } else {
-                throw new Error("Could not refresh session");
-            }
-        }
-        return tokenInfo.up;
-    }
-
-    static async signOut() {
-        if (!(await AuthHttpRequest.doesSessionExist())) {
-            return;
-        }
-
-        let resp = await fetch(AuthHttpRequest.signOutUrl, {
-            method: "post",
-            credentials: "include",
-            headers:
-                AuthHttpRequest.signoutAPICustomHeaders === undefined
-                    ? undefined
-                    : {
-                          ...AuthHttpRequest.signoutAPICustomHeaders
-                      }
-        });
-
-        if (resp.status === AuthHttpRequest.sessionExpiredStatusCode) {
-            return;
-        }
-
-        if (resp.status >= 300) {
-            throw resp;
-        }
-    }
-
-    /**
-     * @description sends the actual http request and returns a response if successful/
-     * If not successful due to session expiry reasons, it
-     * attempts to call the refresh token API and if that is successful, calls this API again.
-     * @throws Error
-     */
     static doRequest = async (
         httpCall: (config?: RequestInit) => Promise<Response>,
         config?: RequestInit,
@@ -400,35 +338,6 @@ export default class AuthHttpRequest {
                 await FrontToken.removeToken();
             }
         }
-    };
-
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
-    static attemptRefreshingSession = async (): Promise<boolean> => {
-        if (!AuthHttpRequest.initCalled) {
-            throw Error("init function not called");
-        }
-        try {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
-        } finally {
-            if (!(await doesSessionExist())) {
-                await AntiCsrfToken.removeToken();
-                await FrontToken.removeToken();
-            }
-        }
-    };
-
-    static doesSessionExist = async () => {
-        return (await getIdRefreshToken(true)).status === "EXISTS";
     };
 }
 
@@ -665,7 +574,7 @@ export async function setIdRefreshToken(idRefreshToken: string) {
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist())) {
         return null;
     }
 
@@ -727,7 +636,7 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
 }
 
 export async function getFrontToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist())) {
         return null;
     }
 
