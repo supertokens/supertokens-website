@@ -1,5 +1,4 @@
-import { InputType } from "./utils";
-import CrossDomainLocalstorage from "./crossDomainLocalstorage";
+import { InputType } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -32,15 +31,11 @@ export default class AuthHttpRequest {
     static initCalled: boolean;
     static apiDomain: string;
     static addedFetchInterceptor: boolean;
-    static sessionScope: {
-        scope: string;
-        authDomain: string;
-    } | undefined;
+    static sessionScope: string;
     static refreshAPICustomHeaders: any;
     static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
-    static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
     static env: any;
     static isInIframe: boolean;

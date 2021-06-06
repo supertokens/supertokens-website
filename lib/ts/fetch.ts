@@ -16,15 +16,13 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import {
-    InputType,
     validateAndNormaliseInputOrThrowError,
     normaliseURLPathOrThrowError,
     normaliseURLDomainOrThrowError,
     getWindowOrThrow,
-    normaliseSessionScopeOrThrowError,
     shouldDoInterceptionBasedOnUrl
 } from "./utils";
-import CrossDomainLocalstorage from "./crossDomainLocalstorage";
+import { InputType } from "./types";
 import { doesSessionExist } from "./index";
 
 export class AntiCsrfToken {
@@ -140,17 +138,11 @@ export default class AuthHttpRequest {
     static initCalled = false;
     static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
-    static sessionScope:
-        | {
-              scope: string;
-              authDomain: string;
-          }
-        | undefined;
+    static sessionScope: string;
     static refreshAPICustomHeaders: any;
     static signoutAPICustomHeaders: any;
     static auth0Path: string | undefined;
     static autoAddCredentials: boolean;
-    static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
     static env: any;
     static isInIframe: boolean;
@@ -188,7 +180,6 @@ export default class AuthHttpRequest {
         AuthHttpRequest.sessionScope = sessionScope;
         AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
         AuthHttpRequest.apiDomain = apiDomain;
-        AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
         AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
         AuthHttpRequest.isInIframe = isInIframe;
         AuthHttpRequest.cookieDomain = cookieDomain;
@@ -627,16 +618,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
         }
 
         let fromCookie = getIDFromCookieOld();
-        if (fromCookie !== undefined) {
-            return fromCookie;
-        }
-
-        let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
-        if (fromLocalstorage !== null) {
-            await setIdRefreshToken(fromLocalstorage);
-        }
-
-        return fromLocalstorage === null ? undefined : fromLocalstorage;
+        return fromCookie;
     }
 
     let token = await getIdRefreshTokenFromLocal();
@@ -707,14 +689,7 @@ export async function setIdRefreshToken(idRefreshToken: string) {
         }
     }
 
-    setIDToCookie(
-        idRefreshToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
-
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
+    setIDToCookie(idRefreshToken, AuthHttpRequest.sessionScope);
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
@@ -739,16 +714,7 @@ async function getAntiCSRFToken(): Promise<string | null> {
     }
 
     let fromCookie = getAntiCSRFromCookie();
-    if (fromCookie !== null) {
-        return fromCookie;
-    }
-
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
-    if (fromLocalstorage !== null) {
-        await setAntiCSRF(fromLocalstorage);
-    }
-
-    return fromLocalstorage;
+    return fromCookie;
 }
 
 // give antiCSRFToken as undefined to remove it.
@@ -785,14 +751,7 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
         }
     }
 
-    setAntiCSRFToCookie(
-        antiCSRFToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
-
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
+    setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.sessionScope);
 }
 
 export async function getFrontToken(): Promise<string | null> {
@@ -817,16 +776,7 @@ export async function getFrontToken(): Promise<string | null> {
     }
 
     let fromCookie = getFrontTokenFromCookie();
-    if (fromCookie !== null) {
-        return fromCookie;
-    }
-
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
-    if (fromLocalstorage !== null) {
-        await setFrontToken(fromLocalstorage);
-    }
-
-    return fromLocalstorage;
+    return fromCookie;
 }
 
 export async function setFrontToken(frontToken: string | undefined) {
@@ -862,12 +812,5 @@ export async function setFrontToken(frontToken: string | undefined) {
         }
     }
 
-    setFrontTokenToCookie(
-        frontToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
-
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
+    setFrontTokenToCookie(frontToken, AuthHttpRequest.sessionScope);
 }

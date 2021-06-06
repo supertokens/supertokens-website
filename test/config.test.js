@@ -341,20 +341,17 @@ describe("Config tests", function() {
                 apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === undefined);
+            assert(AuthHttpRequestFetch.sessionScope === "localhost.org");
             assert(Object.keys(AuthHttpRequestFetch.refreshAPICustomHeaders).length === 0);
         }
 
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                sessionScope: {
-                    scope: "a.b.example.com",
-                    authDomain: "example.com"
-                }
+                sessionScope: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope.scope === "a.b.example.com");
+            assert(AuthHttpRequestFetch.sessionScope === "a.b.example.com");
         }
     });
 });

@@ -1,4 +1,4 @@
-import { InputType } from "./utils";
+import { InputType } from "./types";
 export default class AuthHttpRequest {
     static init(options: InputType): void;
     static setAuth0API(apiPath: string): void;

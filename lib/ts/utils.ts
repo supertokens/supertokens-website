@@ -1,5 +1,3 @@
-import NormalisedURLDomain from "./normalisedURLDomain";
-import NormalisedURLPath from "./normalisedURLPath";
 /* Copyright (c) 2020, VRAI Labs and/or its affiliates. All rights reserved.
  *
  * This software is licensed under the Apache License, Version 2.0 (the
@@ -15,38 +13,9 @@ import NormalisedURLPath from "./normalisedURLPath";
  * under the License.
  */
 
-export type InputType = {
-    apiDomain: string;
-    apiBasePath?: string;
-    sessionScope?: {
-        scope: string;
-        authDomain: string;
-    };
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode?: number;
-    autoAddCredentials?: boolean;
-    isInIframe?: boolean;
-    cookieDomain?: string;
-};
-
-export type NormalisedInputType = {
-    apiDomain: string;
-    apiBasePath: string;
-    sessionScope:
-        | {
-              scope: string;
-              authDomain: string;
-          }
-        | undefined;
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode: number;
-    autoAddCredentials: boolean;
-    isInIframe: boolean;
-    cookieDomain: string | undefined;
-};
-
+import NormalisedURLDomain from "./normalisedURLDomain";
+import NormalisedURLPath from "./normalisedURLPath";
+import { InputType, NormalisedInputType } from "./types";
 export function isAnIpAddress(ipaddress: string) {
     return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
         ipaddress
@@ -117,12 +86,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let sessionScope = undefined;
+    let sessionScope = normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname);
     if (options.sessionScope !== undefined) {
-        sessionScope = {
-            scope: normaliseSessionScopeOrThrowError(options.sessionScope.scope),
-            authDomain: normaliseURLDomainOrThrowError(options.sessionScope.authDomain)
-        };
+        sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
     }
 
     let refreshAPICustomHeaders = {};

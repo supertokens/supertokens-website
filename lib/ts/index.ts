@@ -15,7 +15,7 @@
 
 import AuthHttpRequestFetch from "./fetch";
 import AuthHttpRequestAxios from "./axios";
-import { InputType } from "./utils";
+import { InputType } from "./types";
 
 export default class AuthHttpRequest {
     static init(options: InputType) {

@@ -36,11 +36,9 @@ supertokens.init({
     isInIframe: true,
     refreshAPICustomHeaders: {},
     sessionExpiredStatusCode: 440,
-    sessionScope: {
-        authDomain: "",
-        scope: ""
-    },
-    signoutAPICustomHeaders: {}
+    sessionScope: "",
+    signoutAPICustomHeaders: {},
+    cookieDomain: "",
 });
 
 supertokens.getJWTPayloadSecurely().then(p => {
