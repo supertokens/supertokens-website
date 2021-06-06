@@ -3,8 +3,8 @@ import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 
 export class RecipeImplementation implements RecipeInterface {
-    addFetchInterceptors = async (env: any, originalFetch: any, _: NormalisedInputType): Promise<void> => {
-        let fetchInterceptor = async (url: RequestInfo, config?: RequestInit) => {
+    addFetchInterceptorsAndReturnModifiedFetch = (originalFetch: any, _: NormalisedInputType): typeof fetch => {
+        return async (url: RequestInfo, config?: RequestInit): Promise<Response> => {
             return await AuthHttpRequest.doRequest(
                 (config?: RequestInit) => {
                     return originalFetch(url, {
@@ -15,13 +15,9 @@ export class RecipeImplementation implements RecipeInterface {
                 url
             );
         };
-
-        env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
-            return fetchInterceptor(url, config);
-        };
     };
 
-    addAxiosInterceptors = async (axiosInstance: any, _: NormalisedInputType): Promise<void> => {
+    addAxiosInterceptors = (axiosInstance: any, _: NormalisedInputType): void => {
         // we first check if this axiosInstance already has our interceptors.
         let requestInterceptors = axiosInstance.interceptors.request;
         for (let i = 0; i < requestInterceptors.handlers.length; i++) {
@@ -75,34 +71,25 @@ export class RecipeImplementation implements RecipeInterface {
             return;
         }
 
-        let resp = await fetch(AuthHttpRequest.signOutUrl, {
-            method: "post",
-            credentials: "include",
-            headers:
-                config.signoutAPICustomHeaders === undefined
-                    ? undefined
-                    : {
-                          ...config.signoutAPICustomHeaders
-                      }
+        let preAPIResult = await config.preAPIHook({
+            action: "SIGN_OUT",
+            requestInit: {
+                method: "post"
+            },
+            url: AuthHttpRequest.signOutUrl
         });
 
+        let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
+
         if (resp.status === config.sessionExpiredStatusCode) {
+            // refresh must have already sent session expiry event
             return;
         }
 
         if (resp.status >= 300) {
             throw resp;
         }
+
+        // we do not send an event here since it's triggered in setIdRefreshToken area.
     };
-
-    // saveSessionFromResponse = (context: { requestInit: RequestInit; url: string; response: Response }): Promise<void> => {
-
-    // }
-
-    // attachSessionToRequest = (context: {
-    //     requestInit: RequestInit;
-    //     url: string;
-    // }): Promise<{ url: string; requestInit: RequestInit }> => {
-
-    // }
 }

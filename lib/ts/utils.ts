@@ -91,11 +91,6 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
     }
 
-    let refreshAPICustomHeaders = {};
-    if (options.refreshAPICustomHeaders !== undefined) {
-        refreshAPICustomHeaders = options.refreshAPICustomHeaders;
-    }
-
     let sessionExpiredStatusCode = 401;
     if (options.sessionExpiredStatusCode !== undefined) {
         sessionExpiredStatusCode = options.sessionExpiredStatusCode;
@@ -116,15 +111,32 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
+    let preAPIHook = async (context: {
+        action: "SIGN_OUT" | "REFRESH_SESSION";
+        requestInit: RequestInit;
+        url: string;
+    }): Promise<{ url: string; requestInit: RequestInit }> => {
+        return { url: context.url, requestInit: context.requestInit };
+    };
+    if (options.preAPIHook !== undefined) {
+        preAPIHook = options.preAPIHook;
+    }
+
+    let onHandleEvent = (_: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => {};
+    if (options.onHandleEvent !== undefined) {
+        onHandleEvent = options.onHandleEvent;
+    }
+
     return {
         apiDomain,
         apiBasePath,
         sessionScope,
-        refreshAPICustomHeaders,
         sessionExpiredStatusCode,
         autoAddCredentials,
         isInIframe,
-        cookieDomain
+        cookieDomain,
+        preAPIHook,
+        onHandleEvent
     };
 }
 

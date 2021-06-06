@@ -6,12 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.0.0] - 2021-06-06
 
+### Added:
+- Recipe interface that can be overrided
+- `preAPIHook` and `onHandleEvent` functions
+
 ### Changed:
 - `sessionScope` is not a string
 
 ### Removed:
 - Backward compatibility with cross domain localstorage
 - Removes `setAuth0API`, `getAuth0API` and `getRefreshURLDomain` functions.
+- Removed `refreshAPICustomHeaders` and `signoutAPICustomHeaders` from config. Use `preAPIHook` instead.
 
 ## [7.2.0] - 2021-06-05
 ### Added:

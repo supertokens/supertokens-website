@@ -34,10 +34,8 @@ supertokens.init({
     apiBasePath: "",
     autoAddCredentials: true,
     isInIframe: true,
-    refreshAPICustomHeaders: {},
     sessionExpiredStatusCode: 440,
     sessionScope: "",
-    signoutAPICustomHeaders: {},
     cookieDomain: "",
 });
 

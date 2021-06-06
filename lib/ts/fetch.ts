@@ -102,18 +102,8 @@ export class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export async function handleUnauthorised(
-    refreshAPI: string,
-    preRequestIdToken: IdRefreshTokenType,
-    refreshAPICustomHeaders: any,
-    sessionExpiredStatusCode: number
-): Promise<boolean> {
-    let result = await onUnauthorisedResponse(
-        refreshAPI,
-        preRequestIdToken,
-        refreshAPICustomHeaders,
-        sessionExpiredStatusCode
-    );
+export async function handleUnauthorised(preRequestIdToken: IdRefreshTokenType): Promise<boolean> {
+    let result = await onUnauthorisedResponse(preRequestIdToken);
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
@@ -142,8 +132,7 @@ export default class AuthHttpRequest {
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
-        AuthHttpRequest.rid =
-            config.refreshAPICustomHeaders["rid"] === undefined ? "session" : config.refreshAPICustomHeaders["rid"];
+        AuthHttpRequest.rid = "session";
         AuthHttpRequest.config = config;
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
@@ -153,8 +142,7 @@ export default class AuthHttpRequest {
         }
         if (!AuthHttpRequest.addedFetchInterceptor) {
             AuthHttpRequest.addedFetchInterceptor = true;
-            AuthHttpRequest.recipeImpl.addFetchInterceptors(
-                AuthHttpRequest.env,
+            AuthHttpRequest.env.fetch = AuthHttpRequest.recipeImpl.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config
             );
@@ -267,16 +255,11 @@ export default class AuthHttpRequest {
                     let response = await httpCall(configWithAntiCsrf);
                     await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                         if (key.toString() === "id-refresh-token") {
-                            await setIdRefreshToken(value);
+                            await setIdRefreshToken(value, response.status);
                         }
                     });
                     if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequest.config.refreshAPICustomHeaders,
-                            AuthHttpRequest.config.sessionExpiredStatusCode
-                        );
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -296,12 +279,7 @@ export default class AuthHttpRequest {
                     }
                 } catch (err) {
                     if (err.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequest.config.refreshAPICustomHeaders,
-                            AuthHttpRequest.config.sessionExpiredStatusCode
-                        );
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
@@ -329,12 +307,7 @@ export default class AuthHttpRequest {
     static attemptRefreshingSession = async (): Promise<boolean> => {
         try {
             const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.config.refreshAPICustomHeaders,
-                AuthHttpRequest.config.sessionExpiredStatusCode
-            );
+            return await handleUnauthorised(preRequestIdToken);
         } finally {
             if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
                 await AntiCsrfToken.removeToken();
@@ -366,10 +339,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
 export async function onUnauthorisedResponse(
-    refreshTokenUrl: string,
-    preRequestIdToken: IdRefreshTokenType,
-    refreshAPICustomHeaders: any,
-    sessionExpiredStatusCode: number
+    preRequestIdToken: IdRefreshTokenType
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -389,9 +359,7 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let headers: any = {
-                    ...refreshAPICustomHeaders
-                };
+                let headers: any = {};
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
@@ -406,22 +374,30 @@ export async function onUnauthorisedResponse(
                     ...headers,
                     "fdi-version": supported_fdi.join(",")
                 };
-                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(refreshTokenUrl, {
-                    method: "post",
-                    credentials: "include",
-                    headers
+                let preAPIResult = await AuthHttpRequest.config.preAPIHook({
+                    action: "REFRESH_SESSION",
+                    requestInit: {
+                        method: "post",
+                        credentials: "include",
+                        headers
+                    },
+                    url: AuthHttpRequest.refreshTokenUrl
                 });
+                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(
+                    preAPIResult.url,
+                    preAPIResult.requestInit
+                );
                 let removeIdRefreshToken = true;
                 await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
-                        await setIdRefreshToken(value);
+                        await setIdRefreshToken(value, response.status);
                         removeIdRefreshToken = false;
                     }
                 });
-                if (response.status === sessionExpiredStatusCode) {
+                if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
-                        await setIdRefreshToken("remove");
+                        await setIdRefreshToken("remove", response.status);
                     }
                 }
                 if (response.status >= 300) {
@@ -441,6 +417,9 @@ export async function onUnauthorisedResponse(
                     } else if (key.toString() === "front-token") {
                         await FrontToken.setItem(value);
                     }
+                });
+                AuthHttpRequest.config.onHandleEvent({
+                    action: "REFRESH_SESSION"
                 });
                 return { result: "RETRY" };
             } catch (error) {
@@ -521,12 +500,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
             // either session doesn't exist, or the
             // cookies have expired (privacy feature that caps lifetime of cookies to 7 days)
             try {
-                await handleUnauthorised(
-                    AuthHttpRequest.refreshTokenUrl,
-                    response,
-                    AuthHttpRequest.config.refreshAPICustomHeaders,
-                    AuthHttpRequest.config.sessionExpiredStatusCode
-                );
+                await handleUnauthorised(response);
             } catch (err) {
                 // in case the backend is not working, we treat it as the session not existing...
                 return {
@@ -545,7 +519,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     };
 }
 
-export async function setIdRefreshToken(idRefreshToken: string) {
+export async function setIdRefreshToken(idRefreshToken: string, statusCode: number) {
     function setIDToCookie(idRefreshToken: string, domain: string) {
         // if the value of the token is "remove", it means
         // the session is being removed. So we set it to "remove" in the
@@ -573,7 +547,18 @@ export async function setIdRefreshToken(idRefreshToken: string) {
         }
     }
 
+    let wasLoggedIn = (await getIdRefreshToken(false)).status === "EXISTS";
+
     setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
+
+    if (idRefreshToken === "remove" && wasLoggedIn) {
+        // we check for wasLoggedIn cause we don't want to fire an event
+        // unnecessarily on first app load or if the user tried
+        // to query an API that returned 401 while the user was not logged in...
+        AuthHttpRequest.config.onHandleEvent({
+            action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
+        });
+    }
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {

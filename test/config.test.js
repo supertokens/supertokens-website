@@ -350,7 +350,6 @@ describe("Config tests", function() {
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
-            assert(Object.keys(AuthHttpRequestFetch.config.refreshAPICustomHeaders).length === 0);
         }
 
         {

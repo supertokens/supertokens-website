@@ -151,7 +151,7 @@ export function responseInterceptor(axiosInstance: any) {
 
             let idRefreshToken = response.headers["id-refresh-token"];
             if (idRefreshToken !== undefined) {
-                await setIdRefreshToken(idRefreshToken);
+                await setIdRefreshToken(idRefreshToken, response.status);
             }
             if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                 let config = response.config;
@@ -337,15 +337,10 @@ export default class AuthHttpRequest {
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
-                        await setIdRefreshToken(idRefreshToken);
+                        await setIdRefreshToken(idRefreshToken, response.status);
                     }
                     if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequestFetch.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequestFetch.config.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.config.sessionExpiredStatusCode
-                        );
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -369,12 +364,7 @@ export default class AuthHttpRequest {
                         err.response !== undefined &&
                         err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequestFetch.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequestFetch.config.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.config.sessionExpiredStatusCode
-                        );
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
