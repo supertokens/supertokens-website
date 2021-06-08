@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `preAPIHook` and `onHandleEvent` functions
 
 ### Changed:
-- `sessionScope` is not a string
+- `sessionScope` is a now a string
 
 ### Removed:
 - Backward compatibility with cross domain localstorage
