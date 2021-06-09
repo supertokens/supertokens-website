@@ -1,6 +1,7 @@
 import { RecipeInterface, NormalisedInputType } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
+import { supported_fdi } from "./version";
 
 export default class RecipeImplementation implements RecipeInterface {
     addFetchInterceptorsAndReturnModifiedFetch = (originalFetch: any, _: NormalisedInputType): typeof fetch => {
@@ -74,7 +75,11 @@ export default class RecipeImplementation implements RecipeInterface {
         let preAPIResult = await config.preAPIHook({
             action: "SIGN_OUT",
             requestInit: {
-                method: "post"
+                method: "post",
+                headers: {
+                    "fdi-version": supported_fdi.join(","),
+                    rid: AuthHttpRequest.rid
+                }
             },
             url: AuthHttpRequest.signOutUrl
         });
