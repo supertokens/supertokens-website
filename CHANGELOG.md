@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.1] - 2021-06-11
+### Fixes:
+- Fixes issue https://github.com/supertokens/supertokens-node/issues/134
+
 ## [5.1.0] - 2021-03-29
 ### Added:
 - Sign out support
