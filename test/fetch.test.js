@@ -465,7 +465,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     // });
 
     it("test update jwt data  with fetch", async function() {
-        await startST();
+        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -502,18 +502,25 @@ describe("Fetch AuthHttpRequest class tests", function() {
                         Accept: "application/json",
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key: "data" })
+                    body: JSON.stringify({ key: "łukasz 馬 / 马" })
                 });
                 let data1 = await testResponse1.json();
-                assertEqual(data1.key, "data");
+                assertEqual(data1.key, "łukasz 馬 / 马");
 
                 data = await supertokens.getJWTPayloadSecurely();
-                assertEqual(data.key, "data");
+                assertEqual(data.key, "łukasz 馬 / 马");
+
+                //delay for 5 seconds for access token validity expiry
+                await delay(5);
+
+                //check that the number of times the refreshAPI was called is 0
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
                 // get jwt data
                 let testResponse2 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
                 let data2 = await testResponse2.json();
-                assertEqual(data2.key, "data");
+                assertEqual(data2.key, "łukasz 馬 / 马");
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 // update jwt data
                 let testResponse3 = await fetch(`${BASE_URL}/update-jwt`, {
@@ -522,20 +529,20 @@ describe("Fetch AuthHttpRequest class tests", function() {
                         Accept: "application/json",
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key1: "data1" })
+                    body: JSON.stringify({ key1: " łukasz data1" })
                 });
                 let data3 = await testResponse3.json();
-                assertEqual(data3.key1, "data1");
+                assertEqual(data3.key1, " łukasz data1");
                 assertEqual(data3.key, undefined);
 
                 data = await supertokens.getJWTPayloadSecurely();
-                assertEqual(data.key1, "data1");
+                assertEqual(data.key1, " łukasz data1");
                 assertEqual(data.key, undefined);
 
                 // get jwt data
                 let testResponse4 = await fetch(`${BASE_URL}/update-jwt`, { method: "get" });
                 let data4 = await testResponse4.json();
-                assertEqual(data4.key1, "data1");
+                assertEqual(data4.key1, " łukasz data1");
                 assertEqual(data4.key, undefined);
             });
         } finally {
