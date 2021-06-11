@@ -37,6 +37,16 @@ supertokens.init({
     sessionExpiredStatusCode: 440,
     sessionScope: "",
     cookieDomain: "",
+    override: {
+        functions: (oI) => {
+            return {
+                ...oI,
+                signOut: async (config) => {
+                    return oI.signOut(config);
+                }
+            }
+        }
+    }
 });
 
 supertokens.getJWTPayloadSecurely().then(p => {

@@ -1,4 +1,3 @@
-import RecipeImplementation from "./recipeImplementation";
 export declare type InputType = {
     apiDomain: string;
     apiBasePath?: string;
@@ -19,7 +18,7 @@ export declare type InputType = {
         action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED";
     }) => void;
     override?: {
-        functions?: (originalImplementation: RecipeImplementation) => RecipeInterface;
+        functions?: (originalImplementation: RecipeInterface) => RecipeInterface;
     };
 };
 export declare type NormalisedInputType = {
@@ -42,7 +41,7 @@ export declare type NormalisedInputType = {
         action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED";
     }) => void;
     override: {
-        functions: (originalImplementation: RecipeImplementation) => RecipeInterface;
+        functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     };
 };
 export declare type PreAPIHookFunction = (context: {

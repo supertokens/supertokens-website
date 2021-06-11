@@ -1,5 +1,4 @@
 import { InputType, RecipeInterface } from "./types";
-import RecipeImplementation from "./recipeImplementation";
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue;
     static init(options: InputType): void;
@@ -17,4 +16,4 @@ export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: () => Promise<boolean>;
 export declare let addAxiosInterceptors: (axiosInstance: any) => void;
 export declare let signOut: () => Promise<void>;
-export { RecipeImplementation, RecipeInterface, InputType };
+export { RecipeInterface, InputType };
