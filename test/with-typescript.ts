@@ -30,17 +30,33 @@ signOut().then(() => {
 });
 
 supertokens.init({
+    apiDomain: ""
+});
+
+supertokens.init({
     apiDomain: "",
     apiBasePath: "",
     autoAddCredentials: true,
     isInIframe: true,
-    refreshAPICustomHeaders: {},
     sessionExpiredStatusCode: 440,
-    sessionScope: {
-        authDomain: "",
-        scope: ""
+    sessionScope: "",
+    cookieDomain: "",
+    override: {
+        functions: (oI) => {
+            return {
+                ...oI,
+                signOut: async (config) => {
+                    return oI.signOut(config);
+                }
+            }
+        }
     },
-    signoutAPICustomHeaders: {}
+    onHandleEvent: async (context) => {
+
+    },
+    preAPIHook: async (context) => {
+        return context;
+    }
 });
 
 supertokens.getJWTPayloadSecurely().then(p => {

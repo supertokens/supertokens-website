@@ -1,5 +1,3 @@
-import NormalisedURLDomain from "./normalisedURLDomain";
-import NormalisedURLPath from "./normalisedURLPath";
 /* Copyright (c) 2020, VRAI Labs and/or its affiliates. All rights reserved.
  *
  * This software is licensed under the Apache License, Version 2.0 (the
@@ -15,37 +13,9 @@ import NormalisedURLPath from "./normalisedURLPath";
  * under the License.
  */
 
-export type InputType = {
-    apiDomain: string;
-    apiBasePath?: string;
-    sessionScope?: {
-        scope: string;
-        authDomain: string;
-    };
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode?: number;
-    autoAddCredentials?: boolean;
-    isInIframe?: boolean;
-    cookieDomain?: string;
-};
-
-export type NormalisedInputType = {
-    apiDomain: string;
-    apiBasePath: string;
-    sessionScope:
-        | {
-              scope: string;
-              authDomain: string;
-          }
-        | undefined;
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode: number;
-    autoAddCredentials: boolean;
-    isInIframe: boolean;
-    cookieDomain: string | undefined;
-};
+import NormalisedURLDomain from "./normalisedURLDomain";
+import NormalisedURLPath from "./normalisedURLPath";
+import { InputType, NormalisedInputType, RecipeInterface } from "./types";
 
 export function isAnIpAddress(ipaddress: string) {
     return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
@@ -117,17 +87,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let sessionScope = undefined;
+    let sessionScope = normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname);
     if (options.sessionScope !== undefined) {
-        sessionScope = {
-            scope: normaliseSessionScopeOrThrowError(options.sessionScope.scope),
-            authDomain: normaliseURLDomainOrThrowError(options.sessionScope.authDomain)
-        };
-    }
-
-    let refreshAPICustomHeaders = {};
-    if (options.refreshAPICustomHeaders !== undefined) {
-        refreshAPICustomHeaders = options.refreshAPICustomHeaders;
+        sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
     }
 
     let sessionExpiredStatusCode = 401;
@@ -150,15 +112,40 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
+    let preAPIHook = async (context: {
+        action: "SIGN_OUT" | "REFRESH_SESSION";
+        requestInit: RequestInit;
+        url: string;
+    }): Promise<{ url: string; requestInit: RequestInit }> => {
+        return { url: context.url, requestInit: context.requestInit };
+    };
+    if (options.preAPIHook !== undefined) {
+        preAPIHook = options.preAPIHook;
+    }
+
+    let onHandleEvent = (_: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => {};
+    if (options.onHandleEvent !== undefined) {
+        onHandleEvent = options.onHandleEvent;
+    }
+
+    let override: {
+        functions: (originalImplementation: RecipeInterface) => RecipeInterface;
+    } = {
+        functions: oI => oI,
+        ...options.override
+    };
+
     return {
         apiDomain,
         apiBasePath,
         sessionScope,
-        refreshAPICustomHeaders,
         sessionExpiredStatusCode,
         autoAddCredentials,
         isInIframe,
-        cookieDomain
+        cookieDomain,
+        preAPIHook,
+        onHandleEvent,
+        override
     };
 }
 

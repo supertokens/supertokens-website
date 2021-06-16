@@ -172,63 +172,71 @@ describe("Config tests", function() {
     });
 
     it("testing URL path normalisation", async function() {
-        assert(normaliseURLPathOrThrowError("http://api.example.com") === "");
-        assert(normaliseURLPathOrThrowError("https://api.example.com") === "");
-        assert(normaliseURLPathOrThrowError("http://api.example.com?hello=1") === "");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/hello") === "/hello");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/") === "");
-        assert(normaliseURLPathOrThrowError("http://api.example.com:8080") === "");
-        assert(normaliseURLPathOrThrowError("http://api.example.com#random2") === "");
-        assert(normaliseURLPathOrThrowError("api.example.com/") === "");
-        assert(normaliseURLPathOrThrowError("api.example.com#random") === "");
-        assert(normaliseURLPathOrThrowError(".example.com") === "");
-        assert(normaliseURLPathOrThrowError("api.example.com/?hello=1&bye=2") === "");
-        assert(normaliseURLPathOrThrowError(window.location.hostname) === "");
+        assert.strictEqual(normaliseURLPathOrThrowError("exists?email=john.doe%40gmail.com"), "/exists");
+        assert.strictEqual(
+            normaliseURLPathOrThrowError("/auth/email/exists?email=john.doe%40gmail.com"),
+            "/auth/email/exists"
+        );
+        assert.strictEqual(normaliseURLPathOrThrowError("exists"), "/exists");
+        assert.strictEqual(normaliseURLPathOrThrowError("/exists"), "/exists");
+        assert.strictEqual(normaliseURLPathOrThrowError("/exists?email=john.doe%40gmail.com"), "/exists");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("https://api.example.com"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com?hello=1"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/hello"), "/hello");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com:8080"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com#random2"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com/"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com#random"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError(".example.com"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com/?hello=1&bye=2"), "");
+        assert.strictEqual(normaliseURLPathOrThrowError(window.location.hostname), "");
 
-        assert(normaliseURLPathOrThrowError("http://api.example.com/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("http://1.2.3.4/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("1.2.3.4/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("https://api.example.com/one/two/") === "/one/two");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/one/two?hello=1") === "/one/two");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/hello/") === "/hello");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/one/two/") === "/one/two");
-        assert(normaliseURLPathOrThrowError("http://api.example.com:8080/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("http://api.example.com/one/two#random2") === "/one/two");
-        assert(normaliseURLPathOrThrowError("api.example.com/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("api.example.com/one/two/#random") === "/one/two");
-        assert(normaliseURLPathOrThrowError(".example.com/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("api.example.com/one/two?hello=1&bye=2") === "/one/two");
-        assert(normaliseURLPathOrThrowError(window.location.hostname + "/one/two") === "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://1.2.3.4/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("1.2.3.4/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("https://api.example.com/one/two/"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/one/two?hello=1"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/hello/"), "/hello");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/one/two/"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com:8080/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("http://api.example.com/one/two#random2"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com/one/two/#random"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError(".example.com/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("api.example.com/one/two?hello=1&bye=2"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError(window.location.hostname + "/one/two"), "/one/two");
 
-        assert(normaliseURLPathOrThrowError("/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("one/two/") === "/one/two");
-        assert(normaliseURLPathOrThrowError("/one") === "/one");
-        assert(normaliseURLPathOrThrowError("one") === "/one");
-        assert(normaliseURLPathOrThrowError("one/") === "/one");
-        assert(normaliseURLPathOrThrowError("/one/two/") === "/one/two");
-        assert(normaliseURLPathOrThrowError("/one/two?hello=1") === "/one/two");
-        assert(normaliseURLPathOrThrowError("one/two?hello=1") === "/one/two");
-        assert(normaliseURLPathOrThrowError("/one/two/#random") === "/one/two");
-        assert(normaliseURLPathOrThrowError("one/two#random") === "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("one/two/"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("/one"), "/one");
+        assert.strictEqual(normaliseURLPathOrThrowError("one"), "/one");
+        assert.strictEqual(normaliseURLPathOrThrowError("one/"), "/one");
+        assert.strictEqual(normaliseURLPathOrThrowError("/one/two/"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("/one/two?hello=1"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("one/two?hello=1"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("/one/two/#random"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("one/two#random"), "/one/two");
 
-        assert(normaliseURLPathOrThrowError("localhost:4000/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("127.0.0.1:4000/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("127.0.0.1/one/two") === "/one/two");
-        assert(normaliseURLPathOrThrowError("https://127.0.0.1:80/one/two") === "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("localhost:4000/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("127.0.0.1:4000/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("127.0.0.1/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("https://127.0.0.1:80/one/two"), "/one/two");
+        assert.strictEqual(normaliseURLPathOrThrowError("/"), "");
 
-        assert(normaliseURLPathOrThrowError("/auth/email/exists?email=john.doe%40gmail.com") === "/auth/email/exists");
-        assert(normaliseURLPathOrThrowError("exists") === "/exists");
-        assert(normaliseURLPathOrThrowError("exists?email=john.doe%40gmail.com") === "/exists");
-
-        assert(normaliseURLPathOrThrowError("/.netlify/functions/api") === "/.netlify/functions/api");
-        assert(normaliseURLPathOrThrowError("/netlify/.functions/api") === "/netlify/.functions/api");
-        assert(normaliseURLPathOrThrowError("app.example.com/.netlify/functions/api") === "/.netlify/functions/api");
-        assert(normaliseURLPathOrThrowError("app.example.com/netlify/.functions/api") === "/netlify/.functions/api");
-        assert(normaliseURLPathOrThrowError("/app.example.com") === "/app.example.com");
-
-        assert(normaliseURLPathOrThrowError(".netlify/functions/api") === "/functions/api");
-        assert(normaliseURLPathOrThrowError("netlify/.functions/api") === "/netlify/.functions/api");
+        assert.strictEqual(normaliseURLPathOrThrowError("/.netlify/functions/api"), "/.netlify/functions/api");
+        assert.strictEqual(normaliseURLPathOrThrowError("/netlify/.functions/api"), "/netlify/.functions/api");
+        assert.strictEqual(
+            normaliseURLPathOrThrowError("app.example.com/.netlify/functions/api"),
+            "/.netlify/functions/api"
+        );
+        assert.strictEqual(
+            normaliseURLPathOrThrowError("app.example.com/netlify/.functions/api"),
+            "/netlify/.functions/api"
+        );
+        assert.strictEqual(normaliseURLPathOrThrowError("/app.example.com"), "/app.example.com");
     });
 
     it("testing URL domain normalisation", async function() {
@@ -287,7 +295,7 @@ describe("Config tests", function() {
                 apiBasePath: "/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://example.com");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://example.com");
         }
 
         {
@@ -296,7 +304,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://api.example.com/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://api.example.com");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://api.example.com");
         }
 
         {
@@ -305,7 +313,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "http://localhost");
+            assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost");
         }
 
         {
@@ -314,7 +322,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost:9000/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "http://localhost:9000");
+            assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost:9000");
         }
 
         {
@@ -323,7 +331,7 @@ describe("Config tests", function() {
                 apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://localhost:9000/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.apiDomain === "https://localhost:9000");
+            assert(AuthHttpRequestFetch.config.apiDomain === "https://localhost:9000");
         }
 
         {
@@ -333,7 +341,7 @@ describe("Config tests", function() {
                 sessionExpiredStatusCode: 402
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/some/path/session/refresh");
-            assert(AuthHttpRequestFetch.sessionExpiredStatusCode === 402);
+            assert(AuthHttpRequestFetch.config.sessionExpiredStatusCode === 402);
         }
 
         {
@@ -341,20 +349,16 @@ describe("Config tests", function() {
                 apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope === undefined);
-            assert(Object.keys(AuthHttpRequestFetch.refreshAPICustomHeaders).length === 0);
+            assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
         }
 
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                sessionScope: {
-                    scope: "a.b.example.com",
-                    authDomain: "example.com"
-                }
+                sessionScope: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.sessionScope.scope === "a.b.example.com");
+            assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");
         }
     });
 });

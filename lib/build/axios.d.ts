@@ -1,6 +1,7 @@
 import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 export declare function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig): Promise<AxiosRequestConfig>;
 export declare function responseInterceptor(axiosInstance: any): (response: AxiosResponse<any>) => Promise<AxiosResponse<any>>;
+export declare function responseErrorInterceptor(axiosInstance: any): (error: any) => Promise<AxiosResponse<any>>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -13,5 +14,4 @@ export default class AuthHttpRequest {
      * @throws Error
      */
     static doRequest: (httpCall: (config: AxiosRequestConfig) => AxiosPromise<any>, config: AxiosRequestConfig, url?: string | undefined, prevResponse?: AxiosResponse<any> | undefined, prevError?: any, viaInterceptor?: boolean) => Promise<AxiosResponse<any>>;
-    static addAxiosInterceptors: (axiosInstance: any) => void;
 }

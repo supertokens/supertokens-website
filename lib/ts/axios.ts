@@ -46,14 +46,18 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     try {
         doNotDoInterception =
             typeof url === "string" &&
-            !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequestFetch.apiDomain, AuthHttpRequestFetch.cookieDomain);
+            !shouldDoInterceptionBasedOnUrl(
+                url,
+                AuthHttpRequestFetch.config.apiDomain,
+                AuthHttpRequestFetch.config.cookieDomain
+            );
     } catch (err) {
         if (err.message === "Please provide a valid domain name") {
             // .origin gives the port as well..
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 window.location.origin,
-                AuthHttpRequestFetch.apiDomain,
-                AuthHttpRequestFetch.cookieDomain
+                AuthHttpRequestFetch.config.apiDomain,
+                AuthHttpRequestFetch.config.cookieDomain
             );
         } else {
             throw err;
@@ -85,7 +89,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         }
     }
 
-    if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+    if (AuthHttpRequestFetch.config.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
         configWithAntiCsrf = {
             ...configWithAntiCsrf,
             withCredentials: true
@@ -123,16 +127,16 @@ export function responseInterceptor(axiosInstance: any) {
                     typeof url === "string" &&
                     !shouldDoInterceptionBasedOnUrl(
                         url,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     );
             } catch (err) {
                 if (err.message === "Please provide a valid domain name") {
                     // .origin gives the port as well..
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     );
                 } else {
                     throw err;
@@ -147,9 +151,9 @@ export function responseInterceptor(axiosInstance: any) {
 
             let idRefreshToken = response.headers["id-refresh-token"];
             if (idRefreshToken !== undefined) {
-                await setIdRefreshToken(idRefreshToken);
+                await setIdRefreshToken(idRefreshToken, response.status);
             }
-            if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
+            if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                 let config = response.config;
                 return AuthHttpRequest.doRequest(
                     (config: AxiosRequestConfig) => {
@@ -178,10 +182,39 @@ export function responseInterceptor(axiosInstance: any) {
                 return response;
             }
         } finally {
-            if (!doNotDoInterception && !(await AuthHttpRequestFetch.doesSessionExist())) {
+            if (
+                !doNotDoInterception &&
+                !(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))
+            ) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
+        }
+    };
+}
+
+export function responseErrorInterceptor(axiosInstance: any) {
+    return (error: any) => {
+        if (
+            error.response !== undefined &&
+            error.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
+        ) {
+            let config = error.config;
+            return AuthHttpRequest.doRequest(
+                (config: AxiosRequestConfig) => {
+                    // we create an instance since we don't want to intercept this.
+                    // const instance = axios.create();
+                    // return instance(config);
+                    return axiosInstance(config);
+                },
+                config,
+                getUrlFromConfig(config),
+                undefined,
+                error,
+                true
+            );
+        } else {
+            throw error;
         }
     };
 }
@@ -215,8 +248,8 @@ export default class AuthHttpRequest {
                 typeof url === "string" &&
                 !shouldDoInterceptionBasedOnUrl(
                     url,
-                    AuthHttpRequestFetch.apiDomain,
-                    AuthHttpRequestFetch.cookieDomain
+                    AuthHttpRequestFetch.config.apiDomain,
+                    AuthHttpRequestFetch.config.cookieDomain
                 ) &&
                 viaInterceptor;
         } catch (err) {
@@ -225,8 +258,8 @@ export default class AuthHttpRequest {
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequestFetch.apiDomain,
-                        AuthHttpRequestFetch.cookieDomain
+                        AuthHttpRequestFetch.config.apiDomain,
+                        AuthHttpRequestFetch.config.cookieDomain
                     ) && viaInterceptor;
             } else {
                 throw err;
@@ -269,7 +302,10 @@ export default class AuthHttpRequest {
                     }
                 }
 
-                if (AuthHttpRequestFetch.autoAddCredentials && configWithAntiCsrf.withCredentials === undefined) {
+                if (
+                    AuthHttpRequestFetch.config.autoAddCredentials &&
+                    configWithAntiCsrf.withCredentials === undefined
+                ) {
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
                         withCredentials: true
@@ -301,15 +337,10 @@ export default class AuthHttpRequest {
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
-                        await setIdRefreshToken(idRefreshToken);
+                        await setIdRefreshToken(idRefreshToken, response.status);
                     }
-                    if (response.status === AuthHttpRequestFetch.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequestFetch.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequestFetch.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.sessionExpiredStatusCode
-                        );
+                    if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -331,14 +362,9 @@ export default class AuthHttpRequest {
                 } catch (err) {
                     if (
                         err.response !== undefined &&
-                        err.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
+                        err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequestFetch.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequestFetch.refreshAPICustomHeaders,
-                            AuthHttpRequestFetch.sessionExpiredStatusCode
-                        );
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
@@ -356,52 +382,10 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (!(await AuthHttpRequestFetch.doesSessionExist())) {
+            if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
         }
-    };
-
-    static addAxiosInterceptors = (axiosInstance: any) => {
-        // we first check if this axiosInstance already has our interceptors.
-        let requestInterceptors = axiosInstance.interceptors.request;
-        for (let i = 0; i < requestInterceptors.handlers.length; i++) {
-            if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
-                return;
-            }
-        }
-        // Add a request interceptor
-        axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(error: any) {
-            throw error;
-        });
-
-        // Add a response interceptor
-        axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance), async function(error: any) {
-            if (!AuthHttpRequestFetch.initCalled) {
-                throw new Error("init function not called");
-            }
-            if (
-                error.response !== undefined &&
-                error.response.status === AuthHttpRequestFetch.sessionExpiredStatusCode
-            ) {
-                let config = error.config;
-                return AuthHttpRequest.doRequest(
-                    (config: AxiosRequestConfig) => {
-                        // we create an instance since we don't want to intercept this.
-                        // const instance = axios.create();
-                        // return instance(config);
-                        return axiosInstance(config);
-                    },
-                    config,
-                    getUrlFromConfig(config),
-                    undefined,
-                    error,
-                    true
-                );
-            } else {
-                throw error;
-            }
-        });
     };
 }
