@@ -30,6 +30,10 @@ signOut().then(() => {
 });
 
 supertokens.init({
+    apiDomain: ""
+});
+
+supertokens.init({
     apiDomain: "",
     apiBasePath: "",
     autoAddCredentials: true,
@@ -46,6 +50,12 @@ supertokens.init({
                 }
             }
         }
+    },
+    onHandleEvent: async (context) => {
+
+    },
+    preAPIHook: async (context) => {
+        return context;
     }
 });
 
