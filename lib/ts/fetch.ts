@@ -87,7 +87,7 @@ export class FrontToken {
         if (frontToken === null) {
             return undefined;
         }
-        return JSON.parse(atob(frontToken));
+        return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
     }
 
     static async removeToken() {
