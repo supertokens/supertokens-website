@@ -1,5 +1,4 @@
-import { InputType } from "./utils";
-import CrossDomainLocalstorage from "./crossDomainLocalstorage";
+import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -20,7 +19,7 @@ export declare class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken: IdRefreshTokenType, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<boolean>;
+export declare function handleUnauthorised(preRequestIdToken: IdRefreshTokenType): Promise<boolean>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -28,53 +27,21 @@ export declare function handleUnauthorised(refreshAPI: string, preRequestIdToken
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
-    static sessionExpiredStatusCode: number;
     static initCalled: boolean;
-    static apiDomain: string;
     static addedFetchInterceptor: boolean;
-    static sessionScope: {
-        scope: string;
-        authDomain: string;
-    } | undefined;
-    static refreshAPICustomHeaders: any;
-    static signoutAPICustomHeaders: any;
-    static auth0Path: string | undefined;
-    static autoAddCredentials: boolean;
-    static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
     static env: any;
-    static isInIframe: boolean;
-    static cookieDomain: string | undefined;
-    static setAuth0API(apiPath: string): void;
-    static getAuth0API: () => {
-        apiPath: string | undefined;
-    };
+    static recipeImpl: RecipeInterface;
+    static config: NormalisedInputType;
     static init(options: InputType): void;
-    static getRefreshURLDomain: () => string;
-    static getUserId(): Promise<string>;
-    static getJWTPayloadSecurely(): Promise<any>;
-    static signOut(): Promise<void>;
-    /**
-     * @description sends the actual http request and returns a response if successful/
-     * If not successful due to session expiry reasons, it
-     * attempts to call the refresh token API and if that is successful, calls this API again.
-     * @throws Error
-     */
-    private static doRequest;
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
+    static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
     static attemptRefreshingSession: () => Promise<boolean>;
-    private static fetch;
-    static doesSessionExist: () => Promise<boolean>;
 }
 /**
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export declare function onUnauthorisedResponse(refreshTokenUrl: string, preRequestIdToken: IdRefreshTokenType, refreshAPICustomHeaders: any, sessionExpiredStatusCode: number): Promise<{
+export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshTokenType): Promise<{
     result: "SESSION_EXPIRED";
 } | {
     result: "API_ERROR";
@@ -89,7 +56,7 @@ declare type IdRefreshTokenType = {
     token: string;
 };
 export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
-export declare function setIdRefreshToken(idRefreshToken: string): Promise<void>;
+export declare function setIdRefreshToken(idRefreshToken: string, statusCode: number): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;

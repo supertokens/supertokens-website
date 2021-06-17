@@ -15,17 +15,10 @@
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
-import {
-    InputType,
-    validateAndNormaliseInputOrThrowError,
-    normaliseURLPathOrThrowError,
-    normaliseURLDomainOrThrowError,
-    getWindowOrThrow,
-    normaliseSessionScopeOrThrowError,
-    shouldDoInterceptionBasedOnUrl
-} from "./utils";
-import CrossDomainLocalstorage from "./crossDomainLocalstorage";
+import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
+import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import { doesSessionExist } from "./index";
+import RecipeImplementation from "./recipeImplementation";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -109,18 +102,8 @@ export class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export async function handleUnauthorised(
-    refreshAPI: string,
-    preRequestIdToken: IdRefreshTokenType,
-    refreshAPICustomHeaders: any,
-    sessionExpiredStatusCode: number
-): Promise<boolean> {
-    let result = await onUnauthorisedResponse(
-        refreshAPI,
-        preRequestIdToken,
-        refreshAPICustomHeaders,
-        sessionExpiredStatusCode
-    );
+export async function handleUnauthorised(preRequestIdToken: IdRefreshTokenType): Promise<boolean> {
+    let result = await onUnauthorisedResponse(preRequestIdToken);
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
@@ -136,143 +119,39 @@ export async function handleUnauthorised(
 export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
-    static sessionExpiredStatusCode: number;
     static initCalled = false;
-    static apiDomain = "";
     static addedFetchInterceptor: boolean = false;
-    static sessionScope:
-        | {
-              scope: string;
-              authDomain: string;
-          }
-        | undefined;
-    static refreshAPICustomHeaders: any;
-    static signoutAPICustomHeaders: any;
-    static auth0Path: string | undefined;
-    static autoAddCredentials: boolean;
-    static crossDomainLocalstorage: CrossDomainLocalstorage;
     static rid: string;
     static env: any;
-    static isInIframe: boolean;
-    static cookieDomain: string | undefined;
-
-    static setAuth0API(apiPath: string) {
-        AuthHttpRequest.auth0Path = normaliseURLPathOrThrowError(apiPath);
-    }
-
-    static getAuth0API = () => {
-        return {
-            apiPath: AuthHttpRequest.auth0Path
-        };
-    };
+    static recipeImpl: RecipeInterface;
+    static config: NormalisedInputType;
 
     static init(options: InputType) {
-        let {
-            apiDomain,
-            apiBasePath,
-            sessionScope,
-            refreshAPICustomHeaders,
-            signoutAPICustomHeaders,
-            sessionExpiredStatusCode,
-            autoAddCredentials,
-            isInIframe,
-            cookieDomain
-        } = validateAndNormaliseInputOrThrowError(options);
+        let config = validateAndNormaliseInputOrThrowError(options);
         AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
-        AuthHttpRequest.autoAddCredentials = autoAddCredentials;
-        AuthHttpRequest.refreshTokenUrl = apiDomain + apiBasePath + "/session/refresh";
-        AuthHttpRequest.signOutUrl = apiDomain + apiBasePath + "/signout";
-        AuthHttpRequest.refreshAPICustomHeaders = refreshAPICustomHeaders;
-        AuthHttpRequest.signoutAPICustomHeaders = signoutAPICustomHeaders;
-        AuthHttpRequest.sessionScope = sessionScope;
-        AuthHttpRequest.sessionExpiredStatusCode = sessionExpiredStatusCode;
-        AuthHttpRequest.apiDomain = apiDomain;
-        AuthHttpRequest.crossDomainLocalstorage = new CrossDomainLocalstorage(sessionScope);
-        AuthHttpRequest.rid = refreshAPICustomHeaders["rid"] === undefined ? "session" : refreshAPICustomHeaders["rid"];
-        AuthHttpRequest.isInIframe = isInIframe;
-        AuthHttpRequest.cookieDomain = cookieDomain;
+        AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
+        AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
+        AuthHttpRequest.rid = "session";
+        AuthHttpRequest.config = config;
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
+            // this block contains code that is run just once per page load..
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
+            AuthHttpRequest.recipeImpl = config.override.functions(new RecipeImplementation());
         }
         if (!AuthHttpRequest.addedFetchInterceptor) {
             AuthHttpRequest.addedFetchInterceptor = true;
-            AuthHttpRequest.env.fetch = (url: RequestInfo, config?: RequestInit): Promise<Response> => {
-                return AuthHttpRequest.fetch(url, config);
-            };
+            AuthHttpRequest.env.fetch = AuthHttpRequest.recipeImpl.addFetchInterceptorsAndReturnModifiedFetch(
+                AuthHttpRequest.env.__supertokensOriginalFetch,
+                config
+            );
         }
 
         AuthHttpRequest.initCalled = true;
     }
 
-    static getRefreshURLDomain = (): string => {
-        return normaliseURLDomainOrThrowError(AuthHttpRequest.refreshTokenUrl);
-    };
-
-    static async getUserId(): Promise<string> {
-        let tokenInfo = await FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-        return tokenInfo.uid;
-    }
-
-    static async getJWTPayloadSecurely(): Promise<any> {
-        let tokenInfo = await FrontToken.getTokenInfo();
-        if (tokenInfo === undefined) {
-            throw new Error("No session exists");
-        }
-
-        if (tokenInfo.ate < Date.now()) {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            let retry = await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
-            if (retry) {
-                return await AuthHttpRequest.getJWTPayloadSecurely();
-            } else {
-                throw new Error("Could not refresh session");
-            }
-        }
-        return tokenInfo.up;
-    }
-
-    static async signOut() {
-        if (!(await AuthHttpRequest.doesSessionExist())) {
-            return;
-        }
-
-        let resp = await fetch(AuthHttpRequest.signOutUrl, {
-            method: "post",
-            credentials: "include",
-            headers:
-                AuthHttpRequest.signoutAPICustomHeaders === undefined
-                    ? undefined
-                    : {
-                          ...AuthHttpRequest.signoutAPICustomHeaders
-                      }
-        });
-
-        if (resp.status === AuthHttpRequest.sessionExpiredStatusCode) {
-            return;
-        }
-
-        if (resp.status >= 300) {
-            throw resp;
-        }
-    }
-
-    /**
-     * @description sends the actual http request and returns a response if successful/
-     * If not successful due to session expiry reasons, it
-     * attempts to call the refresh token API and if that is successful, calls this API again.
-     * @throws Error
-     */
-    private static doRequest = async (
+    static doRequest = async (
         httpCall: (config?: RequestInit) => Promise<Response>,
         config?: RequestInit,
         url?: any
@@ -285,11 +164,19 @@ export default class AuthHttpRequest {
         try {
             doNotDoInterception =
                 (typeof url === "string" &&
-                    !shouldDoInterceptionBasedOnUrl(url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
+                    !shouldDoInterceptionBasedOnUrl(
+                        url,
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
+                    ) &&
                     AuthHttpRequest.addedFetchInterceptor) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
-                    !shouldDoInterceptionBasedOnUrl(url.url, AuthHttpRequest.apiDomain, AuthHttpRequest.cookieDomain) &&
+                    !shouldDoInterceptionBasedOnUrl(
+                        url.url,
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
+                    ) &&
                     AuthHttpRequest.addedFetchInterceptor);
         } catch (err) {
             if (err.message === "Please provide a valid domain name") {
@@ -297,8 +184,8 @@ export default class AuthHttpRequest {
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
-                        AuthHttpRequest.apiDomain,
-                        AuthHttpRequest.cookieDomain
+                        AuthHttpRequest.config.apiDomain,
+                        AuthHttpRequest.config.cookieDomain
                     ) && AuthHttpRequest.addedFetchInterceptor;
             } else {
                 throw err;
@@ -338,7 +225,7 @@ export default class AuthHttpRequest {
                     }
                 }
 
-                if (AuthHttpRequest.autoAddCredentials) {
+                if (AuthHttpRequest.config.autoAddCredentials) {
                     if (configWithAntiCsrf === undefined) {
                         configWithAntiCsrf = {
                             credentials: "include"
@@ -368,16 +255,11 @@ export default class AuthHttpRequest {
                     let response = await httpCall(configWithAntiCsrf);
                     await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                         if (key.toString() === "id-refresh-token") {
-                            await setIdRefreshToken(value);
+                            await setIdRefreshToken(value, response.status);
                         }
                     });
-                    if (response.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
-                        );
+                    if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -396,13 +278,8 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if (err.status === AuthHttpRequest.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(
-                            AuthHttpRequest.refreshTokenUrl,
-                            preRequestIdToken,
-                            AuthHttpRequest.refreshAPICustomHeaders,
-                            AuthHttpRequest.sessionExpiredStatusCode
-                        );
+                    if (err.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
+                        let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
@@ -427,45 +304,16 @@ export default class AuthHttpRequest {
         }
     };
 
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        if (!AuthHttpRequest.initCalled) {
-            throw Error("init function not called");
-        }
         try {
             const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(
-                AuthHttpRequest.refreshTokenUrl,
-                preRequestIdToken,
-                AuthHttpRequest.refreshAPICustomHeaders,
-                AuthHttpRequest.sessionExpiredStatusCode
-            );
+            return await handleUnauthorised(preRequestIdToken);
         } finally {
-            if (!(await doesSessionExist())) {
+            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
         }
-    };
-
-    private static fetch = async (url: RequestInfo, config?: RequestInit) => {
-        return await AuthHttpRequest.doRequest(
-            (config?: RequestInit) => {
-                return AuthHttpRequest.env.__supertokensOriginalFetch(url, {
-                    ...config
-                });
-            },
-            config,
-            url
-        );
-    };
-
-    static doesSessionExist = async () => {
-        return (await getIdRefreshToken(true)).status === "EXISTS";
     };
 }
 
@@ -491,10 +339,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
 export async function onUnauthorisedResponse(
-    refreshTokenUrl: string,
-    preRequestIdToken: IdRefreshTokenType,
-    refreshAPICustomHeaders: any,
-    sessionExpiredStatusCode: number
+    preRequestIdToken: IdRefreshTokenType
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -514,9 +359,7 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let headers: any = {
-                    ...refreshAPICustomHeaders
-                };
+                let headers: any = {};
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
@@ -531,22 +374,30 @@ export async function onUnauthorisedResponse(
                     ...headers,
                     "fdi-version": supported_fdi.join(",")
                 };
-                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(refreshTokenUrl, {
-                    method: "post",
-                    credentials: "include",
-                    headers
+                let preAPIResult = await AuthHttpRequest.config.preAPIHook({
+                    action: "REFRESH_SESSION",
+                    requestInit: {
+                        method: "post",
+                        credentials: "include",
+                        headers
+                    },
+                    url: AuthHttpRequest.refreshTokenUrl
                 });
+                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(
+                    preAPIResult.url,
+                    preAPIResult.requestInit
+                );
                 let removeIdRefreshToken = true;
                 await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
                     if (key.toString() === "id-refresh-token") {
-                        await setIdRefreshToken(value);
+                        await setIdRefreshToken(value, response.status);
                         removeIdRefreshToken = false;
                     }
                 });
-                if (response.status === sessionExpiredStatusCode) {
+                if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
-                        await setIdRefreshToken("remove");
+                        await setIdRefreshToken("remove", response.status);
                     }
                 }
                 if (response.status >= 300) {
@@ -566,6 +417,9 @@ export async function onUnauthorisedResponse(
                     } else if (key.toString() === "front-token") {
                         await FrontToken.setItem(value);
                     }
+                });
+                AuthHttpRequest.config.onHandleEvent({
+                    action: "REFRESH_SESSION"
                 });
                 return { result: "RETRY" };
             } catch (error) {
@@ -627,16 +481,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
         }
 
         let fromCookie = getIDFromCookieOld();
-        if (fromCookie !== undefined) {
-            return fromCookie;
-        }
-
-        let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ID_REFRESH_TOKEN_NAME);
-        if (fromLocalstorage !== null) {
-            await setIdRefreshToken(fromLocalstorage);
-        }
-
-        return fromLocalstorage === null ? undefined : fromLocalstorage;
+        return fromCookie;
     }
 
     let token = await getIdRefreshTokenFromLocal();
@@ -655,12 +500,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
             // either session doesn't exist, or the
             // cookies have expired (privacy feature that caps lifetime of cookies to 7 days)
             try {
-                await handleUnauthorised(
-                    AuthHttpRequest.refreshTokenUrl,
-                    response,
-                    AuthHttpRequest.refreshAPICustomHeaders,
-                    AuthHttpRequest.sessionExpiredStatusCode
-                );
+                await handleUnauthorised(response);
             } catch (err) {
                 // in case the backend is not working, we treat it as the session not existing...
                 return {
@@ -679,7 +519,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     };
 }
 
-export async function setIdRefreshToken(idRefreshToken: string) {
+export async function setIdRefreshToken(idRefreshToken: string, statusCode: number) {
     function setIDToCookie(idRefreshToken: string, domain: string) {
         // if the value of the token is "remove", it means
         // the session is being removed. So we set it to "remove" in the
@@ -698,27 +538,31 @@ export async function setIdRefreshToken(idRefreshToken: string) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
             }`;
         } else {
             getWindowOrThrow().document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
             }`;
         }
     }
 
-    setIDToCookie(
-        idRefreshToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
+    let wasLoggedIn = (await getIdRefreshToken(false)).status === "EXISTS";
 
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ID_REFRESH_TOKEN_NAME);
+    setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
+
+    if (idRefreshToken === "remove" && wasLoggedIn) {
+        // we check for wasLoggedIn cause we don't want to fire an event
+        // unnecessarily on first app load or if the user tried
+        // to query an API that returned 401 while the user was not logged in...
+        AuthHttpRequest.config.onHandleEvent({
+            action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
+        });
+    }
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
         return null;
     }
 
@@ -739,16 +583,7 @@ async function getAntiCSRFToken(): Promise<string | null> {
     }
 
     let fromCookie = getAntiCSRFromCookie();
-    if (fromCookie !== null) {
-        return fromCookie;
-    }
-
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(ANTI_CSRF_NAME);
-    if (fromLocalstorage !== null) {
-        await setAntiCSRF(fromLocalstorage);
-    }
-
-    return fromLocalstorage;
+    return fromCookie;
 }
 
 // give antiCSRFToken as undefined to remove it.
@@ -765,38 +600,31 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         } else {
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         }
     }
 
-    setAntiCSRFToCookie(
-        antiCSRFToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
-
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(ANTI_CSRF_NAME);
+    setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
 }
 
 export async function getFrontToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.doesSessionExist())) {
+    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
         return null;
     }
 
@@ -817,16 +645,7 @@ export async function getFrontToken(): Promise<string | null> {
     }
 
     let fromCookie = getFrontTokenFromCookie();
-    if (fromCookie !== null) {
-        return fromCookie;
-    }
-
-    let fromLocalstorage = await AuthHttpRequest.crossDomainLocalstorage.getItem(FRONT_TOKEN_NAME);
-    if (fromLocalstorage !== null) {
-        await setFrontToken(fromLocalstorage);
-    }
-
-    return fromLocalstorage;
+    return fromCookie;
 }
 
 export async function setFrontToken(frontToken: string | undefined) {
@@ -842,32 +661,25 @@ export async function setFrontToken(frontToken: string | undefined) {
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         } else {
             if (expires !== undefined) {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             } else {
                 getWindowOrThrow().document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.isInIframe ? "none;secure" : "lax"
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`;
             }
         }
     }
 
-    setFrontTokenToCookie(
-        frontToken,
-        AuthHttpRequest.sessionScope === undefined
-            ? normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname)
-            : AuthHttpRequest.sessionScope.scope
-    );
-
-    await AuthHttpRequest.crossDomainLocalstorage.removeItem(FRONT_TOKEN_NAME);
+    setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
 }

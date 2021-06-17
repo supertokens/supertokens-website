@@ -14,63 +14,58 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import AuthHttpRequestAxios from "./axios";
-import { InputType } from "./utils";
+import { InputType, RecipeInterface } from "./types";
 
 export default class AuthHttpRequest {
+    private static axiosInterceptorQueue: (() => void)[] = [];
+
     static init(options: InputType) {
         AuthHttpRequestFetch.init(options);
+        AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
+            f();
+        });
+        AuthHttpRequest.axiosInterceptorQueue = [];
     }
-
-    static setAuth0API(apiPath: string) {
-        return AuthHttpRequestFetch.setAuth0API(apiPath);
-    }
-
-    static getAuth0API = () => {
-        return AuthHttpRequestFetch.getAuth0API();
-    };
-
-    static getRefreshURLDomain = (): string | undefined => {
-        return AuthHttpRequestFetch.getRefreshURLDomain();
-    };
 
     static getUserId(): Promise<string> {
-        return AuthHttpRequestFetch.getUserId();
+        return AuthHttpRequestFetch.recipeImpl.getUserId(AuthHttpRequestFetch.config);
     }
 
     static async getJWTPayloadSecurely(): Promise<any> {
-        return AuthHttpRequestFetch.getJWTPayloadSecurely();
+        return AuthHttpRequestFetch.recipeImpl.getJWTPayloadSecurely(AuthHttpRequestFetch.config);
     }
 
-    /**
-     * @description attempts to refresh session regardless of expiry
-     * @returns true if successful, else false if session has expired. Wrapped in a Promise
-     * @throws error if anything goes wrong
-     */
     static attemptRefreshingSession = async (): Promise<boolean> => {
         return AuthHttpRequestFetch.attemptRefreshingSession();
     };
 
     static doesSessionExist = () => {
-        return AuthHttpRequestFetch.doesSessionExist();
+        return AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config);
     };
 
     static addAxiosInterceptors = (axiosInstance: any) => {
-        return AuthHttpRequestAxios.addAxiosInterceptors(axiosInstance);
+        if (!AuthHttpRequestFetch.initCalled) {
+            // the recipe implementation has not been initialised yet, so add
+            // this to the queue and wait for it to be initialised, and then on
+            // init call, we add all the interceptors.
+            AuthHttpRequest.axiosInterceptorQueue.push(() => {
+                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
+            });
+        } else {
+            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
+        }
     };
 
     static signOut = () => {
-        return AuthHttpRequestFetch.signOut();
+        return AuthHttpRequestFetch.recipeImpl.signOut(AuthHttpRequestFetch.config);
     };
 }
 
 export let init = AuthHttpRequest.init;
-export let setAuth0API = AuthHttpRequest.setAuth0API;
-export let getAuth0API = AuthHttpRequest.getAuth0API;
-export let getRefreshURLDomain = AuthHttpRequest.getRefreshURLDomain;
 export let getUserId = AuthHttpRequest.getUserId;
 export let getJWTPayloadSecurely = AuthHttpRequest.getJWTPayloadSecurely;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
+export { RecipeInterface, InputType };

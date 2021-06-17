@@ -1,31 +1,4 @@
-export declare type InputType = {
-    apiDomain: string;
-    apiBasePath?: string;
-    sessionScope?: {
-        scope: string;
-        authDomain: string;
-    };
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode?: number;
-    autoAddCredentials?: boolean;
-    isInIframe?: boolean;
-    cookieDomain?: string;
-};
-export declare type NormalisedInputType = {
-    apiDomain: string;
-    apiBasePath: string;
-    sessionScope: {
-        scope: string;
-        authDomain: string;
-    } | undefined;
-    refreshAPICustomHeaders?: any;
-    signoutAPICustomHeaders?: any;
-    sessionExpiredStatusCode: number;
-    autoAddCredentials: boolean;
-    isInIframe: boolean;
-    cookieDomain: string | undefined;
-};
+import { InputType, NormalisedInputType } from "./types";
 export declare function isAnIpAddress(ipaddress: string): boolean;
 export declare function normaliseURLDomainOrThrowError(input: string): string;
 export declare function normaliseURLPathOrThrowError(input: string): string;

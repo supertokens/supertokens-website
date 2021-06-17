@@ -20,35 +20,26 @@ export default class NormalisedURLPath {
         this.value = normaliseURLPathOrThrowError(url);
     }
 
-    startsWith = (other: NormalisedURLPath) => {
+    startsWith = (other: NormalisedURLPath): boolean => {
         return this.value.startsWith(other.value);
     };
 
-    appendPath = (other: NormalisedURLPath) => {
+    appendPath = (other: NormalisedURLPath): NormalisedURLPath => {
         return new NormalisedURLPath(this.value + other.value);
     };
 
-    getAsStringDangerous = () => {
+    getAsStringDangerous = (): string => {
         return this.value;
-    };
-
-    equals = (other: NormalisedURLPath) => {
-        return this.value === other.value;
-    };
-
-    isARecipePath = () => {
-        return this.value === "/recipe" || this.value.startsWith("/recipe/");
     };
 }
 
-export function normaliseURLPathOrThrowError(input: string): string {
-    input = input.trim().toLowerCase();
-
+function normaliseURLPathOrThrowError(input: string): string {
+    input = input.trim();
     try {
         if (!input.startsWith("http://") && !input.startsWith("https://")) {
             throw new Error("converting to proper URL");
         }
-        let urlObj = new URL(input);
+        const urlObj: URL = new URL(input);
         input = urlObj.pathname;
 
         if (input.charAt(input.length - 1) === "/") {
@@ -56,9 +47,9 @@ export function normaliseURLPathOrThrowError(input: string): string {
         }
 
         return input;
+        // eslint-disable-next-line no-empty
     } catch (err) {}
     // not a valid URL
-
     // If the input contains a . it means they have given a domain name.
     // So we try assuming that they have given a domain name + path
     if (
@@ -78,7 +69,6 @@ export function normaliseURLPathOrThrowError(input: string): string {
     try {
         // test that we can convert this to prevent an infinite loop
         new URL("http://example.com" + input);
-
         return normaliseURLPathOrThrowError("http://example.com" + input);
     } catch (err) {
         throw new Error("Please provide a valid URL path");
@@ -92,14 +82,14 @@ function domainGiven(input: string): boolean {
     }
 
     try {
-        let url = new URL(input);
+        const url = new URL(input);
         return url.hostname.indexOf(".") !== -1;
-    } catch (ignored) {}
+    } catch (e) {}
 
     try {
-        let url = new URL("http://" + input);
+        const url = new URL("http://" + input);
         return url.hostname.indexOf(".") !== -1;
-    } catch (ignored) {}
+    } catch (e) {}
 
     return false;
 }
