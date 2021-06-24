@@ -45,7 +45,7 @@ export type NormalisedInputType = {
         requestInit: RequestInit;
         url: string;
     }) => Promise<{ url: string; requestInit: RequestInit }>;
-    onHandleEvent: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => void;
+    onHandleEvent: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED" }) => void;
     override: {
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     };

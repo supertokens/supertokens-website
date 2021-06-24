@@ -519,7 +519,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     };
 }
 
-export async function setIdRefreshToken(idRefreshToken: string, statusCode: number) {
+export async function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number) {
     function setIDToCookie(idRefreshToken: string, domain: string) {
         // if the value of the token is "remove", it means
         // the session is being removed. So we set it to "remove" in the
@@ -555,8 +555,14 @@ export async function setIdRefreshToken(idRefreshToken: string, statusCode: numb
         // we check for wasLoggedIn cause we don't want to fire an event
         // unnecessarily on first app load or if the user tried
         // to query an API that returned 401 while the user was not logged in...
-        AuthHttpRequest.config.onHandleEvent({
+        return AuthHttpRequest.config.onHandleEvent({
             action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
+        });
+    }
+
+    if (idRefreshToken !== "remove" && !wasLoggedIn) {
+        return AuthHttpRequest.config.onHandleEvent({
+            action: 'SESSION_CREATED'
         });
     }
 }
