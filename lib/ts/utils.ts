@@ -15,7 +15,7 @@
 
 import NormalisedURLDomain from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
-import { InputType, NormalisedInputType, RecipeInterface } from "./types";
+import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
 
 export function isAnIpAddress(ipaddress: string) {
     return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
@@ -123,7 +123,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         preAPIHook = options.preAPIHook;
     }
 
-    let onHandleEvent = (_: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => {};
+    let onHandleEvent: EventHandler = () => {};
     if (options.onHandleEvent !== undefined) {
         onHandleEvent = options.onHandleEvent;
     }

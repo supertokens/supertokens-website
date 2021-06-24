@@ -547,21 +547,21 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         }
     }
 
-    let wasLoggedIn = (await getIdRefreshToken(false)).status === "EXISTS";
+    const { status } = (await getIdRefreshToken(false));
 
     setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
 
-    if (idRefreshToken === "remove" && wasLoggedIn) {
+    if (idRefreshToken === "remove" && status === "EXISTS") {
         // we check for wasLoggedIn cause we don't want to fire an event
         // unnecessarily on first app load or if the user tried
         // to query an API that returned 401 while the user was not logged in...
-        return AuthHttpRequest.config.onHandleEvent({
+        AuthHttpRequest.config.onHandleEvent({
             action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
         });
     }
 
-    if (idRefreshToken !== "remove" && !wasLoggedIn) {
-        return AuthHttpRequest.config.onHandleEvent({
+    if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
+        AuthHttpRequest.config.onHandleEvent({
             action: 'SESSION_CREATED'
         });
     }
