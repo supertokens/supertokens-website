@@ -14,7 +14,7 @@
  */
 
 export type EventHandler = (event: {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED"
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED";
 }) => void;
 
 export type InputType = {

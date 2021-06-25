@@ -547,7 +547,7 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         }
     }
 
-    const { status } = (await getIdRefreshToken(false));
+    const { status } = await getIdRefreshToken(false);
 
     setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
 
@@ -562,7 +562,7 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
 
     if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
         AuthHttpRequest.config.onHandleEvent({
-            action: 'SESSION_CREATED'
+            action: "SESSION_CREATED"
         });
     }
 }
