@@ -7,6 +7,7 @@ export declare class AntiCsrfToken {
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
+    private static waiters;
     private constructor();
     static getTokenInfo(): Promise<{
         uid: string;

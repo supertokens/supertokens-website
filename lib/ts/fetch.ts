@@ -73,6 +73,10 @@ export class AntiCsrfToken {
 // Note: We do not store this in memory because another tab may have
 // modified this value, and if so, we may not know about it in this tab
 export class FrontToken {
+    // these are waiters for when the idRefreshToken has been set, but this token has
+    // not yet been set. Once this token is set or removed, the waiters are resolved.
+    private static waiters: ((value: unknown) => void)[] = [];
+
     private constructor() {}
 
     static async getTokenInfo(): Promise<
@@ -85,17 +89,30 @@ export class FrontToken {
     > {
         let frontToken = await getFrontToken();
         if (frontToken === null) {
-            return undefined;
+            if ((await getIdRefreshToken(false)).status === "EXISTS") {
+                // this means that the id refresh token has been set, so we must
+                // wait for this to be set or removed
+                await new Promise(resolve => {
+                    FrontToken.waiters.push(resolve);
+                });
+                return FrontToken.getTokenInfo();
+            } else {
+                return undefined;
+            }
         }
         return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
     }
 
     static async removeToken() {
         await setFrontToken(undefined);
+        FrontToken.waiters.forEach(f => f(undefined));
+        FrontToken.waiters = [];
     }
 
     static async setItem(frontToken: string) {
         await setFrontToken(frontToken);
+        FrontToken.waiters.forEach(f => f(undefined));
+        FrontToken.waiters = [];
     }
 }
 

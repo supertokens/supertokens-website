@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added:
 - `SESSION_CREATED` event, which can be consumed by `onHandleEvent`
 
+### Fixed:
+- If a new session is created, and we try and fetch userId or jwtPayload before the frontToken is set, then it would throw an error. However, now we wait for the frontend token to be set / removed and then return the requested information.
+
 ## [8.0.0] - 2021-06-06
 
 ### Added:
