@@ -17,7 +17,6 @@ import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
-import { doesSessionExist } from "./index";
 import RecipeImplementation from "./recipeImplementation";
 
 export class AntiCsrfToken {
@@ -314,7 +313,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (!(await doesSessionExist())) {
+            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
