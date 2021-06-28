@@ -321,15 +321,8 @@ export default class AuthHttpRequest {
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        try {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(preRequestIdToken);
-        } finally {
-            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
-                await AntiCsrfToken.removeToken();
-                await FrontToken.removeToken();
-            }
-        }
+        const preRequestIdToken = await getIdRefreshToken(false);
+        return await handleUnauthorised(preRequestIdToken);
     };
 }
 
@@ -445,7 +438,15 @@ export async function onUnauthorisedResponse(
                 }
                 return { result: "API_ERROR", error };
             } finally {
-                lock.releaseLock("REFRESH_TOKEN_USE");
+                await lock.releaseLock("REFRESH_TOKEN_USE");
+
+                // we do not call doesSessionExist here cause that
+                // may cause an infinite recursive loop when using in an iframe setting
+                // as cookies may not get set at all.
+                if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                    await AntiCsrfToken.removeToken();
+                    await FrontToken.removeToken();
+                }
             }
         }
         let idCookieValue = await getIdRefreshToken(false);
