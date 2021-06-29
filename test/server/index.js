@@ -266,4 +266,4 @@ app.use(async (err, req, res, next) => {
 });
 
 let server = http.createServer(app);
-server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "0.0.0.0");
+server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "::");
