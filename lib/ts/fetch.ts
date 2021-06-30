@@ -17,7 +17,6 @@ import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
-import { doesSessionExist } from "./index";
 import RecipeImplementation from "./recipeImplementation";
 
 export class AntiCsrfToken {
@@ -73,6 +72,10 @@ export class AntiCsrfToken {
 // Note: We do not store this in memory because another tab may have
 // modified this value, and if so, we may not know about it in this tab
 export class FrontToken {
+    // these are waiters for when the idRefreshToken has been set, but this token has
+    // not yet been set. Once this token is set or removed, the waiters are resolved.
+    private static waiters: ((value: unknown) => void)[] = [];
+
     private constructor() {}
 
     static async getTokenInfo(): Promise<
@@ -85,17 +88,30 @@ export class FrontToken {
     > {
         let frontToken = await getFrontToken();
         if (frontToken === null) {
-            return undefined;
+            if ((await getIdRefreshToken(false)).status === "EXISTS") {
+                // this means that the id refresh token has been set, so we must
+                // wait for this to be set or removed
+                await new Promise(resolve => {
+                    FrontToken.waiters.push(resolve);
+                });
+                return FrontToken.getTokenInfo();
+            } else {
+                return undefined;
+            }
         }
         return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
     }
 
     static async removeToken() {
         await setFrontToken(undefined);
+        FrontToken.waiters.forEach(f => f(undefined));
+        FrontToken.waiters = [];
     }
 
     static async setItem(frontToken: string) {
         await setFrontToken(frontToken);
+        FrontToken.waiters.forEach(f => f(undefined));
+        FrontToken.waiters = [];
     }
 }
 
@@ -297,7 +313,7 @@ export default class AuthHttpRequest {
                 return returnObj;
             }
         } finally {
-            if (!(await doesSessionExist())) {
+            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -305,15 +321,8 @@ export default class AuthHttpRequest {
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        try {
-            const preRequestIdToken = await getIdRefreshToken(false);
-            return await handleUnauthorised(preRequestIdToken);
-        } finally {
-            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
-                await AntiCsrfToken.removeToken();
-                await FrontToken.removeToken();
-            }
-        }
+        const preRequestIdToken = await getIdRefreshToken(false);
+        return await handleUnauthorised(preRequestIdToken);
     };
 }
 
@@ -429,7 +438,15 @@ export async function onUnauthorisedResponse(
                 }
                 return { result: "API_ERROR", error };
             } finally {
-                lock.releaseLock("REFRESH_TOKEN_USE");
+                await lock.releaseLock("REFRESH_TOKEN_USE");
+
+                // we do not call doesSessionExist here cause that
+                // may cause an infinite recursive loop when using in an iframe setting
+                // as cookies may not get set at all.
+                if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                    await AntiCsrfToken.removeToken();
+                    await FrontToken.removeToken();
+                }
             }
         }
         let idCookieValue = await getIdRefreshToken(false);
@@ -519,7 +536,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     };
 }
 
-export async function setIdRefreshToken(idRefreshToken: string, statusCode: number) {
+export async function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number) {
     function setIDToCookie(idRefreshToken: string, domain: string) {
         // if the value of the token is "remove", it means
         // the session is being removed. So we set it to "remove" in the
@@ -547,16 +564,22 @@ export async function setIdRefreshToken(idRefreshToken: string, statusCode: numb
         }
     }
 
-    let wasLoggedIn = (await getIdRefreshToken(false)).status === "EXISTS";
+    const { status } = await getIdRefreshToken(false);
 
     setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
 
-    if (idRefreshToken === "remove" && wasLoggedIn) {
+    if (idRefreshToken === "remove" && status === "EXISTS") {
         // we check for wasLoggedIn cause we don't want to fire an event
         // unnecessarily on first app load or if the user tried
         // to query an API that returned 401 while the user was not logged in...
         AuthHttpRequest.config.onHandleEvent({
             action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
+        });
+    }
+
+    if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
+        AuthHttpRequest.config.onHandleEvent({
+            action: "SESSION_CREATED"
         });
     }
 }

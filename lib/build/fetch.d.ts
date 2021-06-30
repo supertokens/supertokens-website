@@ -7,6 +7,7 @@ export declare class AntiCsrfToken {
     static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
+    private static waiters;
     private constructor();
     static getTokenInfo(): Promise<{
         uid: string;
@@ -56,7 +57,7 @@ declare type IdRefreshTokenType = {
     token: string;
 };
 export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
-export declare function setIdRefreshToken(idRefreshToken: string, statusCode: number): Promise<void>;
+export declare function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;

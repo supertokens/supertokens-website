@@ -1,3 +1,6 @@
+export declare type EventHandler = (event: {
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED";
+}) => void;
 export declare type InputType = {
     apiDomain: string;
     apiBasePath?: string;
@@ -14,9 +17,7 @@ export declare type InputType = {
         url: string;
         requestInit: RequestInit;
     }>;
-    onHandleEvent?: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED";
-    }) => void;
+    onHandleEvent?: EventHandler;
     override?: {
         functions?: (originalImplementation: RecipeInterface) => RecipeInterface;
     };
@@ -37,9 +38,7 @@ export declare type NormalisedInputType = {
         url: string;
         requestInit: RequestInit;
     }>;
-    onHandleEvent: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED";
-    }) => void;
+    onHandleEvent: EventHandler;
     override: {
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     };

@@ -13,6 +13,10 @@
  * under the License.
  */
 
+export type EventHandler = (event: {
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED";
+}) => void;
+
 export type InputType = {
     apiDomain: string;
     apiBasePath?: string;
@@ -26,7 +30,7 @@ export type InputType = {
         requestInit: RequestInit;
         url: string;
     }) => Promise<{ url: string; requestInit: RequestInit }>;
-    onHandleEvent?: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => void;
+    onHandleEvent?: EventHandler;
     override?: {
         functions?: (originalImplementation: RecipeInterface) => RecipeInterface;
     };
@@ -45,7 +49,7 @@ export type NormalisedInputType = {
         requestInit: RequestInit;
         url: string;
     }) => Promise<{ url: string; requestInit: RequestInit }>;
-    onHandleEvent: (context: { action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" }) => void;
+    onHandleEvent: EventHandler;
     override: {
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     };
