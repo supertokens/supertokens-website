@@ -69,6 +69,9 @@ export default class RecipeImplementation implements RecipeInterface {
 
     signOut = async (config: NormalisedInputType): Promise<void> => {
         if (!(await this.doesSessionExist(config))) {
+            config.onHandleEvent({
+                action: "SIGN_OUT"
+            });
             return;
         }
 

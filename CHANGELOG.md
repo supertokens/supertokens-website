@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed:
 - If a new session is created, and we try and fetch userId or jwtPayload before the frontToken is set, then it would throw an error. However, now we wait for the frontend token to be set / removed and then return the requested information.
-
 - Fires `UNAUTHORISED` event before attempting to refresh if we know that a session does not exist.
+- Fires `SIGN_OUT` event when `signOut` is called and a session doesn't exist.
+
 
 ## [8.0.0] - 2021-06-06
 
