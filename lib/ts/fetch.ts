@@ -357,6 +357,11 @@ export async function onUnauthorisedResponse(
             try {
                 let postLockID = await getIdRefreshToken(false);
                 if (postLockID.status === "NOT_EXISTS") {
+                    // if it comes here, it means a request was made thinking
+                    // that the session exists, but it doesn't actually exist.
+                    AuthHttpRequest.config.onHandleEvent({
+                        action: "UNAUTHORISED"
+                    });
                     return { result: "SESSION_EXPIRED" };
                 }
                 if (
@@ -414,7 +419,13 @@ export async function onUnauthorisedResponse(
                 }
 
                 if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                    // The execution should never come here.. but just in case.
                     // removed by server. So we logout
+
+                    // we do not send "UNAUTHORISED" event here because
+                    // this is a result of the refresh API returning a session expiry, which
+                    // means that the frontend did not know for sure that the session existed
+                    // in the first place.
                     return { result: "SESSION_EXPIRED" };
                 }
                 await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
@@ -434,6 +445,11 @@ export async function onUnauthorisedResponse(
             } catch (error) {
                 if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
                     // removed by server.
+
+                    // we do not send "UNAUTHORISED" event here because
+                    // this is a result of the refresh API returning a session expiry, which
+                    // means that the frontend did not know for sure that the session existed
+                    // in the first place.
                     return { result: "SESSION_EXPIRED" };
                 }
                 return { result: "API_ERROR", error };
