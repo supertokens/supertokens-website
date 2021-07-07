@@ -1718,4 +1718,198 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("test that unauthorised event is not fired on initial page load", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            let consoleLogs = [];
+            page.on("console", message => {
+                if (message.text().startsWith("ST_")) {
+                    consoleLogs.push(message.text());
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: event => {
+                        console.log("ST_" + event.action);
+                    }
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+            assert(consoleLogs.length === 1);
+            assert(consoleLogs[0] === "ST_SESSION_CREATED");
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test that unauthorised event is fired when calling protected route without a session", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            let consoleLogs = [];
+            page.on("console", message => {
+                if (message.text().startsWith("ST_")) {
+                    consoleLogs.push(message.text());
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: event => {
+                        console.log("ST_" + event.action);
+                    }
+                });
+                let response = await fetch(`${BASE_URL}/`);
+                assertEqual(response.status, 401);
+            });
+            assert(consoleLogs.length === 1);
+            assert(consoleLogs[0] === "ST_UNAUTHORISED");
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            let consoleLogs = [];
+            page.on("console", message => {
+                if (message.text().startsWith("ST_")) {
+                    consoleLogs.push(message.text());
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: event => {
+                        console.log("ST_" + event.action);
+                    }
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+
+            const client = await page.target().createCDPSession();
+            await client.send("Network.clearBrowserCookies");
+            await client.send("Network.clearBrowserCache");
+            let cookies = await page.cookies();
+            assert(cookies.length === 0);
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                let response = await fetch(`${BASE_URL}/`);
+                assertEqual(response.status, 401);
+            });
+            assert(consoleLogs.length === 2);
+            assert(consoleLogs[0] === "ST_SESSION_CREATED");
+            assert(consoleLogs[1] === "ST_UNAUTHORISED");
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            let consoleLogs = [];
+            page.on("console", message => {
+                if (message.text().startsWith("ST_")) {
+                    consoleLogs.push(message.text());
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: event => {
+                        console.log("ST_" + event.action);
+                    }
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+
+            let originalCookies = (await page.cookies()).filter(
+                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+            );
+
+            const client = await page.target().createCDPSession();
+            await client.send("Network.clearBrowserCookies");
+            await client.send("Network.clearBrowserCache");
+
+            await page.setCookie(...originalCookies);
+            let cookies = await page.cookies();
+            assert(cookies.length === 3);
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                let response = await fetch(`${BASE_URL}/`);
+                assertEqual(response.status, 401);
+            });
+            assert(consoleLogs.length === 2);
+            assert(consoleLogs[0] === "ST_SESSION_CREATED");
+            assert(consoleLogs[1] === "ST_UNAUTHORISED");
+        } finally {
+            await browser.close();
+        }
+    });
 });
