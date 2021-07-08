@@ -29,7 +29,6 @@ export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
     static initCalled: boolean;
-    static addedFetchInterceptor: boolean;
     static rid: string;
     static env: any;
     static recipeImpl: RecipeInterface;

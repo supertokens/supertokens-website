@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fires `UNAUTHORISED` event before attempting to refresh if we know that a session does not exist.
 - Fires `SIGN_OUT` event when `signOut` is called and a session doesn't exist.
 
+### Refactor:
+- Removes use of `addedFetchInterceptor` in `fetch.ts`
+
 
 ## [8.0.0] - 2021-06-06
 

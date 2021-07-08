@@ -136,7 +136,6 @@ export default class AuthHttpRequest {
     static refreshTokenUrl: string;
     static signOutUrl: string;
     static initCalled = false;
-    static addedFetchInterceptor: boolean = false;
     static rid: string;
     static env: any;
     static recipeImpl: RecipeInterface;
@@ -155,15 +154,11 @@ export default class AuthHttpRequest {
             // this block contains code that is run just once per page load..
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.recipeImpl = config.override.functions(new RecipeImplementation());
-        }
-        if (!AuthHttpRequest.addedFetchInterceptor) {
-            AuthHttpRequest.addedFetchInterceptor = true;
             AuthHttpRequest.env.fetch = AuthHttpRequest.recipeImpl.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config
             );
         }
-
         AuthHttpRequest.initCalled = true;
     }
 
@@ -184,25 +179,22 @@ export default class AuthHttpRequest {
                         url,
                         AuthHttpRequest.config.apiDomain,
                         AuthHttpRequest.config.cookieDomain
-                    ) &&
-                    AuthHttpRequest.addedFetchInterceptor) ||
+                    )) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
                     !shouldDoInterceptionBasedOnUrl(
                         url.url,
                         AuthHttpRequest.config.apiDomain,
                         AuthHttpRequest.config.cookieDomain
-                    ) &&
-                    AuthHttpRequest.addedFetchInterceptor);
+                    ));
         } catch (err) {
             if (err.message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
-                doNotDoInterception =
-                    !shouldDoInterceptionBasedOnUrl(
-                        window.location.origin,
-                        AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.cookieDomain
-                    ) && AuthHttpRequest.addedFetchInterceptor;
+                doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                    window.location.origin,
+                    AuthHttpRequest.config.apiDomain,
+                    AuthHttpRequest.config.cookieDomain
+                );
             } else {
                 throw err;
             }
@@ -212,9 +204,7 @@ export default class AuthHttpRequest {
             return await httpCall(config);
         }
 
-        if (AuthHttpRequest.addedFetchInterceptor) {
-            ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
-        }
+        ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         try {
             let throwError = false;
             let returnObj = undefined;
