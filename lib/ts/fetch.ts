@@ -152,13 +152,17 @@ export default class AuthHttpRequest {
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             // this block contains code that is run just once per page load..
+            // all items in this block are attached to the global env so that
+            // even if the init function is called more than once (maybe across JS scripts),
+            // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
-            AuthHttpRequest.recipeImpl = config.override.functions(new RecipeImplementation());
+            AuthHttpRequest.env.__supertokensSessionRecipe = config.override.functions(new RecipeImplementation());
             AuthHttpRequest.env.fetch = AuthHttpRequest.recipeImpl.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config
             );
         }
+        AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
         AuthHttpRequest.initCalled = true;
     }
 
