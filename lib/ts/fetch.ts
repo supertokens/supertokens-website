@@ -157,7 +157,7 @@ export default class AuthHttpRequest {
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.env.__supertokensSessionRecipe = config.override.functions(new RecipeImplementation());
-            AuthHttpRequest.env.fetch = AuthHttpRequest.recipeImpl.addFetchInterceptorsAndReturnModifiedFetch(
+            AuthHttpRequest.env.fetch = AuthHttpRequest.env.__supertokensSessionRecipe.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config
             );
