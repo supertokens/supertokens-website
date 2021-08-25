@@ -2042,6 +2042,65 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("refresh session with invalid tokens should clear all cookies", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let userIdFromResponse = loginResponse.data;
+                assertEqual(userId, userIdFromResponse);
+            });
+
+            // we save the cookies..
+            let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
+
+            // we logout
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                await axios({ url: `${BASE_URL}/logout`, method: "POST" });
+            });
+
+            // we set the old cookies without the access token
+            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
+            await page.setCookie(...originalCookies);
+
+            // now we expect a 401.
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                try {
+                    await axios({ url: `${BASE_URL}/`, method: "GET" });
+                } catch (err) {
+                    assertEqual(err.response.status, 401);
+                }
+            });
+
+            // and we assert that the only cookie that exists is the sIRTFrontend with the value of "remove"
+            let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
+
+            assert(newCookies.length === 1);
+            assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
+        } finally {
+            await browser.close();
+        }
+    });
 });
 
 function addAxiosInterceptorsTest(axiosInstance) {
