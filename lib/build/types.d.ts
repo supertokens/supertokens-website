@@ -1,6 +1,10 @@
-export declare type EventHandler = (event: {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED";
-}) => void;
+export declare type Event = {
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+} | {
+    action: "UNAUTHORISED";
+    sessionExpiredOrRevoked: boolean;
+};
+export declare type EventHandler = (event: Event) => void;
 export declare type InputType = {
     apiDomain: string;
     apiBasePath?: string;
