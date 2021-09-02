@@ -2101,6 +2101,49 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("refresh session, signing key interval change", async function() {
+        await startST(100, true, "0.001");
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let userIdFromResponse = loginResponse.data;
+                assertEqual(userId, userIdFromResponse);
+                await axios({ url: `${BASE_URL}/`, method: "GET" });
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                await delay(6);
+
+                let promises = [];
+                for (let i = 0; i < 250; i++) {
+                    promises.push(axios({ url: `${BASE_URL}/`, method: "GET" }));
+                }
+                for (let i = 0; i < 250; i++) {
+                    await promises[i];
+                }
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
 });
 
 function addAxiosInterceptorsTest(axiosInstance) {
