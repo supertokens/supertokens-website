@@ -13,9 +13,16 @@
  * under the License.
  */
 
-export type EventHandler = (event: {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "UNAUTHORISED" | "SESSION_CREATED";
-}) => void;
+export type Event =
+    | {
+          action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+      }
+    | {
+          action: "UNAUTHORISED";
+          sessionExpiredOrRevoked: boolean;
+      };
+
+export type EventHandler = (event: Event) => void;
 
 export type InputType = {
     apiDomain: string;

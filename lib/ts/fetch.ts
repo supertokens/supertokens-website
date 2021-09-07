@@ -354,7 +354,8 @@ export async function onUnauthorisedResponse(
                     // if it comes here, it means a request was made thinking
                     // that the session exists, but it doesn't actually exist.
                     AuthHttpRequest.config.onHandleEvent({
-                        action: "UNAUTHORISED"
+                        action: "UNAUTHORISED",
+                        sessionExpiredOrRevoked: false
                     });
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -591,9 +592,16 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         // we check for wasLoggedIn cause we don't want to fire an event
         // unnecessarily on first app load or if the user tried
         // to query an API that returned 401 while the user was not logged in...
-        AuthHttpRequest.config.onHandleEvent({
-            action: statusCode === AuthHttpRequest.config.sessionExpiredStatusCode ? "UNAUTHORISED" : "SIGN_OUT"
-        });
+        if (statusCode === AuthHttpRequest.config.sessionExpiredStatusCode) {
+            AuthHttpRequest.config.onHandleEvent({
+                action: "UNAUTHORISED",
+                sessionExpiredOrRevoked: true
+            });
+        } else {
+            AuthHttpRequest.config.onHandleEvent({
+                action: "SIGN_OUT"
+            });
+        }
     }
 
     if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {

@@ -1782,14 +1782,20 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
-                        console.log("ST_" + event.action);
+                        console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
             });
+
             assert(consoleLogs.length === 1);
-            assert(consoleLogs[0] === "ST_UNAUTHORISED");
+
+            const eventName = "ST_UNAUTHORISED";
+
+            assert(consoleLogs[0].startsWith(eventName));
+            const parsedEvent = JSON.parse(consoleLogs[0].substr(eventName.length + 1));
+            assert(parsedEvent.sessionExpiredOrRevoked === false);
         } finally {
             await browser.close();
         }
@@ -1815,7 +1821,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
-                        console.log("ST_" + event.action);
+                        console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
                 let userId = "testing-supertokens-website";
@@ -1843,9 +1849,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
             });
+
             assert(consoleLogs.length === 2);
-            assert(consoleLogs[0] === "ST_SESSION_CREATED");
-            assert(consoleLogs[1] === "ST_UNAUTHORISED");
+
+            assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
+
+            const eventName = "ST_UNAUTHORISED";
+            assert(consoleLogs[1].startsWith(eventName));
+            const parsedEvent = JSON.parse(consoleLogs[1].substr(eventName.length + 1));
+            assert(parsedEvent.sessionExpiredOrRevoked === false);
         } finally {
             await browser.close();
         }
@@ -1871,7 +1883,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
-                        console.log("ST_" + event.action);
+                        console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
                 let userId = "testing-supertokens-website";
@@ -1905,9 +1917,15 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
             });
+
             assert(consoleLogs.length === 2);
-            assert(consoleLogs[0] === "ST_SESSION_CREATED");
-            assert(consoleLogs[1] === "ST_UNAUTHORISED");
+
+            assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
+
+            const eventName = "ST_UNAUTHORISED";
+            assert(consoleLogs[1].startsWith(eventName));
+            const parsedEvent = JSON.parse(consoleLogs[1].substr(eventName.length + 1));
+            assert(parsedEvent.sessionExpiredOrRevoked === true);
         } finally {
             await browser.close();
         }
