@@ -55,7 +55,11 @@ module.exports.getNumberOfTimesRefreshAttempted = async function(BASE = module.e
     return response.data;
 };
 
-module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf = true) {
+module.exports.startST = async function(
+    accessTokenValidity = 1,
+    enableAntiCsrf = true,
+    accessTokenSigningKeyUpdateInterval = undefined
+) {
     {
         if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
             let instance = axios.create();
@@ -68,7 +72,8 @@ module.exports.startST = async function(accessTokenValidity = 1, enableAntiCsrf 
         let instance = axios.create();
         let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
             accessTokenValidity,
-            enableAntiCsrf
+            enableAntiCsrf,
+            accessTokenSigningKeyUpdateInterval
         });
         return response.data;
     }

@@ -89,6 +89,12 @@ app.post("/startST", async (req, res) => {
     let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
     let enableAntiCsrf = req.body.enableAntiCsrf === undefined ? true : req.body.enableAntiCsrf;
     await setKeyValueInConfig("access_token_validity", accessTokenValidity);
+    if (req.body.accessTokenSigningKeyUpdateInterval !== undefined) {
+        await setKeyValueInConfig(
+            "access_token_signing_key_update_interval",
+            req.body.accessTokenSigningKeyUpdateInterval
+        );
+    }
     if (enableAntiCsrf !== undefined) {
         SuperTokensRaw.reset();
         SessionRecipeRaw.reset();
