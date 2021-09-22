@@ -276,7 +276,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             // page.on('console', console.log);
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -304,8 +304,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 //check that the response to getSession was success
                 assertEqual(await getResponse.text(), userId);
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagEqualToOrAfter("3.6.0") ? 0 : 1);
-            });
+                assertEqual(await getNumberOfTimesRefreshCalled(), coreSupportsMultipleSignigKeys ? 0 : 1);
+            }, coreTagEqualToOrAfter("3.6.0"));
         } finally {
             await browser.close();
         }

@@ -77,7 +77,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
@@ -106,8 +106,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                     await promises[i];
                 }
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagEqualToOrAfter("3.6.0") ? 0 : 1);
-            });
+                assertEqual(await getNumberOfTimesRefreshCalled(), coreSupportsMultipleSignigKeys ? 0 : 1);
+            }, coreTagEqualToOrAfter("3.6.0"));
         } finally {
             await browser.close();
         }
