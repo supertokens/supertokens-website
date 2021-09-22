@@ -266,7 +266,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("test session after signing key change", async function() {
         // We can have access tokens valid for longer than the signing key update interval
-        await startST(6, undefined, 3);
+        await startST(6, true, "0.002");
 
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
