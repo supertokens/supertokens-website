@@ -276,7 +276,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             // page.on('console', console.log);
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
+            await page.evaluate(async coreSupportsMultipleSignigKeys => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
