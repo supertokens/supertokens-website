@@ -104,7 +104,8 @@ describe("Axios AuthHttpRequest class tests", function() {
                 for (let i = 0; i < 250; i++) {
                     await promises[i];
                 }
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagAfter("3.6.0") ? 0 : 1);
             });
         } finally {
             await browser.close();
