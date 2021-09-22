@@ -303,9 +303,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 const promises = [];
                 for (let i = 0; i < 250; i++) {
-                    promises.push(
-                        fetch(`${BASE_URL}/`).catch(() => {}),
-                    );
+                    promises.push(fetch(`${BASE_URL}/`).catch(() => {}));
                 }
                 await Promise.all(promises);
 
