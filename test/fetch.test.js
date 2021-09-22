@@ -264,7 +264,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it.only("test session after signing key change", async function() {
+    it("test session after signing key change", async function() {
         // We can have access tokens valid for longer than the signing key update interval
         await startST(100, true, "0.002");
 
