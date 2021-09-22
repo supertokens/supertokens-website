@@ -264,7 +264,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test session after signing key change", async function() {
+    it.only("test session after signing key change", async function() {
         // We can have access tokens valid for longer than the signing key update interval
         await startST(100, true, "0.002");
 
@@ -304,7 +304,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 const promises = [];
                 for (let i = 0; i < 250; i++) {
                     promises.push(
-                        axios({ url: `${BASE_URL}/`, method: "GET", headers: { "Cache-Control": "no-cache, private" } })
+                        fetch(`${BASE_URL}/`).catch(() => {}),
                     );
                 }
                 await Promise.all(promises);
