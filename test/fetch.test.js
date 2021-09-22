@@ -266,7 +266,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
     it("test session after signing key change", async function() {
         // We can have access tokens valid for longer than the signing key update interval
-        await startST(6, true, "0.002");
+        await startST(100, true, "0.002");
 
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -294,8 +294,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                //delay for 5 seconds for access token validity expiry
-                await delay(5);
+                //delay for 11 seconds for access token signing key to change
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                await delay(11);
 
                 //check that the number of times the refreshAPI was called is 0
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
