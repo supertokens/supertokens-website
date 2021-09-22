@@ -26,7 +26,7 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    addBrowserConsole
+    coreTagEqualToOrAfter
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -304,7 +304,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 //check that the response to getSession was success
                 assertEqual(await getResponse.text(), userId);
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagAfter("3.6.0") ? 0 : 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagEqualToOrAfter("3.6.0") ? 0 : 1);
             });
         } finally {
             await browser.close();

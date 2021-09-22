@@ -93,17 +93,14 @@ module.exports.addBrowserConsole = function(page) {
         .on("requestfailed", request => console.log(`${request.failure().errorText} ${request.url()}`));
 };
 
-module.exports.coreTagAfter = function(targetTag) {
+module.exports.coreTagEqualToOrAfter = function(targetTag) {
     const currTag = process.env.SUPERTOKENS_CORE_TAG;
-    if (currTag === undefined || currTag === targetTag)
-        return true;
+    if (currTag === undefined || currTag === targetTag) return true;
 
-    const lparts = local.split('.');
-    while(lparts.length < 3)
-        lparts.push("0");
-    const rparts = targetTag.split('.');
-    while (rparts.length < 3)
-        rparts.push("0");
+    const lparts = currTag.replace(/^(dev-)?v/, "").split(".");
+    while (lparts.length < 3) lparts.push("0");
+    const rparts = targetTag.split(".");
+    while (rparts.length < 3) rparts.push("0");
 
     for (let i = 0; i < 3; i++) {
         const l = parseInt(lparts[i], 10);
@@ -113,4 +110,4 @@ module.exports.coreTagAfter = function(targetTag) {
         }
     }
     return true;
-}
+};

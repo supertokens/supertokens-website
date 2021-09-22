@@ -30,7 +30,8 @@ let {
     BASE_URL,
     BASE_URL_FOR_ST,
     addBrowserConsole,
-    getNumberOfTimesRefreshAttempted
+    getNumberOfTimesRefreshAttempted,
+    coreTagEqualToOrAfter
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -105,7 +106,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     await promises[i];
                 }
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagAfter("3.6.0") ? 0 : 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(), coreTagEqualToOrAfter("3.6.0") ? 0 : 1);
             });
         } finally {
             await browser.close();
