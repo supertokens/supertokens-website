@@ -300,9 +300,13 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 //check that the number of times the refreshAPI was called is 0
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                let getResponse = await fetch(`${BASE_URL}/`);
-                //check that the response to getSession was success
-                assertEqual(await getResponse.text(), userId);
+                const promises = [];
+                for (let i = 0; i < 250; i++) {
+                    promises.push(
+                        axios({ url: `${BASE_URL}/`, method: "GET", headers: { "Cache-Control": "no-cache, private" } })
+                    );
+                }
+                await Promise.all(promises);
 
                 assertEqual(await getNumberOfTimesRefreshCalled(), coreSupportsMultipleSignigKeys ? 0 : 1);
             }, coreTagEqualToOrAfter("3.6.0"));
