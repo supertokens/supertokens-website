@@ -9,7 +9,7 @@
         "outDir": "build",
         "moduleResolution": "node",
         "declaration": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "skipLibCheck": true,
         "strict": true,
         "noUnusedLocals": true,
