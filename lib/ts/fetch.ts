@@ -118,8 +118,11 @@ export class FrontToken {
 /**
  * @description returns true if retry, else false is session has expired completely.
  */
-export async function handleUnauthorised(preRequestIdToken: IdRefreshTokenType): Promise<boolean> {
-    let result = await onUnauthorisedResponse(preRequestIdToken);
+export async function handleUnauthorised(
+    preRequestIdToken: IdRefreshTokenType,
+    httpCall?: (url: string, init?: RequestInit) => Promise<Response>
+): Promise<boolean> {
+    let result = await onUnauthorisedResponse(preRequestIdToken, httpCall);
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
@@ -263,11 +266,10 @@ export default class AuthHttpRequest {
                 };
                 try {
                     let response = await httpCall(configWithAntiCsrf);
-                    await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
-                        if (key.toString() === "id-refresh-token") {
-                            await setIdRefreshToken(value, response.status);
-                        }
-                    });
+                    const idRefreshToken = response.headers.get("id-refresh-token");
+                    if (idRefreshToken) {
+                        await setIdRefreshToken(idRefreshToken, response.status);
+                    }
                     if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                         let retry = await handleUnauthorised(preRequestIdToken);
                         if (!retry) {
@@ -275,16 +277,17 @@ export default class AuthHttpRequest {
                             break;
                         }
                     } else {
-                        await loopThroughResponseHeadersAndApplyFunction(response, async (value, key) => {
-                            if (key.toString() === "anti-csrf") {
-                                let tok = await getIdRefreshToken(true);
-                                if (tok.status === "EXISTS") {
-                                    await AntiCsrfToken.setItem(tok.token, value);
-                                }
-                            } else if (key.toString() === "front-token") {
-                                await FrontToken.setItem(value);
+                        const antiCsrfToken = response.headers.get("anti-csrf");
+                        if (antiCsrfToken) {
+                            const tok = await getIdRefreshToken(true);
+                            if (tok.status === "EXISTS") {
+                                await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                             }
-                        });
+                        }
+                        const frontToken = response.headers.get("front-token");
+                        if (frontToken) {
+                            await FrontToken.setItem(frontToken);
+                        }
                         return response;
                     }
                 } catch (err) {
@@ -320,19 +323,6 @@ export default class AuthHttpRequest {
     };
 }
 
-async function loopThroughResponseHeadersAndApplyFunction(
-    response: any,
-    func: (value: any, key: any) => Promise<void>
-) {
-    let keys: any[] = [];
-    response.headers.forEach((_: any, key: any) => {
-        keys.push(key);
-    });
-    for (let i = 0; i < keys.length; i++) {
-        await func(response.headers.get(keys[i].toString()), keys[i]);
-    }
-}
-
 const ID_REFRESH_TOKEN_NAME = "sIRTFrontend";
 const ANTI_CSRF_NAME = "sAntiCsrf";
 const FRONT_TOKEN_NAME = "sFrontToken";
@@ -342,7 +332,8 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
 export async function onUnauthorisedResponse(
-    preRequestIdToken: IdRefreshTokenType
+    preRequestIdToken: IdRefreshTokenType,
+    httpCall?: (url: string, init?: RequestInit) => Promise<Response>
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -392,17 +383,14 @@ export async function onUnauthorisedResponse(
                     },
                     url: AuthHttpRequest.refreshTokenUrl
                 });
-                let response = await AuthHttpRequest.env.__supertokensOriginalFetch(
-                    preAPIResult.url,
-                    preAPIResult.requestInit
-                );
+                const makeRequest = httpCall || AuthHttpRequest.env.__supertokensOriginalFetch;
+                const response = await makeRequest(preAPIResult.url, preAPIResult.requestInit);
                 let removeIdRefreshToken = true;
-                await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
-                    if (key.toString() === "id-refresh-token") {
-                        await setIdRefreshToken(value, response.status);
-                        removeIdRefreshToken = false;
-                    }
-                });
+                const idRefreshToken = response.headers.get("id-refresh-token");
+                if (idRefreshToken) {
+                    await setIdRefreshToken(idRefreshToken, response.status);
+                    removeIdRefreshToken = false;
+                }
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
                     if (removeIdRefreshToken) {
@@ -423,16 +411,17 @@ export async function onUnauthorisedResponse(
                     // in the first place.
                     return { result: "SESSION_EXPIRED" };
                 }
-                await loopThroughResponseHeadersAndApplyFunction(response, async (value: any, key: any) => {
-                    if (key.toString() === "anti-csrf") {
-                        let tok = await getIdRefreshToken(false);
-                        if (tok.status === "EXISTS") {
-                            await AntiCsrfToken.setItem(tok.token, value);
-                        }
-                    } else if (key.toString() === "front-token") {
-                        await FrontToken.setItem(value);
+                const antiCsrfToken = response.headers.get("anti-csrf");
+                if (antiCsrfToken) {
+                    const tok = await getIdRefreshToken(true);
+                    if (tok.status === "EXISTS") {
+                        await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                     }
-                });
+                }
+                const frontToken = response.headers.get("front-token");
+                if (frontToken) {
+                    await FrontToken.setItem(frontToken);
+                }
                 AuthHttpRequest.config.onHandleEvent({
                     action: "REFRESH_SESSION"
                 });

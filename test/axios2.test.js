@@ -112,4 +112,43 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("refresh session error rejects with axios error", async function() {
+        await startST(100, true, "0.002");
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let mock = new AxiosMockAdapter(axios);
+                mock.onGet(`${BASE_URL}/`).reply(401, { message: "try refresh token" });
+                mock.onPost(`${BASE_URL}/auth/session/refresh`).reply(500, { testError: "yep" });
+                let exception;
+                try {
+                    await axios({
+                        url: `${BASE_URL}/`,
+                        method: "GET",
+                        headers: { "Cache-Control": "no-cache, private" }
+                    });
+                } catch (ex) {
+                    exception = ex;
+                }
+                assertNotEqual(exception, undefined);
+                assertNotEqual(exception.response, undefined);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
 });
+("");
