@@ -53,8 +53,22 @@ export async function createAxiosErrorFromFetchResp(response: Response): Promise
         url: response.url,
         headers: response.headers
     };
+    const contentType = response.headers.get("content-type");
+    let data;
+    if (!contentType || contentType.includes("application/json")) {
+        try {
+            data = response.json();
+        } catch {
+            data = response.text();
+        }
+    } else if (contentType.includes("text/")) {
+        data = response.text();
+    } else {
+        data = response.blob();
+    }
+
     const axiosResponse = {
-        data: await response.json(),
+        data,
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
