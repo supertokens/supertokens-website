@@ -4,39 +4,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.1] - 2021-10-01
+
+### Fixes
+- Adds axios as a dependency
+
 ## [9.0.0] - 2021-10-01
 
-## Breaking changes
+### Breaking changes
 
 - Rejecting with axios response object if a call through axios gets an unexpected error during session refresh. This is a breaking change since it changes the API (even if it's an error).
 
 ## [8.2.3] - 2021-09-29
 
-## Changed
+### Changed
 
 - Disabled source map generation
 
 ## [8.2.2] - 2021-09-27
 
-## Changed
+### Changed
 
 - New FDI 1.9
 
 ## [8.2.1]
 
-## Changed
+### Changed
 
 -   Updated test behavior for cores after 3.6
 
 ## [8.2.0]
 
-## Added
+### Added
 
 -   A sessionExpiredOrRevoked propety on the "UNAUTHORIZED" event.
 
 ## [8.1.2] - 2021-07-29
 
-## Fixes
+### Fixes
 
 -   Fixes typescript issue with default imports. (Related to https://github.com/supertokens/supertokens-auth-react/issues/297)
 

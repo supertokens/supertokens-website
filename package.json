@@ -1,16 +1,16 @@
 {
   "name": "supertokens-website",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
-    "browser-tabs-lock": "^1.2.14"
+    "browser-tabs-lock": "^1.2.14",
+    "axios": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.6",
-    "axios": "*",
     "isomorphic-fetch": "2.2.1",
     "mocha": "6.1.4",
     "mocha-jsdom": "2.0.0",
