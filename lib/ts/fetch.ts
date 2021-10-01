@@ -18,7 +18,6 @@ import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import RecipeImplementation from "./recipeImplementation";
-import { AxiosResponse } from "axios";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -114,25 +113,6 @@ export class FrontToken {
         FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
     }
-}
-
-/**
- * @description returns true if retry, else false is session has expired completely.
- */
-export async function handleUnauthorised(
-    preRequestIdToken: IdRefreshTokenType,
-    transformErrorResponse?: (resp: Response) => Promise<AxiosResponse>
-): Promise<boolean> {
-    const result = await onUnauthorisedResponse(preRequestIdToken);
-    if (result.result === "SESSION_EXPIRED") {
-        return false;
-    } else if (result.result === "API_ERROR") {
-        if (result.error instanceof Response && transformErrorResponse !== undefined) {
-            throw await transformErrorResponse(result.error);
-        }
-        throw result.error;
-    }
-    return true;
 }
 
 /**
@@ -275,9 +255,9 @@ export default class AuthHttpRequest {
                         await setIdRefreshToken(idRefreshToken, response.status);
                     }
                     if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(preRequestIdToken);
-                        if (!retry) {
-                            returnObj = response;
+                        let retry = await onUnauthorisedResponse(preRequestIdToken);
+                        if (retry.result !== "RETRY") {
+                            returnObj = retry.error || response;
                             break;
                         }
                     } else {
@@ -296,8 +276,9 @@ export default class AuthHttpRequest {
                     }
                 } catch (err) {
                     if (err.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        let retry = await handleUnauthorised(preRequestIdToken);
-                        if (!retry) {
+                        // We should never actually get here
+                        const refresh = await onUnauthorisedResponse(preRequestIdToken);
+                        if (refresh.result !== "RETRY") {
                             throwError = true;
                             returnObj = err;
                             break;
@@ -323,7 +304,13 @@ export default class AuthHttpRequest {
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
         const preRequestIdToken = await getIdRefreshToken(false);
-        return await handleUnauthorised(preRequestIdToken);
+        const refresh = await onUnauthorisedResponse(preRequestIdToken);
+
+        if (refresh.result === "API_ERROR") {
+            throw refresh.error;
+        }
+
+        return refresh.result === "RETRY";
     };
 }
 
@@ -337,7 +324,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  */
 export async function onUnauthorisedResponse(
     preRequestIdToken: IdRefreshTokenType
-): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
+): Promise<{ result: "SESSION_EXPIRED"; error?: any } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
@@ -439,7 +426,7 @@ export async function onUnauthorisedResponse(
                     // this is a result of the refresh API returning a session expiry, which
                     // means that the frontend did not know for sure that the session existed
                     // in the first place.
-                    return { result: "SESSION_EXPIRED" };
+                    return { result: "SESSION_EXPIRED", error };
                 }
                 return { result: "API_ERROR", error };
             } finally {
@@ -521,9 +508,8 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
         if (tryRefresh) {
             // either session doesn't exist, or the
             // cookies have expired (privacy feature that caps lifetime of cookies to 7 days)
-            try {
-                await handleUnauthorised(response);
-            } catch (err) {
+            const res = await onUnauthorisedResponse(response);
+            if (res.result !== "RETRY") {
                 // in case the backend is not working, we treat it as the session not existing...
                 return {
                     status: "NOT_EXISTS"

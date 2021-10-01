@@ -1,5 +1,4 @@
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
-import { AxiosResponse } from "axios";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -18,10 +17,6 @@ export declare class FrontToken {
     static removeToken(): Promise<void>;
     static setItem(frontToken: string): Promise<void>;
 }
-/**
- * @description returns true if retry, else false is session has expired completely.
- */
-export declare function handleUnauthorised(preRequestIdToken: IdRefreshTokenType, transformErrorResponse?: (resp: Response) => Promise<AxiosResponse>): Promise<boolean>;
 /**
  * @class AuthHttpRequest
  * @description wrapper for common http methods.
@@ -44,6 +39,7 @@ export default class AuthHttpRequest {
  */
 export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshTokenType): Promise<{
     result: "SESSION_EXPIRED";
+    error?: any;
 } | {
     result: "API_ERROR";
     error: any;
