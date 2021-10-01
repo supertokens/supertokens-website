@@ -18,6 +18,7 @@ import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import RecipeImplementation from "./recipeImplementation";
+import { AxiosResponse } from "axios";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -120,12 +121,15 @@ export class FrontToken {
  */
 export async function handleUnauthorised(
     preRequestIdToken: IdRefreshTokenType,
-    httpCall?: (url: string, init?: RequestInit) => Promise<Response>
+    transformErrorResponse?: (resp: Response) => Promise<AxiosResponse>
 ): Promise<boolean> {
-    let result = await onUnauthorisedResponse(preRequestIdToken, httpCall);
+    const result = await onUnauthorisedResponse(preRequestIdToken);
     if (result.result === "SESSION_EXPIRED") {
         return false;
     } else if (result.result === "API_ERROR") {
+        if (result.error instanceof Response && transformErrorResponse !== undefined) {
+            throw await transformErrorResponse(result.error);
+        }
         throw result.error;
     }
     return true;
@@ -332,8 +336,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
 export async function onUnauthorisedResponse(
-    preRequestIdToken: IdRefreshTokenType,
-    httpCall?: (url: string, init?: RequestInit) => Promise<Response>
+    preRequestIdToken: IdRefreshTokenType
 ): Promise<{ result: "SESSION_EXPIRED" } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -383,8 +386,10 @@ export async function onUnauthorisedResponse(
                     },
                     url: AuthHttpRequest.refreshTokenUrl
                 });
-                const makeRequest = httpCall || AuthHttpRequest.env.__supertokensOriginalFetch;
-                const response = await makeRequest(preAPIResult.url, preAPIResult.requestInit);
+                const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
+                    preAPIResult.url,
+                    preAPIResult.requestInit
+                );
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {

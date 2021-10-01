@@ -68,6 +68,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
         await instance.post(BASE_URL + "/beforeeach");
     });
+
     it("refresh session, signing key interval change", async function() {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
@@ -120,8 +121,51 @@ describe("Axios AuthHttpRequest class tests", function() {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.setRequestInterception(true);
+            let firstGet = true;
+            let firstPost = true;
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/") {
+                    if (firstGet) {
+                        firstGet = false;
+                        req.respond({
+                            status: 401,
+                            body: JSON.stringify({
+                                message: "try refresh token"
+                            })
+                        });
+                    } else {
+                        req.respond({
+                            status: 200,
+                            body: JSON.stringify({
+                                success: true
+                            })
+                        });
+                    }
+                } else if (url === BASE_URL + "/auth/session/refresh") {
+                    if (firstPost) {
+                        req.respond({
+                            status: 401,
+                            body: JSON.stringify({
+                                message: "try refresh token"
+                            })
+                        });
+                        firstPost = false;
+                    } else {
+                        req.respond({
+                            status: 500,
+                            body: JSON.stringify({
+                                message: "test"
+                            })
+                        });
+                    }
+                } else {
+                    req.continue();
+                }
+            });
 
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
@@ -129,10 +173,14 @@ describe("Axios AuthHttpRequest class tests", function() {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
+                let userId = "testing-supertokens-website";
+                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
 
-                let mock = new AxiosMockAdapter(axios);
-                mock.onGet(`${BASE_URL}/`).reply(401, { message: "try refresh token" });
-                mock.onPost(`${BASE_URL}/auth/session/refresh`).reply(500, { testError: "yep" });
                 let exception;
                 try {
                     await axios({
@@ -144,7 +192,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     exception = ex;
                 }
                 assertNotEqual(exception, undefined);
-                assertNotEqual(exception.response, undefined);
+                assertEqual(exception.status, 500);
+                assertNotEqual(exception.data, undefined);
+                assertEqual(exception.data.message, "test");
             });
         } finally {
             await browser.close();

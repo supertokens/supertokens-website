@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
@@ -277,21 +277,18 @@ export default class AuthHttpRequest {
 
         // We make refresh calls through axios so that we have axios response object in case it makes it out of the API.
         // This happens if there is an unexpected error during refresh (not sessionExpiredStatusCode).
-        const axiosFetch = async (url: string, config?: RequestInit) => {
-            const res = await axios({
-                url,
-                validateStatus: null, // With this flag we disable status code based rejects, so all network calls will resolve, like fetch
-                withCredentials: config && config.credentials === "include",
-                data: config ? config.body : undefined,
-                ...config,
-                method: config ? (config.method as Method) : undefined
-            });
-
-            return new Response(res.data, {
-                status: res.status,
-                statusText: res.statusText,
-                headers: new Headers(res.headers)
-            });
+        const responseToAxiosResp = async (response: Response): Promise<AxiosResponse> => {
+            return {
+                data: await response.json(),
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: {
+                    url: response.url,
+                    headers: response.headers
+                },
+                request: undefined
+            };
         };
 
         try {
@@ -359,7 +356,7 @@ export default class AuthHttpRequest {
                         await setIdRefreshToken(idRefreshToken, response.status);
                     }
                     if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
-                        const retry = await handleUnauthorised(preRequestIdToken, axiosFetch);
+                        const retry = await handleUnauthorised(preRequestIdToken, responseToAxiosResp);
                         if (!retry) {
                             returnObj = response;
                             break;
@@ -383,7 +380,7 @@ export default class AuthHttpRequest {
                         err.response !== undefined &&
                         err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
-                        const retry = await handleUnauthorised(preRequestIdToken, axiosFetch);
+                        const retry = await handleUnauthorised(preRequestIdToken, responseToAxiosResp);
                         if (!retry) {
                             throwError = true;
                             returnObj = err;
