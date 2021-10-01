@@ -280,7 +280,7 @@ export default class AuthHttpRequest {
         const axiosFetch = async (url: string, config?: RequestInit) => {
             const res = await axios({
                 url,
-                validateStatus: null,
+                validateStatus: null, // With this flag we disable status code based rejects, so all network calls will resolve, like fetch
                 withCredentials: config && config.credentials === "include",
                 data: config ? config.body : undefined,
                 ...config,

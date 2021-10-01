@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.2.4] - 2021-10-01
+## [9.0.0] - 2021-10-01
 
-## Changed
+## Breaking changes
 
-- Rejecting with axios response object if a call through axios gets an unexpected error during session refresh
+- Rejecting with axios response object if a call through axios gets an unexpected error during session refresh. This is a breaking change since it changes the API (even if it's an error).
 
 ## [8.2.3] - 2021-09-29
 
