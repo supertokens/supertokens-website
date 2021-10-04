@@ -12,14 +12,15 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method } from "axios";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { createAxiosErrorFromAxiosResp, createAxiosErrorFromFetchResp } from "./axiosError";
 
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
-    handleUnauthorised,
     getIdRefreshToken,
     setIdRefreshToken,
-    FrontToken
+    FrontToken,
+    onUnauthorisedResponse
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -275,27 +276,7 @@ export default class AuthHttpRequest {
             return await httpCall(config);
         }
 
-        // We make refresh calls through axios so that we have axios response object in case it makes it out of the API.
-        // This happens if there is an unexpected error during refresh (not sessionExpiredStatusCode).
-        const axiosFetch = async (url: string, config?: RequestInit) => {
-            const res = await axios({
-                url,
-                validateStatus: null, // With this flag we disable status code based rejects, so all network calls will resolve, like fetch
-                withCredentials: config && config.credentials === "include",
-                data: config ? config.body : undefined,
-                ...config,
-                method: config ? (config.method as Method) : undefined
-            });
-
-            return new Response(res.data, {
-                status: res.status,
-                statusText: res.statusText,
-                headers: new Headers(res.headers)
-            });
-        };
-
         try {
-            let throwError = false;
             let returnObj = undefined;
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
@@ -359,9 +340,13 @@ export default class AuthHttpRequest {
                         await setIdRefreshToken(idRefreshToken, response.status);
                     }
                     if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
-                        const retry = await handleUnauthorised(preRequestIdToken, axiosFetch);
-                        if (!retry) {
-                            returnObj = response;
+                        const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
+                        if (refreshResult.result !== "RETRY") {
+                            // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                            // Returning the response to the original response as an error if we did not attempt refreshing
+                            returnObj = refreshResult.error
+                                ? await createAxiosErrorFromFetchResp(refreshResult.error)
+                                : await createAxiosErrorFromAxiosResp(response);
                             break;
                         }
                     } else {
@@ -383,10 +368,14 @@ export default class AuthHttpRequest {
                         err.response !== undefined &&
                         err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
-                        const retry = await handleUnauthorised(preRequestIdToken, axiosFetch);
-                        if (!retry) {
-                            throwError = true;
-                            returnObj = err;
+                        const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
+                        if (refreshResult.result !== "RETRY") {
+                            // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                            // Returning the original error if we did not attempt refreshing
+                            returnObj =
+                                refreshResult.error !== undefined
+                                    ? await createAxiosErrorFromFetchResp(refreshResult.error)
+                                    : err;
                             break;
                         }
                     } else {
@@ -395,11 +384,8 @@ export default class AuthHttpRequest {
                 }
             }
             // if it comes here, means we called break. which happens only if we have logged out.
-            if (throwError) {
-                throw returnObj;
-            } else {
-                return returnObj;
-            }
+            // which means it's a 401, so we throw
+            throw returnObj;
         } finally {
             if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))) {
                 await AntiCsrfToken.removeToken();
