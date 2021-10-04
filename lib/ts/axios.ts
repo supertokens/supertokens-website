@@ -342,9 +342,9 @@ export default class AuthHttpRequest {
                     if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                         if (refreshResult.result !== "RETRY") {
-                            returnObj =
-                                (await createAxiosErrorFromFetchResp(refreshResult.error)) ||
-                                (await createAxiosErrorFromAxiosResp(response));
+                            returnObj = refreshResult.error
+                                ? await createAxiosErrorFromFetchResp(refreshResult.error)
+                                : await createAxiosErrorFromAxiosResp(response);
                             break;
                         }
                     } else {
