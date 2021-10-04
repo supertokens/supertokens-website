@@ -342,6 +342,8 @@ export default class AuthHttpRequest {
                     if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                         if (refreshResult.result !== "RETRY") {
+                            // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                            // Returning the response to the original response as an error if we did not attempt refreshing
                             returnObj = refreshResult.error
                                 ? await createAxiosErrorFromFetchResp(refreshResult.error)
                                 : await createAxiosErrorFromAxiosResp(response);
@@ -368,6 +370,8 @@ export default class AuthHttpRequest {
                     ) {
                         const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                         if (refreshResult.result !== "RETRY") {
+                            // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                            // Returning the original error if we did not attempt refreshing
                             returnObj =
                                 refreshResult.error !== undefined
                                     ? await createAxiosErrorFromFetchResp(refreshResult.error)

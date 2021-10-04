@@ -1149,7 +1149,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 //check that the response to getSession without cookies is 401
                 assertEqual(getSessionResponse.status, 401);
 
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assertEqual(getSessionResponse.url, `${BASE_URL}/`);
+                assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
             });
         } finally {
             await browser.close();

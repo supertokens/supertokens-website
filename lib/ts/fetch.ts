@@ -197,7 +197,6 @@ export default class AuthHttpRequest {
 
         ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         try {
-            let throwError = false;
             let returnObj = undefined;
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
@@ -248,52 +247,36 @@ export default class AuthHttpRequest {
                                   ...configWithAntiCsrf.headers
                               }
                 };
-                try {
-                    let response = await httpCall(configWithAntiCsrf);
-                    const idRefreshToken = response.headers.get("id-refresh-token");
-                    if (idRefreshToken) {
-                        await setIdRefreshToken(idRefreshToken, response.status);
+
+                let response = await httpCall(configWithAntiCsrf);
+                const idRefreshToken = response.headers.get("id-refresh-token");
+                if (idRefreshToken) {
+                    await setIdRefreshToken(idRefreshToken, response.status);
+                }
+                if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
+                    let retry = await onUnauthorisedResponse(preRequestIdToken);
+                    if (retry.result !== "RETRY") {
+                        returnObj = retry.error !== undefined ? retry.error : response;
+                        break;
                     }
-                    if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        let retry = await onUnauthorisedResponse(preRequestIdToken);
-                        if (retry.result !== "RETRY") {
-                            returnObj = retry.error || response;
-                            break;
+                } else {
+                    const antiCsrfToken = response.headers.get("anti-csrf");
+                    if (antiCsrfToken) {
+                        const tok = await getIdRefreshToken(true);
+                        if (tok.status === "EXISTS") {
+                            await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                         }
-                    } else {
-                        const antiCsrfToken = response.headers.get("anti-csrf");
-                        if (antiCsrfToken) {
-                            const tok = await getIdRefreshToken(true);
-                            if (tok.status === "EXISTS") {
-                                await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
-                            }
-                        }
-                        const frontToken = response.headers.get("front-token");
-                        if (frontToken) {
-                            await FrontToken.setItem(frontToken);
-                        }
-                        return response;
                     }
-                } catch (err) {
-                    if (err.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                        // We should never actually get here
-                        const refresh = await onUnauthorisedResponse(preRequestIdToken);
-                        if (refresh.result !== "RETRY") {
-                            throwError = true;
-                            returnObj = err;
-                            break;
-                        }
-                    } else {
-                        throw err;
+                    const frontToken = response.headers.get("front-token");
+                    if (frontToken) {
+                        await FrontToken.setItem(frontToken);
                     }
+                    return response;
                 }
             }
+
             // if it comes here, means we breaked. which happens only if we have logged out.
-            if (throwError) {
-                throw returnObj;
-            } else {
-                return returnObj;
-            }
+            return returnObj;
         } finally {
             if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
                 await AntiCsrfToken.removeToken();
