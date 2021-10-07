@@ -368,6 +368,11 @@ export default class AuthHttpRequest {
                         err.response !== undefined &&
                         err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
                     ) {
+                        let idRefreshToken = err.response.headers["id-refresh-token"];
+                        if (idRefreshToken !== undefined) {
+                            await setIdRefreshToken(idRefreshToken, err.response.status);
+                        }
+
                         const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                         if (refreshResult.result !== "RETRY") {
                             // Returning refreshResult.error as an Axios Error if we attempted a refresh

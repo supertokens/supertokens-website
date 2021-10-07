@@ -278,7 +278,8 @@ export default class AuthHttpRequest {
             // if it comes here, means we breaked. which happens only if we have logged out.
             return returnObj;
         } finally {
-            if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
+            const postRequestIdToken = await getIdRefreshToken(false);
+            if (postRequestIdToken.status === "NOT_EXISTS") {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
