@@ -278,6 +278,8 @@ export default class AuthHttpRequest {
             // if it comes here, means we breaked. which happens only if we have logged out.
             return returnObj;
         } finally {
+            // If we get here we already tried refreshing so we should have the already id refresh token either in EXISTS or NOT_EXISTS, so no need to call the backend
+            // or the backend is down and we don't need to call it.
             const postRequestIdToken = await getIdRefreshToken(false);
             if (postRequestIdToken.status === "NOT_EXISTS") {
                 await AntiCsrfToken.removeToken();
