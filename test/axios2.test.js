@@ -341,4 +341,144 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("no refresh call after 401 response that removes session", async function() {
+        await startST(100, true, "0.002");
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            let refreshCalled = 0;
+            page.on("request", req => {
+                const url = req.url();
+                // console.log('r', url);
+                if (url === BASE_URL + "/") {
+                    req.respond({
+                        status: 401,
+                        body: JSON.stringify({ message: "test" }),
+                        headers: {
+                            "id-refresh-token": "remove",
+                            "Set-Cookie": [
+                                "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                                "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+                            ]
+                        }
+                    });
+                } else if (url === BASE_URL + "/auth/session/refresh") {
+                    ++refreshCalled;
+                    req.respond({
+                        status: 401,
+                        body: JSON.stringify({ message: "nope" })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            // page.on("console", l => console.log(l.text()));
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                let exception;
+                try {
+                    await axios({
+                        url: `${BASE_URL}/`,
+                        method: "GET",
+                        headers: { "Cache-Control": "no-cache, private" }
+                    });
+                } catch (ex) {
+                    exception = ex;
+                }
+                assertNotEqual(exception, undefined);
+                assertNotEqual(exception.response, undefined);
+                assertEqual(exception.config.url, `${BASE_URL}/`);
+                assertEqual(exception.response.status, 401);
+                assertNotEqual(exception.response.data, undefined);
+                assertEqual(exception.response.data.message, "test");
+            });
+
+            // Calls it once before login, but it shouldn't after that
+            assert.equal(refreshCalled, 1);
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("original endpoint responding with 500 should not call refresh without cookies", async function() {
+        await startST(100, true, "0.002");
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            refreshCalled = 0;
+            page.on("request", req => {
+                const url = req.url();
+                console.log(url);
+                if (url === BASE_URL + "/") {
+                    req.respond({
+                        status: 500,
+                        body: JSON.stringify({
+                            message: "test"
+                        })
+                    });
+                } else if (url === BASE_URL + "/auth/session/refresh") {
+                    ++refreshCalled;
+                    req.respond({
+                        status: 500,
+                        body: JSON.stringify({
+                            message: "nope"
+                        })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            // page.on("console", l => console.log(l.text()));
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                supertokens.addAxiosInterceptors(axios);
+
+                let exception;
+                try {
+                    await axios.get(`${BASE_URL}/`, { method: "GET" });
+                } catch (ex) {
+                    exception = ex;
+                }
+                assertNotEqual(exception, undefined);
+                assertNotEqual(exception.response, undefined);
+                assertEqual(exception.config.url, `${BASE_URL}/`);
+                assertEqual(exception.response.status, 500);
+                assertNotEqual(exception.response.data, undefined);
+                assertEqual(exception.response.data.message, "test");
+            });
+            // It should call it once before the call - but after that doesn't work it should not try again after the API request
+            assert.equal(refreshCalled, 1);
+        } finally {
+            await browser.close();
+        }
+    });
 });
