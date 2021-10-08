@@ -57,4 +57,4 @@ then
     echo "test failed... exiting!"
     exit 1
 fi
-kill -15 $pid
+kill -9 $pid
