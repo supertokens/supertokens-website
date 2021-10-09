@@ -380,6 +380,8 @@ export default class AuthHttpRequest {
                                         : err;
                                 break;
                             }
+                        } else {
+                            throw err;
                         }
                     } else {
                         throw err;
