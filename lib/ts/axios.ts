@@ -364,24 +364,22 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if (
-                        err.response !== undefined &&
-                        err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
-                    ) {
+                    if (err.response !== undefined) {
                         let idRefreshToken = err.response.headers["id-refresh-token"];
                         if (idRefreshToken !== undefined) {
                             await setIdRefreshToken(idRefreshToken, err.response.status);
                         }
-
-                        const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
-                        if (refreshResult.result !== "RETRY") {
-                            // Returning refreshResult.error as an Axios Error if we attempted a refresh
-                            // Returning the original error if we did not attempt refreshing
-                            returnObj =
-                                refreshResult.error !== undefined
-                                    ? await createAxiosErrorFromFetchResp(refreshResult.error)
-                                    : err;
-                            break;
+                        if (err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                            const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
+                            if (refreshResult.result !== "RETRY") {
+                                // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                                // Returning the original error if we did not attempt refreshing
+                                returnObj =
+                                    refreshResult.error !== undefined
+                                        ? await createAxiosErrorFromFetchResp(refreshResult.error)
+                                        : err;
+                                break;
+                            }
                         }
                     } else {
                         throw err;
@@ -392,7 +390,10 @@ export default class AuthHttpRequest {
             // which means it's a 401, so we throw
             throw returnObj;
         } finally {
-            if (!(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))) {
+            // If we get here we already tried refreshing so we should have the already id refresh token either in EXISTS or NOT_EXISTS, so no need to call the backend
+            // The backend should not be down if we get here, but even if it were we shouldn't need to call refresh
+            const postRequestIdToken = await getIdRefreshToken(false);
+            if (postRequestIdToken.status === "NOT_EXISTS") {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
