@@ -431,7 +431,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             refreshCalled = 0;
             page.on("request", req => {
                 const url = req.url();
-                console.log(url);
                 if (url === BASE_URL + "/") {
                     req.respond({
                         status: 500,
@@ -477,6 +476,84 @@ describe("Axios AuthHttpRequest class tests", function() {
             });
             // It should call it once before the call - but after that doesn't work it should not try again after the API request
             assert.equal(refreshCalled, 1);
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("refresh throwing an error with empty body doesn't cause an error", async function() {
+        await startST(100, true, "0.002");
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            // page.on("console", l => console.log(l.text()));
+            let firstGet = true;
+            page.on("request", req => {
+                const url = req.url();
+                // console.log(url);
+                if (url === BASE_URL + "/") {
+                    if (firstGet) {
+                        firstGet = false;
+                        req.respond({
+                            status: 401,
+                            body: JSON.stringify({
+                                message: "try refresh token"
+                            })
+                        });
+                    } else {
+                        req.respond({
+                            status: 200,
+                            body: JSON.stringify({
+                                success: true
+                            })
+                        });
+                    }
+                } else if (url === BASE_URL + "/auth/session/refresh") {
+                    req.respond({
+                        status: 401,
+                        body: new Uint8Array()
+                    });
+                    firstPost = false;
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let exception;
+                try {
+                    await axios({
+                        url: `${BASE_URL}/`,
+                        method: "GET",
+                        headers: { "Cache-Control": "no-cache, private" }
+                    });
+                } catch (ex) {
+                    exception = ex;
+                }
+                assertNotEqual(exception, undefined);
+                assertNotEqual(exception.response, undefined);
+                assertEqual(exception.config.url, `${BASE_URL}/auth/session/refresh`);
+                assertEqual(exception.response.status, 401);
+                assertNotEqual(exception.response.data, undefined);
+                assertEqual(exception.response.data, "");
+            });
         } finally {
             await browser.close();
         }

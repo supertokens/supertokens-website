@@ -56,7 +56,7 @@ export async function createAxiosErrorFromFetchResp(response: Response): Promise
     const contentType = response.headers.get("content-type");
 
     let data;
-    if (!contentType) {
+    if (contentType === null) {
         try {
             data = await response.text();
         } catch {
