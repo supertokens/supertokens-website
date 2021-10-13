@@ -131,6 +131,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                         firstGet = false;
                         req.respond({
                             status: 401,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 message: "try refresh token"
                             })
@@ -138,6 +141,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     } else {
                         req.respond({
                             status: 200,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 success: true
                             })
@@ -147,6 +153,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     if (firstPost) {
                         req.respond({
                             status: 401,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 message: "try refresh token"
                             })
@@ -155,6 +164,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     } else {
                         req.respond({
                             status: 500,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 message: "test"
                             })
@@ -279,6 +291,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                         firstGet = false;
                         req.respond({
                             status: 401,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 message: "try refresh token"
                             })
@@ -286,6 +301,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     } else {
                         req.respond({
                             status: 200,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 success: true
                             })
@@ -294,6 +312,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     req.respond({
                         status: 401,
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({
                             message: "test"
                         })
@@ -359,6 +380,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
+                            "Content-Type": "application/json",
                             "id-refresh-token": "remove",
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
@@ -371,6 +393,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     ++refreshCalled;
                     req.respond({
                         status: 401,
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({ message: "nope" })
                     });
                 } else {
@@ -434,6 +459,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 if (url === BASE_URL + "/") {
                     req.respond({
                         status: 500,
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({
                             message: "test"
                         })
@@ -442,6 +470,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     ++refreshCalled;
                     req.respond({
                         status: 500,
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({
                             message: "nope"
                         })
@@ -499,6 +530,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                         firstGet = false;
                         req.respond({
                             status: 401,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 message: "try refresh token"
                             })
@@ -506,6 +540,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                     } else {
                         req.respond({
                             status: 200,
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
                             body: JSON.stringify({
                                 success: true
                             })
