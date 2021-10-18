@@ -16,3 +16,5 @@ frontendDriverInterfaceSupported.json
 bundle/
 webpack.config.js
 .gitattributes
+docs/
+.prettierignore

@@ -17,10 +17,11 @@
     "mysql": "2.17.1",
     "prettier": "1.18.2",
     "puppeteer": "5.2.1",
-    "typescript": "3.5.2",
+    "typescript": "3.8.3",
     "webpack": "4.35.0",
     "webpack-cli": "3.3.5",
-    "webpack-dev-server": "3.7.2"
+    "webpack-dev-server": "3.7.2",
+    "typedoc": "^0.22.5"
   },
   "scripts": {
     "test": "TEST_MODE=testing npx mocha --timeout 500000",
@@ -30,7 +31,8 @@
     "build-pretty": "npm run build && npm run pretty",
     "pretty-check": "cd lib && npx prettier --check --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "pack": "./node_modules/.bin/webpack -p"
+    "pack": "./node_modules/.bin/webpack -p",
+    "build-docs": "rm -rf ./docs && npx typedoc --out ./docs --tsconfig ./lib/tsconfig.json ./lib/ts/index.ts"
   },
   "repository": {
     "type": "git",
