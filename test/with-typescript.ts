@@ -59,7 +59,7 @@ supertokens.init({
     }
 });
 
-supertokens.getJWTPayloadSecurely().then(p => {
+supertokens.getAccessTokenPayloadSecurely().then(p => {
 
 }).catch(err => {
 

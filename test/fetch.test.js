@@ -494,11 +494,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
     //             await delay(3);
 
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-    //             let data = await supertokens.getJWTPayloadSecurely();
+    //             let data = await supertokens.getAccessTokenPayloadSecurely();
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
     //             assertEqual(data.key === "data", true);
 
-    //             let data2 = await supertokens.getJWTPayloadSecurely();
+    //             let data2 = await supertokens.getAccessTokenPayloadSecurely();
     //             assertEqual(data2.key === "data", true);
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
     //         });
@@ -535,7 +535,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                let data = await supertokens.getJWTPayloadSecurely();
+                let data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
@@ -550,7 +550,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let data1 = await testResponse1.json();
                 assertEqual(data1.key, "łukasz 馬 / 马");
 
-                data = await supertokens.getJWTPayloadSecurely();
+                data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(data.key, "łukasz 馬 / 马");
 
                 //delay for 5 seconds for access token validity expiry
@@ -578,7 +578,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(data3.key1, " łukasz data1");
                 assertEqual(data3.key, undefined);
 
-                data = await supertokens.getJWTPayloadSecurely();
+                data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(data.key1, " łukasz data1");
                 assertEqual(data.key, undefined);
 
@@ -769,7 +769,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 }
 
                 try {
-                    await supertokens.getJWTPayloadSecurely();
+                    await supertokens.getAccessTokenPayloadSecurely();
                     throw new Error("test failed");
                 } catch (err) {
                     assertEqual(err.message, "No session exists");

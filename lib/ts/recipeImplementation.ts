@@ -46,7 +46,7 @@ export default class RecipeImplementation implements RecipeInterface {
         return tokenInfo.uid;
     };
 
-    getJWTPayloadSecurely = async (config: NormalisedInputType): Promise<any> => {
+    getAccessTokenPayloadSecurely = async (config: NormalisedInputType): Promise<any> => {
         let tokenInfo = await FrontToken.getTokenInfo();
         if (tokenInfo === undefined) {
             throw new Error("No session exists");
@@ -55,7 +55,7 @@ export default class RecipeImplementation implements RecipeInterface {
         if (tokenInfo.ate < Date.now()) {
             let retry = await AuthHttpRequest.attemptRefreshingSession();
             if (retry) {
-                return await this.getJWTPayloadSecurely(config);
+                return await this.getAccessTokenPayloadSecurely(config);
             } else {
                 throw new Error("Could not refresh session");
             }

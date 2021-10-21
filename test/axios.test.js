@@ -669,11 +669,11 @@ describe("Axios AuthHttpRequest class tests", function() {
     //             await delay(3);
 
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-    //             let data = await supertokens.getJWTPayloadSecurely();
+    //             let data = await supertokens.getAccessTokenPayloadSecurely();
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
     //             assertEqual(data.key === "data", true);
 
-    //             let data2 = await supertokens.getJWTPayloadSecurely();
+    //             let data2 = await supertokens.getAccessTokenPayloadSecurely();
     //             assertEqual(data2.key === "data", true);
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
     //         });
@@ -708,14 +708,14 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 assertEqual(userId, loginResponse.data);
 
-                let data = await supertokens.getJWTPayloadSecurely();
+                let data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
                 let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
                 assertEqual(testResponse1.data.key, "data");
 
-                data = await supertokens.getJWTPayloadSecurely();
+                data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(data.key, "data");
 
                 // get jwt data
@@ -727,7 +727,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(testResponse3.data.key1, "data1");
                 assertEqual(testResponse3.data.key, undefined);
 
-                data = await supertokens.getJWTPayloadSecurely();
+                data = await supertokens.getAccessTokenPayloadSecurely();
                 assertEqual(data.key1, "data1");
                 assertEqual(data.key, undefined);
 
@@ -905,7 +905,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 }
 
                 try {
-                    await supertokens.getJWTPayloadSecurely();
+                    await supertokens.getAccessTokenPayloadSecurely();
                     throw new Error("test failed");
                 } catch (err) {
                     assertEqual(err.message, "No session exists");

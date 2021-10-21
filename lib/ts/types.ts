@@ -74,7 +74,7 @@ export interface RecipeInterface {
 
     getUserId: (config: NormalisedInputType) => Promise<string>;
 
-    getJWTPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
+    getAccessTokenPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
 
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
 

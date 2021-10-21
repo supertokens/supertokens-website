@@ -31,8 +31,8 @@ export default class AuthHttpRequest {
         return AuthHttpRequestFetch.recipeImpl.getUserId(AuthHttpRequestFetch.config);
     }
 
-    static async getJWTPayloadSecurely(): Promise<any> {
-        return AuthHttpRequestFetch.recipeImpl.getJWTPayloadSecurely(AuthHttpRequestFetch.config);
+    static async getAccessTokenPayloadSecurely(): Promise<any> {
+        return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely(AuthHttpRequestFetch.config);
     }
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
@@ -63,7 +63,7 @@ export default class AuthHttpRequest {
 
 export let init = AuthHttpRequest.init;
 export let getUserId = AuthHttpRequest.getUserId;
-export let getJWTPayloadSecurely = AuthHttpRequest.getJWTPayloadSecurely;
+export let getAccessTokenPayloadSecurely = AuthHttpRequest.getAccessTokenPayloadSecurely;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;

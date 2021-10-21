@@ -3,7 +3,7 @@ export default class AuthHttpRequest {
     private static axiosInterceptorQueue;
     static init(options: InputType): void;
     static getUserId(): Promise<string>;
-    static getJWTPayloadSecurely(): Promise<any>;
+    static getAccessTokenPayloadSecurely(): Promise<any>;
     static attemptRefreshingSession: () => Promise<boolean>;
     static doesSessionExist: () => Promise<boolean>;
     static addAxiosInterceptors: (axiosInstance: any) => void;
@@ -11,7 +11,7 @@ export default class AuthHttpRequest {
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
-export declare let getJWTPayloadSecurely: typeof AuthHttpRequest.getJWTPayloadSecurely;
+export declare let getAccessTokenPayloadSecurely: typeof AuthHttpRequest.getAccessTokenPayloadSecurely;
 export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: () => Promise<boolean>;
 export declare let addAxiosInterceptors: (axiosInstance: any) => void;
