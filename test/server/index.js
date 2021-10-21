@@ -23,6 +23,8 @@ let http = require("http");
 let cors = require("cors");
 let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = require("./utils");
 let { package_version } = require("../../lib/build/version");
+let { middleware, errorHandler } = require("supertokens-node/framework/express");
+let { verifySession } = require("supertokens-node/recipe/session/framework/express");
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 let noOfTimesRefreshAttemptedDuringTest = 0;
@@ -78,7 +80,7 @@ app.use(
     })
 );
 
-app.use(SuperTokens.middleware());
+app.use(middleware());
 
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
@@ -139,7 +141,7 @@ app.post("/multipleInterceptors", async (req, res) => {
 
 app.get(
     "/",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         noOfTimesGetSessionCalledDuringTest += 1;
         res.send(req.session.getUserId());
@@ -148,7 +150,7 @@ app.get(
 
 app.get(
     "/check-rid",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         let response = req.headers["rid"];
         res.send(response === undefined ? "fail" : "success");
@@ -157,7 +159,7 @@ app.get(
 
 app.get(
     "/update-jwt",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         if (req.session.getJWTPayload !== undefined) {
             res.json(req.session.getJWTPayload());
@@ -169,7 +171,7 @@ app.get(
 
 app.post(
     "/update-jwt",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         if (req.session.getJWTPayload !== undefined) {
             await req.session.updateJWTPayload(req.body);
@@ -191,7 +193,7 @@ app.use("/testing", async (req, res) => {
 
 app.post(
     "/logout",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         await req.session.revokeSession();
         res.send("success");
@@ -200,7 +202,7 @@ app.post(
 
 app.post(
     "/revokeAll",
-    (req, res, next) => Session.verifySession()(req, res, next),
+    (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         let userId = req.session.getUserId();
         await SuperTokens.revokeAllSessionsForUser(userId);
@@ -210,7 +212,7 @@ app.post(
 
 app.post("/auth/session/refresh", async (req, res, next) => {
     noOfTimesRefreshAttemptedDuringTest += 1;
-    Session.verifySession()(req, res, err => {
+    verifySession()(req, res, err => {
         if (err) {
             next(err);
         } else {
@@ -275,7 +277,7 @@ app.use("*", async (req, res, next) => {
     res.status(404).send();
 });
 
-app.use(SuperTokens.errorHandler());
+app.use(errorHandler());
 
 app.use(async (err, req, res, next) => {
     res.send(500).send(err);
