@@ -159,7 +159,11 @@ app.get(
     "/update-jwt",
     (req, res, next) => Session.verifySession()(req, res, next),
     async (req, res) => {
-        res.json(req.session.getJWTPayload());
+        if (req.session.getJWTPayload !== undefined) {
+            res.json(req.session.getJWTPayload());
+        } else {
+            res.json(req.session.getAccessTokenPayload());
+        }
     }
 );
 
@@ -167,8 +171,13 @@ app.post(
     "/update-jwt",
     (req, res, next) => Session.verifySession()(req, res, next),
     async (req, res) => {
-        await req.session.updateJWTPayload(req.body);
-        res.json(req.session.getJWTPayload());
+        if (req.session.getJWTPayload !== undefined) {
+            await req.session.updateJWTPayload(req.body);
+            res.json(req.session.getJWTPayload());
+        } else {
+            await req.session.updateAccessTokenPayload(req.body);
+            res.json(req.session.getAccessTokenPayload());
+        }
     }
 );
 
