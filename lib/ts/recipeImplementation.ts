@@ -6,7 +6,7 @@ import { supported_fdi } from "./version";
 export default function RecipeImplementation(): RecipeInterface {
     return {
         addFetchInterceptorsAndReturnModifiedFetch: function(originalFetch: any, _: NormalisedInputType): typeof fetch {
-            return async (url: RequestInfo, config?: RequestInit): Promise<Response> => {
+            return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
                         return originalFetch(url, {
