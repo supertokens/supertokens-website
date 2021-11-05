@@ -80,10 +80,10 @@ export async function createAxiosErrorFromFetchResp(response: Response): Promise
     };
     return enhanceAxiosError(
         new Error("Request failed with status code " + response.status),
-        config,
+        config as any,
         undefined,
         undefined,
-        axiosResponse
+        axiosResponse as any
     );
 }
 
