@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "browser-tabs-lock": "^1.2.14",
-    "supertokens-js-override": "git+https://github.com/supertokens/supertokens-js-override.git#v0.0.2"
+    "supertokens-js-override": "git+https://github.com/supertokens/supertokens-js-override.git#v0.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
