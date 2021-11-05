@@ -18,6 +18,7 @@ import Lock from "browser-tabs-lock";
 import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
 import { InputType, RecipeInterface, NormalisedInputType } from "./types";
 import RecipeImplementation from "./recipeImplementation";
+import OverrideableBuilder from "supertokens-js-override";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -143,7 +144,12 @@ export default class AuthHttpRequest {
             // even if the init function is called more than once (maybe across JS scripts),
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
-            AuthHttpRequest.env.__supertokensSessionRecipe = config.override.functions(RecipeImplementation());
+            {
+                const builder = new OverrideableBuilder(RecipeImplementation());
+                AuthHttpRequest.env.__supertokensSessionRecipe = builder
+                    .override(this.config.override.functions)
+                    .build();
+            }
             AuthHttpRequest.env.fetch = AuthHttpRequest.env.__supertokensSessionRecipe.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config
