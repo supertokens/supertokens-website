@@ -103,10 +103,10 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      rid: AuthHttpRequestFetch.rid
+                      rid: "anti-csrf"
                   }
                 : {
-                      rid: AuthHttpRequestFetch.rid,
+                      rid: "anti-csrf",
                       ...configWithAntiCsrf.headers
                   }
     };
@@ -318,10 +318,10 @@ export default class AuthHttpRequest {
                     headers:
                         configWithAntiCsrf === undefined
                             ? {
-                                  rid: AuthHttpRequestFetch.rid
+                                  rid: "anti-csrf"
                               }
                             : {
-                                  rid: AuthHttpRequestFetch.rid,
+                                  rid: "anti-csrf",
                                   ...configWithAntiCsrf.headers
                               }
                 };

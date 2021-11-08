@@ -246,10 +246,10 @@ export default class AuthHttpRequest {
                     headers:
                         configWithAntiCsrf === undefined
                             ? {
-                                  rid: AuthHttpRequest.rid
+                                  rid: "anti-csrf"
                               }
                             : {
-                                  rid: AuthHttpRequest.rid,
+                                  rid: "anti-csrf",
                                   ...configWithAntiCsrf.headers
                               }
                 };
