@@ -13,6 +13,8 @@
  * under the License.
  */
 
+import OverrideableBuilder from "supertokens-js-override";
+
 export type Event =
     | {
           action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
@@ -39,7 +41,10 @@ export type InputType = {
     }) => Promise<{ url: string; requestInit: RequestInit }>;
     onHandleEvent?: EventHandler;
     override?: {
-        functions?: (originalImplementation: RecipeInterface) => RecipeInterface;
+        functions?: (
+            originalImplementation: RecipeInterface,
+            builder?: OverrideableBuilder<RecipeInterface>
+        ) => RecipeInterface;
     };
 };
 
@@ -58,7 +63,10 @@ export type NormalisedInputType = {
     }) => Promise<{ url: string; requestInit: RequestInit }>;
     onHandleEvent: EventHandler;
     override: {
-        functions: (originalImplementation: RecipeInterface) => RecipeInterface;
+        functions: (
+            originalImplementation: RecipeInterface,
+            builder?: OverrideableBuilder<RecipeInterface>
+        ) => RecipeInterface;
     };
 };
 
@@ -67,7 +75,7 @@ export type PreAPIHookFunction = (context: {
     url: string;
 }) => Promise<{ url: string; requestInit: RequestInit }>;
 
-export interface RecipeInterface {
+export type RecipeInterface = {
     addFetchInterceptorsAndReturnModifiedFetch: (originalFetch: any, config: NormalisedInputType) => typeof fetch;
 
     addAxiosInterceptors: (axiosInstance: any, config: NormalisedInputType) => void;
@@ -79,4 +87,4 @@ export interface RecipeInterface {
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
 
     signOut: (config: NormalisedInputType) => Promise<void>;
-}
+};
