@@ -153,7 +153,7 @@ app.get(
     (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
         let response = req.headers["rid"];
-        res.send(response === undefined ? "fail" : "success");
+        res.send(response !== "anti-csrf" ? "fail" : "success");
     }
 );
 
