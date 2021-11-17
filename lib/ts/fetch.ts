@@ -15,10 +15,8 @@
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
-import { validateAndNormaliseInputOrThrowError, getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
-import { InputType, RecipeInterface, NormalisedInputType } from "./types";
-import RecipeImplementation from "./recipeImplementation";
-import OverrideableBuilder from "supertokens-js-override";
+import { getWindowOrThrow, shouldDoInterceptionBasedOnUrl } from "./utils";
+import { RecipeInterface, NormalisedInputType } from "./types";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -129,8 +127,7 @@ export default class AuthHttpRequest {
     static recipeImpl: RecipeInterface;
     static config: NormalisedInputType;
 
-    static init(options: InputType) {
-        let config = validateAndNormaliseInputOrThrowError(options);
+    static init(config: NormalisedInputType, recipeImpl: RecipeInterface) {
         AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
@@ -144,12 +141,7 @@ export default class AuthHttpRequest {
             // even if the init function is called more than once (maybe across JS scripts),
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
-            {
-                const builder = new OverrideableBuilder(RecipeImplementation());
-                AuthHttpRequest.env.__supertokensSessionRecipe = builder
-                    .override(this.config.override.functions)
-                    .build();
-            }
+            AuthHttpRequest.env.__supertokensSessionRecipe = recipeImpl;
             AuthHttpRequest.env.fetch = AuthHttpRequest.env.__supertokensSessionRecipe.addFetchInterceptorsAndReturnModifiedFetch(
                 AuthHttpRequest.env.__supertokensOriginalFetch,
                 config

@@ -15,12 +15,17 @@
 
 import AuthHttpRequestFetch from "./fetch";
 import { InputType, RecipeInterface } from "./types";
+import RecipeImplementation from "./recipeImplementation";
+import OverrideableBuilder from "supertokens-js-override";
+import { validateAndNormaliseInputOrThrowError } from "./utils";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
 
     static init(options: InputType) {
-        AuthHttpRequestFetch.init(options);
+        let config = validateAndNormaliseInputOrThrowError(options);
+        const recipeImpl = new OverrideableBuilder(RecipeImplementation()).override(config.override.functions).build();
+        AuthHttpRequestFetch.init(config, recipeImpl);
         AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
             f();
         });

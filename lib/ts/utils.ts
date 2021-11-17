@@ -13,15 +13,9 @@
  * under the License.
  */
 
-import NormalisedURLDomain from "./normalisedURLDomain";
+import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
 import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-
-export function isAnIpAddress(ipaddress: string) {
-    return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-        ipaddress
-    );
-}
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -58,12 +52,6 @@ export function normaliseSessionScopeOrThrowError(sessionScope: string): string 
         } catch (err) {
             throw new Error("Please provide a valid sessionScope");
         }
-    }
-
-    function isAnIpAddress(ipaddress: string) {
-        return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-            ipaddress
-        );
     }
 
     let noDotNormalised = helper(sessionScope);
