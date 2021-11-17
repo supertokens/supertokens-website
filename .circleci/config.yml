@@ -23,8 +23,7 @@ jobs:
       - run: npm i -d
       - run: (cd .circleci/ && ./doTests.sh)
       - run: npm run size
-      - run: npx madge --circular --extensions js ./lib/build/
-      - slack/status
+      - run: npm run check-circular-dependencies
   update-docs:
     docker:
       - image: rishabhpoddar/supertokens_website_sdk_testing
