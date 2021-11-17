@@ -23,6 +23,7 @@ jobs:
       - run: npm i -d
       - run: (cd .circleci/ && ./doTests.sh)
       - run: npm run size
+      - run: npx madge --circular --extensions js ./lib/build/
       - slack/status
   update-docs:
     docker:
