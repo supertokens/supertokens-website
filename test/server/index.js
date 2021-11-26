@@ -38,7 +38,7 @@ app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cookieParser());
 
-function getConfig(enableAntiCsrf) {
+function getConfig(enableAntiCsrf, jwtPropertyName) {
     if (maxVersion(supertokens_node_version, "8.3") === supertokens_node_version) {
         return {
             appInfo: {
@@ -52,7 +52,8 @@ function getConfig(enableAntiCsrf) {
             recipeList: [
                 Session.init({
                     jwt: {
-                        enable: true
+                        enable: true,
+                        propertyNameInAccessTokenPayload: jwtPropertyName
                     },
                     errorHandlers: {
                         onUnauthorised: (err, req, res) => {
@@ -160,6 +161,19 @@ app.get("/featureFlags", async (req, res) => {
     res.status(200).json({
         sessionJwt: maxVersion(supertokens_node_version, "8.3") === supertokens_node_version
     });
+});
+
+app.post("/resetST", async (req, res) => {
+    let currentAntiCSRFSetting = SessionRecipeRaw.getInstanceOrThrowError().config.antiCsrf;
+    let jwtPropertyName = req.body.jwtPropertyName;
+
+    console.log(jwtPropertyName);
+
+    SuperTokensRaw.reset();
+    SessionRecipeRaw.reset();
+    SuperTokens.init(getConfig(currentAntiCSRFSetting, jwtPropertyName));
+
+    res.send("");
 });
 
 app.post("/beforeeach", async (req, res) => {

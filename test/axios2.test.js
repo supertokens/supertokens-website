@@ -32,8 +32,7 @@ let {
     BASE_URL_FOR_ST,
     addBrowserConsole,
     getNumberOfTimesRefreshAttempted,
-    coreTagEqualToOrAfter,
-    nodeTagEqualOrAfter
+    coreTagEqualToOrAfter
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -599,10 +598,6 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
-        if (!nodeTagEqualOrAfter("8.3")) {
-            return;
-        }
-
         let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
 
         if (!featureFlags.sessionJwt) {
@@ -723,6 +718,265 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that access token payload and JWT are valid after the property name changes and payload is updated after the session is created", async function() {
+        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+
+        if (!featureFlags.sessionJwt) {
+            return;
+        }
+
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                assertEqual(loginResponse.data, userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                let decodedJWT = await decodeResponse.data;
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                await axios.post(
+                    `${BASE_URL}/resetST`,
+                    JSON.stringify({
+                        jwtPropertyName: "customJWTProperty"
+                    }),
+                    {
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+
+                // Update access token payload
+                await axios.post(`${BASE_URL}/update-jwt`, JSON.stringify({ newClaim: "newValue" }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.customJWTProperty, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                decodedJWT = await decodeResponse.data;
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.customClaim, undefined);
+                assertEqual(decodedJWT.newClaim, "newValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that access token payload and JWT are valid after the property name changes and ression is refreshed after the session is created", async function() {
+        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+
+        if (!featureFlags.sessionJwt) {
+            return;
+        }
+
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                assertEqual(await loginResponse.data, userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                let decodedJWT = await decodeResponse.data;
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                await axios.post(
+                    `${BASE_URL}/resetST`,
+                    JSON.stringify({
+                        jwtPropertyName: "customJWTProperty"
+                    }),
+                    {
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, true);
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertEqual(accessTokenPayload.jwt, undefined);
+                assertNotEqual(accessTokenPayload.customJWTProperty, undefined);
+                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload._jwtPName, "customJWTProperty");
+                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                jwt = accessTokenPayload.customJWTProperty;
+
+                decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                decodedJWT = await decodeResponse.data;
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.customClaim, "customValue");
             });
         } finally {
             await browser.close();
