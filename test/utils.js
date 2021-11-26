@@ -111,3 +111,22 @@ module.exports.coreTagEqualToOrAfter = function(targetTag) {
     }
     return true;
 };
+
+module.exports.nodeTagEqualOrAfter = function(targetTag) {
+    const currTag = process.env.NODE_SDK_TAG;
+    if (currTag === undefined || currTag === targetTag) return true;
+
+    const lparts = currTag.replace(/^(dev-)?v/, "").split(".");
+    while (lparts.length < 3) lparts.push("0");
+    const rparts = targetTag.split(".");
+    while (rparts.length < 3) rparts.push("0");
+
+    for (let i = 0; i < 3; i++) {
+        const l = parseInt(lparts[i], 10);
+        const r = parseInt(rparts[i], 10);
+        if (l !== r) {
+            return l > r;
+        }
+    }
+    return true;
+};

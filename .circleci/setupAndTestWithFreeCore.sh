@@ -51,7 +51,7 @@ cd ../../test/server/
 TEST_MODE=testing INSTALL_PATH=../../../supertokens-root NODE_PORT=8082 node . &
 pid=$!
 cd ../../
-SUPERTOKENS_CORE_TAG=$coreTag INSTALL_PATH=../supertokens-root npm test
+SUPERTOKENS_CORE_TAG=$coreTag NODE_SDK_TAG=$2 INSTALL_PATH=../supertokens-root npm test
 if [[ $? -ne 0 ]]
 then
     echo "test failed... exiting!"

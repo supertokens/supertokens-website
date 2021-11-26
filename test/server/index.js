@@ -21,13 +21,14 @@ let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
 let http = require("http");
 let cors = require("cors");
-let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig } = require("./utils");
+let { startST, stopST, killAllST, setupST, cleanST, setKeyValueInConfig, maxVersion } = require("./utils");
 let { package_version } = require("../../lib/build/version");
 let { middleware, errorHandler } = require("supertokens-node/framework/express");
 let { verifySession } = require("supertokens-node/recipe/session/framework/express");
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 let noOfTimesRefreshAttemptedDuringTest = 0;
+let supertokens_node_version = require("supertokens-node/lib/build/version").version;
 
 let urlencodedParser = bodyParser.urlencoded({ limit: "20mb", extended: true, parameterLimit: 20000 });
 let jsonParser = bodyParser.json({ limit: "20mb" });
@@ -38,6 +39,54 @@ app.use(jsonParser);
 app.use(cookieParser());
 
 function getConfig(enableAntiCsrf) {
+    if (maxVersion(supertokens_node_version, "8.3") === supertokens_node_version) {
+        return {
+            appInfo: {
+                appName: "SuperTokens",
+                apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
+                websiteDomain: "http://localhost.org:8080"
+            },
+            supertokens: {
+                connectionURI: "http://localhost:9000"
+            },
+            recipeList: [
+                Session.init({
+                    jwt: {
+                        enable: true
+                    },
+                    errorHandlers: {
+                        onUnauthorised: (err, req, res) => {
+                            res.setStatusCode(401);
+                            res.sendJSONResponse({});
+                        }
+                    },
+                    antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
+                    override: {
+                        apis: oI => {
+                            return {
+                                ...oI,
+                                refreshPOST: undefined
+                            };
+                        },
+                        functions: function(oI) {
+                            return {
+                                ...oI,
+                                createNewSession: async function({ res, userId, accessTokenPayload, sessionData }) {
+                                    accessTokenPayload = {
+                                        ...accessTokenPayload,
+                                        customClaim: "customValue"
+                                    };
+
+                                    return await oI.createNewSession({ res, userId, accessTokenPayload, sessionData });
+                                }
+                            };
+                        }
+                    }
+                })
+            ]
+        };
+    }
+
     return {
         appInfo: {
             appName: "SuperTokens",
@@ -85,7 +134,7 @@ app.use(middleware());
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
     let session = await Session.createNewSession(res, userId);
-    res.send(session.userId);
+    res.send(session.getUserId());
 });
 
 app.post("/startST", async (req, res) => {
@@ -105,6 +154,12 @@ app.post("/startST", async (req, res) => {
     }
     let pid = await startST();
     res.send(pid + "");
+});
+
+app.get("/featureFlags", async (req, res) => {
+    res.status(200).json({
+        sessionJwt: maxVersion(supertokens_node_version, "8.3") === supertokens_node_version
+    });
 });
 
 app.post("/beforeeach", async (req, res) => {
