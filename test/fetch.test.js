@@ -520,6 +520,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+
+                let jwtEnabled = (await (await fetch(BASE_URL + "/featureFlags")).json()).sessionJwt;
+
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -538,7 +541,10 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
 
                 let data = await supertokens.getAccessTokenPayloadSecurely();
-                assertEqual(Object.keys(data).length, 0);
+
+                if (!jwtEnabled) {
+                    assertEqual(Object.keys(data).length, 0);
+                }
 
                 // update jwt data
                 let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
@@ -2250,7 +2256,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
-        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+        let instance = axios.create();
+        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -2410,7 +2417,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
-        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+        let instance = axios.create();
+        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -2540,7 +2548,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("Test that access token payload and JWT are valid after the property name changes and payload is updated after the session is created", async function() {
-        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+        let instance = axios.create();
+        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -2678,7 +2687,8 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     it("Test that access token payload and JWT are valid after the property name changes and ression is refreshed after the session is created", async function() {
-        let featureFlags = await (await fetch(BASE_URL_FOR_ST + "/featureFlags")).json();
+        let instance = axios.create();
+        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;

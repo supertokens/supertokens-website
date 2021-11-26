@@ -693,6 +693,9 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+
+                let jwtEnabled = (await axios.get(BASE_URL + "/featureFlags")).data.sessionJwt;
+
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -709,7 +712,10 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
 
                 let data = await supertokens.getAccessTokenPayloadSecurely();
-                assertEqual(Object.keys(data).length, 0);
+
+                if (!jwtEnabled) {
+                    assertEqual(Object.keys(data).length, 0);
+                }
 
                 // update jwt data
                 let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
