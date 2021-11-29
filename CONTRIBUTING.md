@@ -63,7 +63,9 @@ We're so excited you're interested in helping with SuperTokens! We are happy to 
 
 
 NOTE: When running macOS Monterey or higher, if you get the following error when running the tests:
-   `Error: getaddrinfo ENOTFOUND localhost.org`
+
+`Error: getaddrinfo ENOTFOUND localhost.org`
+
 Make sure that you have an entry for `127.0.0.1 localhost.org` in your `/etc/hosts` file.
 
 
