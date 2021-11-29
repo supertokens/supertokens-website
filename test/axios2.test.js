@@ -1046,6 +1046,18 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
+                let jwt = accessTokenPayload.jwt;
+
+                let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                let decodedJWT = decodeResponse.data;
+                let jwtExpiry = decodedJWT.exp;
+
                 // Wait for access token to expire
                 await delay(5);
 
@@ -1063,14 +1075,14 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 jwt = accessTokenPayload.jwt;
 
-                let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
                     }
                 });
 
-                let decodedJWT = decodeResponse.data;
+                decodedJWT = decodeResponse.data;
 
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
@@ -1078,9 +1090,10 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
-                let jwtExpiry = decodedJWT.exp;
+                let newJWTExpiry = decodedJWT.exp;
 
-                assertEqual(jwtExpiry > Math.ceil(Date.now() / 1000), true);
+                assertEqual(newJWTExpiry > Math.ceil(Date.now() / 1000), true);
+                assertNotEqual(newJWTExpiry, jwtExpiry);
             });
         } finally {
             await browser.close();

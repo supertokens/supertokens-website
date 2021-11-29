@@ -2884,6 +2884,21 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
+                let jwt = accessTokenPayload.jwt;
+
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                let jwtExpiry = decodedJWT.exp;
+
                 // Wait for access token to expire
                 await delay(5);
 
@@ -2901,7 +2916,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 jwt = accessTokenPayload.jwt;
 
-                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -2910,7 +2925,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     body: JSON.stringify({ jwt })
                 });
 
-                let decodedJWT = await decodeResponse.json();
+                decodedJWT = await decodeResponse.json();
 
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
@@ -2918,9 +2933,10 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
-                let jwtExpiry = decodedJWT.exp;
+                let newJwtExpiry = decodedJWT.exp;
 
-                assertEqual(jwtExpiry > Math.ceil(Date.now() / 1000), true);
+                assertEqual(newJwtExpiry > Math.ceil(Date.now() / 1000), true);
+                assertNotEqual(jwtExpiry, newJwtExpiry);
             });
         } finally {
             await browser.close();
