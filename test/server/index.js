@@ -163,11 +163,9 @@ app.get("/featureFlags", async (req, res) => {
     });
 });
 
-app.post("/resetST", async (req, res) => {
+app.post("/reinitialiseBackendConfig", async (req, res) => {
     let currentAntiCSRFSetting = SessionRecipeRaw.getInstanceOrThrowError().config.antiCsrf;
     let jwtPropertyName = req.body.jwtPropertyName;
-
-    console.log(jwtPropertyName);
 
     SuperTokensRaw.reset();
     SessionRecipeRaw.reset();

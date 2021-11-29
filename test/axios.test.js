@@ -715,6 +715,13 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 if (!jwtEnabled) {
                     assertEqual(Object.keys(data).length, 0);
+                } else {
+                    assertEqual(Object.keys(data).length, 5);
+                    assertNotEqual(data.jwt, undefined);
+                    assertEqual(data._jwtPName, "jwt");
+                    assertEqual(data.customClaim, "customValue");
+                    assertEqual(data.sub, userId);
+                    assertEqual(data.iss, "http://0.0.0.0:8080");
                 }
 
                 // update jwt data
