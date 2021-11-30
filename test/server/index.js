@@ -38,8 +38,8 @@ app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cookieParser());
 
-function getConfig(enableAntiCsrf, jwtPropertyName) {
-    if (maxVersion(supertokens_node_version, "8.3") === supertokens_node_version) {
+function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
+    if (maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && enableJWT) {
         return {
             appInfo: {
                 appName: "SuperTokens",
@@ -119,7 +119,7 @@ function getConfig(enableAntiCsrf, jwtPropertyName) {
     };
 }
 
-SuperTokens.init(getConfig(true));
+SuperTokens.init(getConfig(true, false));
 
 app.use(
     cors({
@@ -141,6 +141,7 @@ app.post("/login", async (req, res) => {
 app.post("/startST", async (req, res) => {
     let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
     let enableAntiCsrf = req.body.enableAntiCsrf === undefined ? true : req.body.enableAntiCsrf;
+    let enableJWT = req.body.enableJWT === undefined ? false : req.body.enableJWT;
     await setKeyValueInConfig("access_token_validity", accessTokenValidity);
     if (req.body.accessTokenSigningKeyUpdateInterval !== undefined) {
         await setKeyValueInConfig(
@@ -151,25 +152,29 @@ app.post("/startST", async (req, res) => {
     if (enableAntiCsrf !== undefined) {
         SuperTokensRaw.reset();
         SessionRecipeRaw.reset();
-        SuperTokens.init(getConfig(enableAntiCsrf));
+        SuperTokens.init(getConfig(enableAntiCsrf, enableJWT));
     }
     let pid = await startST();
     res.send(pid + "");
 });
 
 app.get("/featureFlags", async (req, res) => {
+    let currentEnableJWT = SessionRecipeRaw.getInstanceOrThrowError().config.jwt.enable;
+
     res.status(200).json({
-        sessionJwt: maxVersion(supertokens_node_version, "8.3") === supertokens_node_version
+        sessionJwt:
+            maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true
     });
 });
 
 app.post("/reinitialiseBackendConfig", async (req, res) => {
     let currentAntiCSRFSetting = SessionRecipeRaw.getInstanceOrThrowError().config.antiCsrf;
+    let currentEnableJWT = SessionRecipeRaw.getInstanceOrThrowError().config.jwt.enable;
     let jwtPropertyName = req.body.jwtPropertyName;
 
     SuperTokensRaw.reset();
     SessionRecipeRaw.reset();
-    SuperTokens.init(getConfig(currentAntiCSRFSetting, jwtPropertyName));
+    SuperTokens.init(getConfig(currentAntiCSRFSetting, currentEnableJWT, jwtPropertyName));
 
     res.send("");
 });

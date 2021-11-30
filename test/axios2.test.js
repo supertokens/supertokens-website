@@ -27,6 +27,7 @@ let {
     checkIfIdRefreshIsCleared,
     getNumberOfTimesRefreshCalled,
     startST,
+    startSTWithJWTEnabled,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
@@ -598,6 +599,8 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+        await startSTWithJWTEnabled();
+
         let instance = axios.create();
         let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
@@ -605,7 +608,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             return;
         }
 
-        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -726,6 +728,8 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("Test that access token payload and JWT are valid after the property name changes and payload is updated after the session is created", async function() {
+        await startSTWithJWTEnabled();
+
         let instance = axios.create();
         let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
@@ -733,7 +737,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             return;
         }
 
-        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -860,6 +863,8 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("Test that access token payload and JWT are valid after the property name changes and session is refreshed after the session is created", async function() {
+        await startSTWithJWTEnabled();
+
         let instance = axios.create();
         let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
@@ -867,7 +872,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             return;
         }
 
-        await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -987,6 +991,8 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     it("Test that access token payload and jwt are valid after the session has expired", async function() {
+        await startSTWithJWTEnabled(3);
+
         let instance = axios.create();
         let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
 
@@ -994,7 +1000,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             return;
         }
 
-        await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
