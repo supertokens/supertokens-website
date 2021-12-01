@@ -38,6 +38,9 @@ app.use(urlencodedParser);
 app.use(jsonParser);
 app.use(cookieParser());
 
+let lastSetEnableAntiCSRF = false;
+let lastSetEnableJWT = false;
+
 function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
     if (maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && enableJWT) {
         return {
@@ -142,6 +145,10 @@ app.post("/startST", async (req, res) => {
     let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
     let enableAntiCsrf = req.body.enableAntiCsrf === undefined ? true : req.body.enableAntiCsrf;
     let enableJWT = req.body.enableJWT === undefined ? false : req.body.enableJWT;
+
+    lastSetEnableAntiCSRF = enableAntiCsrf;
+    lastSetEnableJWT = enableJWT;
+
     await setKeyValueInConfig("access_token_validity", accessTokenValidity);
     if (req.body.accessTokenSigningKeyUpdateInterval !== undefined) {
         await setKeyValueInConfig(
@@ -159,7 +166,7 @@ app.post("/startST", async (req, res) => {
 });
 
 app.get("/featureFlags", async (req, res) => {
-    let currentEnableJWT = SessionRecipeRaw.getInstanceOrThrowError().config.jwt.enable;
+    let currentEnableJWT = lastSetEnableJWT;
 
     res.status(200).json({
         sessionJwt:
@@ -168,13 +175,12 @@ app.get("/featureFlags", async (req, res) => {
 });
 
 app.post("/reinitialiseBackendConfig", async (req, res) => {
-    let currentAntiCSRFSetting = SessionRecipeRaw.getInstanceOrThrowError().config.antiCsrf;
-    let currentEnableJWT = SessionRecipeRaw.getInstanceOrThrowError().config.jwt.enable;
+    let currentEnableJWT = lastSetEnableJWT;
     let jwtPropertyName = req.body.jwtPropertyName;
 
     SuperTokensRaw.reset();
     SessionRecipeRaw.reset();
-    SuperTokens.init(getConfig(currentAntiCSRFSetting, currentEnableJWT, jwtPropertyName));
+    SuperTokens.init(getConfig(lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
 
     res.send("");
 });
