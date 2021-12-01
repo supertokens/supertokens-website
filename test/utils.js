@@ -67,6 +67,10 @@ module.exports.startST = async function(
             await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
                 enableAntiCsrf
             });
+
+            await instance.post(module.exports.BASE_URL + "/setEnableJWT", {
+                enableJWT
+            });
         }
     }
     {
