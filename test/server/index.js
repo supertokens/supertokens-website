@@ -56,10 +56,7 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                 Session.init({
                     jwt: {
                         enable: true,
-                        propertyNameInAccessTokenPayload: jwtPropertyName,
-                        issuer: `http://localhost:${
-                            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-                        }/auth`
+                        propertyNameInAccessTokenPayload: jwtPropertyName
                     },
                     errorHandlers: {
                         onUnauthorised: (err, req, res) => {
