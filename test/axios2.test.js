@@ -17,6 +17,8 @@ let axios = require("axios");
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
 let decodeJWT = require("jsonwebtoken").decode;
+let verifyJWT = require("jsonwebtoken").verify;
+let jwksClient = require("jwks-rsa");
 let AuthHttpRequest = require("../index.js").default;
 let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 let AuthHttpRequestAxios = require("../lib/build/axios").default;
@@ -1098,6 +1100,156 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 assertEqual(newJWTExpiry > Math.ceil(Date.now() / 1000), true);
                 assertNotEqual(newJWTExpiry, jwtExpiry);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test full JWT flow with open id discovery", async function() {
+        await startSTWithJWTEnabled();
+
+        let instance = axios.create();
+        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+
+        if (!featureFlags.sessionJwt) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else if (url === BASE_URL + "/jwtVerify") {
+                    let data = JSON.parse(req.postData());
+                    let jwt = data.jwt;
+                    let jwksURL = data.jwksURL;
+                    let client = jwksClient({
+                        jwksUri: jwksURL
+                    });
+
+                    function getKey(header, callback) {
+                        client.getSigningKey(header.kid, function(err, key) {
+                            if (err) {
+                                callback(err, null);
+                                return;
+                            }
+
+                            var signingKey = key.publicKey || key.rsaPublicKey;
+                            callback(null, signingKey);
+                        });
+                    }
+
+                    verifyJWT(jwt, getKey, (err, decoded) => {
+                        if (err) {
+                            req.respond({
+                                status: 500,
+                                body: JSON.stringify({
+                                    error: err
+                                })
+                            });
+                            return;
+                        }
+
+                        req.respond({
+                            status: 200,
+                            body: JSON.stringify(decoded)
+                        });
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.addAxiosInterceptors(axios);
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                assertEqual(loginResponse.data, userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                let decodedJWT = decodeResponse.data;
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                // Use the jwt issuer to get discovery configuration
+
+                let discoveryEndpoint = decodedJWT.iss + "/.well-known/openid-configuration";
+
+                let jwksEndpoint = (await axios.get(discoveryEndpoint)).data.jwks_uri;
+
+                let verifyResponse = await axios.post(
+                    `${BASE_URL}/jwtVerify`,
+                    JSON.stringify({
+                        jwt,
+                        jwksURL: jwksEndpoint
+                    }),
+                    {
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+
+                if (verifyResponse.status !== 200) {
+                    throw new Error("JWT Verification failed");
+                }
+
+                decodedJWT = verifyResponse.data;
+
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
             });
         } finally {
             await browser.close();
