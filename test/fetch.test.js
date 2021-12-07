@@ -28,8 +28,7 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    coreTagEqualToOrAfter,
-    addBrowserConsole
+    coreTagEqualToOrAfter
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -551,7 +550,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     assertEqual(data._jwtPName, "jwt");
                     assertEqual(data.customClaim, "customValue");
                     assertEqual(data.sub, userId);
-                    assertEqual(data.iss, "http://0.0.0.0:8080");
+                    assertEqual(data.iss, "http://localhost:8080");
                 }
 
                 // update jwt data
@@ -2320,9 +2319,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -2342,7 +2341,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 // Update access token payload
@@ -2360,9 +2359,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
 
@@ -2382,7 +2381,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
 
@@ -2394,9 +2393,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
 
@@ -2416,7 +2415,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
             });
@@ -2482,9 +2481,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -2501,10 +2500,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 let decodedJWT = await decodeResponse.json();
 
+                console.log(JSON.stringify(decodedJWT));
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 // Update access token payload
@@ -2524,11 +2524,12 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Get access token payload
                 accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
+                console.log("Hit");
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
 
@@ -2545,10 +2546,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 decodedJWT = await decodeResponse.json();
 
+                console.log("Hit 2");
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
             });
@@ -2614,9 +2616,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -2636,7 +2638,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 await fetch(`${BASE_URL}/reinitialiseBackendConfig`, {
@@ -2665,9 +2667,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.customJWTProperty, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
@@ -2688,7 +2690,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
             });
@@ -2754,9 +2756,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -2776,7 +2778,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 await fetch(`${BASE_URL}/reinitialiseBackendConfig`, {
@@ -2799,9 +2801,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new access token payload
                 assertEqual(accessTokenPayload.jwt, undefined);
                 assertNotEqual(accessTokenPayload.customJWTProperty, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "customJWTProperty");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 jwt = accessTokenPayload.customJWTProperty;
@@ -2820,7 +2822,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
             });
         } finally {
@@ -2885,9 +2887,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -2915,9 +2917,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 jwt = accessTokenPayload.jwt;
@@ -2936,7 +2938,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 let newJwtExpiry = decodedJWT.exp;

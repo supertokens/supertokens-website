@@ -31,7 +31,6 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    addBrowserConsole,
     getNumberOfTimesRefreshAttempted,
     coreTagEqualToOrAfter
 } = require("./utils");
@@ -654,9 +653,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -674,7 +673,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 // Update access token payload
@@ -698,9 +697,9 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
 
@@ -718,7 +717,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
             });
@@ -783,9 +782,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -803,7 +802,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 await axios.post(
@@ -832,9 +831,9 @@ describe("Axios AuthHttpRequest class tests", function() {
 
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, undefined);
                 assertEqual(accessTokenPayload.customJWTProperty, undefined);
                 assertEqual(accessTokenPayload.newClaim, "newValue");
@@ -853,7 +852,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, undefined);
                 assertEqual(decodedJWT.newClaim, "newValue");
             });
@@ -918,9 +917,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -938,7 +937,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 await axios.post(
@@ -963,9 +962,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify new access token payload
                 assertEqual(accessTokenPayload.jwt, undefined);
                 assertNotEqual(accessTokenPayload.customJWTProperty, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "customJWTProperty");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 jwt = accessTokenPayload.customJWTProperty;
@@ -982,7 +981,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
             });
         } finally {
@@ -1046,9 +1045,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 let jwt = accessTokenPayload.jwt;
@@ -1073,9 +1072,9 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
 
                 assertNotEqual(accessTokenPayload.jwt, undefined);
-                assertEqual(accessTokenPayload.sub, userId);
+                assertEqual(accessTokenPayload.sub, undefined);
                 assertEqual(accessTokenPayload._jwtPName, "jwt");
-                assertEqual(accessTokenPayload.iss, "http://0.0.0.0:8080");
+                assertEqual(accessTokenPayload.iss, undefined);
                 assertEqual(accessTokenPayload.customClaim, "customValue");
 
                 jwt = accessTokenPayload.jwt;
@@ -1092,7 +1091,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
-                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080");
+                assertEqual(decodedJWT.iss, "http://localhost:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
 
                 let newJWTExpiry = decodedJWT.exp;
