@@ -16,6 +16,8 @@ let axios = require("axios");
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
 let decodeJWT = require("jsonwebtoken").decode;
+let verifyJWT = require("jsonwebtoken").verify;
+let jwksClient = require("jwks-rsa");
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let AuthHttpRequest = require("../index.js").default;
 let assert = require("assert");
@@ -28,8 +30,7 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    coreTagEqualToOrAfter,
-    addBrowserConsole
+    coreTagEqualToOrAfter
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -2501,7 +2502,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 let decodedJWT = await decodeResponse.json();
 
-                console.log(JSON.stringify(decodedJWT));
                 // Verify the JWT claims
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
@@ -2525,7 +2525,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // Get access token payload
                 accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
-                console.log("Hit");
                 // Verify new access token payload
                 assertNotEqual(accessTokenPayload.jwt, undefined);
                 assertEqual(accessTokenPayload.sub, undefined);
@@ -2547,7 +2546,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 decodedJWT = await decodeResponse.json();
 
-                console.log("Hit 2");
                 // Verify new JWT
                 assertEqual(decodedJWT.sub, userId);
                 assertEqual(decodedJWT._jwtPName, undefined);
@@ -2968,7 +2966,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
         try {
             const page = await browser.newPage();
-            addBrowserConsole(page);
             await page.setRequestInterception(true);
             page.on("request", req => {
                 const url = req.url();
@@ -2979,6 +2976,42 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     req.respond({
                         status: 200,
                         body: JSON.stringify(decodedJWT)
+                    });
+                } else if (url === BASE_URL + "/jwtVerify") {
+                    let data = JSON.parse(req.postData());
+                    let jwt = data.jwt;
+                    let jwksURL = data.jwksURL;
+                    let client = jwksClient({
+                        jwksUri: jwksURL
+                    });
+
+                    function getKey(header, callback) {
+                        client.getSigningKey(header.kid, function(err, key) {
+                            if (err) {
+                                callback(err, null);
+                                return;
+                            }
+
+                            var signingKey = key.publicKey || key.rsaPublicKey;
+                            callback(null, signingKey);
+                        });
+                    }
+
+                    verifyJWT(jwt, getKey, (err, decoded) => {
+                        if (err) {
+                            req.respond({
+                                status: 500,
+                                body: JSON.stringify({
+                                    error: err
+                                })
+                            });
+                            return;
+                        }
+
+                        req.respond({
+                            status: 200,
+                            body: JSON.stringify(decoded)
+                        });
                     });
                 } else {
                     req.continue();
@@ -3038,9 +3071,30 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 let discoveryEndpoint = decodedJWT.iss + "/.well-known/openid-configuration";
 
-                let discoveryResponse = await fetch(discoveryEndpoint);
+                let jwksEndpoint = (await (await fetch(discoveryEndpoint)).json()).jwks_uri;
 
-                console.log(await discoveryResponse.text());
+                let verifyResponse = await fetch(`${BASE_URL}/jwtVerify`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        jwt,
+                        jwksURL: jwksEndpoint
+                    })
+                });
+
+                if (verifyResponse.status !== 200) {
+                    throw new Error("JWT Verification failed");
+                }
+
+                decodedJWT = await verifyResponse.json();
+
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
             });
         } finally {
             await browser.close();
