@@ -29,7 +29,6 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    addBrowserConsole,
     getNumberOfTimesRefreshAttempted
 } = require("./utils");
 const { spawn } = require("child_process");
