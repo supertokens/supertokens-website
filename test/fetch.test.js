@@ -523,8 +523,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
 
-                let jwtEnabled = (await (await fetch(BASE_URL + "/featureFlags")).json()).sessionJwt;
-
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -544,16 +542,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
 
                 let data = await supertokens.getAccessTokenPayloadSecurely();
 
-                if (!jwtEnabled) {
-                    assertEqual(Object.keys(data).length, 0);
-                } else {
-                    assertEqual(Object.keys(data).length, 5);
-                    assertNotEqual(data.jwt, undefined);
-                    assertEqual(data._jwtPName, "jwt");
-                    assertEqual(data.customClaim, "customValue");
-                    assertEqual(data.sub, userId);
-                    assertEqual(data.iss, "http://localhost:8080");
-                }
+                assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
                 let testResponse1 = await fetch(`${BASE_URL}/update-jwt`, {
