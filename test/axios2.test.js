@@ -603,7 +603,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startSTWithJWTEnabled();
 
         let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -732,7 +732,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startSTWithJWTEnabled();
 
         let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -867,7 +867,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startSTWithJWTEnabled();
 
         let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -995,7 +995,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startSTWithJWTEnabled(3);
 
         let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
@@ -1110,7 +1110,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await startSTWithJWTEnabled();
 
         let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL_FOR_ST + "/featureFlags")).data;
+        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
 
         if (!featureFlags.sessionJwt) {
             return;
