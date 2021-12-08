@@ -123,8 +123,12 @@ module.exports.coreTagEqualToOrAfter = function(targetTag) {
 };
 
 module.exports.getFeatureFlags = async function() {
-    let instance = axios.create();
-    return await (await instance.get(module.exports.BASE_URL + "/featureFlags")).data;
+    try {
+        let instance = axios.create();
+        return await (await instance.get(module.exports.BASE_URL + "/featureFlags")).data;
+    } catch (e) {
+        return undefined;
+    }
 };
 
 module.exports.checkIfJWTIsEnabled = async function() {
