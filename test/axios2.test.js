@@ -1251,4 +1251,24 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("Test that openid discovery and get jwks APIs have no cors origin restrictions", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        let instance = axios.create();
+
+        let discoveryResponse = await instance.get(`${BASE_URL}/auth/.well-known/openid-configuration`);
+
+        assert.equal(discoveryResponse.headers["access-control-allow-origin"], "*");
+
+        let getJWKSResponse = await instance.get(`${BASE_URL}/auth/jwt/jwks.json`);
+
+        assert.equal(getJWKSResponse.headers["access-control-allow-origin"], "*");
+    });
 });
