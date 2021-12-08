@@ -30,7 +30,8 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    coreTagEqualToOrAfter
+    coreTagEqualToOrAfter,
+    checkIfJWTIsEnabled
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -2256,10 +2257,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
         await startSTWithJWTEnabled();
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 
@@ -2418,10 +2418,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
         await startSTWithJWTEnabled();
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 
@@ -2550,10 +2549,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function() {
         await startSTWithJWTEnabled();
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 
@@ -2690,10 +2688,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function() {
         await startSTWithJWTEnabled();
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 
@@ -2821,10 +2818,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test that access token payload and jwt are valid after the session has expired", async function() {
         await startSTWithJWTEnabled(3);
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 
@@ -2942,10 +2938,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
     it("Test full JWT flow with open id discovery", async function() {
         await startSTWithJWTEnabled();
 
-        let instance = axios.create();
-        let featureFlags = await (await instance.get(BASE_URL + "/featureFlags")).data;
+        let isJwtEnabled = await checkIfJWTIsEnabled();
 
-        if (!featureFlags.sessionJwt) {
+        if (!isJwtEnabled) {
             return;
         }
 

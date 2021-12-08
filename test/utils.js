@@ -121,3 +121,14 @@ module.exports.coreTagEqualToOrAfter = function(targetTag) {
     }
     return true;
 };
+
+module.exports.getFeatureFlags = async function() {
+    let instance = axios.create();
+    return await (await instance.get(module.exports.BASE_URL + "/featureFlags")).data;
+};
+
+module.exports.checkIfJWTIsEnabled = async function() {
+    let featureFlags = await module.exports.getFeatureFlags();
+
+    return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
+};
