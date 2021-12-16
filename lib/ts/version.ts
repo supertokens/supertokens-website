@@ -12,6 +12,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-export const package_version = "10.0.5";
+export const package_version = "10.0.6";
 
-export const supported_fdi = ["1.8", "1.9", "1.10"];
+export const supported_fdi = ["1.8", "1.9", "1.10", "1.11"];
