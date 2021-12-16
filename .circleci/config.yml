@@ -20,6 +20,7 @@ jobs:
       - image: rishabhpoddar/supertokens_website_sdk_testing
     steps:
       - checkout
+      - run: echo "127.0.0.1 localhost.org" >> /etc/hosts
       - run: npm i -d
       - run: (cd .circleci/ && ./doTests.sh)
       - run: npm run size
