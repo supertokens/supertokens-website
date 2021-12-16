@@ -29,7 +29,6 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    addBrowserConsole,
     getNumberOfTimesRefreshAttempted
 } = require("./utils");
 const { spawn } = require("child_process");
@@ -693,6 +692,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -709,6 +709,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 assertEqual(userId, loginResponse.data);
 
                 let data = await supertokens.getAccessTokenPayloadSecurely();
+
                 assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data

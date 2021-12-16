@@ -58,13 +58,18 @@ module.exports.getNumberOfTimesRefreshAttempted = async function(BASE = module.e
 module.exports.startST = async function(
     accessTokenValidity = 1,
     enableAntiCsrf = true,
-    accessTokenSigningKeyUpdateInterval = undefined
+    accessTokenSigningKeyUpdateInterval = undefined,
+    enableJWT = undefined
 ) {
     {
         if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
             let instance = axios.create();
             await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
                 enableAntiCsrf
+            });
+
+            await instance.post(module.exports.BASE_URL + "/setEnableJWT", {
+                enableJWT
             });
         }
     }
@@ -73,10 +78,15 @@ module.exports.startST = async function(
         let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
             accessTokenValidity,
             enableAntiCsrf,
-            accessTokenSigningKeyUpdateInterval
+            accessTokenSigningKeyUpdateInterval,
+            enableJWT
         });
         return response.data;
     }
+};
+
+module.exports.startSTWithJWTEnabled = async function(accessTokenValidity = 1) {
+    return await module.exports.startST(accessTokenValidity, true, undefined, true);
 };
 
 module.exports.addBrowserConsole = function(page) {
@@ -110,4 +120,19 @@ module.exports.coreTagEqualToOrAfter = function(targetTag) {
         }
     }
     return true;
+};
+
+module.exports.getFeatureFlags = async function() {
+    try {
+        let instance = axios.create();
+        return await (await instance.get(module.exports.BASE_URL + "/featureFlags")).data;
+    } catch (e) {
+        return undefined;
+    }
+};
+
+module.exports.checkIfJWTIsEnabled = async function() {
+    let featureFlags = await module.exports.getFeatureFlags();
+
+    return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
 };

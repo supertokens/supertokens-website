@@ -62,6 +62,13 @@ We're so excited you're interested in helping with SuperTokens! We are happy to 
    <img src="https://github.com/supertokens/supertokens-logo/blob/master/images/supertokens-website-tests-passing.png" alt="Website tests passing" width="500px">
 
 
+NOTE: When running macOS Monterey or higher, if you get the following error when running the tests:
+
+`Error: getaddrinfo ENOTFOUND localhost.org`
+
+Make sure that you have an entry for `127.0.0.1 localhost.org` in your `/etc/hosts` file.
+
+
 ## Pull Request
 1. Before submitting a pull request make sure all tests have passed
 2. Reference the relevant issue or pull request and give a clear description of changes/features added when submitting a pull request

@@ -15,6 +15,9 @@
 let axios = require("axios");
 let puppeteer = require("puppeteer");
 let jsdom = require("mocha-jsdom");
+let decodeJWT = require("jsonwebtoken").decode;
+let verifyJWT = require("jsonwebtoken").verify;
+let jwksClient = require("jwks-rsa");
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let AuthHttpRequest = require("../index.js").default;
 let assert = require("assert");
@@ -23,10 +26,12 @@ let {
     checkIfIdRefreshIsCleared,
     getNumberOfTimesRefreshCalled,
     startST,
+    startSTWithJWTEnabled,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    coreTagEqualToOrAfter
+    coreTagEqualToOrAfter,
+    checkIfJWTIsEnabled
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -518,6 +523,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -536,6 +542,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
 
                 let data = await supertokens.getAccessTokenPayloadSecurely();
+
                 assertEqual(Object.keys(data).length, 0);
 
                 // update jwt data
@@ -2242,6 +2249,837 @@ describe("Fetch AuthHttpRequest class tests", function() {
             });
             // It should call it once before the call - but after that doesn't work it should not try again after the API request
             assert.equal(refreshCalled, 1);
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                // Update access token payload
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ newClaim: "newValue" })
+                });
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, undefined);
+                assertEqual(decodedJWT.newClaim, "newValue");
+
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, true);
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, undefined);
+                assertEqual(decodedJWT.newClaim, "newValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                // Update access token payload
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        ...accessTokenPayload,
+                        customClaim: undefined,
+                        newClaim: "newValue"
+                    })
+                });
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, undefined);
+                assertEqual(decodedJWT.newClaim, "newValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                await fetch(`${BASE_URL}/reinitialiseBackendConfig`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        jwtPropertyName: "customJWTProperty"
+                    })
+                });
+
+                // Update access token payload
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ newClaim: "newValue" })
+                });
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.customJWTProperty, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, undefined);
+                assertEqual(decodedJWT.newClaim, "newValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                // Decode the JWT
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                await fetch(`${BASE_URL}/reinitialiseBackendConfig`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        jwtPropertyName: "customJWTProperty"
+                    })
+                });
+
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, true);
+
+                // Get access token payload
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                // Verify new access token payload
+                assertEqual(accessTokenPayload.jwt, undefined);
+                assertNotEqual(accessTokenPayload.customJWTProperty, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "customJWTProperty");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                jwt = accessTokenPayload.customJWTProperty;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that access token payload and jwt are valid after the session has expired", async function() {
+        await startSTWithJWTEnabled(3);
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                let jwtExpiry = decodedJWT.exp;
+
+                // Wait for access token to expire
+                await delay(5);
+
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                jwt = accessTokenPayload.jwt;
+
+                decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                decodedJWT = await decodeResponse.json();
+
+                // Verify new JWT
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                let newJwtExpiry = decodedJWT.exp;
+
+                assertEqual(newJwtExpiry > Math.ceil(Date.now() / 1000), true);
+                assertNotEqual(jwtExpiry, newJwtExpiry);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test full JWT flow with open id discovery", async function() {
+        await startSTWithJWTEnabled();
+
+        let isJwtEnabled = await checkIfJWTIsEnabled();
+
+        if (!isJwtEnabled) {
+            return;
+        }
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/jsondecode") {
+                    let jwt = JSON.parse(req.postData()).jwt;
+                    let decodedJWT = decodeJWT(jwt);
+
+                    req.respond({
+                        status: 200,
+                        body: JSON.stringify(decodedJWT)
+                    });
+                } else if (url === BASE_URL + "/jwtVerify") {
+                    let data = JSON.parse(req.postData());
+                    let jwt = data.jwt;
+                    let jwksURL = data.jwksURL;
+                    let client = jwksClient({
+                        jwksUri: jwksURL
+                    });
+
+                    function getKey(header, callback) {
+                        client.getSigningKey(header.kid, function(err, key) {
+                            if (err) {
+                                callback(err, null);
+                                return;
+                            }
+
+                            var signingKey = key.publicKey || key.rsaPublicKey;
+                            callback(null, signingKey);
+                        });
+                    }
+
+                    verifyJWT(jwt, getKey, (err, decoded) => {
+                        if (err) {
+                            req.respond({
+                                status: 500,
+                                body: JSON.stringify({
+                                    error: err
+                                })
+                            });
+                            return;
+                        }
+
+                        req.respond({
+                            status: 200,
+                            body: JSON.stringify(decoded)
+                        });
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let userId = "testing-supertokens-website";
+
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                // Verify access token payload
+                let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+
+                assertNotEqual(accessTokenPayload.jwt, undefined);
+                assertEqual(accessTokenPayload.sub, undefined);
+                assertEqual(accessTokenPayload._jwtPName, "jwt");
+                assertEqual(accessTokenPayload.iss, undefined);
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+
+                let jwt = accessTokenPayload.jwt;
+
+                let decodeResponse = await fetch(`${BASE_URL}/jsondecode`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ jwt })
+                });
+
+                let decodedJWT = await decodeResponse.json();
+
+                // Verify the JWT claims
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+
+                // Use the jwt issuer to get discovery configuration
+
+                let discoveryEndpoint = decodedJWT.iss + "/.well-known/openid-configuration";
+
+                let jwksEndpoint = (await (await fetch(discoveryEndpoint)).json()).jwks_uri;
+
+                let verifyResponse = await fetch(`${BASE_URL}/jwtVerify`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        jwt,
+                        jwksURL: jwksEndpoint
+                    })
+                });
+
+                if (verifyResponse.status !== 200) {
+                    throw new Error("JWT Verification failed");
+                }
+
+                decodedJWT = await verifyResponse.json();
+
+                assertEqual(decodedJWT.sub, userId);
+                assertEqual(decodedJWT._jwtPName, undefined);
+                assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
+                assertEqual(decodedJWT.customClaim, "customValue");
+            });
         } finally {
             await browser.close();
         }

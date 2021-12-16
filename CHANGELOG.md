@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Compatibility with FDI 1.11
+- Add tests for using session with jwt enabled
 
 ## [10.0.5] - 2021-11-17
 
