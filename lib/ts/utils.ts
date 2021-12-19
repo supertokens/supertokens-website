@@ -75,10 +75,12 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let sessionScope = normaliseSessionScopeOrThrowError(getWindowOrThrow().location.hostname);
-    if (options.sessionScope !== undefined) {
-        sessionScope = normaliseSessionScopeOrThrowError(options.sessionScope);
-    }
+    // See https://github.com/supertokens/supertokens-website/issues/98
+    let sessionScope = normaliseSessionScopeOrThrowError(
+        options !== undefined && options.sessionScope !== undefined
+            ? options.sessionScope
+            : getWindowOrThrow().location.hostname
+    );
 
     let sessionExpiredStatusCode = 401;
     if (options.sessionExpiredStatusCode !== undefined) {
