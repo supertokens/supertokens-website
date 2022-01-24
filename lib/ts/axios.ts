@@ -185,7 +185,9 @@ export function responseInterceptor(axiosInstance: any) {
         } finally {
             if (
                 !doNotDoInterception &&
-                !(await AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config))
+                // we do not call doesSessionExist here cause the user might override that
+                // function here and then it may break the logic of our original implementation.
+                !((await getIdRefreshToken(true)).status === "EXISTS")
             ) {
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();

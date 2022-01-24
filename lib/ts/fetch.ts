@@ -576,7 +576,9 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
+    // we do not call doesSessionExist here cause the user might override that
+    // function here and then it may break the logic of our original implementation.
+    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
         return null;
     }
 
@@ -638,7 +640,9 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
 }
 
 export async function getFrontToken(): Promise<string | null> {
-    if (!(await AuthHttpRequest.recipeImpl.doesSessionExist(AuthHttpRequest.config))) {
+    // we do not call doesSessionExist here cause the user might override that
+    // function here and then it may break the logic of our original implementation.
+    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
         return null;
     }
 
