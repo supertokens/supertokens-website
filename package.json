@@ -40,7 +40,8 @@
     "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "pack": "./node_modules/.bin/webpack -p",
     "build-docs": "rm -rf ./docs && npx typedoc --out ./docs --tsconfig ./lib/tsconfig.json ./lib/ts/index.ts",
-    "size": "size-limit"
+    "size": "size-limit",
+    "build-for-size-ci": "npm i -d && npm run build"
   },
   "repository": {
     "type": "git",
