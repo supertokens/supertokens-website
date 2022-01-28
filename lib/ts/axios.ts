@@ -53,7 +53,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                 AuthHttpRequestFetch.config.cookieDomain
             );
     } catch (err) {
-        if (err.message === "Please provide a valid domain name") {
+        if ((err as any).message === "Please provide a valid domain name") {
             // .origin gives the port as well..
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 window.location.origin,
@@ -132,7 +132,7 @@ export function responseInterceptor(axiosInstance: any) {
                         AuthHttpRequestFetch.config.cookieDomain
                     );
             } catch (err) {
-                if (err.message === "Please provide a valid domain name") {
+                if ((err as any).message === "Please provide a valid domain name") {
                     // .origin gives the port as well..
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         window.location.origin,
@@ -256,7 +256,7 @@ export default class AuthHttpRequest {
                 ) &&
                 viaInterceptor;
         } catch (err) {
-            if (err.message === "Please provide a valid domain name") {
+            if ((err as any).message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
@@ -366,12 +366,12 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if (err.response !== undefined) {
-                        let idRefreshToken = err.response.headers["id-refresh-token"];
+                    if ((err as any).response !== undefined) {
+                        let idRefreshToken = (err as any).response.headers["id-refresh-token"];
                         if (idRefreshToken !== undefined) {
-                            await setIdRefreshToken(idRefreshToken, err.response.status);
+                            await setIdRefreshToken(idRefreshToken, (err as any).response.status);
                         }
-                        if (err.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                        if ((err as any).response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                             const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                             if (refreshResult.result !== "RETRY") {
                                 // Returning refreshResult.error as an Axios Error if we attempted a refresh

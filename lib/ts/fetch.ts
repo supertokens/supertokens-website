@@ -177,7 +177,7 @@ export default class AuthHttpRequest {
                         AuthHttpRequest.config.cookieDomain
                     ));
         } catch (err) {
-            if (err.message === "Please provide a valid domain name") {
+            if ((err as any).message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                     window.location.origin,
