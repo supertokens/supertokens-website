@@ -10,7 +10,7 @@ jobs:
         steps:
             - uses: actions/checkout@v1
             - name: Setup upterm session
-            uses: lhotari/action-upterm@v1
+              uses: lhotari/action-upterm@v1
             - uses: porcellus/size-limit-action@feature/continue_on_base_branch_error
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
