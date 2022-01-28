@@ -33,15 +33,14 @@
     "check-circular-dependencies": "npx madge --circular --extensions js ./lib/build/",
     "test": "TEST_MODE=testing npx mocha --timeout 500000",
     "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",
-    "build": "cd lib && rm -rf build && npx tsc -p tsconfig.json && cd ../ && ./node_modules/.bin/webpack -p && cd test && npx tsc -p tsconfig.json",
+    "build": "cd lib && rm -rf build && npx tsc -p tsconfig.json && cd ../ && npx webpack -p && cd test && npx tsc -p tsconfig.json",
     "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "build-pretty": "npm run build && npm run pretty",
     "pretty-check": "cd lib && npx prettier --check --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "set-up-hooks": "cp hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "pack": "./node_modules/.bin/webpack -p",
+    "pack": "npx webpack -p",
     "build-docs": "rm -rf ./docs && npx typedoc --out ./docs --tsconfig ./lib/tsconfig.json ./lib/ts/index.ts",
-    "size": "size-limit",
-    "build-for-size-ci": "npm i -d && npm run build"
+    "size": "size-limit"
   },
   "repository": {
     "type": "git",
