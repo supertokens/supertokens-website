@@ -72,6 +72,7 @@ Make sure that you have an entry for `127.0.0.1 localhost.org` in your `/etc/hos
 ## Pull Request
 1. Before submitting a pull request make sure all tests have passed
 2. Reference the relevant issue or pull request and give a clear description of changes/features added when submitting a pull request
+3. Make sure the PR title follows [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) specification
 
 ## SuperTokens Community
 SuperTokens is made possible by a passionate team and a strong community of developers. If you have any questions or would like to get more involved in the SuperTokens community you can check out:
