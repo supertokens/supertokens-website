@@ -25,6 +25,7 @@ jobs:
       - run: (cd .circleci/ && ./doTests.sh)
       - run: npm run size
       - run: npm run check-circular-dependencies
+      - slack/status
   update-docs:
     docker:
       - image: rishabhpoddar/supertokens_website_sdk_testing
