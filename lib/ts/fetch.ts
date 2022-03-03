@@ -142,10 +142,13 @@ export default class AuthHttpRequest {
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.env.__supertokensSessionRecipe = recipeImpl;
-            AuthHttpRequest.env.fetch = AuthHttpRequest.env.__supertokensSessionRecipe.addFetchInterceptorsAndReturnModifiedFetch(
-                AuthHttpRequest.env.__supertokensOriginalFetch,
-                config
-            );
+            AuthHttpRequest.env.fetch = (AuthHttpRequest.env
+                .__supertokensSessionRecipe as RecipeInterface).addFetchInterceptorsAndReturnModifiedFetch({
+                originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
+                config,
+                // TODO: How to handle user context here?
+                userContext: {}
+            });
         }
         AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
         AuthHttpRequest.initCalled = true;
