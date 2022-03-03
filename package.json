@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "10.0.8",
+  "version": "11.0.0",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
