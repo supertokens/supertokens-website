@@ -5,11 +5,15 @@ import { supported_fdi } from "./version";
 
 export default function RecipeImplementation(): RecipeInterface {
     return {
-        addFetchInterceptorsAndReturnModifiedFetch: function(originalFetch: any, _: NormalisedInputType): typeof fetch {
+        addFetchInterceptorsAndReturnModifiedFetch: function(input: {
+            originalFetch: any;
+            config: NormalisedInputType;
+            userContext: any;
+        }): typeof fetch {
             return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return originalFetch(url, {
+                        return input.originalFetch(url, {
                             ...config
                         });
                     },
@@ -18,33 +22,42 @@ export default function RecipeImplementation(): RecipeInterface {
                 );
             };
         },
-        addAxiosInterceptors: function(axiosInstance: any, _: NormalisedInputType): void {
+        addAxiosInterceptors: function(input: {
+            axiosInstance: any;
+            config: NormalisedInputType;
+            userContext: any;
+        }): void {
             // we first check if this axiosInstance already has our interceptors.
-            let requestInterceptors = axiosInstance.interceptors.request;
+            let requestInterceptors = input.axiosInstance.interceptors.request;
             for (let i = 0; i < requestInterceptors.handlers.length; i++) {
                 if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
                     return;
                 }
             }
             // Add a request interceptor
-            axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(error: any) {
+            input.axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(
+                error: any
+            ) {
                 throw error;
             });
 
             // Add a response interceptor
-            axiosInstance.interceptors.response.use(
-                responseInterceptor(axiosInstance),
-                responseErrorInterceptor(axiosInstance)
+            input.axiosInstance.interceptors.response.use(
+                responseInterceptor(input.axiosInstance),
+                responseErrorInterceptor(input.axiosInstance)
             );
         },
-        getUserId: async function(_: NormalisedInputType): Promise<string> {
+        getUserId: async function(_: { config: NormalisedInputType; userContext: any }): Promise<string> {
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
             }
             return tokenInfo.uid;
         },
-        getAccessTokenPayloadSecurely: async function(config: NormalisedInputType): Promise<any> {
+        getAccessTokenPayloadSecurely: async function(input: {
+            config: NormalisedInputType;
+            userContext: any;
+        }): Promise<any> {
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
@@ -53,25 +66,33 @@ export default function RecipeImplementation(): RecipeInterface {
             if (tokenInfo.ate < Date.now()) {
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
-                    return await this.getAccessTokenPayloadSecurely(config);
+                    return await this.getAccessTokenPayloadSecurely({
+                        config: input.config,
+                        userContext: input.userContext
+                    });
                 } else {
                     throw new Error("Could not refresh session");
                 }
             }
             return tokenInfo.up;
         },
-        doesSessionExist: async function(_: NormalisedInputType): Promise<boolean> {
+        doesSessionExist: async function(_: { config: NormalisedInputType; userContext: any }): Promise<boolean> {
             return (await getIdRefreshToken(true)).status === "EXISTS";
         },
-        signOut: async function(config: NormalisedInputType): Promise<void> {
-            if (!(await this.doesSessionExist(config))) {
-                config.onHandleEvent({
+        signOut: async function(input: { config: NormalisedInputType; userContext: any }): Promise<void> {
+            if (
+                !(await this.doesSessionExist({
+                    config: input.config,
+                    userContext: input.userContext
+                }))
+            ) {
+                input.config.onHandleEvent({
                     action: "SIGN_OUT"
                 });
                 return;
             }
 
-            let preAPIResult = await config.preAPIHook({
+            let preAPIResult = await input.config.preAPIHook({
                 action: "SIGN_OUT",
                 requestInit: {
                     method: "post",
@@ -85,7 +106,7 @@ export default function RecipeImplementation(): RecipeInterface {
 
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
 
-            if (resp.status === config.sessionExpiredStatusCode) {
+            if (resp.status === input.config.sessionExpiredStatusCode) {
                 // refresh must have already sent session expiry event
                 return;
             }

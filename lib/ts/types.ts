@@ -76,15 +76,19 @@ export type PreAPIHookFunction = (context: {
 }) => Promise<{ url: string; requestInit: RequestInit }>;
 
 export type RecipeInterface = {
-    addFetchInterceptorsAndReturnModifiedFetch: (originalFetch: any, config: NormalisedInputType) => typeof fetch;
+    addFetchInterceptorsAndReturnModifiedFetch: (input: {
+        originalFetch: any;
+        config: NormalisedInputType;
+        userContext: any;
+    }) => typeof fetch;
 
-    addAxiosInterceptors: (axiosInstance: any, config: NormalisedInputType) => void;
+    addAxiosInterceptors: (input: { axiosInstance: any; config: NormalisedInputType; userContext: any }) => void;
 
-    getUserId: (config: NormalisedInputType) => Promise<string>;
+    getUserId: (input: { config: NormalisedInputType; userContext: any }) => Promise<string>;
 
-    getAccessTokenPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
+    getAccessTokenPayloadSecurely: (input: { config: NormalisedInputType; userContext: any }) => Promise<any>;
 
-    doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
+    doesSessionExist: (input: { config: NormalisedInputType; userContext: any }) => Promise<boolean>;
 
-    signOut: (config: NormalisedInputType) => Promise<void>;
+    signOut: (input: { config: NormalisedInputType; userContext: any }) => Promise<void>;
 };

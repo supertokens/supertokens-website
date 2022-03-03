@@ -5,3 +5,4 @@ export declare function normaliseSessionScopeOrThrowError(sessionScope: string):
 export declare function validateAndNormaliseInputOrThrowError(options: InputType): NormalisedInputType;
 export declare function getWindowOrThrow(): any;
 export declare function shouldDoInterceptionBasedOnUrl(toCheckUrl: string, apiDomain: string, cookieDomain: string | undefined): boolean;
+export declare function getNormalisedUserContext(userContext?: any): any;

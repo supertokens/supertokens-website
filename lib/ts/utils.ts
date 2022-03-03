@@ -185,3 +185,11 @@ export function shouldDoInterceptionBasedOnUrl(
         }
     }
 }
+
+export function getNormalisedUserContext(userContext?: any): any {
+    if (userContext === undefined) {
+        return {};
+    }
+
+    return userContext;
+}

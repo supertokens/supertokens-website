@@ -17,7 +17,7 @@ import AuthHttpRequestFetch from "./fetch";
 import { InputType, RecipeInterface } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
-import { validateAndNormaliseInputOrThrowError } from "./utils";
+import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -32,37 +32,57 @@ export default class AuthHttpRequest {
         AuthHttpRequest.axiosInterceptorQueue = [];
     }
 
-    static getUserId(): Promise<string> {
-        return AuthHttpRequestFetch.recipeImpl.getUserId(AuthHttpRequestFetch.config);
+    static getUserId(input?: { userContext?: any }): Promise<string> {
+        return AuthHttpRequestFetch.recipeImpl.getUserId({
+            config: AuthHttpRequestFetch.config,
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+        });
     }
 
-    static async getAccessTokenPayloadSecurely(): Promise<any> {
-        return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely(AuthHttpRequestFetch.config);
+    static async getAccessTokenPayloadSecurely(input?: { userContext?: any }): Promise<any> {
+        return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
+            config: AuthHttpRequestFetch.config,
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+        });
     }
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
         return AuthHttpRequestFetch.attemptRefreshingSession();
     };
 
-    static doesSessionExist = () => {
-        return AuthHttpRequestFetch.recipeImpl.doesSessionExist(AuthHttpRequestFetch.config);
+    static doesSessionExist = (input?: { userContext?: any }) => {
+        return AuthHttpRequestFetch.recipeImpl.doesSessionExist({
+            config: AuthHttpRequestFetch.config,
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+        });
     };
 
-    static addAxiosInterceptors = (axiosInstance: any) => {
+    static addAxiosInterceptors = (axiosInstance: any, userContext?: any) => {
         if (!AuthHttpRequestFetch.initCalled) {
             // the recipe implementation has not been initialised yet, so add
             // this to the queue and wait for it to be initialised, and then on
             // init call, we add all the interceptors.
             AuthHttpRequest.axiosInterceptorQueue.push(() => {
-                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
+                AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
+                    axiosInstance,
+                    config: AuthHttpRequestFetch.config,
+                    userContext: getNormalisedUserContext(userContext)
+                });
             });
         } else {
-            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors(axiosInstance, AuthHttpRequestFetch.config);
+            AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
+                axiosInstance,
+                config: AuthHttpRequestFetch.config,
+                userContext: getNormalisedUserContext(userContext)
+            });
         }
     };
 
-    static signOut = () => {
-        return AuthHttpRequestFetch.recipeImpl.signOut(AuthHttpRequestFetch.config);
+    static signOut = (input?: { userContext?: any }) => {
+        return AuthHttpRequestFetch.recipeImpl.signOut({
+            config: AuthHttpRequestFetch.config,
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+        });
     };
 }
 
