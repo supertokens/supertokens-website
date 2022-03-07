@@ -70,6 +70,12 @@ export type NormalisedInputType = {
     };
 };
 
+export type RecipePreAPIHookFunction = (context: {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+}) => Promise<{ url: string; requestInit: RequestInit }>;
+
 export type PreAPIHookFunction = (context: {
     requestInit: RequestInit;
     url: string;

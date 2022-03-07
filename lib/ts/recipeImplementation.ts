@@ -1,9 +1,13 @@
-import { RecipeInterface, NormalisedInputType } from "./types";
+import { RecipeInterface, EventHandler, RecipePreAPIHookFunction } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 
-export default function RecipeImplementation(config: NormalisedInputType): RecipeInterface {
+export default function RecipeImplementation(recipeImplInput: {
+    preAPIHook: RecipePreAPIHookFunction;
+    onHandleEvent: EventHandler;
+    sessionExpiredStatusCode: number;
+}): RecipeInterface {
     return {
         addFetchInterceptorsAndReturnModifiedFetch: function(input: {
             originalFetch: any;
@@ -76,13 +80,13 @@ export default function RecipeImplementation(config: NormalisedInputType): Recip
                     userContext: input.userContext
                 }))
             ) {
-                config.onHandleEvent({
+                recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT"
                 });
                 return;
             }
 
-            let preAPIResult = await config.preAPIHook({
+            let preAPIResult = await recipeImplInput.preAPIHook({
                 action: "SIGN_OUT",
                 requestInit: {
                     method: "post",
@@ -96,7 +100,7 @@ export default function RecipeImplementation(config: NormalisedInputType): Recip
 
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
 
-            if (resp.status === config.sessionExpiredStatusCode) {
+            if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
                 // refresh must have already sent session expiry event
                 return;
             }

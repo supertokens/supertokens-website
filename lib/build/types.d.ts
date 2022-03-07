@@ -48,6 +48,14 @@ export declare type NormalisedInputType = {
         functions: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
     };
 };
+export declare type RecipePreAPIHookFunction = (context: {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+}) => Promise<{
+    url: string;
+    requestInit: RequestInit;
+}>;
 export declare type PreAPIHookFunction = (context: {
     requestInit: RequestInit;
     url: string;

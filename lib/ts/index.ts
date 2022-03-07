@@ -24,7 +24,13 @@ export default class AuthHttpRequest {
 
     static init(options: InputType) {
         let config = validateAndNormaliseInputOrThrowError(options);
-        const recipeImpl = new OverrideableBuilder(RecipeImplementation(config))
+        const recipeImpl = new OverrideableBuilder(
+            RecipeImplementation({
+                onHandleEvent: config.onHandleEvent,
+                preAPIHook: config.preAPIHook,
+                sessionExpiredStatusCode: config.sessionExpiredStatusCode
+            })
+        )
             .override(config.override.functions)
             .build();
         AuthHttpRequestFetch.init(config, recipeImpl);
