@@ -8,11 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   add workflow to verify if pr title follows conventional commits
 
-## [11.0.0] - 2022-03-03
-
 ### Breaking changes
 - Adds user context to all functions exposed to the user, and to API and Recipe interface functions. This is a non breaking change for User exposed function calls, but a breaking change if you are using the recipe override feature.
 - All recipe functions now accept an object (instead of inidividual parameters), this is a breaking change only if you are using the override feature.
+- Recipe functions no longer accept the `config` parameter, this is a breaking change if you are using the override feature
 
 ## [10.0.8] - 2022-01-25
 

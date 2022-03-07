@@ -14,14 +14,7 @@ export declare type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
-    preAPIHook?: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{
-        url: string;
-        requestInit: RequestInit;
-    }>;
+    preAPIHook?: RecipePreAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
         functions?: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
@@ -35,19 +28,20 @@ export declare type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
-    preAPIHook: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{
-        url: string;
-        requestInit: RequestInit;
-    }>;
+    preAPIHook: RecipePreAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
         functions: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
     };
 };
+export declare type RecipePreAPIHookFunction = (context: {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+}) => Promise<{
+    url: string;
+    requestInit: RequestInit;
+}>;
 export declare type PreAPIHookFunction = (context: {
     requestInit: RequestInit;
     url: string;
@@ -58,28 +52,22 @@ export declare type PreAPIHookFunction = (context: {
 export declare type RecipeInterface = {
     addFetchInterceptorsAndReturnModifiedFetch: (input: {
         originalFetch: any;
-        config: NormalisedInputType;
         userContext: any;
     }) => typeof fetch;
     addAxiosInterceptors: (input: {
         axiosInstance: any;
-        config: NormalisedInputType;
         userContext: any;
     }) => void;
     getUserId: (input: {
-        config: NormalisedInputType;
         userContext: any;
     }) => Promise<string>;
     getAccessTokenPayloadSecurely: (input: {
-        config: NormalisedInputType;
         userContext: any;
     }) => Promise<any>;
     doesSessionExist: (input: {
-        config: NormalisedInputType;
         userContext: any;
     }) => Promise<boolean>;
     signOut: (input: {
-        config: NormalisedInputType;
         userContext: any;
     }) => Promise<void>;
 };

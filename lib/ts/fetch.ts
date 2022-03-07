@@ -145,7 +145,6 @@ export default class AuthHttpRequest {
             AuthHttpRequest.env.fetch = (AuthHttpRequest.env
                 .__supertokensSessionRecipe as RecipeInterface).addFetchInterceptorsAndReturnModifiedFetch({
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
-                config,
                 userContext: {}
             });
         }

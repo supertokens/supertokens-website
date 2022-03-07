@@ -1,2 +1,6 @@
-import { RecipeInterface } from "./types";
-export default function RecipeImplementation(): RecipeInterface;
+import { RecipeInterface, EventHandler, RecipePreAPIHookFunction } from "./types";
+export default function RecipeImplementation(recipeImplInput: {
+    preAPIHook: RecipePreAPIHookFunction;
+    onHandleEvent: EventHandler;
+    sessionExpiredStatusCode: number;
+}): RecipeInterface;
