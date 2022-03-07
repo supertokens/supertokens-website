@@ -14,14 +14,7 @@ export declare type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
-    preAPIHook?: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{
-        url: string;
-        requestInit: RequestInit;
-    }>;
+    preAPIHook?: RecipePreAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
         functions?: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
@@ -35,14 +28,7 @@ export declare type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
-    preAPIHook: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{
-        url: string;
-        requestInit: RequestInit;
-    }>;
+    preAPIHook: RecipePreAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
         functions: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
