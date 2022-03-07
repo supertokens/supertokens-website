@@ -3,11 +3,10 @@ import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 
-export default function RecipeImplementation(): RecipeInterface {
+export default function RecipeImplementation(config: NormalisedInputType): RecipeInterface {
     return {
         addFetchInterceptorsAndReturnModifiedFetch: function(input: {
             originalFetch: any;
-            config: NormalisedInputType;
             userContext: any;
         }): typeof fetch {
             return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
@@ -22,11 +21,7 @@ export default function RecipeImplementation(): RecipeInterface {
                 );
             };
         },
-        addAxiosInterceptors: function(input: {
-            axiosInstance: any;
-            config: NormalisedInputType;
-            userContext: any;
-        }): void {
+        addAxiosInterceptors: function(input: { axiosInstance: any; userContext: any }): void {
             // we first check if this axiosInstance already has our interceptors.
             let requestInterceptors = input.axiosInstance.interceptors.request;
             for (let i = 0; i < requestInterceptors.handlers.length; i++) {
@@ -47,17 +42,14 @@ export default function RecipeImplementation(): RecipeInterface {
                 responseErrorInterceptor(input.axiosInstance)
             );
         },
-        getUserId: async function(_: { config: NormalisedInputType; userContext: any }): Promise<string> {
+        getUserId: async function(_: { userContext: any }): Promise<string> {
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
             }
             return tokenInfo.uid;
         },
-        getAccessTokenPayloadSecurely: async function(input: {
-            config: NormalisedInputType;
-            userContext: any;
-        }): Promise<any> {
+        getAccessTokenPayloadSecurely: async function(input: { userContext: any }): Promise<any> {
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
@@ -67,7 +59,6 @@ export default function RecipeImplementation(): RecipeInterface {
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
                     return await this.getAccessTokenPayloadSecurely({
-                        config: input.config,
                         userContext: input.userContext
                     });
                 } else {
@@ -76,23 +67,22 @@ export default function RecipeImplementation(): RecipeInterface {
             }
             return tokenInfo.up;
         },
-        doesSessionExist: async function(_: { config: NormalisedInputType; userContext: any }): Promise<boolean> {
+        doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
             return (await getIdRefreshToken(true)).status === "EXISTS";
         },
-        signOut: async function(input: { config: NormalisedInputType; userContext: any }): Promise<void> {
+        signOut: async function(input: { userContext: any }): Promise<void> {
             if (
                 !(await this.doesSessionExist({
-                    config: input.config,
                     userContext: input.userContext
                 }))
             ) {
-                input.config.onHandleEvent({
+                config.onHandleEvent({
                     action: "SIGN_OUT"
                 });
                 return;
             }
 
-            let preAPIResult = await input.config.preAPIHook({
+            let preAPIResult = await config.preAPIHook({
                 action: "SIGN_OUT",
                 requestInit: {
                     method: "post",
@@ -106,7 +96,7 @@ export default function RecipeImplementation(): RecipeInterface {
 
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
 
-            if (resp.status === input.config.sessionExpiredStatusCode) {
+            if (resp.status === config.sessionExpiredStatusCode) {
                 // refresh must have already sent session expiry event
                 return;
             }

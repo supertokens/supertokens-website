@@ -24,7 +24,9 @@ export default class AuthHttpRequest {
 
     static init(options: InputType) {
         let config = validateAndNormaliseInputOrThrowError(options);
-        const recipeImpl = new OverrideableBuilder(RecipeImplementation()).override(config.override.functions).build();
+        const recipeImpl = new OverrideableBuilder(RecipeImplementation(config))
+            .override(config.override.functions)
+            .build();
         AuthHttpRequestFetch.init(config, recipeImpl);
         AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
             f();
@@ -34,14 +36,12 @@ export default class AuthHttpRequest {
 
     static getUserId(input?: { userContext?: any }): Promise<string> {
         return AuthHttpRequestFetch.recipeImpl.getUserId({
-            config: AuthHttpRequestFetch.config,
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     }
 
     static async getAccessTokenPayloadSecurely(input?: { userContext?: any }): Promise<any> {
         return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
-            config: AuthHttpRequestFetch.config,
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     }
@@ -52,7 +52,6 @@ export default class AuthHttpRequest {
 
     static doesSessionExist = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.doesSessionExist({
-            config: AuthHttpRequestFetch.config,
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
@@ -65,14 +64,12 @@ export default class AuthHttpRequest {
             AuthHttpRequest.axiosInterceptorQueue.push(() => {
                 AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                     axiosInstance,
-                    config: AuthHttpRequestFetch.config,
                     userContext: getNormalisedUserContext(userContext)
                 });
             });
         } else {
             AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                 axiosInstance,
-                config: AuthHttpRequestFetch.config,
                 userContext: getNormalisedUserContext(userContext)
             });
         }
@@ -80,7 +77,6 @@ export default class AuthHttpRequest {
 
     static signOut = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.signOut({
-            config: AuthHttpRequestFetch.config,
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
