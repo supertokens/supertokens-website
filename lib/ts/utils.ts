@@ -15,7 +15,14 @@
 
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
-import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
+import {
+    EventHandler,
+    InputType,
+    NormalisedInputType,
+    RecipeInterface,
+    RecipePostAPIHookFunction,
+    RecipePreAPIHookFunction
+} from "./types";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -102,15 +109,18 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
-    let preAPIHook = async (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }): Promise<{ url: string; requestInit: RequestInit }> => {
+    let preAPIHook: RecipePreAPIHookFunction = async context => {
         return { url: context.url, requestInit: context.requestInit };
     };
+
     if (options.preAPIHook !== undefined) {
         preAPIHook = options.preAPIHook;
+    }
+
+    let postAPIHook: RecipePostAPIHookFunction = async () => {};
+
+    if (options.postAPIHook !== undefined) {
+        postAPIHook = options.postAPIHook;
     }
 
     let onHandleEvent: EventHandler = () => {};
@@ -134,6 +144,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe,
         cookieDomain,
         preAPIHook,
+        postAPIHook,
         onHandleEvent,
         override
     };

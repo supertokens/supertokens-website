@@ -1,10 +1,11 @@
-import { RecipeInterface, EventHandler, RecipePreAPIHookFunction } from "./types";
+import { RecipeInterface, EventHandler, RecipePreAPIHookFunction, RecipePostAPIHookFunction } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
+    postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
     sessionExpiredStatusCode: number;
 }): RecipeInterface {
@@ -99,6 +100,19 @@ export default function RecipeImplementation(recipeImplInput: {
             });
 
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
+
+            await recipeImplInput.postAPIHook({
+                action: "SIGN_OUT",
+                requestInit: {
+                    method: "post",
+                    headers: {
+                        "fdi-version": supported_fdi.join(","),
+                        rid: AuthHttpRequest.rid
+                    }
+                },
+                url: AuthHttpRequest.signOutUrl,
+                fetchResponse: resp.clone()
+            });
 
             if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
                 // refresh must have already sent session expiry event

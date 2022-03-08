@@ -15,6 +15,7 @@ export declare type InputType = {
     isInIframe?: boolean;
     cookieDomain?: string;
     preAPIHook?: RecipePreAPIHookFunction;
+    postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
         functions?: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
@@ -29,19 +30,28 @@ export declare type NormalisedInputType = {
     isInIframe: boolean;
     cookieDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
+    postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
         functions: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
     };
 };
-export declare type RecipePreAPIHookFunction = (context: {
+export declare type PreAPIHookContext = {
     action: "SIGN_OUT" | "REFRESH_SESSION";
     requestInit: RequestInit;
     url: string;
-}) => Promise<{
+};
+export declare type RecipePreAPIHookFunction = (context: PreAPIHookContext) => Promise<{
     url: string;
     requestInit: RequestInit;
 }>;
+export declare type RecipePostAPIHookContext = {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+    fetchResponse: Response;
+};
+export declare type RecipePostAPIHookFunction = (context: RecipePostAPIHookContext) => Promise<void>;
 export declare type PreAPIHookFunction = (context: {
     requestInit: RequestInit;
     url: string;

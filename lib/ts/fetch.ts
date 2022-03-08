@@ -362,6 +362,12 @@ export async function onUnauthorisedResponse(
                     preAPIResult.url,
                     preAPIResult.requestInit
                 );
+                await AuthHttpRequest.config.postAPIHook({
+                    action: "REFRESH_SESSION",
+                    fetchResponse: (response as Response).clone(),
+                    requestInit: preAPIResult.requestInit,
+                    url: preAPIResult.url
+                });
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {

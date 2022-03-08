@@ -28,6 +28,7 @@ export default class AuthHttpRequest {
             RecipeImplementation({
                 onHandleEvent: config.onHandleEvent,
                 preAPIHook: config.preAPIHook,
+                postAPIHook: config.postAPIHook,
                 sessionExpiredStatusCode: config.sessionExpiredStatusCode
             })
         )
