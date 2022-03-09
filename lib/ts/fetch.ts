@@ -356,7 +356,8 @@ export async function onUnauthorisedResponse(
                         credentials: "include",
                         headers
                     },
-                    url: AuthHttpRequest.refreshTokenUrl
+                    url: AuthHttpRequest.refreshTokenUrl,
+                    userContext: {}
                 });
                 const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
                     preAPIResult.url,
@@ -366,7 +367,8 @@ export async function onUnauthorisedResponse(
                     action: "REFRESH_SESSION",
                     fetchResponse: (response as Response).clone(),
                     requestInit: preAPIResult.requestInit,
-                    url: preAPIResult.url
+                    url: preAPIResult.url,
+                    userContext: {}
                 });
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");

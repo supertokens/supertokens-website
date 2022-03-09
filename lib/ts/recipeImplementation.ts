@@ -96,22 +96,18 @@ export default function RecipeImplementation(recipeImplInput: {
                         rid: AuthHttpRequest.rid
                     }
                 },
-                url: AuthHttpRequest.signOutUrl
+                url: AuthHttpRequest.signOutUrl,
+                userContext: input.userContext
             });
 
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
 
             await recipeImplInput.postAPIHook({
                 action: "SIGN_OUT",
-                requestInit: {
-                    method: "post",
-                    headers: {
-                        "fdi-version": supported_fdi.join(","),
-                        rid: AuthHttpRequest.rid
-                    }
-                },
-                url: AuthHttpRequest.signOutUrl,
-                fetchResponse: resp.clone()
+                requestInit: preAPIResult.requestInit,
+                url: preAPIResult.url,
+                fetchResponse: resp.clone(),
+                userContext: input.userContext
             });
 
             if (resp.status === recipeImplInput.sessionExpiredStatusCode) {

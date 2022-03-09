@@ -68,6 +68,7 @@ export type PreAPIHookContext = {
     action: "SIGN_OUT" | "REFRESH_SESSION";
     requestInit: RequestInit;
     url: string;
+    userContext: any;
 };
 
 export type RecipePreAPIHookFunction = (
@@ -79,6 +80,7 @@ export type RecipePostAPIHookContext = {
     requestInit: RequestInit;
     url: string;
     fetchResponse: Response;
+    userContext: any;
 };
 
 export type RecipePostAPIHookFunction = (context: RecipePostAPIHookContext) => Promise<void>;

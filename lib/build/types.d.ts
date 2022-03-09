@@ -40,6 +40,7 @@ export declare type PreAPIHookContext = {
     action: "SIGN_OUT" | "REFRESH_SESSION";
     requestInit: RequestInit;
     url: string;
+    userContext: any;
 };
 export declare type RecipePreAPIHookFunction = (context: PreAPIHookContext) => Promise<{
     url: string;
@@ -50,6 +51,7 @@ export declare type RecipePostAPIHookContext = {
     requestInit: RequestInit;
     url: string;
     fetchResponse: Response;
+    userContext: any;
 };
 export declare type RecipePostAPIHookFunction = (context: RecipePostAPIHookContext) => Promise<void>;
 export declare type PreAPIHookFunction = (context: {
