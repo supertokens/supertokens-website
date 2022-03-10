@@ -3101,7 +3101,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     apiDomain: BASE_URL,
                     postAPIHook: async context => {
                         assertEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
-                        console.log("STATUS", context.fetchResponse.status);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.status === 200) {
                             const body = await context.fetchResponse.text();
