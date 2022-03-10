@@ -321,7 +321,8 @@ export async function onUnauthorisedResponse(
                     // that the session exists, but it doesn't actually exist.
                     AuthHttpRequest.config.onHandleEvent({
                         action: "UNAUTHORISED",
-                        sessionExpiredOrRevoked: false
+                        sessionExpiredOrRevoked: false,
+                        userContext: {}
                     });
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -356,12 +357,20 @@ export async function onUnauthorisedResponse(
                         credentials: "include",
                         headers
                     },
-                    url: AuthHttpRequest.refreshTokenUrl
+                    url: AuthHttpRequest.refreshTokenUrl,
+                    userContext: {}
                 });
                 const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
                     preAPIResult.url,
                     preAPIResult.requestInit
                 );
+                await AuthHttpRequest.config.postAPIHook({
+                    action: "REFRESH_SESSION",
+                    fetchResponse: (response as Response).clone(),
+                    requestInit: preAPIResult.requestInit,
+                    url: preAPIResult.url,
+                    userContext: {}
+                });
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {
@@ -400,7 +409,8 @@ export async function onUnauthorisedResponse(
                     await FrontToken.setItem(frontToken);
                 }
                 AuthHttpRequest.config.onHandleEvent({
-                    action: "REFRESH_SESSION"
+                    action: "REFRESH_SESSION",
+                    userContext: {}
                 });
                 return { result: "RETRY" };
             } catch (error) {
@@ -560,18 +570,21 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         if (statusCode === AuthHttpRequest.config.sessionExpiredStatusCode) {
             AuthHttpRequest.config.onHandleEvent({
                 action: "UNAUTHORISED",
-                sessionExpiredOrRevoked: true
+                sessionExpiredOrRevoked: true,
+                userContext: {}
             });
         } else {
             AuthHttpRequest.config.onHandleEvent({
-                action: "SIGN_OUT"
+                action: "SIGN_OUT",
+                userContext: {}
             });
         }
     }
 
     if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
         AuthHttpRequest.config.onHandleEvent({
-            action: "SESSION_CREATED"
+            action: "SESSION_CREATED",
+            userContext: {}
         });
     }
 }

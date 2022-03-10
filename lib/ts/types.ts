@@ -18,10 +18,12 @@ import OverrideableBuilder from "supertokens-js-override";
 export type Event =
     | {
           action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+          userContext: any;
       }
     | {
           action: "UNAUTHORISED";
           sessionExpiredOrRevoked: boolean;
+          userContext: any;
       };
 
 export type EventHandler = (event: Event) => void;
@@ -35,6 +37,7 @@ export type InputType = {
     isInIframe?: boolean;
     cookieDomain?: string;
     preAPIHook?: RecipePreAPIHookFunction;
+    postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
         functions?: (
@@ -53,6 +56,7 @@ export type NormalisedInputType = {
     isInIframe: boolean;
     cookieDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
+    postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
         functions: (
@@ -62,11 +66,26 @@ export type NormalisedInputType = {
     };
 };
 
-export type RecipePreAPIHookFunction = (context: {
+export type PreAPIHookContext = {
     action: "SIGN_OUT" | "REFRESH_SESSION";
     requestInit: RequestInit;
     url: string;
-}) => Promise<{ url: string; requestInit: RequestInit }>;
+    userContext: any;
+};
+
+export type RecipePreAPIHookFunction = (
+    context: PreAPIHookContext
+) => Promise<{ url: string; requestInit: RequestInit }>;
+
+export type RecipePostAPIHookContext = {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+    fetchResponse: Response;
+    userContext: any;
+};
+
+export type RecipePostAPIHookFunction = (context: RecipePostAPIHookContext) => Promise<void>;
 
 export type PreAPIHookFunction = (context: {
     requestInit: RequestInit;

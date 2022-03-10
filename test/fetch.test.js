@@ -31,7 +31,8 @@ let {
     BASE_URL,
     BASE_URL_FOR_ST,
     coreTagEqualToOrAfter,
-    checkIfJWTIsEnabled
+    checkIfJWTIsEnabled,
+    addBrowserConsole
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -3079,6 +3080,68 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(decodedJWT._jwtPName, undefined);
                 assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that everything works if the user reads the body and headers in the post API hook", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    postAPIHook: async context => {
+                        assertEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
+
+                        if (context.action === "REFRESH_SESSION" && context.fetchResponse.status === 200) {
+                            const body = await context.fetchResponse.text();
+                            assertEqual(body, "refresh success");
+
+                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
+                            assertNotEqual(idRefreshInHeader, "");
+                            assertNotEqual(idRefreshInHeader, null);
+                        }
+
+                        if (context.action === "SIGN_OUT" && context.fetchResponse.status === 200) {
+                            const body = await context.fetchResponse.json();
+                            assertEqual(body.status, "OK");
+
+                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
+                            assertEqual(idRefreshInHeader, "remove");
+                        }
+                    }
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                await delay(2);
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, true);
+
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                await supertokens.signOut();
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assertEqual(await supertokens.doesSessionExist(), false);
             });
         } finally {
             await browser.close();
