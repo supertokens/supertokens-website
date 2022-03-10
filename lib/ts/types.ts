@@ -18,10 +18,12 @@ import OverrideableBuilder from "supertokens-js-override";
 export type Event =
     | {
           action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+          userContext: any;
       }
     | {
           action: "UNAUTHORISED";
           sessionExpiredOrRevoked: boolean;
+          userContext: any;
       };
 
 export type EventHandler = (event: Event) => void;

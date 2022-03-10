@@ -82,7 +82,8 @@ export default function RecipeImplementation(recipeImplInput: {
                 }))
             ) {
                 recipeImplInput.onHandleEvent({
-                    action: "SIGN_OUT"
+                    action: "SIGN_OUT",
+                    userContext: input.userContext
                 });
                 return;
             }
