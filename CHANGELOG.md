@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
--   add workflow to verify if pr title follows conventional commits
+## [10.0.9] - 2022-03-18
+### Adds
+-   New FDI support (v1.13)
+-   Workflow to verify if pr title follows conventional commits
 
 ## [10.0.8] - 2022-01-25
 
