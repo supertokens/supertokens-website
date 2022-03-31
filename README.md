@@ -13,7 +13,7 @@ SuperTokens adds **secure login and session management** to your apps. This is t
 SuperTokens architecture is optimized to add secure authentication for your users without compromising on user and developer experience
 
 
-Learn more at https://supertokens.io
+Learn more at [supertokens.com](https://supertokens.com)
 
 
 # How to install
@@ -22,16 +22,17 @@ Learn more at https://supertokens.io
 <script src="https://cdn.jsdelivr.net/gh/supertokens/supertokens-website/bundle/bundle.js"></script>
 ```
 
-# Example
+# How to use
 
 ```
+// Initialization
 supertokens.init({
-    apiDomain: "<URL to your auth backend>",
-    apiBasePath: "/auth"
+    apiDomain: "<URL to your auth backend>"
 });
 // Now your app will maintain secure SuperTokens sessions for your users
-```
+```js
 
+**How do I build auth backend?**
 You can use one of the SuperTokens backend SDKs to get the needed auth functionalities in the backend.
 
 Backend SDKs are available for
