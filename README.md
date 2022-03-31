@@ -16,7 +16,7 @@ SuperTokens architecture is optimized to add secure authentication for your user
 Learn more at [supertokens.com](https://supertokens.com)
 
 
-# How to install
+## How to install
 
 Using npm
 
@@ -30,7 +30,7 @@ OR simply add the following script tag to your HTML pages
 <script src="https://cdn.jsdelivr.net/gh/supertokens/supertokens-website/bundle/bundle.js"></script>
 ```
 
-# How to use
+## How to use
 
 1. Initialize SuperTokens in your frontend 
 ```javascript
