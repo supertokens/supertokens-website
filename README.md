@@ -18,27 +18,34 @@ Learn more at [supertokens.com](https://supertokens.com)
 
 # How to install
 
+Using npm
+
+```
+npm i -s supertokens-website
+```
+
+OR simply add the following script tag to your HTML pages
+
 ```html
 <script src="https://cdn.jsdelivr.net/gh/supertokens/supertokens-website/bundle/bundle.js"></script>
 ```
 
 # How to use
 
+1. Initialize SuperTokens in your frontend 
 ```javascript
-// Initialization
 supertokens.init({
     apiDomain: "<URL to your auth backend>"
 });
 
 // Now your app will maintain secure SuperTokens sessions for your users
 ```
-
-**How do I build auth backend?**
-
-You can use one of the SuperTokens backend SDKs to get the needed auth functionalities in the backend. Backend SDKs are available for
-* [Node.js backend](https://github.com/supertokens/supertokens-node)
-* [Golang backend](https://github.com/supertokens/supertokens-golang)
-* [Python backend](https://github.com/supertokens/supertokens-python)
+2. Make sure your backend has the needed auth functionalities
+> You can use one of the SuperTokens backend SDKs for this. 
+> Backend SDKs are available for
+> * [Node.js backend](https://github.com/supertokens/supertokens-node)
+> * [Golang backend](https://github.com/supertokens/supertokens-golang)
+> * [Python backend](https://github.com/supertokens/supertokens-python)
 
 
 ## Documentation
