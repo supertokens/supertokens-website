@@ -37,9 +37,10 @@ OR simply add the following script tag to your HTML pages
 supertokens.init({
     apiDomain: "<URL to your auth backend>"
 });
-
+// To be called at least once before any http request is made to any of your APIs that require authentication.
 // Now your app will maintain secure SuperTokens sessions for your users
 ```
+
 2. Make sure your backend has the needed auth functionalities
 > You can use one of the SuperTokens backend SDKs for this. 
 > Backend SDKs are available for
@@ -49,13 +50,13 @@ supertokens.init({
 
 
 ## Documentation
-To see documentation, please click [here](https://supertokens.io/docs/community/introduction).
+To see documentation, please click [here](https://supertokens.com/docs/community/introduction).
 
 ## Contributing
 Please refer to the [CONTRIBUTING.md](https://github.com/supertokens/supertokens-website/blob/master/CONTRIBUTING.md) file in this repo.
 
 ## Contact us
-For any queries, or support requests, please email us at team@supertokens.io, or join our [Discord](supertokens.io/discord) server.
+For any queries, or support requests, please email us at team@supertokens.com, or join our [Discord](supertokens.com/discord) server.
 
 ## Authors
-Created with :heart: by the folks at SuperTokens.io.
+Created with :heart: by the folks at SuperTokens.com.
