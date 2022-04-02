@@ -33,7 +33,7 @@ OR simply add the following script tag to your HTML pages
 ## How to use
 
 1. Initialize SuperTokens in your frontend 
-```javascript
+```js
 supertokens.init({
     apiDomain: "<URL to your auth backend>"
 });
@@ -54,65 +54,35 @@ Now that's the basic setup. But you might want to do some of the following thing
 
 ### Checking if a session exists
 
-```
+```js
 await supertokens.doesSessionExist();
 ```
 
 ### Reading the userId
 
-```
+```js
 let userId = await supertokens.getUserId();
 ```
 
-### Reading the JWT payload
+### Reading the access token payload
 
-```
-let payload = await supertokens.getJWTPayloadSecurely();
-```
-
-### Submitting form data
-
-Traditionally, when submitting form data, the browser makes an API call for you to submit the data.
-With SuperTokens, you will have to make this API call yourself so that correct session interception is added.
-
-```
-<html>
-    <body>
-        
-        <form onsubmit="return submitData()">
-            Enter name: <input type="text" name="fname">
-            <input type="submit" value="Submit">
-        </form>
-
-        <script>
-            supertokens.init(/* params.. */); // initialise SuperTokens
-        </script>
-
-        <script>
-        function submitData() {
-            // extract element out of the user input field and call API using fetch or axios
-
-            return false; // will prevent any redirection that happens when a form is submitted. 
-        }
-        </script>
-
-    </body>
-</html>
+```js
+let payload = await supertokens.getAccessTokenPayloadSecurely();
 ```
 
 ### Sign out
 
 The signOut method simply revokes the session on the frontend and backend.
 
-```
-supertokens.signOut();
+```js
+await supertokens.signOut();
 ```
 
 ### Sending requests with `fetch`
 
-The init function call automatically adds interceptors to fetch. So there is nothing else that needs to be done.
+The `init` function call automatically adds interceptors to fetch. So there is nothing else that needs to be done.
 
-```
+```js
 supertokens.init({
     apiDomain: "https://api.example.com"
 });
@@ -142,7 +112,7 @@ async function doAPICalls() {
 
 ### Sending requests with axios
 
-```
+```js
 supertokens.addAxiosInterceptors(axios); // To be called on each axios instances being imported
 supertokens.init({
     apiDomain: "https://api.example.com"
@@ -164,23 +134,6 @@ async function doAPICalls() {
 }
 ```
 
-### Server side rendering
-
-For server side rendered apps, there will be instances when the access token has expired. In these cases, you need to use the refresh token to get a new access and a new refresh token.
-
-However, the refresh token is only sent to one API endpoint - the refresh API. This means that for all other APIs, you will not have the refresh token as an input.
-
-Therefore, for refreshing a session during SSR, we must first send a response that manually refreshes the session and then reloads the page.
-
-```
-await supertokens.attemptRefreshingSession();
-```
-
-* Calling the above function will result in a call to your refresh API. If refreshing succeeds, this function will return a `Promise` that will resolve to `true`, else `false`.
-* If successful, you can automatically reload the page and the new access token will be sent to your API.
-* If unsuccessful, then you should redirect the user to the login page.
-
-
 ## Documentation
 To see documentation, please click [here](https://supertokens.com/docs/community/introduction).
 
@@ -191,4 +144,4 @@ Please refer to the [CONTRIBUTING.md](https://github.com/supertokens/supertokens
 For any queries, or support requests, please email us at team@supertokens.com, or join our [Discord](supertokens.com/discord) server.
 
 ## Authors
-Created with :heart: by the folks at SuperTokens.com.
+Created with :heart: by the folks at SuperTokens.com
