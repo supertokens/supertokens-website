@@ -200,22 +200,17 @@ export default class AuthHttpRequest {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
                 const preRequestIdToken = await getIdRefreshToken(true);
-                let configWithAntiCsrf: RequestInit | undefined = config;
+                const clonedHeaders = new Headers(
+                    config !== undefined && config.headers !== undefined ? config.headers : url.headers
+                );
+                let configWithAntiCsrf: RequestInit | undefined = {
+                    ...config,
+                    headers: clonedHeaders
+                };
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
-                        configWithAntiCsrf = {
-                            ...configWithAntiCsrf,
-                            headers:
-                                configWithAntiCsrf === undefined
-                                    ? {
-                                          "anti-csrf": antiCsrfToken
-                                      }
-                                    : {
-                                          ...configWithAntiCsrf.headers,
-                                          "anti-csrf": antiCsrfToken
-                                      }
-                        };
+                        clonedHeaders.append("anti-csrf", antiCsrfToken);
                     }
                 }
 
@@ -233,18 +228,7 @@ export default class AuthHttpRequest {
                 }
 
                 // adding rid for anti-csrf protection: Anti-csrf via custom header
-                configWithAntiCsrf = {
-                    ...configWithAntiCsrf,
-                    headers:
-                        configWithAntiCsrf === undefined
-                            ? {
-                                  rid: "anti-csrf"
-                              }
-                            : {
-                                  rid: "anti-csrf",
-                                  ...configWithAntiCsrf.headers
-                              }
-                };
+                clonedHeaders.append("rid", "anti-csrf");
 
                 let response = await httpCall(configWithAntiCsrf);
                 const idRefreshToken = response.headers.get("id-refresh-token");
