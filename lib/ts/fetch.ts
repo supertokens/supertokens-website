@@ -210,7 +210,7 @@ export default class AuthHttpRequest {
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
-                        clonedHeaders.append("anti-csrf", antiCsrfToken);
+                        clonedHeaders.set("anti-csrf", antiCsrfToken);
                     }
                 }
 
@@ -228,7 +228,9 @@ export default class AuthHttpRequest {
                 }
 
                 // adding rid for anti-csrf protection: Anti-csrf via custom header
-                clonedHeaders.append("rid", "anti-csrf");
+                if (!clonedHeaders.has("rid")) {
+                    clonedHeaders.set("rid", "anti-csrf");
+                }
 
                 let response = await httpCall(configWithAntiCsrf);
                 const idRefreshToken = response.headers.get("id-refresh-token");
