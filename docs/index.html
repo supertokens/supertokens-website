@@ -1,23 +1,91 @@
 <!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>supertokens-website</title><meta name="description" content="Documentation for supertokens-website"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">supertokens-website</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>supertokens-website</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography"><p><img src="https://raw.githubusercontent.com/supertokens/supertokens-logo/master/images/Artboard%20%E2%80%93%2027%402x.png" alt="SuperTokens banner"></p>
 
-<a href="#supertokens-website-sdk" id="supertokens-website-sdk" style="color: inherit; text-decoration: none;">
-  <h1>SuperTokens Website SDK</h1>
+<a href="#supertokens-javascript-frontend-sdk" id="supertokens-javascript-frontend-sdk" style="color: inherit; text-decoration: none;">
+  <h1>SuperTokens Javascript Frontend SDK</h1>
 </a>
 <a href="https://supertokens.io/discord">
 <img src="https://img.shields.io/discord/603466164219281420.svg?logo=discord"
     alt="chat on Discord"></a>
-    
 
-<a href="#about" id="about" style="color: inherit; text-decoration: none;">
-  <h2>About</h2>
+<p>SuperTokens adds <strong>secure login and session management</strong> to your apps. This is the Javascript Frontend SDK for SuperTokens. <a href="https://github.com/supertokens">More SDKs are available</a> for frontend and backend e.g. Node.js, Go, Python, React.js, React Native, Vanilla JS, etc.</p>
+<p><img src="https://supertokens.com/img/architecture/self_hosted_generic.png" alt="Architecture Diagram">
+SuperTokens architecture is optimized to add secure authentication for your users without compromising on user and developer experience</p>
+<p>Learn more at <a href="https://supertokens.com">supertokens.com</a></p>
+
+<a href="#how-to-install" id="how-to-install" style="color: inherit; text-decoration: none;">
+  <h2>How to install</h2>
 </a>
-<p>This is a website / JavaScript SDK that is responsible for maintaining a SuperTokens session for website apps (SPA and non-SPA).</p>
-<p>Learn more at <a href="https://supertokens.io">https://supertokens.io</a></p>
+<p>Using npm</p>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">i</span><span class="hl-1"> -</span><span class="hl-0">s</span><span class="hl-1"> </span><span class="hl-0">supertokens</span><span class="hl-1">-</span><span class="hl-0">website</span>
+</code></pre>
+<p>OR simply add the following script tag to your HTML pages</p>
+<pre><code class="language-html"><span class="hl-2">&lt;</span><span class="hl-3">script</span><span class="hl-4"> </span><span class="hl-5">src</span><span class="hl-4">=</span><span class="hl-6">&quot;https://cdn.jsdelivr.net/gh/supertokens/supertokens-website/bundle/bundle.js&quot;</span><span class="hl-2">&gt;&lt;/</span><span class="hl-3">script</span><span class="hl-2">&gt;</span>
+</code></pre>
+
+<a href="#how-to-use" id="how-to-use" style="color: inherit; text-decoration: none;">
+  <h2>How to use</h2>
+</a>
+<ol>
+<li><p>Initialize SuperTokens in your frontend </p>
+<pre><code class="language-js"><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">init</span><span class="hl-1">({</span><br/><span class="hl-1"> </span><span class="hl-0">apiDomain:</span><span class="hl-1"> </span><span class="hl-8">&quot;&lt;URL to your auth backend&gt;&quot;</span><br/><span class="hl-1">});</span><br/><span class="hl-9">// To be called at least once before any http request is made to any of your APIs that require authentication.</span><br/><span class="hl-9">// Now your app will maintain secure SuperTokens sessions for your users</span>
+</code></pre>
+</li>
+<li><p>Make sure your backend has the needed auth functionalities</p>
+<blockquote>
+<p>You can use one of the SuperTokens backend SDKs for this. 
+Backend SDKs are available for</p>
+<ul>
+<li><a href="https://github.com/supertokens/supertokens-node">Node.js backend</a></li>
+<li><a href="https://github.com/supertokens/supertokens-golang">Golang backend</a></li>
+<li><a href="https://github.com/supertokens/supertokens-python">Python backend</a></li>
+</ul>
+</blockquote>
+</li>
+</ol>
+<p>Now that&#39;s the basic setup. But you might want to do some of the following things</p>
+
+<a href="#checking-if-a-session-exists" id="checking-if-a-session-exists" style="color: inherit; text-decoration: none;">
+  <h3>Checking if a session exists</h3>
+</a>
+<pre><code class="language-js"><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">doesSessionExist</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#reading-the-userid" id="reading-the-userid" style="color: inherit; text-decoration: none;">
+  <h3>Reading the userId</h3>
+</a>
+<pre><code class="language-js"><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">userId</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">getUserId</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#reading-the-access-token-payload" id="reading-the-access-token-payload" style="color: inherit; text-decoration: none;">
+  <h3>Reading the access token payload</h3>
+</a>
+<pre><code class="language-js"><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">payload</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">getAccessTokenPayloadSecurely</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#sign-out" id="sign-out" style="color: inherit; text-decoration: none;">
+  <h3>Sign out</h3>
+</a>
+<p>The signOut method simply revokes the session on the frontend and backend.</p>
+<pre><code class="language-js"><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">signOut</span><span class="hl-1">();</span>
+</code></pre>
+
+<a href="#sending-requests-with-fetch" id="sending-requests-with-fetch" style="color: inherit; text-decoration: none;">
+  <h3>Sending requests with <code>fetch</code></h3>
+</a>
+<p>The <code>init</code> function call automatically adds interceptors to fetch. So there is nothing else that needs to be done.</p>
+<pre><code class="language-js"><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">init</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-0">apiDomain:</span><span class="hl-1"> </span><span class="hl-8">&quot;https://api.example.com&quot;</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-11">async</span><span class="hl-1"> </span><span class="hl-11">function</span><span class="hl-1"> </span><span class="hl-7">doAPICalls</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-10">try</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-9">// make API call as usual</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">fetchConfig</span><span class="hl-1"> = { ... };</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">response</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-7">fetch</span><span class="hl-1">(</span><span class="hl-8">&quot;/someAPI&quot;</span><span class="hl-1">, </span><span class="hl-0">fetchConfig</span><span class="hl-1">);</span><br/><br/><span class="hl-1">        </span><span class="hl-9">// handle response</span><br/><span class="hl-1">        </span><span class="hl-10">if</span><span class="hl-1"> (</span><span class="hl-0">response</span><span class="hl-1">.</span><span class="hl-0">status</span><span class="hl-1"> !== </span><span class="hl-12">200</span><span class="hl-1">) {</span><br/><span class="hl-1">            </span><span class="hl-10">throw</span><span class="hl-1"> </span><span class="hl-0">response</span><span class="hl-1">;</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">data</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">response</span><span class="hl-1">.</span><span class="hl-7">json</span><span class="hl-1">();</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">someField</span><span class="hl-1"> = </span><span class="hl-0">data</span><span class="hl-1">.</span><span class="hl-0">someField</span><span class="hl-1">;</span><br/><span class="hl-1">        </span><span class="hl-9">// ...</span><br/><span class="hl-1">    } </span><span class="hl-10">catch</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1">) {</span><br/><span class="hl-1">        </span><span class="hl-10">if</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1">.</span><span class="hl-0">status</span><span class="hl-1"> === </span><span class="hl-12">401</span><span class="hl-1">) {</span><br/><span class="hl-1">            </span><span class="hl-9">// redirect user to login</span><br/><span class="hl-1">        } </span><span class="hl-10">else</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-9">// handle error</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#sending-requests-with-axios" id="sending-requests-with-axios" style="color: inherit; text-decoration: none;">
+  <h3>Sending requests with axios</h3>
+</a>
+<pre><code class="language-js"><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">addAxiosInterceptors</span><span class="hl-1">(</span><span class="hl-0">axios</span><span class="hl-1">); </span><span class="hl-9">// To be called on each axios instances being imported</span><br/><span class="hl-0">supertokens</span><span class="hl-1">.</span><span class="hl-7">init</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-0">apiDomain:</span><span class="hl-1"> </span><span class="hl-8">&quot;https://api.example.com&quot;</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-11">async</span><span class="hl-1"> </span><span class="hl-11">function</span><span class="hl-1"> </span><span class="hl-7">doAPICalls</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-10">try</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">postData</span><span class="hl-1"> = { ... };</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">response</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-7">axios</span><span class="hl-1">({</span><span class="hl-0">url:</span><span class="hl-1"> </span><span class="hl-8">&quot;someAPI&quot;</span><span class="hl-1">, </span><span class="hl-0">method:</span><span class="hl-1"> </span><span class="hl-8">&quot;post&quot;</span><span class="hl-1">, </span><span class="hl-0">data:</span><span class="hl-1"> </span><span class="hl-0">postData</span><span class="hl-1"> });</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">data</span><span class="hl-1"> = </span><span class="hl-10">await</span><span class="hl-1"> </span><span class="hl-0">response</span><span class="hl-1">.</span><span class="hl-0">data</span><span class="hl-1">;</span><br/><span class="hl-1">        </span><span class="hl-11">let</span><span class="hl-1"> </span><span class="hl-0">someField</span><span class="hl-1"> = </span><span class="hl-0">data</span><span class="hl-1">.</span><span class="hl-0">someField</span><span class="hl-1">;</span><br/><span class="hl-1">    } </span><span class="hl-10">catch</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1">) {</span><br/><span class="hl-1">        </span><span class="hl-10">if</span><span class="hl-1"> (</span><span class="hl-0">err</span><span class="hl-1">.</span><span class="hl-0">response</span><span class="hl-1"> !== </span><span class="hl-11">undefined</span><span class="hl-1"> &amp;&amp; </span><span class="hl-0">err</span><span class="hl-1">.</span><span class="hl-0">response</span><span class="hl-1">.</span><span class="hl-0">status</span><span class="hl-1"> === </span><span class="hl-12">401</span><span class="hl-1">) {</span><br/><span class="hl-1">            </span><span class="hl-9">// redirect user to login</span><br/><span class="hl-1">        } </span><span class="hl-10">else</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-9">// handle error</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code></pre>
 
 <a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
   <h2>Documentation</h2>
 </a>
-<p>To see documentation, please click <a href="https://supertokens.io/docs/community/introduction">here</a>.</p>
+<p>To see documentation, please click <a href="https://supertokens.com/docs/community/introduction">here</a>.</p>
 
 <a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
   <h2>Contributing</h2>
@@ -27,10 +95,10 @@
 <a href="#contact-us" id="contact-us" style="color: inherit; text-decoration: none;">
   <h2>Contact us</h2>
 </a>
-<p>For any queries, or support requests, please email us at <a href="mailto:team@supertokens.io">team@supertokens.io</a>, or join our <a href="supertokens.io/discord">Discord</a> server.</p>
+<p>For any queries, or support requests, please email us at <a href="mailto:team@supertokens.com">team@supertokens.com</a>, or join our <a href="supertokens.com/discord">Discord</a> server.</p>
 
 <a href="#authors" id="authors" style="color: inherit; text-decoration: none;">
   <h2>Authors</h2>
 </a>
-<p>Created with :heart: by the folks at SuperTokens.io.</p>
+<p>Created with :heart: by the folks at SuperTokens.com</p>
 </div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/default.html" class="tsd-kind-icon">default</a></li><li class="tsd-kind-type-alias"><a href="modules.html#InputType" class="tsd-kind-icon">Input<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#RecipeInterface" class="tsd-kind-icon">Recipe<wbr/>Interface</a></li><li class="tsd-kind-function"><a href="modules.html#addAxiosInterceptors" class="tsd-kind-icon">add<wbr/>Axios<wbr/>Interceptors</a></li><li class="tsd-kind-function"><a href="modules.html#attemptRefreshingSession" class="tsd-kind-icon">attempt<wbr/>Refreshing<wbr/>Session</a></li><li class="tsd-kind-function"><a href="modules.html#doesSessionExist" class="tsd-kind-icon">does<wbr/>Session<wbr/>Exist</a></li><li class="tsd-kind-function"><a href="modules.html#getAccessTokenPayloadSecurely" class="tsd-kind-icon">get<wbr/>Access<wbr/>Token<wbr/>Payload<wbr/>Securely</a></li><li class="tsd-kind-function"><a href="modules.html#getUserId" class="tsd-kind-icon">get<wbr/>User<wbr/>Id</a></li><li class="tsd-kind-function"><a href="modules.html#init" class="tsd-kind-icon">init</a></li><li class="tsd-kind-function"><a href="modules.html#signOut" class="tsd-kind-icon">sign<wbr/>Out</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
