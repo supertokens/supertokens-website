@@ -9,7 +9,7 @@ export default function RecipeImplementation(): RecipeInterface {
             return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return originalFetch(url, {
+                        return originalFetch(typeof url === "string" ? url : url.clone(), {
                             ...config
                         });
                     },

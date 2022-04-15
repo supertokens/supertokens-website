@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [10.0.10] - 2022-04-10
+
+### Fixes
+
+-   Setting headers in first param of fetch (https://github.com/supertokens/supertokens-website/issues/116)
+
 ## [10.0.9] - 2022-03-18
 ### Adds
 -   New FDI support (v1.13)

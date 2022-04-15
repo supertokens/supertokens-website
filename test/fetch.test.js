@@ -1859,6 +1859,42 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
+    it("test that setting headers works", async function() {
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const [_, req1, req2, req3] = await Promise.all([
+                page.evaluate(async () => {
+                    let BASE_URL = "http://localhost.org:8080";
+                    supertokens.init({
+                        apiDomain: BASE_URL
+                    });
+                    await fetch(new Request(`${BASE_URL}/test`, { headers: { asdf: "123" } }));
+                    await fetch(`${BASE_URL}/test2`, { headers: { asdf2: "123" } });
+                    await fetch(`${BASE_URL}/test3`);
+                }),
+                page.waitForRequest(`${BASE_URL}/test`),
+                page.waitForRequest(`${BASE_URL}/test2`),
+                page.waitForRequest(`${BASE_URL}/test3`)
+            ]);
+
+            assert.equal(req1.headers()["rid"], "anti-csrf");
+            assert.equal(req1.headers()["asdf"], "123");
+
+            assert.equal(req2.headers()["rid"], "anti-csrf");
+            assert.equal(req2.headers()["asdf2"], "123");
+
+            assert.equal(req3.headers()["rid"], "anti-csrf");
+            assert.equal(req3.headers()["asdf"], undefined);
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
         await startST();
         const browser = await puppeteer.launch({
