@@ -360,5 +360,14 @@ describe("Config tests", function() {
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");
         }
+
+        {
+            AuthHttpRequest.init({
+                apiDomain: "example.com",
+                sessionScope: "" // this is what would be happening in electron apps, prod build
+            });
+            assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
+            assert(AuthHttpRequestFetch.config.sessionScope === "localhost");
+        }
     });
 });
