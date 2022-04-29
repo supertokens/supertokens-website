@@ -148,6 +148,20 @@ export function getWindowOrThrow(): any {
         );
     }
 
+    let userAgent = window.navigator.userAgent.toLowerCase();
+
+    // Check if the app is running in Electron
+    if (userAgent.indexOf(" electron/") > -1) {
+        return {
+            ...window,
+            location: {
+                ...window.location,
+                origin: "http://localhost:3000",
+                hostname: "localhost"
+            }
+        };
+    }
+
     return window;
 }
 
