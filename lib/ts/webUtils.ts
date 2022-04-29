@@ -24,7 +24,7 @@ export function getWindowOrThrow(): Window {
 
 export const WindowUtilities = {
     get fetch() {
-        return window.fetch;
+        return getWindowOrThrow().fetch;
     },
     history: {
         replaceState: (data: any, unused: string, url?: string | null): void => {

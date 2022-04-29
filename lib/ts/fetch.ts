@@ -181,7 +181,7 @@ export default class AuthHttpRequest {
             if ((err as any).message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                    window.location.origin,
+                    WindowUtilities.location.origin,
                     AuthHttpRequest.config.apiDomain,
                     AuthHttpRequest.config.cookieDomain
                 );
@@ -522,7 +522,7 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
             // in which case, we will not end up firing the SIGN_OUT on handle event.
             expires = new Date(Number(splitted[1])).toUTCString();
         }
-        if (domain === "localhost" || domain === window.location.hostname) {
+        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             WindowUtilities.document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
@@ -598,7 +598,7 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             cookieVal = antiCSRFToken;
             expires = undefined; // set cookie without expiry
         }
-        if (domain === "localhost" || domain === window.location.hostname) {
+        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
@@ -661,7 +661,7 @@ export async function setFrontToken(frontToken: string | undefined) {
             cookieVal = frontToken;
             expires = undefined; // set cookie without expiry
         }
-        if (domain === "localhost" || domain === window.location.hostname) {
+        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
