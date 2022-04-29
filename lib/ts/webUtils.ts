@@ -23,12 +23,6 @@ export function getWindowOrThrow(): Window {
 }
 
 export const WindowUtilities = {
-    get fetch() {
-        return getWindowOrThrow().fetch;
-    },
-    set fetch(incomingFetch: any) {
-        getWindowOrThrow().fetch = incomingFetch;
-    },
     history: {
         replaceState: (data: any, unused: string, url?: string | null): void => {
             getWindowOrThrow().history.replaceState(data, unused, url);

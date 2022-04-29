@@ -1,6 +1,5 @@
 export declare function getWindowOrThrow(): Window;
 export declare const WindowUtilities: {
-    fetch: any;
     history: {
         replaceState: (data: any, unused: string, url?: string | null | undefined) => void;
         readonly state: any;

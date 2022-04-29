@@ -129,7 +129,7 @@ export default class AuthHttpRequest {
     static config: NormalisedInputType;
 
     static init(config: NormalisedInputType, recipeImpl: RecipeInterface) {
-        AuthHttpRequest.env = WindowUtilities.fetch === undefined ? global : WindowUtilities;
+        AuthHttpRequest.env = window.fetch === undefined ? global : window;
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
