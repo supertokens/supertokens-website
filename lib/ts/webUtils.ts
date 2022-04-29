@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-function getWindowOrThrow(): Window {
+export function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
         throw Error(
             "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."

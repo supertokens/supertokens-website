@@ -1,3 +1,4 @@
+export declare function getWindowOrThrow(): Window;
 export declare const WindowUtilities: {
     readonly fetch: ((input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>) & typeof fetch;
     history: {
