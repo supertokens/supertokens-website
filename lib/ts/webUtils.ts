@@ -40,6 +40,30 @@ export const WindowUtilities = {
             getWindowOrThrow().location.href = newHref;
         },
         get search(): string {
+            if (isRunningInElectron()) {
+                /**
+                 * In electron most users end up using HashRouter, in this case
+                 * the URL is formed in this pattern "https://origin#/path?query"
+                 *
+                 * Because the path + query is prefixed with a "#" character, using
+                 * window.location.search will return nothing because the query is now
+                 * part of the location hash.
+                 *
+                 * To avoid this problem we manually extract the query string from the URL
+                 * for electron apps
+                 */
+                const currentURL = getWindowOrThrow().location.href;
+                const firstQuestionMarkIndex = currentURL.indexOf("?");
+
+                if (firstQuestionMarkIndex !== -1) {
+                    // Return the query string from the url
+                    const queryString = currentURL.substring(firstQuestionMarkIndex);
+                    return queryString;
+                }
+
+                return "";
+            }
+
             return getWindowOrThrow().location.search;
         },
         get hash(): string {
