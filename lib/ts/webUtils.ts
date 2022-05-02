@@ -70,6 +70,31 @@ export const WindowUtilities = {
             return getWindowOrThrow().location.hash;
         },
         get pathname(): string {
+            if (isRunningInElectron()) {
+                let locationHash = getWindowOrThrow().location.hash;
+
+                if (locationHash === "") {
+                    return "";
+                }
+
+                if (locationHash.startsWith("#")) {
+                    // Remove the starting pound symbol
+                    locationHash = locationHash.substring(1);
+                }
+
+                if (locationHash.includes("?")) {
+                    // Remove query
+                    locationHash = locationHash.split("?")[0];
+                }
+
+                if (locationHash.includes("#")) {
+                    // Remove location hash
+                    locationHash = locationHash.split("#")[0];
+                }
+
+                return locationHash;
+            }
+
             return getWindowOrThrow().location.pathname;
         },
         assign: (url: string) => {
