@@ -444,7 +444,7 @@ type IdRefreshTokenType =
 export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType> {
     async function getIdRefreshTokenFromLocal(): Promise<string | undefined> {
         function getIDFromCookieOld(): string | undefined {
-            let value = "; " + WindowUtilities.document.cookie;
+            let value = "; " + WindowUtilities.getCookie();
             let parts = value.split("; " + ID_REFRESH_TOKEN_NAME + "=");
             if (parts.length >= 2) {
                 let last = parts.pop();
@@ -525,13 +525,17 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
-            WindowUtilities.document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-            }`;
+            WindowUtilities.setCookie(
+                `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                }`
+            );
         } else {
-            WindowUtilities.document.cookie = `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-            }`;
+            WindowUtilities.setCookie(
+                `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
+                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                }`
+            );
         }
     }
 
@@ -570,7 +574,7 @@ async function getAntiCSRFToken(): Promise<string | null> {
     }
 
     function getAntiCSRFromCookie(): string | null {
-        let value = "; " + WindowUtilities.document.cookie;
+        let value = "; " + WindowUtilities.getCookie();
         let parts = value.split("; " + ANTI_CSRF_NAME + "=");
         if (parts.length >= 2) {
             let last = parts.pop();
@@ -602,23 +606,31 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
-                WindowUtilities.document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             } else {
-                WindowUtilities.document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             }
         } else {
             if (expires !== undefined) {
-                WindowUtilities.document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             } else {
-                WindowUtilities.document.cookie = `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             }
         }
     }
@@ -634,7 +646,7 @@ export async function getFrontToken(): Promise<string | null> {
     }
 
     function getFrontTokenFromCookie(): string | null {
-        let value = "; " + WindowUtilities.document.cookie;
+        let value = "; " + WindowUtilities.getCookie();
         let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
         if (parts.length >= 2) {
             let last = parts.pop();
@@ -665,23 +677,31 @@ export async function setFrontToken(frontToken: string | undefined) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
-                WindowUtilities.document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             } else {
-                WindowUtilities.document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             }
         } else {
             if (expires !== undefined) {
-                WindowUtilities.document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             } else {
-                WindowUtilities.document.cookie = `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`;
+                WindowUtilities.setCookie(
+                    `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
+                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+                    }`
+                );
             }
         }
     }

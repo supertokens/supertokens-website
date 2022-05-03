@@ -130,6 +130,14 @@ export const WindowUtilities = {
         }
 
         return getWindowOrThrow().document.cookie;
+    },
+    setCookie: function(newCookie: string): void {
+        if (isRunningInElectron()) {
+            (getWindowOrThrow() as any).electron.setDocumentCookie();
+            return;
+        }
+
+        getWindowOrThrow().document.cookie = newCookie;
     }
 };
 

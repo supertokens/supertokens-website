@@ -17,5 +17,6 @@ export declare const WindowUtilities: {
     readonly sessionStorage: Storage;
     readonly localStorage: Storage;
     getCookie: () => string;
+    setCookie: (newCookie: string) => void;
 };
 export declare function isRunningInElectron(): boolean;
