@@ -123,6 +123,13 @@ export const WindowUtilities = {
     },
     get localStorage(): Storage {
         return getWindowOrThrow().localStorage;
+    },
+    getCookie: function(): string {
+        if (isRunningInElectron()) {
+            return (getWindowOrThrow() as any).electron.getDocumentCookie();
+        }
+
+        return getWindowOrThrow().document.cookie;
     }
 };
 
