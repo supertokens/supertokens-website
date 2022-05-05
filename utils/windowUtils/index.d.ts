@@ -1,4 +1,4 @@
-export * from "../../lib/build/webUtils";
+export * from "../../lib/build/windowUtils";
 /**
  * 'export *' does not re-export a default.
  * import SuperTokens from "supertokens-website";
@@ -6,6 +6,6 @@ export * from "../../lib/build/webUtils";
  * - user add "esModuleInterop": true in their tsconfig.json file
  * - we do the following change:
  */
- import * as _default from "../../lib/build/webUtils";
+ import * as _default from "../../lib/build/windowUtils";
  export default _default;
  
