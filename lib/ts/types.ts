@@ -14,7 +14,7 @@
  */
 
 import OverrideableBuilder from "supertokens-js-override";
-import { CookieHandler } from "./common/cookieHandling/types";
+import { CookieHandlerInput } from "./common/cookieHandling/types";
 
 export type Event =
     | {
@@ -91,5 +91,3 @@ export type RecipeInterface = {
 
     signOut: (config: NormalisedInputType) => Promise<void>;
 };
-
-export type CookieHandlerInput = (original: CookieHandler) => CookieHandler;

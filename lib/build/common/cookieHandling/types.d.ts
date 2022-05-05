@@ -7,3 +7,4 @@ export declare type CookieHandler = {
     setCookieSync: (cookieString: string) => void;
     getCookieSync: () => string;
 };
+export declare type CookieHandlerInput = (original: CookieHandler) => CookieHandler;

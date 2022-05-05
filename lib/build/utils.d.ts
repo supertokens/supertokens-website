@@ -1,5 +1,5 @@
-import { CookieHandler } from "./common/cookieHandling/types";
-import { CookieHandlerInput, InputType, NormalisedInputType } from "./types";
+import { CookieHandler, CookieHandlerInput } from "./common/cookieHandling/types";
+import { InputType, NormalisedInputType } from "./types";
 export declare function normaliseURLDomainOrThrowError(input: string): string;
 export declare function normaliseURLPathOrThrowError(input: string): string;
 export declare function normaliseSessionScopeOrThrowError(sessionScope: string): string;

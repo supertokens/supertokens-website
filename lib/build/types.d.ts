@@ -1,5 +1,5 @@
 import OverrideableBuilder from "supertokens-js-override";
-import { CookieHandler } from "./common/cookieHandling/types";
+import { CookieHandlerInput } from "./common/cookieHandling/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
 } | {
@@ -66,4 +66,3 @@ export declare type RecipeInterface = {
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
     signOut: (config: NormalisedInputType) => Promise<void>;
 };
-export declare type CookieHandlerInput = (original: CookieHandler) => CookieHandler;

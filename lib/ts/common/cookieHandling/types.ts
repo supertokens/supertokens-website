@@ -23,3 +23,5 @@ export type CookieHandler = {
     setCookieSync: (cookieString: string) => void;
     getCookieSync: () => string;
 };
+
+export type CookieHandlerInput = (original: CookieHandler) => CookieHandler;

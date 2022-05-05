@@ -14,10 +14,10 @@
  */
 
 import { defaultCookieHandler } from "./common/cookieHandling";
-import { CookieHandler } from "./common/cookieHandling/types";
+import { CookieHandler, CookieHandlerInput } from "./common/cookieHandling/types";
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
-import { CookieHandlerInput, EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
+import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
 import { WindowUtilities } from "./windowUtils";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
