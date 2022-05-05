@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /* Copyright (c) 2022, VRAI Labs and/or its affiliates. All rights reserved.
  *
  * This software is licensed under the Apache License, Version 2.0 (the
@@ -14,32 +12,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-function getWindowOrThrow() {
+export function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
         throw Error(
             "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
         );
     }
+
     return window;
 }
-exports.getWindowOrThrow = getWindowOrThrow;
-exports.WindowUtilities = {
+
+export const WindowUtilities = {
     history: {
-        replaceState: function(data, unused, url) {
+        replaceState: (data: any, unused: string, url?: string | null): void => {
             getWindowOrThrow().history.replaceState(data, unused, url);
         },
-        get state() {
+        get state(): any {
             return getWindowOrThrow().history.state;
         }
     },
     location: {
-        get href() {
+        get href(): string {
             return getWindowOrThrow().location.href;
         },
-        set href(newHref) {
+
+        set href(newHref: string) {
             getWindowOrThrow().location.href = newHref;
         },
-        get search() {
+        get search(): string {
             if (isRunningInElectron()) {
                 /**
                  * In electron most users end up using HashRouter, in this case
@@ -52,84 +52,83 @@ exports.WindowUtilities = {
                  * To avoid this problem we manually extract the query string from the URL
                  * for electron apps
                  */
-                var currentURL = getWindowOrThrow().location.href;
-                var firstQuestionMarkIndex = currentURL.indexOf("?");
+                const currentURL = getWindowOrThrow().location.href;
+                const firstQuestionMarkIndex = currentURL.indexOf("?");
+
                 if (firstQuestionMarkIndex !== -1) {
                     // Return the query string from the url
-                    var queryString = currentURL.substring(firstQuestionMarkIndex);
+                    const queryString = currentURL.substring(firstQuestionMarkIndex);
                     return queryString;
                 }
+
                 return "";
             }
+
             return getWindowOrThrow().location.search;
         },
-        get hash() {
+        get hash(): string {
             return getWindowOrThrow().location.hash;
         },
-        get pathname() {
+        get pathname(): string {
             if (isRunningInElectron()) {
-                var locationHash = getWindowOrThrow().location.hash;
+                let locationHash = getWindowOrThrow().location.hash;
+
                 if (locationHash === "") {
                     return "";
                 }
+
                 if (locationHash.startsWith("#")) {
                     // Remove the starting pound symbol
                     locationHash = locationHash.substring(1);
                 }
+
                 if (locationHash.includes("?")) {
                     // Remove query
                     locationHash = locationHash.split("?")[0];
                 }
+
                 if (locationHash.includes("#")) {
                     // Remove location hash
                     locationHash = locationHash.split("#")[0];
                 }
+
                 return locationHash;
             }
+
             return getWindowOrThrow().location.pathname;
         },
-        assign: function(url) {
+        assign: (url: string) => {
             getWindowOrThrow().location.assign(url);
         },
-        get origin() {
+        get origin(): string {
             if (isRunningInElectron()) {
                 return "http://localhost:3000";
             }
+
             return getWindowOrThrow().location.origin;
         },
-        get hostname() {
+        get hostname(): string {
             if (isRunningInElectron()) {
                 return "localhost";
             }
+
             return getWindowOrThrow().location.hostname;
         }
     },
-    get document() {
+    get document(): Document {
         return getWindowOrThrow().document;
     },
-    get sessionStorage() {
+    get sessionStorage(): Storage {
         return getWindowOrThrow().sessionStorage;
     },
-    get localStorage() {
+    get localStorage(): Storage {
         return getWindowOrThrow().localStorage;
-    },
-    getCookie: function() {
-        if (isRunningInElectron()) {
-            return getWindowOrThrow().electron.getDocumentCookie();
-        }
-        return getWindowOrThrow().document.cookie;
-    },
-    setCookie: function(newCookie) {
-        if (isRunningInElectron()) {
-            getWindowOrThrow().electron.setDocumentCookie();
-            return;
-        }
-        getWindowOrThrow().document.cookie = newCookie;
     }
 };
-function isRunningInElectron() {
-    var _window = getWindowOrThrow();
-    var userAgent = _window.navigator.userAgent.toLowerCase();
+
+export function isRunningInElectron() {
+    const _window = getWindowOrThrow();
+    const userAgent = _window.navigator.userAgent.toLowerCase();
+
     return userAgent.indexOf(" electron/") > -1;
 }
-exports.isRunningInElectron = isRunningInElectron;

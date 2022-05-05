@@ -13,10 +13,12 @@
  * under the License.
  */
 
+import { defaultCookieHandler } from "./common/cookieHandling";
+import { CookieHandler } from "./common/cookieHandling/types";
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
-import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-import { WindowUtilities } from "./webUtils";
+import { CookieHandlerInput, EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
+import { WindowUtilities } from "./windowUtils";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -105,6 +107,11 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
+    let cookieHandler: CookieHandlerInput = original => original;
+    if (options.cookieHandler !== undefined) {
+        cookieHandler = options.cookieHandler;
+    }
+
     let preAPIHook = async (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
@@ -136,6 +143,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         autoAddCredentials,
         isInIframe,
         cookieDomain,
+        cookieHandler,
         preAPIHook,
         onHandleEvent,
         override
@@ -177,4 +185,12 @@ export function shouldDoInterceptionBasedOnUrl(
             return domain === normalisedCookieDomain;
         }
     }
+}
+
+export function normaliseCookieHandler(cookieHandlerInput?: CookieHandlerInput): CookieHandler {
+    if (cookieHandlerInput !== undefined) {
+        return cookieHandlerInput(defaultCookieHandler);
+    }
+
+    return defaultCookieHandler;
 }

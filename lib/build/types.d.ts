@@ -1,4 +1,5 @@
 import OverrideableBuilder from "supertokens-js-override";
+import { CookieHandler } from "./common/cookieHandling/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
 } | {
@@ -14,6 +15,7 @@ export declare type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
+    cookieHandler?: CookieHandlerInput;
     preAPIHook?: (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
@@ -35,6 +37,7 @@ export declare type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
+    cookieHandler: CookieHandlerInput;
     preAPIHook: (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
@@ -63,3 +66,4 @@ export declare type RecipeInterface = {
     doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
     signOut: (config: NormalisedInputType) => Promise<void>;
 };
+export declare type CookieHandlerInput = (original: CookieHandler) => CookieHandler;

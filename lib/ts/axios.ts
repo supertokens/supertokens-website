@@ -24,7 +24,7 @@ import AuthHttpRequestFetch, {
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
-import { WindowUtilities } from "./webUtils";
+import { WindowUtilities } from "./windowUtils";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;
