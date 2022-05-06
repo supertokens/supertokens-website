@@ -1,6 +1,6 @@
 import OverrideableBuilder from "supertokens-js-override";
-import { CookieHandlerInput } from "./common/cookieHandling/types";
-import { WindowHandlerInput } from "./common/windowHandling/types";
+import { CookieHandlerInput } from "./common/cookieHandler/types";
+import { WindowHandlerInput } from "./common/windowHandler/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
 } | {

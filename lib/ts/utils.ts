@@ -16,7 +16,7 @@
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
 import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-import SuperTokensWindowHandler from "./windowHandler";
+import WindowHandlerInterfaceReference from "./common/windowHandler";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -76,11 +76,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    // for electron apps, the value of of hostname is '' in prod build. Setting it to localhost here results in this value not being used at all which works well.
-    let defaultSessionScope =
-        SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName() === ""
-            ? "localhost"
-            : SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName();
+    let defaultSessionScope = WindowHandlerInterfaceReference.getReferenceOrThrow().windowHandler.location.getHostName();
 
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(

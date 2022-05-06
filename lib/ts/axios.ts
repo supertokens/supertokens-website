@@ -24,7 +24,7 @@ import AuthHttpRequestFetch, {
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
-import SuperTokensWindowHandler from "./windowHandler";
+import WindowHandlerInterfaceReference from "./common/windowHandler";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;
@@ -57,7 +57,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         if ((err as any).message === "Please provide a valid domain name") {
             // .origin gives the port as well..
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getOrigin(),
+                WindowHandlerInterfaceReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                 AuthHttpRequestFetch.config.apiDomain,
                 AuthHttpRequestFetch.config.cookieDomain
             );
@@ -136,7 +136,7 @@ export function responseInterceptor(axiosInstance: any) {
                 if ((err as any).message === "Please provide a valid domain name") {
                     // .origin gives the port as well..
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                        SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getOrigin(),
+                        WindowHandlerInterfaceReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
                         AuthHttpRequestFetch.config.cookieDomain
                     );
@@ -261,7 +261,7 @@ export default class AuthHttpRequest {
                 // .origin gives the port as well..
                 doNotDoInterception =
                     !shouldDoInterceptionBasedOnUrl(
-                        SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getOrigin(),
+                        WindowHandlerInterfaceReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
                         AuthHttpRequestFetch.config.cookieDomain
                     ) && viaInterceptor;
