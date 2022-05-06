@@ -31,7 +31,6 @@ export default class SuperTokensWindowHandler {
 
     static init(windowHandlerInput?: WindowHandlerInput): void {
         if (SuperTokensWindowHandler.instance !== undefined) {
-            console.warn("SuperTokensWindowHandler was already initialized");
             return;
         }
 

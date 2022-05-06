@@ -31,7 +31,6 @@ export default class SuperTokensCookieHandler {
 
     static init(cookieHandlerInput?: CookieHandlerInput): void {
         if (SuperTokensCookieHandler.instance !== undefined) {
-            console.warn("SuperTokensCookieHandler was already initialized");
             return;
         }
 
