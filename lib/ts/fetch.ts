@@ -19,6 +19,7 @@ import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType } from "./types";
 import SuperTokensCookieHandler from "./cookieHandler";
 import SuperTokensWindowHandler from "./windowHandler";
+import { getWindowOrThrow } from "./common/windowHandling";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -130,7 +131,7 @@ export default class AuthHttpRequest {
     static config: NormalisedInputType;
 
     static init(config: NormalisedInputType, recipeImpl: RecipeInterface) {
-        AuthHttpRequest.env = window.fetch === undefined ? global : window;
+        AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
