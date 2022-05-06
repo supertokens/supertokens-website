@@ -25,10 +25,10 @@ export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
 
     static init(options: InputType) {
-        let config = validateAndNormaliseInputOrThrowError(options);
-        const recipeImpl = new OverrideableBuilder(RecipeImplementation()).override(config.override.functions).build();
         SuperTokensCookieHandler.init(options.cookieHandler);
         SuperTokensWindowHandler.init(options.windowHandler);
+        let config = validateAndNormaliseInputOrThrowError(options);
+        const recipeImpl = new OverrideableBuilder(RecipeImplementation()).override(config.override.functions).build();
         AuthHttpRequestFetch.init(config, recipeImpl);
         AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
             f();
