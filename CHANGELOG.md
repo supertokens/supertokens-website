@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [10.0.12] - 2022-05-06
-
 ### Adds
 
 - A new config property `cookieHandler` that allows for custom handling when the SDK reads/writes cookies
