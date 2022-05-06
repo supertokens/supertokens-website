@@ -41,6 +41,76 @@ supertokens.init({
     sessionExpiredStatusCode: 440,
     sessionScope: "",
     cookieDomain: "",
+    cookieHandler: () => {
+        return {
+            getCookie: async function () {
+                return "";
+            },
+            getCookieSync: function() {
+                return "";
+            },
+            setCookie: async function(newString) {
+                const _: string = newString;
+                return;
+            },
+            setCookieSync: function (newString) {
+                const _: string = newString;
+                return;
+            },
+        };
+    },
+    windowHandler: (original) => {
+        return {
+            getDocument: function () {
+                return original.getDocument();
+            },
+            getLocalStorage: function () {
+                return original.getLocalStorage();
+            },
+            getSessionStorage: function () {
+                return original.getSessionStorage();
+            },
+            history: {
+                getState: function () {
+                    return "";
+                },
+                replaceState: function (data, unused, url) {
+                    const _: any = data;
+                    const __: string = unused;
+                    const ___: string | null | undefined = url;
+                },
+            },
+            location: {
+                assign: function (url) {
+                    // with-typescript doesnt recognise DOM types, hence any here 
+                    const _:any = url;
+                    return;
+                },
+                getHash: function () {
+                    return "";
+                },
+                getHostName: function () {
+                    return "";
+                },
+                getHref: function () {
+                    return "";
+                },
+                getOrigin: function () {
+                    return "";
+                },
+                getPathName: function () {
+                    return "";
+                },
+                getSearch: function () {
+                    return "";
+                },
+                setHref: function (newHref) {
+                    const _: string = newHref;
+                    return;
+                },
+            },
+        };
+    },
     override: {
         functions: (oI) => {
             return {
