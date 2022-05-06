@@ -6,3 +6,4 @@ export default class SuperTokensCookieHandler {
     static init(cookieHandlerInput?: CookieHandlerInput): void;
     static getInstanceOrThrow(): SuperTokensCookieHandler;
 }
+export { SuperTokensCookieHandler };

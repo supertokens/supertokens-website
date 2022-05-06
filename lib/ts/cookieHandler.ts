@@ -45,3 +45,5 @@ export default class SuperTokensCookieHandler {
         return SuperTokensCookieHandler.instance;
     }
 }
+
+export { SuperTokensCookieHandler };

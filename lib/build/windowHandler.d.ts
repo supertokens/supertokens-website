@@ -6,3 +6,4 @@ export default class SuperTokensWindowHandler {
     static init(windowHandlerInput?: WindowHandlerInput): void;
     static getInstanceOrThrow(): SuperTokensWindowHandler;
 }
+export { SuperTokensWindowHandler, };

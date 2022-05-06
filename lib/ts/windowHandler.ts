@@ -45,3 +45,5 @@ export default class SuperTokensWindowHandler {
         return SuperTokensWindowHandler.instance;
     }
 }
+
+export { SuperTokensWindowHandler };
