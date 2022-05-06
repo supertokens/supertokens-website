@@ -137,8 +137,6 @@ export default class AuthHttpRequest {
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
         AuthHttpRequest.rid = "session";
         AuthHttpRequest.config = config;
-        SuperTokensCookieHandler.init(config.cookieHandler);
-        SuperTokensWindowHandler.init(config.windowHandler);
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             // this block contains code that is run just once per page load..

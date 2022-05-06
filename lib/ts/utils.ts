@@ -13,8 +13,6 @@
  * under the License.
  */
 
-import { CookieHandlerInput } from "./common/cookieHandling/types";
-import { WindowHandlerInput } from "./common/windowHandling/types";
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
 import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
@@ -109,16 +107,6 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
-    let cookieHandler: CookieHandlerInput = original => original;
-    if (options.cookieHandler !== undefined) {
-        cookieHandler = options.cookieHandler;
-    }
-
-    let windowHandler: WindowHandlerInput = original => original;
-    if (options.windowHandler !== undefined) {
-        windowHandler = options.windowHandler;
-    }
-
     let preAPIHook = async (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
@@ -150,8 +138,6 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         autoAddCredentials,
         isInIframe,
         cookieDomain,
-        cookieHandler,
-        windowHandler,
         preAPIHook,
         onHandleEvent,
         override

@@ -39,8 +39,6 @@ export declare type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
-    cookieHandler: CookieHandlerInput;
-    windowHandler: WindowHandlerInput;
     preAPIHook: (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
