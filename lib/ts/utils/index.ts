@@ -13,10 +13,10 @@
  * under the License.
  */
 
-import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
-import NormalisedURLPath from "./normalisedURLPath";
-import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-import WindowHandlerReference from "./common/windowHandler";
+import NormalisedURLDomain, { isAnIpAddress } from "../normalisedURLDomain";
+import NormalisedURLPath from "../normalisedURLPath";
+import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "../types";
+import WindowHandlerReference from "../utils/windowHandler";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();

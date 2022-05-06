@@ -17,10 +17,10 @@ import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType } from "./types";
-import CookieHandlerReference from "./common/cookieHandler";
-import WindowHandlerReference from "./common/windowHandler";
+import CookieHandlerReference from "./utils/cookieHandler";
+import WindowHandlerReference from "./utils/windowHandler";
 
-function getWindowOrThrow(): Window {
+export function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
         throw Error(
             "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."

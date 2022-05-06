@@ -1,4 +1,4 @@
-import { InputType, NormalisedInputType } from "./types";
+import { InputType, NormalisedInputType } from "../types";
 export declare function normaliseURLDomainOrThrowError(input: string): string;
 export declare function normaliseURLPathOrThrowError(input: string): string;
 export declare function normaliseSessionScopeOrThrowError(sessionScope: string): string;

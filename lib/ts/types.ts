@@ -14,8 +14,8 @@
  */
 
 import OverrideableBuilder from "supertokens-js-override";
-import { CookieHandlerInput } from "./common/cookieHandler/types";
-import { WindowHandlerInput } from "./common/windowHandler/types";
+import { CookieHandlerInput } from "./utils/cookieHandler/types";
+import { WindowHandlerInput } from "./utils/windowHandler/types";
 
 export type Event =
     | {

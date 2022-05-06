@@ -18,8 +18,8 @@ import { InputType, RecipeInterface } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { validateAndNormaliseInputOrThrowError } from "./utils";
-import CookieHandlerReference from "./common/cookieHandler";
-import WindowHandlerReference from "./common/windowHandler";
+import CookieHandlerReference from "./utils/cookieHandler";
+import WindowHandlerReference from "./utils/windowHandler";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];

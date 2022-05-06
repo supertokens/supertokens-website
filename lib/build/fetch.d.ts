@@ -1,4 +1,5 @@
 import { RecipeInterface, NormalisedInputType } from "./types";
+export declare function getWindowOrThrow(): Window;
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
