@@ -6,4 +6,4 @@ export default class WindowHandlerReference {
     static init(windowHandlerInput?: WindowHandlerInput): void;
     static getReferenceOrThrow(): WindowHandlerReference;
 }
-export { WindowHandlerReference as WindowHandlerInterfaceReference };
+export { WindowHandlerReference };

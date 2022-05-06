@@ -46,4 +46,4 @@ export default class WindowHandlerReference {
     }
 }
 
-export { WindowHandlerReference as WindowHandlerInterfaceReference };
+export { WindowHandlerReference };

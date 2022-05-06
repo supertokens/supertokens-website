@@ -46,4 +46,4 @@ export default class CookieHandlerReference {
     }
 }
 
-export { CookieHandlerReference as CookieHandlerInterfaceReference };
+export { CookieHandlerReference };

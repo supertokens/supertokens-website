@@ -6,4 +6,4 @@ export default class CookieHandlerReference {
     static init(cookieHandlerInput?: CookieHandlerInput): void;
     static getReferenceOrThrow(): CookieHandlerReference;
 }
-export { CookieHandlerReference as CookieHandlerInterfaceReference };
+export { CookieHandlerReference };
