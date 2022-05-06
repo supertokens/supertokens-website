@@ -16,7 +16,7 @@
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
 import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-import WindowHandlerInterfaceReference from "./common/windowHandler";
+import WindowHandlerReference from "./common/windowHandler";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -76,7 +76,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let defaultSessionScope = WindowHandlerInterfaceReference.getReferenceOrThrow().windowHandler.location.getHostName();
+    let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
 
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(

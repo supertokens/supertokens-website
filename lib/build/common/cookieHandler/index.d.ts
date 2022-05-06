@@ -1,9 +1,9 @@
 import { CookieHandlerInterface, CookieHandlerInput } from "./types";
-export default class CookieHandlerInterfaceReference {
+export default class CookieHandlerReference {
     private static instance?;
     cookieHandler: CookieHandlerInterface;
     constructor(cookieHandlerInput?: CookieHandlerInput);
     static init(cookieHandlerInput?: CookieHandlerInput): void;
-    static getReferenceOrThrow(): CookieHandlerInterfaceReference;
+    static getReferenceOrThrow(): CookieHandlerReference;
 }
-export { CookieHandlerInterfaceReference };
+export { CookieHandlerReference as CookieHandlerInterfaceReference };

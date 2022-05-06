@@ -15,8 +15,8 @@
 import { defaultCookieHandlerImplementation } from "./defaultImplementation";
 import { CookieHandlerInterface, CookieHandlerInput } from "./types";
 
-export default class CookieHandlerInterfaceReference {
-    private static instance?: CookieHandlerInterfaceReference;
+export default class CookieHandlerReference {
+    private static instance?: CookieHandlerReference;
 
     cookieHandler: CookieHandlerInterface;
 
@@ -30,20 +30,20 @@ export default class CookieHandlerInterfaceReference {
     }
 
     static init(cookieHandlerInput?: CookieHandlerInput): void {
-        if (CookieHandlerInterfaceReference.instance !== undefined) {
+        if (CookieHandlerReference.instance !== undefined) {
             return;
         }
 
-        CookieHandlerInterfaceReference.instance = new CookieHandlerInterfaceReference(cookieHandlerInput);
+        CookieHandlerReference.instance = new CookieHandlerReference(cookieHandlerInput);
     }
 
-    static getReferenceOrThrow(): CookieHandlerInterfaceReference {
-        if (CookieHandlerInterfaceReference.instance === undefined) {
+    static getReferenceOrThrow(): CookieHandlerReference {
+        if (CookieHandlerReference.instance === undefined) {
             throw new Error("SuperTokensCookieHandler must be initialized before calling this method.");
         }
 
-        return CookieHandlerInterfaceReference.instance;
+        return CookieHandlerReference.instance;
     }
 }
 
-export { CookieHandlerInterfaceReference };
+export { CookieHandlerReference as CookieHandlerInterfaceReference };

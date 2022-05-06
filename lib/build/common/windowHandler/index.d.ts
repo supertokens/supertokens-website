@@ -1,9 +1,9 @@
 import { WindowHandlerInterface, WindowHandlerInput } from "./types";
-export default class WindowHandlerInterfaceReference {
+export default class WindowHandlerReference {
     private static instance?;
     windowHandler: WindowHandlerInterface;
     constructor(windowHandlerInput?: WindowHandlerInput);
     static init(windowHandlerInput?: WindowHandlerInput): void;
-    static getReferenceOrThrow(): WindowHandlerInterfaceReference;
+    static getReferenceOrThrow(): WindowHandlerReference;
 }
-export { WindowHandlerInterfaceReference };
+export { WindowHandlerReference as WindowHandlerInterfaceReference };

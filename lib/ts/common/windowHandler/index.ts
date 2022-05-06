@@ -15,8 +15,8 @@
 import { defaultWindowHandlerImplementation } from "./defaultImplementation";
 import { WindowHandlerInterface, WindowHandlerInput } from "./types";
 
-export default class WindowHandlerInterfaceReference {
-    private static instance?: WindowHandlerInterfaceReference;
+export default class WindowHandlerReference {
+    private static instance?: WindowHandlerReference;
 
     windowHandler: WindowHandlerInterface;
 
@@ -30,20 +30,20 @@ export default class WindowHandlerInterfaceReference {
     }
 
     static init(windowHandlerInput?: WindowHandlerInput): void {
-        if (WindowHandlerInterfaceReference.instance !== undefined) {
+        if (WindowHandlerReference.instance !== undefined) {
             return;
         }
 
-        WindowHandlerInterfaceReference.instance = new WindowHandlerInterfaceReference(windowHandlerInput);
+        WindowHandlerReference.instance = new WindowHandlerReference(windowHandlerInput);
     }
 
-    static getReferenceOrThrow(): WindowHandlerInterfaceReference {
-        if (WindowHandlerInterfaceReference.instance === undefined) {
+    static getReferenceOrThrow(): WindowHandlerReference {
+        if (WindowHandlerReference.instance === undefined) {
             throw new Error("SuperTokensWindowHandler must be initialized before calling this method.");
         }
 
-        return WindowHandlerInterfaceReference.instance;
+        return WindowHandlerReference.instance;
     }
 }
 
-export { WindowHandlerInterfaceReference };
+export { WindowHandlerReference as WindowHandlerInterfaceReference };
