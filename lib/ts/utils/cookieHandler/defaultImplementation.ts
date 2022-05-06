@@ -14,7 +14,7 @@
  */
 import { CookieHandlerInterface } from "./types";
 
-export function getWindowOrThrow(): Window {
+function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
         throw Error(
             "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
