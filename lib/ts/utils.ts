@@ -13,12 +13,12 @@
  * under the License.
  */
 
-import { defaultCookieHandler } from "./common/cookieHandling";
-import { CookieHandler, CookieHandlerInput } from "./common/cookieHandling/types";
+import { CookieHandlerInput } from "./common/cookieHandling/types";
+import { WindowHandlerInput } from "./common/windowHandling/types";
 import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
 import NormalisedURLPath from "./normalisedURLPath";
 import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
-import { WindowUtilities } from "./windowUtils";
+import SuperTokensWindowHandler from "./windowHandler";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -80,7 +80,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
 
     // for electron apps, the value of of hostname is '' in prod build. Setting it to localhost here results in this value not being used at all which works well.
     let defaultSessionScope =
-        WindowUtilities.location.hostname === "" ? "localhost" : WindowUtilities.location.hostname;
+        SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName() === ""
+            ? "localhost"
+            : SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName();
 
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(
@@ -110,6 +112,11 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     let cookieHandler: CookieHandlerInput = original => original;
     if (options.cookieHandler !== undefined) {
         cookieHandler = options.cookieHandler;
+    }
+
+    let windowHandler: WindowHandlerInput = original => original;
+    if (options.windowHandler !== undefined) {
+        windowHandler = options.windowHandler;
     }
 
     let preAPIHook = async (context: {
@@ -144,6 +151,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe,
         cookieDomain,
         cookieHandler,
+        windowHandler,
         preAPIHook,
         onHandleEvent,
         override
@@ -185,12 +193,4 @@ export function shouldDoInterceptionBasedOnUrl(
             return domain === normalisedCookieDomain;
         }
     }
-}
-
-export function normaliseCookieHandler(cookieHandlerInput?: CookieHandlerInput): CookieHandler {
-    if (cookieHandlerInput !== undefined) {
-        return cookieHandlerInput(defaultCookieHandler);
-    }
-
-    return defaultCookieHandler;
 }

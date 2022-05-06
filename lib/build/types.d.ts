@@ -1,5 +1,6 @@
 import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./common/cookieHandling/types";
+import { WindowHandlerInput } from "./common/windowHandling/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
 } | {
@@ -16,6 +17,7 @@ export declare type InputType = {
     isInIframe?: boolean;
     cookieDomain?: string;
     cookieHandler?: CookieHandlerInput;
+    windowHandler?: WindowHandlerInput;
     preAPIHook?: (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;
@@ -38,6 +40,7 @@ export declare type NormalisedInputType = {
     isInIframe: boolean;
     cookieDomain: string | undefined;
     cookieHandler: CookieHandlerInput;
+    windowHandler: WindowHandlerInput;
     preAPIHook: (context: {
         action: "SIGN_OUT" | "REFRESH_SESSION";
         requestInit: RequestInit;

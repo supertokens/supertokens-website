@@ -12,20 +12,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import { getWindowOrThrow } from "../../common/windowHandling";
-import { CookieHandler } from "./types";
+import { defaultWindowHandler } from ".";
+import { WindowHandler, WindowHandlerInput } from "./types";
 
-export const defaultCookieHandler: CookieHandler = {
-    getCookie: async function() {
-        return getWindowOrThrow().document.cookie;
-    },
-    getCookieSync: function() {
-        return getWindowOrThrow().document.cookie;
-    },
-    setCookie: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
-    },
-    setCookieSync: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
+export function normaliseWindowHandlerInput(windowHandlerInput?: WindowHandlerInput): WindowHandler {
+    if (windowHandlerInput !== undefined) {
+        return windowHandlerInput(defaultWindowHandler);
     }
-};
+
+    return defaultWindowHandler;
+}

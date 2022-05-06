@@ -15,10 +15,10 @@
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
-import { normaliseCookieHandler, shouldDoInterceptionBasedOnUrl } from "./utils";
+import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType } from "./types";
-import { WindowUtilities } from "./windowUtils";
-import { CookieHandler } from "./common/cookieHandling/types";
+import SuperTokensCookieHandler from "./cookieHandler";
+import SuperTokensWindowHandler from "./windowHandler";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -128,7 +128,6 @@ export default class AuthHttpRequest {
     static env: any;
     static recipeImpl: RecipeInterface;
     static config: NormalisedInputType;
-    static cookieHandler: CookieHandler;
 
     static init(config: NormalisedInputType, recipeImpl: RecipeInterface) {
         AuthHttpRequest.env = window.fetch === undefined ? global : window;
@@ -137,7 +136,8 @@ export default class AuthHttpRequest {
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
         AuthHttpRequest.rid = "session";
         AuthHttpRequest.config = config;
-        AuthHttpRequest.cookieHandler = normaliseCookieHandler(config.cookieHandler);
+        SuperTokensCookieHandler.init(config.cookieHandler);
+        SuperTokensWindowHandler.init(config.windowHandler);
 
         if (AuthHttpRequest.env.__supertokensOriginalFetch === undefined) {
             // this block contains code that is run just once per page load..
@@ -184,7 +184,7 @@ export default class AuthHttpRequest {
             if ((err as any).message === "Please provide a valid domain name") {
                 // .origin gives the port as well..
                 doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                    WindowUtilities.location.origin,
+                    SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getOrigin(),
                     AuthHttpRequest.config.apiDomain,
                     AuthHttpRequest.config.cookieDomain
                 );
@@ -447,7 +447,7 @@ type IdRefreshTokenType =
 export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType> {
     async function getIdRefreshTokenFromLocal(): Promise<string | undefined> {
         async function getIDFromCookieOld(): Promise<string | undefined> {
-            let value = "; " + (await AuthHttpRequest.cookieHandler.getCookie());
+            let value = "; " + (await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.getCookie());
             let parts = value.split("; " + ID_REFRESH_TOKEN_NAME + "=");
             if (parts.length >= 2) {
                 let last = parts.pop();
@@ -525,16 +525,19 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
             // in which case, we will not end up firing the SIGN_OUT on handle event.
             expires = new Date(Number(splitted[1])).toUTCString();
         }
-        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
+        if (
+            domain === "localhost" ||
+            domain === SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName()
+        ) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
-            await AuthHttpRequest.cookieHandler.setCookie(
+            await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                 `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
                     AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`
             );
         } else {
-            await AuthHttpRequest.cookieHandler.setCookie(
+            await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                 `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
                     AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                 }`
@@ -577,7 +580,7 @@ async function getAntiCSRFToken(): Promise<string | null> {
     }
 
     async function getAntiCSRFromCookie(): Promise<string | null> {
-        let value = "; " + (await AuthHttpRequest.cookieHandler.getCookie());
+        let value = "; " + (await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.getCookie());
         let parts = value.split("; " + ANTI_CSRF_NAME + "=");
         if (parts.length >= 2) {
             let last = parts.pop();
@@ -605,17 +608,20 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             cookieVal = antiCSRFToken;
             expires = undefined; // set cookie without expiry
         }
-        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
+        if (
+            domain === "localhost" ||
+            domain === SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName()
+        ) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
                 );
             } else {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
@@ -623,13 +629,13 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
             }
         } else {
             if (expires !== undefined) {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
                 );
             } else {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
@@ -649,7 +655,7 @@ export async function getFrontToken(): Promise<string | null> {
     }
 
     async function getFrontTokenFromCookie(): Promise<string | null> {
-        let value = "; " + (await AuthHttpRequest.cookieHandler.getCookie());
+        let value = "; " + (await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.getCookie());
         let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
         if (parts.length >= 2) {
             let last = parts.pop();
@@ -676,17 +682,20 @@ export async function setFrontToken(frontToken: string | undefined) {
             cookieVal = frontToken;
             expires = undefined; // set cookie without expiry
         }
-        if (domain === "localhost" || domain === WindowUtilities.location.hostname) {
+        if (
+            domain === "localhost" ||
+            domain === SuperTokensWindowHandler.getInstanceOrThrow().windowHandler.location.getHostName()
+        ) {
             // since some browsers ignore cookies with domain set to localhost
             // see https://github.com/supertokens/supertokens-website/issues/25
             if (expires !== undefined) {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
                 );
             } else {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
@@ -694,13 +703,13 @@ export async function setFrontToken(frontToken: string | undefined) {
             }
         } else {
             if (expires !== undefined) {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`
                 );
             } else {
-                await AuthHttpRequest.cookieHandler.setCookie(
+                await SuperTokensCookieHandler.getInstanceOrThrow().cookieHandler.setCookie(
                     `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
                         AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
                     }`

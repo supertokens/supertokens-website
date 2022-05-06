@@ -1,5 +1,4 @@
 import { RecipeInterface, NormalisedInputType } from "./types";
-import { CookieHandler } from "./common/cookieHandling/types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -30,7 +29,6 @@ export default class AuthHttpRequest {
     static env: any;
     static recipeImpl: RecipeInterface;
     static config: NormalisedInputType;
-    static cookieHandler: CookieHandler;
     static init(config: NormalisedInputType, recipeImpl: RecipeInterface): void;
     static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
     static attemptRefreshingSession: () => Promise<boolean>;
