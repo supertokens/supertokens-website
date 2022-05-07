@@ -46,6 +46,7 @@ export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshToken
 } | {
     result: "RETRY";
 }>;
+export declare function onTokenUpdate(): void;
 declare type IdRefreshTokenType = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {
@@ -53,7 +54,7 @@ declare type IdRefreshTokenType = {
     token: string;
 };
 export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
-export declare function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number): Promise<void>;
+export declare function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number): Promise<boolean>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;

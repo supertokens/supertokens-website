@@ -247,9 +247,10 @@ export default class AuthHttpRequest {
                 };
 
                 let response = await httpCall(configWithAntiCsrf);
+                let isNewSession = false;
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {
-                    await setIdRefreshToken(idRefreshToken, response.status);
+                    isNewSession = await setIdRefreshToken(idRefreshToken, response.status);
                 }
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     let retry = await onUnauthorisedResponse(preRequestIdToken);
@@ -268,6 +269,9 @@ export default class AuthHttpRequest {
                     const frontToken = response.headers.get("front-token");
                     if (frontToken) {
                         await FrontToken.setItem(frontToken);
+                        if (!isNewSession) {
+                            onTokenUpdate();
+                        }
                     }
                     return response;
                 }
@@ -443,6 +447,12 @@ export async function onUnauthorisedResponse(
     }
 }
 
+export function onTokenUpdate() {
+    AuthHttpRequest.config.onHandleEvent({
+        action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
+    });
+}
+
 type IdRefreshTokenType =
     | {
           status: "NOT_EXISTS" | "MAY_EXIST";
@@ -572,7 +582,9 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         AuthHttpRequest.config.onHandleEvent({
             action: "SESSION_CREATED"
         });
+        return true;
     }
+    return false;
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {

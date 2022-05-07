@@ -3084,4 +3084,106 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const logs = [];
+            page.on("console", ev => {
+                const logText = ev.text();
+                if (logText.startsWith("TEST_EV$")) {
+                    logs.push(logText.split("$")[1]);
+                }
+            });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
+                });
+                let userId = "testing-supertokens-website";
+
+                await fetch(`${BASE_URL}/login`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                console.log("TEST_EV$LOGIN_FINISH");
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 1 })
+                });
+                console.log("TEST_EV$UPDATE1_FINISH");
+                await delay(5);
+                await fetch(`${BASE_URL}/`, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                console.log("TEST_EV$REFRESH_FINISH");
+
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 2 })
+                });
+                console.log("TEST_EV$UPDATE2_FINISH");
+                await delay(5);
+
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 3 })
+                });
+                console.log("TEST_EV$UPDATE3_FINISH");
+
+                await fetch(`${BASE_URL}/logout`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            });
+            assert.deepEqual(logs, [
+                "SESSION_CREATED",
+                "LOGIN_FINISH",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE1_FINISH",
+                "REFRESH_SESSION",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "REFRESH_FINISH",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE2_FINISH",
+                "REFRESH_SESSION",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE3_FINISH",
+                "SIGN_OUT"
+            ]);
+        } finally {
+            await browser.close();
+        }
+    });
 });
