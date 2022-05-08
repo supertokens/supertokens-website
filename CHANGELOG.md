@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 -   add workflow to verify if pr title follows conventional commits
--   Add the `ACCESS_TOKEN_UPDATED` event
+-   Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
 
 ## [10.0.11] - 2022-04-28
 - For electron apps, prod build, we now handle `window.location.hostname` being an empty string.

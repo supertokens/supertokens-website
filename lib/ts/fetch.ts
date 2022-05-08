@@ -98,7 +98,7 @@ export class FrontToken {
                 return undefined;
             }
         }
-        return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
+        return parseFrontToken(frontToken);
     }
 
     static async removeToken() {
@@ -233,10 +233,10 @@ export default class AuthHttpRequest {
                 }
 
                 let response = await httpCall(configWithAntiCsrf);
-                let isNewSession = false;
+
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {
-                    isNewSession = await setIdRefreshToken(idRefreshToken, response.status);
+                    await setIdRefreshToken(idRefreshToken, response.status);
                 }
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     let retry = await onUnauthorisedResponse(preRequestIdToken);
@@ -255,9 +255,6 @@ export default class AuthHttpRequest {
                     const frontToken = response.headers.get("front-token");
                     if (frontToken) {
                         await FrontToken.setItem(frontToken);
-                        if (!isNewSession) {
-                            onTokenUpdate();
-                        }
                     }
                     return response;
                 }
@@ -435,7 +432,7 @@ export async function onUnauthorisedResponse(
 
 export function onTokenUpdate() {
     AuthHttpRequest.config.onHandleEvent({
-        action: "ACCESS_TOKEN_UPDATED"
+        action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
     });
 }
 
@@ -637,26 +634,30 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
     setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
 }
 
+function getFrontTokenFromCookie(): string | null {
+    let value = "; " + getWindowOrThrow().document.cookie;
+    let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
+    if (parts.length >= 2) {
+        let last = parts.pop();
+        if (last !== undefined) {
+            let temp = last.split(";").shift();
+            if (temp === undefined) {
+                return null;
+            }
+            return temp;
+        }
+    }
+    return null;
+}
+
+function parseFrontToken(frontToken: string): { uid: string; ate: number; up: any } {
+    return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
+}
+
 export async function getFrontToken(): Promise<string | null> {
     // we do not call doesSessionExist here cause the user might override that
     // function here and then it may break the logic of our original implementation.
     if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
-        return null;
-    }
-
-    function getFrontTokenFromCookie(): string | null {
-        let value = "; " + getWindowOrThrow().document.cookie;
-        let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
-        if (parts.length >= 2) {
-            let last = parts.pop();
-            if (last !== undefined) {
-                let temp = last.split(";").shift();
-                if (temp === undefined) {
-                    return null;
-                }
-                return temp;
-            }
-        }
         return null;
     }
 
@@ -697,5 +698,13 @@ export async function setFrontToken(frontToken: string | undefined) {
         }
     }
 
+    const oldToken = await getFrontToken();
+    if (oldToken !== null && frontToken !== undefined) {
+        const oldPayload = parseFrontToken(oldToken).up;
+        const newPayload = parseFrontToken(frontToken).up;
+        if (JSON.stringify(oldPayload) !== JSON.stringify(newPayload)) {
+            onTokenUpdate();
+        }
+    }
     setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
 }

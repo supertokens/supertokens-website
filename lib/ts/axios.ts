@@ -20,8 +20,7 @@ import AuthHttpRequestFetch, {
     getIdRefreshToken,
     setIdRefreshToken,
     FrontToken,
-    onUnauthorisedResponse,
-    onTokenUpdate
+    onUnauthorisedResponse
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -152,9 +151,8 @@ export function responseInterceptor(axiosInstance: any) {
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
             let idRefreshToken = response.headers["id-refresh-token"];
-            let isNewSession = false;
             if (idRefreshToken !== undefined) {
-                isNewSession = await setIdRefreshToken(idRefreshToken, response.status);
+                await setIdRefreshToken(idRefreshToken, response.status);
             }
             if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                 let config = response.config;
@@ -181,9 +179,6 @@ export function responseInterceptor(axiosInstance: any) {
                 let frontToken = response.headers["front-token"];
                 if (frontToken !== undefined) {
                     await FrontToken.setItem(frontToken);
-                    if (!isNewSession) {
-                        onTokenUpdate();
-                    }
                 }
                 return response;
             }

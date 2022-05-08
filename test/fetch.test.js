@@ -3121,7 +3121,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test when ACCESS_TOKEN_UPDATED is fired", async function() {
+    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -3206,15 +3206,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
             assert.deepEqual(logs, [
                 "SESSION_CREATED",
                 "LOGIN_FINISH",
-                "ACCESS_TOKEN_UPDATED",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE1_FINISH",
                 "REFRESH_SESSION",
-                "ACCESS_TOKEN_UPDATED",
                 "REFRESH_FINISH",
-                "ACCESS_TOKEN_UPDATED",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE2_FINISH",
                 "REFRESH_SESSION",
-                "ACCESS_TOKEN_UPDATED",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE3_FINISH",
                 "SIGN_OUT"
             ]);
