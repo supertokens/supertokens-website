@@ -1,6 +1,6 @@
 import OverrideableBuilder from "supertokens-js-override";
 export declare type Event = {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_UPDATED";
 } | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;

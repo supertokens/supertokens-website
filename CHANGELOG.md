@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 -   add workflow to verify if pr title follows conventional commits
--   Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
+-   Add the `ACCESS_TOKEN_UPDATED` event
 
 ## [10.0.8] - 2022-01-25
 

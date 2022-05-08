@@ -449,7 +449,7 @@ export async function onUnauthorisedResponse(
 
 export function onTokenUpdate() {
     AuthHttpRequest.config.onHandleEvent({
-        action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
+        action: "ACCESS_TOKEN_UPDATED"
     });
 }
 
