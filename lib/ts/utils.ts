@@ -75,11 +75,13 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
+    // for electron apps, the value of of hostname is '' in prod build. Setting it to localhost here results in this value not being used at all which works well.
+    let defaultSessionScope =
+        getWindowOrThrow().location.hostname === "" ? "localhost" : getWindowOrThrow().location.hostname;
+
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(
-        options !== undefined && options.sessionScope !== undefined
-            ? options.sessionScope
-            : getWindowOrThrow().location.hostname
+        options !== undefined && options.sessionScope !== undefined ? options.sessionScope : defaultSessionScope
     );
 
     let sessionExpiredStatusCode = 401;

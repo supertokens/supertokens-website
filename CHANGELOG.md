@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   add workflow to verify if pr title follows conventional commits
 -   Add the `ACCESS_TOKEN_UPDATED` event
 
+## [10.0.11] - 2022-04-28
+- For electron apps, prod build, we now handle `window.location.hostname` being an empty string.
+
+## [10.0.10] - 2022-04-10
+
+### Fixes
+
+-   Setting headers in first param of fetch (https://github.com/supertokens/supertokens-website/issues/116)
+
+## [10.0.9] - 2022-03-18
+### Adds
+-   New FDI support (v1.13)
+-   Workflow to verify if pr title follows conventional commits
+
 ## [10.0.8] - 2022-01-25
 
 ### Fixes

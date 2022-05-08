@@ -14,4 +14,4 @@
  */
 export const package_version = "11.0.0";
 
-export const supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12"];
+export const supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12", "1.13"];
