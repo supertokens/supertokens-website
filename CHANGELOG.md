@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
 
+## [10.1.0] - 2022-05-10
+
+### Adds
+
+- A new config property `cookieHandler` that allows for custom handling when the SDK reads/writes cookies
+- A new config property `windowHandler` that allows for custom handling when the SDK uses any functions from the Window API.
+
 ## [10.0.11] - 2022-04-28
 
 - For electron apps, prod build, we now handle `window.location.hostname` being an empty string.
