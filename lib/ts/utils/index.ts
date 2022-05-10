@@ -13,9 +13,10 @@
  * under the License.
  */
 
-import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
-import NormalisedURLPath from "./normalisedURLPath";
-import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "./types";
+import NormalisedURLDomain, { isAnIpAddress } from "../normalisedURLDomain";
+import NormalisedURLPath from "../normalisedURLPath";
+import { EventHandler, InputType, NormalisedInputType, RecipeInterface } from "../types";
+import WindowHandlerReference from "../utils/windowHandler";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -75,9 +76,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    // for electron apps, the value of of hostname is '' in prod build. Setting it to localhost here results in this value not being used at all which works well.
-    let defaultSessionScope =
-        getWindowOrThrow().location.hostname === "" ? "localhost" : getWindowOrThrow().location.hostname;
+    let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
 
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(
@@ -139,16 +138,6 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         onHandleEvent,
         override
     };
-}
-
-export function getWindowOrThrow(): any {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
 }
 
 export function shouldDoInterceptionBasedOnUrl(
