@@ -565,9 +565,7 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         AuthHttpRequest.config.onHandleEvent({
             action: "SESSION_CREATED"
         });
-        return true;
     }
-    return false;
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {

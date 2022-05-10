@@ -361,8 +361,6 @@ export default class AuthHttpRequest {
                         }
                         let frontToken = response.headers["front-token"];
                         if (frontToken !== undefined) {
-                            // this is also done by the response interceptor so
-                            // not firing the access token updated event
                             await FrontToken.setItem(frontToken);
                         }
                         return response;
