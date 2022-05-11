@@ -265,7 +265,7 @@ app.post(
     "/update-jwt-with-handle",
     (req, res, next) => verifySession()(req, res, next),
     async (req, res) => {
-        if (Session.getJWTPayload === !undefined) {
+        if (Session.getJWTPayload !== undefined) {
             await Session.updateJWTPayload(req.session.getHandle(), req.body);
             res.json(req.session.getJWTPayload());
         } else {
