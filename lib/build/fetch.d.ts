@@ -46,6 +46,7 @@ export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshToken
 } | {
     result: "RETRY";
 }>;
+export declare function onTokenUpdate(): void;
 declare type IdRefreshTokenType = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {

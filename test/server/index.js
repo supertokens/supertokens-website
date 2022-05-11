@@ -261,6 +261,15 @@ app.post(
     }
 );
 
+app.post(
+    "/update-jwt-with-handle",
+    (req, res, next) => verifySession()(req, res, next),
+    async (req, res) => {
+        await Session.updateAccessTokenPayload(req.session.getHandle(), req.body);
+        res.json(req.session.getAccessTokenPayload());
+    }
+);
+
 app.use("/testing", async (req, res) => {
     let tH = req.headers["testing"];
     if (tH !== undefined) {

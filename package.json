@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "10.1.0",
+  "version": "11.0.0",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -22,6 +22,7 @@
     "mysql": "2.17.1",
     "prettier": "1.18.2",
     "puppeteer": "^11.0.0",
+    "sinon": "^13.0.2",
     "size-limit": "^6.0.3",
     "typedoc": "^0.22.5",
     "typescript": "3.8.3",

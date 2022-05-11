@@ -19,7 +19,7 @@ import { WindowHandlerInput } from "./utils/windowHandler/types";
 
 export type Event =
     | {
-          action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+          action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
       }
     | {
           action: "UNAUTHORISED";

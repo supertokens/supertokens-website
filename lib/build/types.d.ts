@@ -2,7 +2,7 @@ import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
 export declare type Event = {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
 } | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;

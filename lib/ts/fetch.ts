@@ -110,7 +110,7 @@ export class FrontToken {
                 return undefined;
             }
         }
-        return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
+        return parseFrontToken(frontToken);
     }
 
     static async removeToken() {
@@ -245,6 +245,7 @@ export default class AuthHttpRequest {
                 }
 
                 let response = await httpCall(configWithAntiCsrf);
+
                 const idRefreshToken = response.headers.get("id-refresh-token");
                 if (idRefreshToken) {
                     await setIdRefreshToken(idRefreshToken, response.status);
@@ -439,6 +440,12 @@ export async function onUnauthorisedResponse(
             // here we try to call the API again since we probably failed to acquire lock and nothing has changed.
         }
     }
+}
+
+export function onTokenUpdate() {
+    AuthHttpRequest.config.onHandleEvent({
+        action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
+    });
 }
 
 type IdRefreshTokenType =
@@ -655,26 +662,30 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
     await setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
 }
 
+async function getFrontTokenFromCookie(): Promise<string | null> {
+    let value = "; " + (await CookieHandlerReference.getReferenceOrThrow().cookieHandler.getCookie());
+    let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
+    if (parts.length >= 2) {
+        let last = parts.pop();
+        if (last !== undefined) {
+            let temp = last.split(";").shift();
+            if (temp === undefined) {
+                return null;
+            }
+            return temp;
+        }
+    }
+    return null;
+}
+
+function parseFrontToken(frontToken: string): { uid: string; ate: number; up: any } {
+    return JSON.parse(decodeURIComponent(escape(atob(frontToken))));
+}
+
 export async function getFrontToken(): Promise<string | null> {
     // we do not call doesSessionExist here cause the user might override that
     // function here and then it may break the logic of our original implementation.
     if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
-        return null;
-    }
-
-    async function getFrontTokenFromCookie(): Promise<string | null> {
-        let value = "; " + (await CookieHandlerReference.getReferenceOrThrow().cookieHandler.getCookie());
-        let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
-        if (parts.length >= 2) {
-            let last = parts.pop();
-            if (last !== undefined) {
-                let temp = last.split(";").shift();
-                if (temp === undefined) {
-                    return null;
-                }
-                return temp;
-            }
-        }
         return null;
     }
 
@@ -726,5 +737,13 @@ export async function setFrontToken(frontToken: string | undefined) {
         }
     }
 
+    const oldToken = await getFrontTokenFromCookie();
+    if (oldToken !== null && frontToken !== undefined) {
+        const oldPayload = parseFrontToken(oldToken).up;
+        const newPayload = parseFrontToken(frontToken).up;
+        if (JSON.stringify(oldPayload) !== JSON.stringify(newPayload)) {
+            onTokenUpdate();
+        }
+    }
     await setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
 }
