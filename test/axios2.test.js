@@ -1369,7 +1369,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
