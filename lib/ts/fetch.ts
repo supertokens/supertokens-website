@@ -196,7 +196,7 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
 
-        logDebugMessage("doRequest: fetch interception started");
+        logDebugMessage("doRequest: start of fetch interception");
         let doNotDoInterception = false;
         try {
             doNotDoInterception =
