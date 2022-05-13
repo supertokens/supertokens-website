@@ -9,6 +9,7 @@ export declare type Event = {
 };
 export declare type EventHandler = (event: Event) => void;
 export declare type InputType = {
+    enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
     sessionScope?: string;
