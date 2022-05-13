@@ -65,7 +65,7 @@
   "size-limit": [
     {
       "path": "lib/build/bundleEntry.js",
-      "limit": "11kb"
+      "limit": "13kb"
     }
   ],
   "license": "Apache-2.0",
