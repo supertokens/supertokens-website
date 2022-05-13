@@ -1449,4 +1449,67 @@ describe("Axios AuthHttpRequest class tests", function() {
             await browser.close();
         }
     });
+
+    it("test no debug logs when its disabled", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const logs = [];
+            page.on("console", ev => {
+                const logText = ev.text();
+                if (logText.startsWith("com.supertokens")) {
+                    logs.push(logText);
+                }
+            });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+            });
+            if (logs.length > 0) {
+                throw new Error("Test failed");
+            }
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test debug logs when its enabled", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const logs = [];
+            page.on("console", ev => {
+                const logText = ev.text();
+                if (logText.startsWith("com.supertokens")) {
+                    logs.push(logText);
+                }
+            });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    enableDebugLogs: true
+                });
+            });
+            if (logs.length <= 0) {
+                throw new Error("Test failed");
+            }
+        } finally {
+            await browser.close();
+        }
+    });
 });

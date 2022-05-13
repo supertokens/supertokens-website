@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [11.0.1] - 2022-05-13
+- Adds debug logs
+
 ## [11.0.0] - 2022-05-11
 
 -   Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
