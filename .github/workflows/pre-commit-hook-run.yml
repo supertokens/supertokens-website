@@ -21,4 +21,8 @@ jobs:
                   node-version: "16"
             - run: git init && git add --all && git -c user.name='test' -c user.email='test@example.com' commit -m 'init for pr action'
             - run: npm i
+            - name: Setup tmate session
+              uses: mxschmitt/action-tmate@v3
+              with:
+                  sudo: false
             - run: ./hooks/pre-commit.sh
