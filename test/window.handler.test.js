@@ -16,14 +16,14 @@ let jsdom = require("mocha-jsdom");
 let AuthHttpRequest = require("../index.js").default;
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let { BASE_URL, BASE_URL_FOR_ST, startST, getCookieNameFromString } = require("./utils");
-let { default: CookieHandlerReference } = require("../lib/build/utils/cookieHandler/index");
+let { default: WindowHandlerReference } = require("../lib/build/utils/windowHandler/index");
 const { spawn } = require("child_process");
 let axios = require("axios");
 let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
 
-describe("Cookie Handler Tests", function() {
+describe("Window handler tests", function() {
     let consoleLogs = [];
 
     jsdom({
@@ -48,7 +48,7 @@ describe("Cookie Handler Tests", function() {
 
     beforeEach(async function() {
         consoleLogs = [];
-        CookieHandlerReference.instance = undefined;
+        WindowHandlerReference.instance = undefined;
         AuthHttpRequestFetch.initCalled = false;
         global.document = {};
         ProcessState.getInstance().reset();
@@ -57,31 +57,31 @@ describe("Cookie Handler Tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("Test that cookie handler is set when calling init", function() {
+    it("Test that window handler is set when calling init", function() {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
 
-        // If cookie handler isnt set then this will throw
-        CookieHandlerReference.getReferenceOrThrow();
+        // If window handler isnt set then this will throw
+        WindowHandlerReference.getReferenceOrThrow();
     });
 
-    it("Test that using cookie handler without calling init fails", function() {
+    it("Test that using window handler without calling init fails", function() {
         let testFailed = false;
 
         try {
-            CookieHandlerReference.getReferenceOrThrow();
+            WindowHandlerReference.getReferenceOrThrow();
             testFailed = true;
         } catch (e) {
-            if (e.message !== "SuperTokensCookieHandler must be initialized before calling this method.") {
+            if (e.message !== "SuperTokensWindowHandler must be initialized before calling this method.") {
                 testFailed = true;
             }
         }
 
-        assert(testFailed !== true, "Getting cookie handler reference should have failed but didnt");
+        assert(testFailed !== true, "Getting window handler reference should have failed but didnt");
     });
 
-    it("Test that using default cookie handlers works fine", async function() {
+    it("Test that using default window handlers works fine", async function() {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -126,7 +126,7 @@ describe("Cookie Handler Tests", function() {
         }
     });
 
-    it("Test that using a custom cookie handler works as expected", async function() {
+    it("Test that using custom window handler works as expected", async function() {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -149,23 +149,19 @@ describe("Cookie Handler Tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    cookieHandler: function(original) {
+                    windowHandler: function(original) {
                         return {
-                            setCookie: async function(cookie) {
-                                console.log("ST_LOGS SET_COOKIE", getCookieNameFromString(cookie));
-                                return await original.setCookie(cookie);
-                            },
-                            getCookie: async function() {
-                                console.log("ST_LOGS GET_COOKIE");
-                                return await original.getCookie();
-                            },
-                            setCookieSync: function(cookie) {
-                                console.log("ST_LOGS SET_COOKIE_SYNC", getCookieNameFromString(cookie));
-                                return original.setCookieSync(cookie);
-                            },
-                            getCookieSync: function() {
-                                console.log("ST_LOGS GET_COOKIE_SYNC");
-                                return original.getCookieSync();
+                            ...original,
+                            location: {
+                                ...original.location,
+                                getOrigin: function() {
+                                    console.log("ST_LOGS GET_ORIGIN");
+                                    return original.location.getOrigin();
+                                },
+                                getHostName: function() {
+                                    console.log("ST_LOGS GET_HOST_NAME");
+                                    return original.location.getHostName();
+                                }
                             }
                         };
                     }
@@ -184,21 +180,15 @@ describe("Cookie Handler Tests", function() {
                 assertEqual(await loginResponse.text(), userId);
             });
 
-            assert(consoleLogs.includes("ST_LOGS GET_COOKIE"));
-            assert(consoleLogs.includes("ST_LOGS SET_COOKIE sIRTFrontend"));
-            assert(consoleLogs.includes("ST_LOGS SET_COOKIE sAntiCsrf"));
-            assert(consoleLogs.includes("ST_LOGS SET_COOKIE sFrontToken"));
-            // Website SDK does not use the sync functions
-            assert(!consoleLogs.includes("ST_LOGS GET_COOKIE_SYNC"));
-            assert(!consoleLogs.includes("ST_LOGS SET_COOKIE_SYNC sIRTFrontend"));
-            assert(!consoleLogs.includes("ST_LOGS SET_COOKIE_SYNC sAntiCsrf"));
-            assert(!consoleLogs.includes("ST_LOGS SET_COOKIE_SYNC sFrontToken"));
+            assert(consoleLogs.includes("ST_LOGS GET_HOST_NAME"));
+            // Get origin only gets called when the request url is a path
+            assert(!consoleLogs.includes("ST_LOGS GET_ORIGIN"));
         } finally {
             await browser.close();
         }
     });
 
-    it("Test that throwing an error in cookie handling gets propogated properly", async function() {
+    it("Test that making a request with only path results in getOrigin being called", async function() {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -210,7 +200,9 @@ describe("Cookie Handler Tests", function() {
             page.on("console", event => {
                 const log = event.text();
 
-                console.log(log);
+                if (log.startsWith("ST_LOGS")) {
+                    consoleLogs.push(log);
+                }
             });
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
@@ -219,20 +211,142 @@ describe("Cookie Handler Tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    cookieHandler: function(original) {
+                    windowHandler: function(original) {
                         return {
                             ...original,
-                            getCookie: async function() {
-                                throw new Error("Expected error in tests");
+                            location: {
+                                ...original.location,
+                                getOrigin: function() {
+                                    console.log("ST_LOGS GET_ORIGIN");
+                                    return original.location.getOrigin();
+                                },
+                                getHostName: function() {
+                                    console.log("ST_LOGS GET_HOST_NAME");
+                                    return original.location.getHostName();
+                                }
                             }
                         };
                     }
                 });
                 let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+
+            assert(consoleLogs.includes("ST_LOGS GET_HOST_NAME"));
+            assert(consoleLogs.includes("ST_LOGS GET_ORIGIN"));
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that errors thrown in custom handlers get propogated correctly", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+
+            page.on("console", event => {
+                const log = event.text();
+
+                if (log.startsWith("ST_LOGS")) {
+                    consoleLogs.push(log);
+                }
+            });
+
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
                 let testFailed = false;
 
                 try {
-                    let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    supertokens.init({
+                        apiDomain: BASE_URL,
+                        windowHandler: function(original) {
+                            return {
+                                ...original,
+                                location: {
+                                    ...original.location,
+                                    getOrigin: function() {
+                                        throw new Error("GET_ORIGIN: Expected error in tests");
+                                    },
+                                    getHostName: function() {
+                                        throw new Error("GET_HOST_NAME: Expected error in tests");
+                                    }
+                                }
+                            };
+                        }
+                    });
+
+                    testFailed = true;
+                } catch (e) {
+                    if (e.message !== "GET_HOST_NAME: Expected error in tests") {
+                        testFailed = true;
+                    }
+                }
+
+                assertEqual(testFailed, false);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("Test that errors thrown in custom handlers get propogated correctly (getOrigin)", async function() {
+        await startST();
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+
+            page.on("console", event => {
+                const log = event.text();
+
+                if (log.startsWith("ST_LOGS")) {
+                    consoleLogs.push(log);
+                }
+            });
+
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                let testFailed = false;
+
+                try {
+                    supertokens.init({
+                        apiDomain: BASE_URL,
+                        windowHandler: function(original) {
+                            return {
+                                ...original,
+                                location: {
+                                    ...original.location,
+                                    getOrigin: function() {
+                                        throw new Error("GET_ORIGIN: Expected error in tests");
+                                    }
+                                }
+                            };
+                        }
+                    });
+
+                    let userId = "testing-supertokens-website";
+
+                    let loginResponse = await fetch(`/login`, {
                         method: "post",
                         headers: {
                             Accept: "application/json",
@@ -240,9 +354,10 @@ describe("Cookie Handler Tests", function() {
                         },
                         body: JSON.stringify({ userId })
                     });
+
                     testFailed = true;
                 } catch (e) {
-                    if (e.message !== "Expected error in tests") {
+                    if (e.message !== "GET_ORIGIN: Expected error in tests") {
                         testFailed = true;
                     }
                 }
