@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## Changes
+
+- Added the `API_INVALID_CLAIM` event and the related `missingClaimStatusCode` config prop.
+
 ## [11.0.2] - 2022-05-14
 - Updates debug log message
 

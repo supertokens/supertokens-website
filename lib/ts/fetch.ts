@@ -297,6 +297,9 @@ export default class AuthHttpRequest {
                     }
                     logDebugMessage("doRequest: Retrying original request");
                 } else {
+                    if (response.status === AuthHttpRequest.config.missingClaimStatusCode) {
+                        onMissingClaimResponse(response.headers.get("missing-claim-id")!);
+                    }
                     const antiCsrfToken = response.headers.get("anti-csrf");
                     if (antiCsrfToken) {
                         const tok = await getIdRefreshToken(true);
@@ -520,6 +523,13 @@ export function onTokenUpdate() {
     logDebugMessage("onTokenUpdate: firing ACCESS_TOKEN_PAYLOAD_UPDATED event");
     AuthHttpRequest.config.onHandleEvent({
         action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
+    });
+}
+
+export function onMissingClaimResponse(claimId: string) {
+    AuthHttpRequest.config.onHandleEvent({
+        action: "API_INVALID_CLAIM",
+        claimId
     });
 }
 

@@ -22,6 +22,10 @@ export type Event =
           action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
       }
     | {
+          action: "API_INVALID_CLAIM";
+          claimId: string;
+      }
+    | {
           action: "UNAUTHORISED";
           sessionExpiredOrRevoked: boolean;
       };
@@ -34,6 +38,7 @@ export type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
+    missingClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
@@ -58,6 +63,7 @@ export type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     sessionExpiredStatusCode: number;
+    missingClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;

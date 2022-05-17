@@ -4,6 +4,9 @@ import { WindowHandlerInput } from "./utils/windowHandler/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
 } | {
+    action: "API_INVALID_CLAIM";
+    claimId: string;
+} | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;
 };
@@ -14,6 +17,7 @@ export declare type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
+    missingClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
@@ -37,6 +41,7 @@ export declare type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     sessionExpiredStatusCode: number;
+    missingClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
