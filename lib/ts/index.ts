@@ -18,11 +18,15 @@ import { InputType, RecipeInterface } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
+import CookieHandlerReference from "./utils/cookieHandler";
+import WindowHandlerReference from "./utils/windowHandler";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
 
     static init(options: InputType) {
+        CookieHandlerReference.init(options.cookieHandler);
+        WindowHandlerReference.init(options.windowHandler);
         let config = validateAndNormaliseInputOrThrowError(options);
         const recipeImpl = new OverrideableBuilder(
             RecipeImplementation({

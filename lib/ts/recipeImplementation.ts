@@ -2,6 +2,7 @@ import { RecipeInterface, EventHandler, RecipePreAPIHookFunction, RecipePostAPIH
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
+import { logDebugMessage } from "./logger";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -14,10 +15,11 @@ export default function RecipeImplementation(recipeImplInput: {
             originalFetch: any;
             userContext: any;
         }): typeof fetch {
+            logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
             return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return input.originalFetch(url, {
+                        return input.originalFetch(typeof url === "string" ? url : url.clone(), {
                             ...config
                         });
                     },
@@ -27,10 +29,12 @@ export default function RecipeImplementation(recipeImplInput: {
             };
         },
         addAxiosInterceptors: function(input: { axiosInstance: any; userContext: any }): void {
+            logDebugMessage("addAxiosInterceptors: called");
             // we first check if this axiosInstance already has our interceptors.
             let requestInterceptors = input.axiosInstance.interceptors.request;
             for (let i = 0; i < requestInterceptors.handlers.length; i++) {
                 if (requestInterceptors.handlers[i].fulfilled === interceptorFunctionRequestFulfilled) {
+                    logDebugMessage("addAxiosInterceptors: not adding because already added on this instance");
                     return;
                 }
             }
@@ -48,19 +52,23 @@ export default function RecipeImplementation(recipeImplInput: {
             );
         },
         getUserId: async function(_: { userContext: any }): Promise<string> {
+            logDebugMessage("getUserId: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
             }
+            logDebugMessage("getUserId: returning: " + tokenInfo.uid);
             return tokenInfo.uid;
         },
         getAccessTokenPayloadSecurely: async function(input: { userContext: any }): Promise<any> {
+            logDebugMessage("getAccessTokenPayloadSecurely: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
                 throw new Error("No session exists");
             }
 
             if (tokenInfo.ate < Date.now()) {
+                logDebugMessage("getAccessTokenPayloadSecurely: access token expired. Refreshing session");
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
                     return await this.getAccessTokenPayloadSecurely({
@@ -70,17 +78,18 @@ export default function RecipeImplementation(recipeImplInput: {
                     throw new Error("Could not refresh session");
                 }
             }
+            logDebugMessage("getAccessTokenPayloadSecurely: returning: " + JSON.stringify(tokenInfo.up));
             return tokenInfo.up;
         },
         doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
+            logDebugMessage("doesSessionExist: called");
             return (await getIdRefreshToken(true)).status === "EXISTS";
         },
         signOut: async function(input: { userContext: any }): Promise<void> {
-            if (
-                !(await this.doesSessionExist({
-                    userContext: input.userContext
-                }))
-            ) {
+            logDebugMessage("signOut: called");
+            if (!(await this.doesSessionExist(input))) {
+                logDebugMessage("signOut: existing early because session does not exist");
+                logDebugMessage("signOut: firing SIGN_OUT event");
                 recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT",
                     userContext: input.userContext
@@ -88,6 +97,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 return;
             }
 
+            logDebugMessage("signOut: Calling refresh pre API hook");
             let preAPIResult = await recipeImplInput.preAPIHook({
                 action: "SIGN_OUT",
                 requestInit: {
@@ -101,6 +111,8 @@ export default function RecipeImplementation(recipeImplInput: {
                 userContext: input.userContext
             });
 
+            logDebugMessage("signOut: Calling API");
+
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
 
             await recipeImplInput.postAPIHook({
@@ -110,6 +122,10 @@ export default function RecipeImplementation(recipeImplInput: {
                 fetchResponse: resp.clone(),
                 userContext: input.userContext
             });
+
+            logDebugMessage("signOut: API ended");
+
+            logDebugMessage("signOut: API responded with status code: " + resp.status);
 
             if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
                 // refresh must have already sent session expiry event

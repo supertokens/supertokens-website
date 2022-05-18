@@ -13,8 +13,8 @@
  * under the License.
  */
 
-import NormalisedURLDomain, { isAnIpAddress } from "./normalisedURLDomain";
-import NormalisedURLPath from "./normalisedURLPath";
+import NormalisedURLDomain, { isAnIpAddress } from "../normalisedURLDomain";
+import NormalisedURLPath from "../normalisedURLPath";
 import {
     EventHandler,
     InputType,
@@ -22,7 +22,9 @@ import {
     RecipeInterface,
     RecipePostAPIHookFunction,
     RecipePreAPIHookFunction
-} from "./types";
+} from "../types";
+import WindowHandlerReference from "../utils/windowHandler";
+import { enableLogging, logDebugMessage } from "../logger";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -82,11 +84,11 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
+    let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
+
     // See https://github.com/supertokens/supertokens-website/issues/98
     let sessionScope = normaliseSessionScopeOrThrowError(
-        options !== undefined && options.sessionScope !== undefined
-            ? options.sessionScope
-            : getWindowOrThrow().location.hostname
+        options !== undefined && options.sessionScope !== undefined ? options.sessionScope : defaultSessionScope
     );
 
     let sessionExpiredStatusCode = 401;
@@ -135,6 +137,10 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         ...options.override
     };
 
+    if (options.enableDebugLogs !== undefined && options.enableDebugLogs) {
+        enableLogging();
+    }
+
     return {
         apiDomain,
         apiBasePath,
@@ -150,21 +156,19 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     };
 }
 
-export function getWindowOrThrow(): any {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
-}
-
 export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl: string,
     apiDomain: string,
     cookieDomain: string | undefined
 ): boolean {
+    logDebugMessage(
+        "shouldDoInterceptionBasedOnUrl: toCheckUrl: " +
+            toCheckUrl +
+            " apiDomain: " +
+            apiDomain +
+            " cookiDomain: " +
+            cookieDomain
+    );
     function isNumeric(str: any) {
         if (typeof str != "string") return false; // we only process strings!
         return (

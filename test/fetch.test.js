@@ -1860,6 +1860,42 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
+    it("test that setting headers works", async function() {
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const [_, req1, req2, req3] = await Promise.all([
+                page.evaluate(async () => {
+                    let BASE_URL = "http://localhost.org:8080";
+                    supertokens.init({
+                        apiDomain: BASE_URL
+                    });
+                    await fetch(new Request(`${BASE_URL}/test`, { headers: { asdf: "123" } }));
+                    await fetch(`${BASE_URL}/test2`, { headers: { asdf2: "123" } });
+                    await fetch(`${BASE_URL}/test3`);
+                }),
+                page.waitForRequest(`${BASE_URL}/test`),
+                page.waitForRequest(`${BASE_URL}/test2`),
+                page.waitForRequest(`${BASE_URL}/test3`)
+            ]);
+
+            assert.equal(req1.headers()["rid"], "anti-csrf");
+            assert.equal(req1.headers()["asdf"], "123");
+
+            assert.equal(req2.headers()["rid"], "anti-csrf");
+            assert.equal(req2.headers()["asdf2"], "123");
+
+            assert.equal(req3.headers()["rid"], "anti-csrf");
+            assert.equal(req3.headers()["asdf"], undefined);
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
         await startST();
         const browser = await puppeteer.launch({
@@ -3081,6 +3117,193 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assertEqual(decodedJWT.customClaim, "customValue");
             });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const logs = [];
+            page.on("console", ev => {
+                const logText = ev.text();
+                if (logText.startsWith("TEST_EV$")) {
+                    logs.push(logText.split("$")[1]);
+                }
+            });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
+                });
+                let userId = "testing-supertokens-website";
+
+                await fetch(`${BASE_URL}/login`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                console.log("TEST_EV$LOGIN_FINISH");
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 1 })
+                });
+                console.log("TEST_EV$UPDATE1_FINISH");
+                await delay(5);
+                await fetch(`${BASE_URL}/`, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                console.log("TEST_EV$REFRESH_FINISH");
+
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 2 })
+                });
+                console.log("TEST_EV$UPDATE2_FINISH");
+                await delay(5);
+
+                await fetch(`${BASE_URL}/update-jwt`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 3 })
+                });
+                console.log("TEST_EV$UPDATE3_FINISH");
+
+                await fetch(`${BASE_URL}/logout`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            });
+            assert.deepEqual(logs, [
+                "SESSION_CREATED",
+                "LOGIN_FINISH",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE1_FINISH",
+                "REFRESH_SESSION",
+                "REFRESH_FINISH",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE2_FINISH",
+                "REFRESH_SESSION",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "UPDATE3_FINISH",
+                "SIGN_OUT"
+            ]);
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            const logs = [];
+            page.on("console", ev => {
+                const logText = ev.text();
+                if (logText.startsWith("TEST_EV$")) {
+                    logs.push(logText.split("$")[1]);
+                }
+            });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
+                });
+                let userId = "testing-supertokens-website";
+
+                await fetch(`${BASE_URL}/login`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                console.log("TEST_EV$LOGIN_FINISH");
+
+                await fetch(`${BASE_URL}/update-jwt-with-handle`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ test: 2 })
+                });
+                console.log("TEST_EV$PAYLOAD_DB_UPDATED");
+                await fetch(`${BASE_URL}/`, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                console.log("TEST_EV$QUERY_NO_REFRESH");
+                await delay(5);
+
+                await fetch(`${BASE_URL}/`, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                console.log("TEST_EV$REFRESH_FINISH");
+
+                await fetch(`${BASE_URL}/logout`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            });
+            assert.deepEqual(logs, [
+                "SESSION_CREATED",
+                "LOGIN_FINISH",
+                "PAYLOAD_DB_UPDATED",
+                "QUERY_NO_REFRESH",
+                "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                "REFRESH_SESSION",
+                "REFRESH_FINISH",
+                "SIGN_OUT"
+            ]);
         } finally {
             await browser.close();
         }

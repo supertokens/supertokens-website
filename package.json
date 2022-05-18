@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "11.0.0",
+  "version": "11.0.2",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -22,6 +22,7 @@
     "mysql": "2.17.1",
     "prettier": "1.18.2",
     "puppeteer": "^11.0.0",
+    "sinon": "^13.0.2",
     "size-limit": "^6.0.3",
     "typedoc": "^0.22.5",
     "typescript": "3.8.3",
@@ -31,8 +32,8 @@
   },
   "scripts": {
     "check-circular-dependencies": "npx madge --circular --extensions js ./lib/build/",
-    "test": "TEST_MODE=testing npx mocha --timeout 500000",
-    "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit",
+    "test": "TEST_MODE=testing npx mocha --timeout 500000 --retries 3",
+    "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit && cd ../test/ && npx tsc -p tsconfig.json --noEmit",
     "build": "cd lib && rm -rf build && npx tsc -p tsconfig.json && cd ../ && webpack -p && cd test && npx tsc -p tsconfig.json",
     "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
     "build-pretty": "npm run build && npm run pretty",
@@ -64,7 +65,7 @@
   "size-limit": [
     {
       "path": "lib/build/bundleEntry.js",
-      "limit": "10kb"
+      "limit": "13kb"
     }
   ],
   "license": "Apache-2.0",

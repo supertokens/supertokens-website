@@ -1,6 +1,8 @@
 import OverrideableBuilder from "supertokens-js-override";
+import { CookieHandlerInput } from "./utils/cookieHandler/types";
+import { WindowHandlerInput } from "./utils/windowHandler/types";
 export declare type Event = {
-    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED";
+    action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
     userContext: any;
 } | {
     action: "UNAUTHORISED";
@@ -9,6 +11,7 @@ export declare type Event = {
 };
 export declare type EventHandler = (event: Event) => void;
 export declare type InputType = {
+    enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
     sessionScope?: string;
@@ -16,6 +19,8 @@ export declare type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
+    cookieHandler?: CookieHandlerInput;
+    windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
     postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;

@@ -261,6 +261,20 @@ app.post(
     }
 );
 
+app.post(
+    "/update-jwt-with-handle",
+    (req, res, next) => verifySession()(req, res, next),
+    async (req, res) => {
+        if (Session.getJWTPayload !== undefined) {
+            await Session.updateJWTPayload(req.session.getHandle(), req.body);
+            res.json(req.session.getJWTPayload());
+        } else {
+            await Session.updateAccessTokenPayload(req.session.getHandle(), req.body);
+            res.json(req.session.getAccessTokenPayload());
+        }
+    }
+);
+
 app.use("/testing", async (req, res) => {
     let tH = req.headers["testing"];
     if (tH !== undefined) {
