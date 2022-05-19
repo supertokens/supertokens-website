@@ -15,7 +15,7 @@
 let jsdom = require("mocha-jsdom");
 let AuthHttpRequest = require("../index.js").default;
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
-let { BASE_URL, BASE_URL_FOR_ST, startST, getCookieNameFromString } = require("./utils");
+let { BASE_URL, BASE_URL_FOR_ST, startST } = require("./utils");
 let { default: WindowHandlerReference } = require("../lib/build/utils/windowHandler/index");
 const { spawn } = require("child_process");
 let axios = require("axios");

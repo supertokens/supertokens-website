@@ -42,10 +42,6 @@
     async function delay(time) {
         await new Promise(r => setTimeout(r, time * 1000));
     }
-
-    function getCookieNameFromString (cookieString) {
-        return cookieString.split(";")[0].split("=")[0];
-    }
 </script>
 
 <body>

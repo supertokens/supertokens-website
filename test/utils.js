@@ -136,7 +136,3 @@ module.exports.checkIfJWTIsEnabled = async function() {
 
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
 };
-
-module.exports.getCookieNameFromString = function(cookieString) {
-    return cookieString.split(";")[0].split("=")[0];
-};

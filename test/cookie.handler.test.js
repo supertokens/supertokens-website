@@ -15,7 +15,7 @@
 let jsdom = require("mocha-jsdom");
 let AuthHttpRequest = require("../index.js").default;
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
-let { BASE_URL, BASE_URL_FOR_ST, startST, getCookieNameFromString } = require("./utils");
+let { BASE_URL, BASE_URL_FOR_ST, startST } = require("./utils");
 let { default: CookieHandlerReference } = require("../lib/build/utils/cookieHandler/index");
 const { spawn } = require("child_process");
 let axios = require("axios");
@@ -146,6 +146,11 @@ describe("Cookie Handler Tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+
+                function getCookieNameFromString(cookieString) {
+                    return cookieString.split(";")[0].split("=")[0];
+                }
+
                 supertokens.init({
                     apiDomain: BASE_URL,
                     cookieHandler: function(original) {
