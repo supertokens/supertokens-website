@@ -67,14 +67,13 @@ describe("Window handler tests", function() {
     });
 
     it("Test that using window handler without calling init fails", function() {
-        let testFailed = false;
+        let testFailed = true;
 
         try {
             WindowHandlerReference.getReferenceOrThrow();
-            testFailed = true;
         } catch (e) {
-            if (e.message !== "SuperTokensWindowHandler must be initialized before calling this method.") {
-                testFailed = true;
+            if (e.message === "SuperTokensWindowHandler must be initialized before calling this method.") {
+                testFailed = false;
             }
         }
 
@@ -270,7 +269,7 @@ describe("Window handler tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                let testFailed = false;
+                let testFailed = true;
 
                 try {
                     supertokens.init({
@@ -290,11 +289,9 @@ describe("Window handler tests", function() {
                             };
                         }
                     });
-
-                    testFailed = true;
                 } catch (e) {
-                    if (e.message !== "GET_HOST_NAME: Expected error in tests") {
-                        testFailed = true;
+                    if (e.message === "GET_HOST_NAME: Expected error in tests") {
+                        testFailed = false;
                     }
                 }
 
@@ -326,7 +323,7 @@ describe("Window handler tests", function() {
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                let testFailed = false;
+                let testFailed = true;
 
                 try {
                     supertokens.init({
@@ -346,7 +343,7 @@ describe("Window handler tests", function() {
 
                     let userId = "testing-supertokens-website";
 
-                    let loginResponse = await fetch(`/login`, {
+                    await fetch(`/login`, {
                         method: "post",
                         headers: {
                             Accept: "application/json",
@@ -354,11 +351,9 @@ describe("Window handler tests", function() {
                         },
                         body: JSON.stringify({ userId })
                     });
-
-                    testFailed = true;
                 } catch (e) {
-                    if (e.message !== "GET_ORIGIN: Expected error in tests") {
-                        testFailed = true;
+                    if (e.message === "GET_ORIGIN: Expected error in tests") {
+                        testFailed = false;
                     }
                 }
 

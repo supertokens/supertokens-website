@@ -67,14 +67,13 @@ describe("Cookie Handler Tests", function() {
     });
 
     it("Test that using cookie handler without calling init fails", function() {
-        let testFailed = false;
+        let testFailed = true;
 
         try {
             CookieHandlerReference.getReferenceOrThrow();
-            testFailed = true;
         } catch (e) {
-            if (e.message !== "SuperTokensCookieHandler must be initialized before calling this method.") {
-                testFailed = true;
+            if (e.message === "SuperTokensCookieHandler must be initialized before calling this method.") {
+                testFailed = false;
             }
         }
 
@@ -229,10 +228,10 @@ describe("Cookie Handler Tests", function() {
                     }
                 });
                 let userId = "testing-supertokens-website";
-                let testFailed = false;
+                let testFailed = true;
 
                 try {
-                    let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    await fetch(`${BASE_URL}/login`, {
                         method: "post",
                         headers: {
                             Accept: "application/json",
@@ -240,10 +239,9 @@ describe("Cookie Handler Tests", function() {
                         },
                         body: JSON.stringify({ userId })
                     });
-                    testFailed = true;
                 } catch (e) {
-                    if (e.message !== "Expected error in tests") {
-                        testFailed = true;
+                    if (e.message === "Expected error in tests") {
+                        testFailed = false;
                     }
                 }
 
