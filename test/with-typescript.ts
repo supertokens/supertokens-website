@@ -64,11 +64,11 @@ supertokens.init({
             getDocument: function () {
                 return original.getDocument();
             },
-            getLocalStorage: function () {
-                return original.getLocalStorage();
+            localStorage: {
+                ...original.localStorage,
             },
-            getSessionStorage: function () {
-                return original.getSessionStorage();
+            sessionStorage: {
+                ...original.sessionStorage,
             },
             history: {
                 getState: function () {

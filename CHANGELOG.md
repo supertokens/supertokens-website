@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Adds tests for custom cookie and window handlers
 
+### Breaking changes
+
+- Renames properties for `windowHandler`
+  - getLocalStorage -> RENAMED to localStorage
+  - getSessionStorage -> RENAMED to sessionStorage
+- `windowHandler` uses a new interface type for localStorage and sessionStorage
+
 ## [11.0.2] - 2022-05-14
 
 - Updates debug log message

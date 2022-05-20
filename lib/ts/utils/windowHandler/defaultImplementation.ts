@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import { WindowHandlerInterface } from "./types";
+import { StorageHandler, WindowHandlerInterface } from "./types";
 
 function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
@@ -23,6 +23,73 @@ function getWindowOrThrow(): Window {
 
     return window;
 }
+
+const defaultLocalStorageHandler: StorageHandler = {
+    key: async function(index: number) {
+        return getWindowOrThrow().localStorage.key(index);
+    },
+    clear: async function() {
+        return getWindowOrThrow().localStorage.clear();
+    },
+    getItem: async function(key: string) {
+        return getWindowOrThrow().localStorage.getItem(key);
+    },
+    removeItem: async function(key: string) {
+        return getWindowOrThrow().localStorage.removeItem(key);
+    },
+    setItem: async function(key: string, value: string) {
+        return getWindowOrThrow().localStorage.setItem(key, value);
+    },
+    keySync: function(index: number) {
+        return getWindowOrThrow().localStorage.key(index);
+    },
+    clearSync: function() {
+        return getWindowOrThrow().localStorage.clear();
+    },
+    getItemSync: function(key: string) {
+        return getWindowOrThrow().localStorage.getItem(key);
+    },
+    removeItemSync: function(key: string) {
+        return getWindowOrThrow().localStorage.removeItem(key);
+    },
+    setItemSync: function(key: string, value: string) {
+        return getWindowOrThrow().localStorage.setItem(key, value);
+    }
+};
+
+const defaultSessionStorageHandler: StorageHandler = {
+    key: async function(index: number) {
+        return getWindowOrThrow().sessionStorage.key(index);
+    },
+    clear: async function() {
+        return getWindowOrThrow().sessionStorage.clear();
+    },
+    getItem: async function(key: string) {
+        return getWindowOrThrow().sessionStorage.getItem(key);
+    },
+    removeItem: async function(key: string) {
+        return getWindowOrThrow().sessionStorage.removeItem(key);
+    },
+    setItem: async function(key: string, value: string) {
+        return getWindowOrThrow().sessionStorage.setItem(key, value);
+    },
+
+    keySync: function(index: number) {
+        return getWindowOrThrow().sessionStorage.key(index);
+    },
+    clearSync: function() {
+        return getWindowOrThrow().sessionStorage.clear();
+    },
+    getItemSync: function(key: string) {
+        return getWindowOrThrow().sessionStorage.getItem(key);
+    },
+    removeItemSync: function(key: string) {
+        return getWindowOrThrow().sessionStorage.removeItem(key);
+    },
+    setItemSync: function(key: string, value: string) {
+        return getWindowOrThrow().sessionStorage.setItem(key, value);
+    }
+};
 
 export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
     history: {
@@ -67,10 +134,6 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
     getDocument: function() {
         return getWindowOrThrow().document;
     },
-    getLocalStorage: function() {
-        return getWindowOrThrow().localStorage;
-    },
-    getSessionStorage: function() {
-        return getWindowOrThrow().sessionStorage;
-    }
+    localStorage: defaultLocalStorageHandler,
+    sessionStorage: defaultSessionStorageHandler
 };
