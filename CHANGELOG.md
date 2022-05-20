@@ -7,15 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Adds tests for custom cookie and window handlers
+
 ## [11.0.2] - 2022-05-14
+
 - Updates debug log message
 
 ## [11.0.1] - 2022-05-13
+
 - Adds debug logs
 
 ## [11.0.0] - 2022-05-11
 
--   Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
+- Add the `ACCESS_TOKEN_PAYLOAD_UPDATED` event
 
 ## [10.1.0] - 2022-05-10
 
@@ -40,14 +44,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New FDI support (v1.13)
 - Workflow to verify if pr title follows conventional commits
+  <<<<<<< HEAD
 
 ### Added
+
 - You can now configure a `postAPIHook` when calling `Session.init` to subscribe to and handle to network responses
 
 ### Breaking changes
+
 - Adds user context to all functions exposed to the user, and to API and Recipe interface functions. This is a non breaking change for User exposed function calls, but a breaking change if you are using the recipe override feature.
 - All recipe functions now accept an object (instead of inidividual parameters), this is a breaking change only if you are using the override feature.
-- Recipe functions no longer accept the `config` parameter, this is a breaking change if you are using the override feature
+- # Recipe functions no longer accept the `config` parameter, this is a breaking change if you are using the override feature
+  > > > > > > > 11.0
 
 ## [10.0.8] - 2022-01-25
 

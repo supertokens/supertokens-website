@@ -112,8 +112,8 @@ export default function RecipeImplementation(recipeImplInput: {
             });
 
             logDebugMessage("signOut: Calling API");
-
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
+            logDebugMessage("signOut: API ended");
 
             await recipeImplInput.postAPIHook({
                 action: "SIGN_OUT",
