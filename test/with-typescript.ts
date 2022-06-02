@@ -1,8 +1,8 @@
 import supertokens, { addAxiosInterceptors, signOut, getUserId } from "../";
 import axios from "axios";
 
-supertokens.addAxiosInterceptors(axios);
-addAxiosInterceptors(axios);
+supertokens.addAxiosInterceptors(axios, {});
+addAxiosInterceptors(axios, undefined);
 
 
 supertokens.attemptRefreshingSession().then((b: boolean) => {
@@ -11,19 +11,27 @@ supertokens.attemptRefreshingSession().then((b: boolean) => {
 
 });
 
-supertokens.doesSessionExist().then((exists: boolean) => {
+supertokens.doesSessionExist({
+    userContext: {
+        key: "value",
+    },
+}).then((exists: boolean) => {
     console.log(exists);
 }).catch(err => {
 
 });
 
-supertokens.signOut().then(() => {
+supertokens.signOut({
+    userContext: undefined,
+}).then(() => {
 
 }).catch(err => {
 
 });
 
-signOut().then(() => {
+signOut({
+    userContext: {},
+}).then(() => {
 
 }).catch(err => {
 
@@ -129,19 +137,23 @@ supertokens.init({
     }
 });
 
-supertokens.getAccessTokenPayloadSecurely().then(p => {
+supertokens.getAccessTokenPayloadSecurely(undefined).then(p => {
 
 }).catch(err => {
 
 });
 
 
-supertokens.getUserId().then((id: string) => {
+supertokens.getUserId({
+    userContext: undefined,
+}).then((id: string) => {
 
 }).catch(err => {
 
 });
-getUserId().then((id: string) => {
+getUserId({
+    userContext: {},
+}).then((id: string) => {
 
 }).catch(err => {
 
