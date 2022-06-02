@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [12.0.0] - 2022-06-02
+
 - Adds tests for custom cookie and window handlers
+
+### Added
+
+- You can now configure a `postAPIHook` when calling `SuperTokens.init` to subscribe to and handle to network responses
+
+### Breaking changes
+
+- Adds user context to all functions exposed to the user, and to API and Recipe interface functions. This is a non breaking change for User exposed function calls, but a breaking change if you are using the recipe override feature.
+- All recipe functions now accept an object (instead of inidividual parameters), this is a breaking change only if you are using the override feature.
+- Recipe functions no longer accept the `config` parameter, this is a breaking change if you are using the override feature
+- Renames properties for `windowHandler`
+  - getLocalStorage -> RENAMED to localStorage
+  - getSessionStorage -> RENAMED to sessionStorage
+- `windowHandler` uses a new interface type for localStorage and sessionStorage
 
 ## [11.0.2] - 2022-05-14
 

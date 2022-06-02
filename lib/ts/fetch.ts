@@ -178,10 +178,11 @@ export default class AuthHttpRequest {
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.env.__supertokensSessionRecipe = recipeImpl;
-            AuthHttpRequest.env.fetch = AuthHttpRequest.env.__supertokensSessionRecipe.addFetchInterceptorsAndReturnModifiedFetch(
-                AuthHttpRequest.env.__supertokensOriginalFetch,
-                config
-            );
+            AuthHttpRequest.env.fetch = (AuthHttpRequest.env
+                .__supertokensSessionRecipe as RecipeInterface).addFetchInterceptorsAndReturnModifiedFetch({
+                originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
+                userContext: {}
+            });
         }
         AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
         AuthHttpRequest.initCalled = true;
@@ -365,7 +366,8 @@ export async function onUnauthorisedResponse(
                     // that the session exists, but it doesn't actually exist.
                     AuthHttpRequest.config.onHandleEvent({
                         action: "UNAUTHORISED",
-                        sessionExpiredOrRevoked: false
+                        sessionExpiredOrRevoked: false,
+                        userContext: {}
                     });
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -406,13 +408,21 @@ export async function onUnauthorisedResponse(
                         credentials: "include",
                         headers
                     },
-                    url: AuthHttpRequest.refreshTokenUrl
+                    url: AuthHttpRequest.refreshTokenUrl,
+                    userContext: {}
                 });
                 logDebugMessage("onUnauthorisedResponse: Making refresh call");
                 const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
                     preAPIResult.url,
                     preAPIResult.requestInit
                 );
+                await AuthHttpRequest.config.postAPIHook({
+                    action: "REFRESH_SESSION",
+                    fetchResponse: (response as Response).clone(),
+                    requestInit: preAPIResult.requestInit,
+                    url: preAPIResult.url,
+                    userContext: {}
+                });
                 logDebugMessage("onUnauthorisedResponse: Refresh call ended");
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");
@@ -459,7 +469,8 @@ export async function onUnauthorisedResponse(
                     await FrontToken.setItem(frontToken);
                 }
                 AuthHttpRequest.config.onHandleEvent({
-                    action: "REFRESH_SESSION"
+                    action: "REFRESH_SESSION",
+                    userContext: {}
                 });
                 logDebugMessage("onUnauthorisedResponse: Sending RETRY signal");
                 return { result: "RETRY" };
@@ -519,7 +530,8 @@ export async function onUnauthorisedResponse(
 export function onTokenUpdate() {
     logDebugMessage("onTokenUpdate: firing ACCESS_TOKEN_PAYLOAD_UPDATED event");
     AuthHttpRequest.config.onHandleEvent({
-        action: "ACCESS_TOKEN_PAYLOAD_UPDATED"
+        action: "ACCESS_TOKEN_PAYLOAD_UPDATED",
+        userContext: {}
     });
 }
 
@@ -657,12 +669,14 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
             logDebugMessage("setIdRefreshToken: firing UNAUTHORISED event");
             AuthHttpRequest.config.onHandleEvent({
                 action: "UNAUTHORISED",
-                sessionExpiredOrRevoked: true
+                sessionExpiredOrRevoked: true,
+                userContext: {}
             });
         } else {
             logDebugMessage("setIdRefreshToken: firing SIGN_OUT event");
             AuthHttpRequest.config.onHandleEvent({
-                action: "SIGN_OUT"
+                action: "SIGN_OUT",
+                userContext: {}
             });
         }
     }
@@ -670,7 +684,8 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
     if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
         logDebugMessage("setIdRefreshToken: firing SESSION_CREATED event");
         AuthHttpRequest.config.onHandleEvent({
-            action: "SESSION_CREATED"
+            action: "SESSION_CREATED",
+            userContext: {}
         });
     }
 }
