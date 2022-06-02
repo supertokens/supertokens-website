@@ -6,18 +6,20 @@ orbs:
 jobs:
   test-dev-tag-as-not-passed:
     docker:
-      - image: rishabhpoddar/supertokens_website_sdk_testing
+      - image: rishabhpoddar/supertokens_website_sdk_testing_node_16
     steps:
+      - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/ # This makes npm use http instead of ssh (required for node 16)
       - checkout
       - run: (cd .circleci/ && ./markDevTagAsTestNotPassed.sh)
   test-unit:
     docker:
-      - image: rishabhpoddar/supertokens_website_sdk_testing
+      - image: rishabhpoddar/supertokens_website_sdk_testing_node_16
     parameters:
       fdi-version:
         type: string
     parallelism: 4
     steps:
+      - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/ # This makes npm use http instead of ssh (required for node 16)
       - checkout
       - run: echo "127.0.0.1 localhost.org" >> /etc/hosts
       - run: npm i -d
@@ -26,8 +28,9 @@ jobs:
       - run: npm run check-circular-dependencies
   test-success:
     docker:
-      - image: rishabhpoddar/supertokens_website_sdk_testing
+      - image: rishabhpoddar/supertokens_website_sdk_testing_node_16
     steps:
+      - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/ # This makes npm use http instead of ssh (required for node 16)
       - checkout
       - run: (cd .circleci/ && ./markAsSuccess.sh)
       - slack/status
