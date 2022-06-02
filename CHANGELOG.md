@@ -13,16 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- You can now configure a `postAPIHook` when calling `Session.init` to subscribe to and handle to network responses
+- You can now configure a `postAPIHook` when calling `SuperTokens.init` to subscribe to and handle to network responses
 
 ### Breaking changes
 
 - Adds user context to all functions exposed to the user, and to API and Recipe interface functions. This is a non breaking change for User exposed function calls, but a breaking change if you are using the recipe override feature.
 - All recipe functions now accept an object (instead of inidividual parameters), this is a breaking change only if you are using the override feature.
 - Recipe functions no longer accept the `config` parameter, this is a breaking change if you are using the override feature
-
-### Breaking changes
-
 - Renames properties for `windowHandler`
   - getLocalStorage -> RENAMED to localStorage
   - getSessionStorage -> RENAMED to sessionStorage
