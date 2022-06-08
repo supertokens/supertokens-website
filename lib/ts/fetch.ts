@@ -20,7 +20,7 @@ import { RecipeInterface, NormalisedInputType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
-import STGeneralError from "./error";
+import { STGeneralError } from "./error";
 
 function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {

@@ -26,7 +26,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
-import STGeneralError from "./error";
+import { STGeneralError } from "./error";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;

@@ -3,7 +3,7 @@
  * with `{status: "GENERAL_ERROR"}`. This should be used to show errors to the user
  * in your frontend application.
  */
-export default class STGeneralError extends Error {
+export declare class STGeneralError extends Error {
     isSuperTokensGeneralError: boolean;
     constructor(message: string);
     static isThisError(err: any): err is STGeneralError;
