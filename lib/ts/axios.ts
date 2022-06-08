@@ -26,6 +26,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
+import STGeneralError from "./error";
 
 function getUrlFromConfig(config: AxiosRequestConfig) {
     let url: string = config.url === undefined ? "" : config.url;
@@ -379,6 +380,16 @@ export default class AuthHttpRequest {
                     }
                     let response =
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
+
+                    let responseJson = response.data;
+
+                    if (responseJson.status === "GENERAL_ERROR") {
+                        logDebugMessage("doRequest: Throwing general error");
+                        let message =
+                            responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
+                        throw new STGeneralError(message);
+                    }
+
                     logDebugMessage("doRequest: User's http call ended");
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
