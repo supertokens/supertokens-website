@@ -280,9 +280,7 @@ export default class AuthHttpRequest {
                 }
 
                 logDebugMessage("doRequest: Making user's http call");
-
                 let response = await httpCall(configWithAntiCsrf);
-
                 logDebugMessage("doRequest: User's http call ended");
 
                 const idRefreshToken = response.headers.get("id-refresh-token");
@@ -425,7 +423,6 @@ export async function onUnauthorisedResponse(
                     url: preAPIResult.url,
                     userContext: {}
                 });
-
                 logDebugMessage("onUnauthorisedResponse: Refresh call ended");
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");

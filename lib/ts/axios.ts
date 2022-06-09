@@ -379,7 +379,6 @@ export default class AuthHttpRequest {
                     }
                     let response =
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
-
                     logDebugMessage("doRequest: User's http call ended");
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {
