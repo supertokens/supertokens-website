@@ -20,7 +20,6 @@ import { RecipeInterface, NormalisedInputType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
-import { STGeneralError } from "./error";
 
 function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {
@@ -283,14 +282,6 @@ export default class AuthHttpRequest {
                 logDebugMessage("doRequest: Making user's http call");
 
                 let response = await httpCall(configWithAntiCsrf);
-                let responseJson = await response.clone().json();
-
-                if (responseJson.status === "GENERAL_ERROR") {
-                    logDebugMessage("doRequest: Throwing general error");
-                    let message =
-                        responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
-                    throw new STGeneralError(message);
-                }
 
                 logDebugMessage("doRequest: User's http call ended");
 
@@ -434,15 +425,6 @@ export async function onUnauthorisedResponse(
                     url: preAPIResult.url,
                     userContext: {}
                 });
-
-                let responseJson = await (response as Response).clone().json();
-
-                if (responseJson.status === "GENERAL_ERROR") {
-                    logDebugMessage("doRequest: Throwing general error");
-                    let message =
-                        responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
-                    throw new STGeneralError(message);
-                }
 
                 logDebugMessage("onUnauthorisedResponse: Refresh call ended");
                 let removeIdRefreshToken = true;

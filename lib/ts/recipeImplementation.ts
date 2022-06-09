@@ -3,6 +3,7 @@ import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
+import { STGeneralError } from "./error";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -122,6 +123,14 @@ export default function RecipeImplementation(recipeImplInput: {
                 fetchResponse: resp.clone(),
                 userContext: input.userContext
             });
+
+            let responseJson = await resp.clone().json();
+
+            if (responseJson.status === "GENERAL_ERROR") {
+                logDebugMessage("doRequest: Throwing general error");
+                let message = responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
+                throw new STGeneralError(message);
+            }
 
             logDebugMessage("signOut: API ended");
 
