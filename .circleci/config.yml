@@ -22,7 +22,7 @@ jobs:
       - slack/status
   test:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2204:2022.04.1
     steps:
       - checkout
       - run:
@@ -32,8 +32,9 @@ jobs:
           configuration_path: .circleci/config_continue.yml
   update-docs:
     docker:
-      - image: rishabhpoddar/supertokens_website_sdk_testing
+      - image: rishabhpoddar/supertokens_website_sdk_testing_node_16
     steps:
+      - run: git config --global url."https://github.com/".insteadOf ssh://git@github.com/ # This makes npm use http instead of ssh (required for node 16)
       - checkout
       - run: cd ../ && git clone git@github.com:supertokens/supertokens-backend-website.git
       - run: (cd .circleci && ./updateDocsInWebsite.sh)

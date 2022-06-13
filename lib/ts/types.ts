@@ -20,6 +20,7 @@ import { WindowHandlerInput } from "./utils/windowHandler/types";
 export type Event =
     | {
           action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
+          userContext: any;
       }
     | {
           action: "API_INVALID_CLAIM";
@@ -28,6 +29,7 @@ export type Event =
     | {
           action: "UNAUTHORISED";
           sessionExpiredOrRevoked: boolean;
+          userContext: any;
       };
 
 export type EventHandler = (event: Event) => void;
@@ -44,11 +46,8 @@ export type InputType = {
     cookieDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
-    preAPIHook?: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{ url: string; requestInit: RequestInit }>;
+    preAPIHook?: RecipePreAPIHookFunction;
+    postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
         functions?: (
@@ -67,11 +66,8 @@ export type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
-    preAPIHook: (context: {
-        action: "SIGN_OUT" | "REFRESH_SESSION";
-        requestInit: RequestInit;
-        url: string;
-    }) => Promise<{ url: string; requestInit: RequestInit }>;
+    preAPIHook: RecipePreAPIHookFunction;
+    postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
         functions: (
@@ -81,21 +77,42 @@ export type NormalisedInputType = {
     };
 };
 
+export type PreAPIHookContext = {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+    userContext: any;
+};
+
+export type RecipePreAPIHookFunction = (
+    context: PreAPIHookContext
+) => Promise<{ url: string; requestInit: RequestInit }>;
+
+export type RecipePostAPIHookContext = {
+    action: "SIGN_OUT" | "REFRESH_SESSION";
+    requestInit: RequestInit;
+    url: string;
+    fetchResponse: Response;
+    userContext: any;
+};
+
+export type RecipePostAPIHookFunction = (context: RecipePostAPIHookContext) => Promise<void>;
+
 export type PreAPIHookFunction = (context: {
     requestInit: RequestInit;
     url: string;
 }) => Promise<{ url: string; requestInit: RequestInit }>;
 
 export type RecipeInterface = {
-    addFetchInterceptorsAndReturnModifiedFetch: (originalFetch: any, config: NormalisedInputType) => typeof fetch;
+    addFetchInterceptorsAndReturnModifiedFetch: (input: { originalFetch: any; userContext: any }) => typeof fetch;
 
-    addAxiosInterceptors: (axiosInstance: any, config: NormalisedInputType) => void;
+    addAxiosInterceptors: (input: { axiosInstance: any; userContext: any }) => void;
 
-    getUserId: (config: NormalisedInputType) => Promise<string>;
+    getUserId: (input: { userContext: any }) => Promise<string>;
 
-    getAccessTokenPayloadSecurely: (config: NormalisedInputType) => Promise<any>;
+    getAccessTokenPayloadSecurely: (input: { userContext: any }) => Promise<any>;
 
-    doesSessionExist: (config: NormalisedInputType) => Promise<boolean>;
+    doesSessionExist: (input: { userContext: any }) => Promise<boolean>;
 
-    signOut: (config: NormalisedInputType) => Promise<void>;
+    signOut: (input: { userContext: any }) => Promise<void>;
 };
