@@ -130,6 +130,7 @@ export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
+export const validateClaims = AuthHttpRequest.validateClaims;
 export { RecipeInterface, InputType };
 
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
