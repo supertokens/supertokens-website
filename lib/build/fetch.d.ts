@@ -1,4 +1,4 @@
-import { RecipeInterface, NormalisedInputType } from "./types";
+import { RecipeInterface, NormalisedInputType, ClaimValidationError } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -47,7 +47,7 @@ export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshToken
     result: "RETRY";
 }>;
 export declare function onTokenUpdate(): void;
-export declare function onMissingClaimResponse(claimId: string): void;
+export declare function onInvalidClaimResponse(claimValidationError: ClaimValidationError): void;
 declare type IdRefreshTokenType = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {

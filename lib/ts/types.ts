@@ -24,7 +24,7 @@ export type Event =
       }
     | {
           action: "API_INVALID_CLAIM";
-          claimId: string;
+          claimValidationError: ClaimValidationError;
       }
     | {
           action: "UNAUTHORISED";
@@ -40,7 +40,7 @@ export type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
-    missingClaimStatusCode?: number;
+    invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
@@ -62,7 +62,7 @@ export type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     sessionExpiredStatusCode: number;
-    missingClaimStatusCode: number;
+    invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;

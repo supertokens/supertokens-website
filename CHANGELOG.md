@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added the `API_INVALID_CLAIM` event and the related `missingClaimStatusCode` config prop.
+- Added the `API_INVALID_CLAIM` event and the related `invalidClaimStatusCode` config prop.
 - Adds base classes, types for session claims, and a `validateClaims` functions.
 
 ## [12.0.0] - 2022-06-02

@@ -96,9 +96,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         sessionExpiredStatusCode = options.sessionExpiredStatusCode;
     }
 
-    let missingClaimStatusCode = 403;
-    if (options.missingClaimStatusCode !== undefined) {
-        missingClaimStatusCode = options.missingClaimStatusCode;
+    let invalidClaimStatusCode = 403;
+    if (options.invalidClaimStatusCode !== undefined) {
+        invalidClaimStatusCode = options.invalidClaimStatusCode;
     }
 
     let autoAddCredentials = true;
@@ -151,7 +151,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath,
         sessionScope,
         sessionExpiredStatusCode,
-        missingClaimStatusCode,
+        invalidClaimStatusCode,
         autoAddCredentials,
         isInIframe,
         cookieDomain,

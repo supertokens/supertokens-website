@@ -21,7 +21,7 @@ import AuthHttpRequestFetch, {
     setIdRefreshToken,
     FrontToken,
     onUnauthorisedResponse,
-    onMissingClaimResponse
+    onInvalidClaimResponse
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -191,8 +191,8 @@ export function responseInterceptor(axiosInstance: any) {
                     true
                 );
             } else {
-                if (response.status === AuthHttpRequestFetch.config.missingClaimStatusCode) {
-                    onMissingClaimResponse(response.headers["missing-claim-id"]);
+                if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                    onInvalidClaimResponse(JSON.parse(response.headers["invalid-claim"]));
                 }
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {
@@ -251,9 +251,9 @@ export function responseErrorInterceptor(axiosInstance: any) {
         } else {
             if (
                 error.response !== undefined &&
-                error.response.status === AuthHttpRequestFetch.config.missingClaimStatusCode
+                error.response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode
             ) {
-                onMissingClaimResponse(error.response.headers["missing-claim-id"]);
+                onInvalidClaimResponse(JSON.parse(error.response.headers["invalid-claim"]));
             }
             throw error;
         }
@@ -409,8 +409,8 @@ export default class AuthHttpRequest {
                         }
                         logDebugMessage("doRequest: Retrying original request");
                     } else {
-                        if (response.status === AuthHttpRequestFetch.config.missingClaimStatusCode) {
-                            onMissingClaimResponse(response.headers["missing-claim-id"]);
+                        if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                            onInvalidClaimResponse(JSON.parse(response.headers["invalid-claim"]));
                         }
                         let antiCsrfToken = response.headers["anti-csrf"];
                         if (antiCsrfToken !== undefined) {
@@ -450,8 +450,8 @@ export default class AuthHttpRequest {
                             }
                             logDebugMessage("doRequest: Retrying original request");
                         } else {
-                            if (response.status === AuthHttpRequestFetch.config.missingClaimStatusCode) {
-                                onMissingClaimResponse(response.headers["missing-claim-id"]);
+                            if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                                onInvalidClaimResponse(JSON.parse(response.headers["invalid-claim"]));
                             }
                             throw err;
                         }

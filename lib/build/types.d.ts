@@ -6,7 +6,7 @@ export declare type Event = {
     userContext: any;
 } | {
     action: "API_INVALID_CLAIM";
-    claimId: string;
+    claimValidationError: ClaimValidationError;
 } | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;
@@ -19,7 +19,7 @@ export declare type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
-    missingClaimStatusCode?: number;
+    invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
@@ -37,7 +37,7 @@ export declare type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     sessionExpiredStatusCode: number;
-    missingClaimStatusCode: number;
+    invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
