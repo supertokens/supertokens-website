@@ -116,3 +116,32 @@ export type RecipeInterface = {
 
     signOut: (input: { userContext: any }) => Promise<void>;
 };
+
+export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
+export type ClaimValidationError = {
+    validatorId: string;
+    reason?: any;
+};
+
+export abstract class SessionClaimValidator {
+    constructor(public readonly id: string) {}
+
+    /**
+     * Makes an API call that will refresh the claim in the token.
+     */
+    abstract refresh(userContext: any): Promise<void>;
+
+    /**
+     * Decides if we need to refresh the claim value before checking the payload with `isClaimValid`.
+     * E.g.: if the information in the payload is expired, or is not sufficient for this check.
+     */
+    abstract shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
+
+    /**
+     * Decides if the claim is valid based on the accessTokenPayload object (and not checking DB or anything else)
+     */
+    abstract validate(
+        accessTokenPayload: any,
+        userContext: any
+    ): Promise<ClaimValidationResult> | ClaimValidationResult;
+}
