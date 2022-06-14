@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Adds base classes, types for session claims, and a `validateClaims` functions.
+
 ## [12.0.0] - 2022-06-02
 
 - Adds tests for custom cookie and window handlers
