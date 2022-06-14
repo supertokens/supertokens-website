@@ -76,7 +76,7 @@ export class PrimitiveClaim<T, V = void> {
     }
 
     getValueFromPayload(payload?: any, _userContext?: any): T {
-        return payload[this.config.id];
+        return payload[this.config.id] === undefined ? payload[this.config.id].v : undefined;
     }
 
     validators: BasePrimitiveClaimValidators<T> & V;
