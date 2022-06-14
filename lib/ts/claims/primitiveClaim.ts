@@ -10,11 +10,14 @@ type BasePrimitiveClaimValidators<T> = {
     hasFreshValue: (val: T, maxAgeInSeconds: number, id?: string) => SessionClaimValidator;
 };
 
-export class PrimitiveClaim<T, V = void> {
+export class PrimitiveClaim<T, V extends Record<string, (...arsg: any[]) => SessionClaimValidator> | void = void> {
     public readonly id: string;
+    public readonly refresh: (userContext?: any) => Promise<void>;
 
-    constructor(private readonly config: PrimitiveClaimValidatorConfig, customValidators?: V) {
+    constructor(protected readonly config: PrimitiveClaimValidatorConfig, customValidators?: V) {
         this.id = config.id;
+        this.refresh = config.refresh;
+
         const primitiveValidators = {
             hasValue: (val: T, id?: string): SessionClaimValidator => {
                 return {

@@ -7,9 +7,10 @@ declare type BasePrimitiveClaimValidators<T> = {
     hasValue: (val: T, id?: string) => SessionClaimValidator;
     hasFreshValue: (val: T, maxAgeInSeconds: number, id?: string) => SessionClaimValidator;
 };
-export declare class PrimitiveClaim<T, V = void> {
-    private readonly config;
+export declare class PrimitiveClaim<T, V extends Record<string, (...arsg: any[]) => SessionClaimValidator> | void = void> {
+    protected readonly config: PrimitiveClaimValidatorConfig;
     readonly id: string;
+    readonly refresh: (userContext?: any) => Promise<void>;
     constructor(config: PrimitiveClaimValidatorConfig, customValidators?: V);
     getValueFromPayload(payload?: any, _userContext?: any): T;
     validators: BasePrimitiveClaimValidators<T> & V;

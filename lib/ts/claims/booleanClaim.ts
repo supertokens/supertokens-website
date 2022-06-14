@@ -6,7 +6,9 @@ type BooleanValidators = {
     isFalse: (maxAge?: number) => SessionClaimValidator;
 };
 
-export class BooleanClaim<V = void> extends PrimitiveClaim<boolean, BooleanValidators & V> {
+export class BooleanClaim<
+    V extends Record<string, (...arsg: any[]) => SessionClaimValidator> | void = void
+> extends PrimitiveClaim<boolean, BooleanValidators & V> {
     constructor(config: PrimitiveClaimValidatorConfig, customValidators?: V) {
         const booleanValidators: BooleanValidators = {
             isTrue: (maxAge?: number): SessionClaimValidator => {
