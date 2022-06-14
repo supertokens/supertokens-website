@@ -14,7 +14,7 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import { InputType, RecipeInterface } from "./types";
+import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
@@ -91,6 +91,36 @@ export default class AuthHttpRequest {
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
+
+    static validateClaims = async (
+        claimValidators: SessionClaimValidator[],
+        userContext?: any
+    ): Promise<ClaimValidationError[] | undefined> => {
+        let accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely();
+        // We first refresh all claims that may need it to avoid
+        for (const validator of claimValidators) {
+            if (await validator.shouldRefresh(accessTokenPayload, userContext)) {
+                await validator.refresh(userContext);
+                accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely();
+            }
+        }
+
+        const errors = [];
+        for (const validator of claimValidators) {
+            const validationRes = await validator.validate(accessTokenPayload, userContext);
+            if (!validationRes.isValid) {
+                errors.push({
+                    validatorId: validator.id,
+                    reason: validationRes.reason
+                });
+            }
+        }
+
+        if (errors.length > 0) {
+            return errors;
+        }
+        return undefined;
+    };
 }
 
 export let init = AuthHttpRequest.init;
@@ -101,3 +131,7 @@ export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
 export { RecipeInterface, InputType };
+
+export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
+export { PrimitiveClaim } from "./claims/primitiveClaim";
+export { BooleanClaim } from "./claims/booleanClaim";
