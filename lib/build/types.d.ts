@@ -108,8 +108,8 @@ export declare abstract class SessionClaimValidator {
      */
     abstract refresh(userContext: any): Promise<void>;
     /**
-     * Decides if we need to refresh the claim value before checking the payload with `isClaimValid`.
-     * E.g.: if the information in the payload is expired, or is not sufficient for this check.
+     * Decides if we need to refresh the claim value before checking the payload with `validate`.
+     * E.g.: if the information in the payload is expired, or is not sufficient for this validator.
      */
     abstract shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
     /**
