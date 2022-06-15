@@ -162,14 +162,6 @@ describe("Cookie Handler Tests", function() {
                             getCookie: async function() {
                                 console.log("ST_LOGS GET_COOKIE");
                                 return await original.getCookie();
-                            },
-                            setCookieSync: function(cookie) {
-                                console.log("ST_LOGS SET_COOKIE_SYNC", getCookieNameFromString(cookie));
-                                return original.setCookieSync(cookie);
-                            },
-                            getCookieSync: function() {
-                                console.log("ST_LOGS GET_COOKIE_SYNC");
-                                return original.getCookieSync();
                             }
                         };
                     }
