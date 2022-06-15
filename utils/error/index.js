@@ -12,6 +12,9 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-export const package_version = "12.1.0";
-
-export const supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12", "1.13"];
+"use strict";
+function __export(m) {
+  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+exports.__esModule = true;
+__export(require("../../lib/build/error"));

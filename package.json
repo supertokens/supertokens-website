@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "12.0.0",
+  "version": "12.1.0",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -65,7 +65,7 @@
   "size-limit": [
     {
       "path": "lib/build/bundleEntry.js",
-      "limit": "13kb"
+      "limit": "14kb"
     }
   ],
   "license": "Apache-2.0",

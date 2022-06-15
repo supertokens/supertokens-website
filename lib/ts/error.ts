@@ -1,4 +1,4 @@
-/* Copyright (c) 2020, VRAI Labs and/or its affiliates. All rights reserved.
+/* Copyright (c) 2022, VRAI Labs and/or its affiliates. All rights reserved.
  *
  * This software is licensed under the Apache License, Version 2.0 (the
  * "License") as published by the Apache Software Foundation.
@@ -12,6 +12,20 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-export const package_version = "12.1.0";
 
-export const supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12", "1.13"];
+/**
+ * This error usually indicates that the API exposed by the backend SDKs responded
+ * with `{status: "GENERAL_ERROR"}`. This should be used to show errors to the user
+ * in your frontend application.
+ */
+export class STGeneralError extends Error {
+    isSuperTokensGeneralError = true;
+
+    constructor(message: string) {
+        super(message);
+    }
+
+    static isThisError(err: any): err is STGeneralError {
+        return err.isSuperTokensGeneralError === true;
+    }
+}
