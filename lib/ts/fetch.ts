@@ -299,7 +299,7 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: Retrying original request");
                 } else {
                     if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
-                        onInvalidClaimResponse(JSON.parse(response.headers.get("invalid-claim")!));
+                        onInvalidClaimResponse(await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse(response));
                     }
                     const antiCsrfToken = response.headers.get("anti-csrf");
                     if (antiCsrfToken) {
@@ -538,10 +538,10 @@ export function onTokenUpdate() {
     });
 }
 
-export function onInvalidClaimResponse(claimValidationError: ClaimValidationError) {
+export function onInvalidClaimResponse(claimValidationErrors: ClaimValidationError[]) {
     AuthHttpRequest.config.onHandleEvent({
         action: "API_INVALID_CLAIM",
-        claimValidationError
+        claimValidationErrors: claimValidationErrors
     });
 }
 

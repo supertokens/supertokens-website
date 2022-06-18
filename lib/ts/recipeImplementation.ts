@@ -1,8 +1,15 @@
-import { RecipeInterface, EventHandler, RecipePreAPIHookFunction, RecipePostAPIHookFunction } from "./types";
+import {
+    RecipeInterface,
+    EventHandler,
+    RecipePreAPIHookFunction,
+    RecipePostAPIHookFunction,
+    ClaimValidationError
+} from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
+import { AxiosResponse } from "axios";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -137,6 +144,17 @@ export default function RecipeImplementation(recipeImplInput: {
             }
 
             // we do not send an event here since it's triggered in setIdRefreshToken area.
+        },
+
+        async getInvalidClaimsFromResponse(response: AxiosResponse | Response): Promise<ClaimValidationError[]> {
+            let body;
+            if ("body" in response) {
+                body = await response.clone().json();
+            } else {
+                body = response.data;
+            }
+
+            return body.claimValidationErrors;
         }
     };
 }

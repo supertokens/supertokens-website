@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
@@ -6,7 +7,7 @@ export declare type Event = {
     userContext: any;
 } | {
     action: "API_INVALID_CLAIM";
-    claimValidationError: ClaimValidationError;
+    claimValidationErrors: ClaimValidationError[];
 } | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;
@@ -94,6 +95,7 @@ export declare type RecipeInterface = {
     signOut: (input: {
         userContext: any;
     }) => Promise<void>;
+    getInvalidClaimsFromResponse(response: AxiosResponse | Response): Promise<ClaimValidationError[]>;
 };
 export declare type ClaimValidationResult = {
     isValid: true;

@@ -192,7 +192,9 @@ export function responseInterceptor(axiosInstance: any) {
                 );
             } else {
                 if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                    onInvalidClaimResponse(JSON.parse(response.headers["invalid-claim"]));
+                    onInvalidClaimResponse(
+                        await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse(response)
+                    );
                 }
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {

@@ -13,6 +13,7 @@
  * under the License.
  */
 
+import { AxiosResponse } from "axios";
 import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
@@ -24,7 +25,7 @@ export type Event =
       }
     | {
           action: "API_INVALID_CLAIM";
-          claimValidationError: ClaimValidationError;
+          claimValidationErrors: ClaimValidationError[];
       }
     | {
           action: "UNAUTHORISED";
@@ -115,6 +116,8 @@ export type RecipeInterface = {
     doesSessionExist: (input: { userContext: any }) => Promise<boolean>;
 
     signOut: (input: { userContext: any }) => Promise<void>;
+
+    getInvalidClaimsFromResponse(response: AxiosResponse | Response): Promise<ClaimValidationError[]>;
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
