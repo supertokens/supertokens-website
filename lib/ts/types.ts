@@ -109,6 +109,11 @@ export type RecipeInterface = {
     doesSessionExist: (input: { userContext: any }) => Promise<boolean>;
 
     signOut: (input: { userContext: any }) => Promise<void>;
+
+    validateClaims: (input: {
+        claimValidators: SessionClaimValidator[];
+        userContext?: any;
+    }) => Promise<ClaimValidationError[] | undefined>;
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };

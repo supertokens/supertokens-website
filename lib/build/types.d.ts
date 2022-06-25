@@ -89,6 +89,10 @@ export declare type RecipeInterface = {
     signOut: (input: {
         userContext: any;
     }) => Promise<void>;
+    validateClaims: (input: {
+        claimValidators: SessionClaimValidator[];
+        userContext?: any;
+    }) => Promise<ClaimValidationError[] | undefined>;
 };
 export declare type ClaimValidationResult = {
     isValid: true;

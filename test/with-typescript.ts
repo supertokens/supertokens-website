@@ -185,7 +185,7 @@ const TestBoolClaimWithCustomValidators: BooleanClaim<{ custVal: (minTimeStamp: 
 const customValidator = TestBoolClaimWithCustomValidators.validators.custVal(123);
 customValidator.validate({}, {});
 
-const TestBoolClaim = new PrimitiveClaim<number>({
+const TestNumberClaim = new PrimitiveClaim<number>({
     id: "test2",
     refresh: async (ctx) => {
         if (ctx) {
@@ -194,7 +194,7 @@ const TestBoolClaim = new PrimitiveClaim<number>({
     },
 });
 
-const boolValidator = TestBoolClaim.validators.hasValue(123);
+const boolValidator = TestNumberClaim.validators.hasValue(123);
 
 supertokens.validateClaims([boolValidator, customValidator]);
 
