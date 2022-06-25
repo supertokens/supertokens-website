@@ -299,7 +299,9 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: Retrying original request");
                 } else {
                     if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
-                        onInvalidClaimResponse(await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse(response));
+                        onInvalidClaimResponse(
+                            await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({ response })
+                        );
                     }
                     const antiCsrfToken = response.headers.get("anti-csrf");
                     if (antiCsrfToken) {

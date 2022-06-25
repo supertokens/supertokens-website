@@ -146,12 +146,14 @@ export default function RecipeImplementation(recipeImplInput: {
             // we do not send an event here since it's triggered in setIdRefreshToken area.
         },
 
-        async getInvalidClaimsFromResponse(response: AxiosResponse | Response): Promise<ClaimValidationError[]> {
+        async getInvalidClaimsFromResponse(input: {
+            response: AxiosResponse | Response;
+        }): Promise<ClaimValidationError[]> {
             let body;
-            if ("body" in response) {
-                body = await response.clone().json();
+            if ("body" in input.response) {
+                body = await input.response.clone().json();
             } else {
-                body = response.data;
+                body = input.response.data;
             }
 
             return body.claimValidationErrors;

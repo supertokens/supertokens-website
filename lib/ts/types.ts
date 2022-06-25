@@ -117,7 +117,7 @@ export type RecipeInterface = {
 
     signOut: (input: { userContext: any }) => Promise<void>;
 
-    getInvalidClaimsFromResponse(response: AxiosResponse | Response): Promise<ClaimValidationError[]>;
+    getInvalidClaimsFromResponse(input: { response: AxiosResponse | Response }): Promise<ClaimValidationError[]>;
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
