@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [13.0.1] - 2022-06-27
+- Fixes node dependency for integration tests
+
 ## [13.0.0] - 2022-06-27
 
 ### Breaking changes
