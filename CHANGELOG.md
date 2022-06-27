@@ -7,13 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-### Changed
-
-- Calling `SuperTokens.signOut` now throws `STGeneralError` if the API responds with a general error status
+## [13.0.0] - 2022-06-27
 
 ### Breaking changes
 
 - Removes `setCookieSync` and `getCookieSync` from the interface for `cookieHandler` when calling `SuperTokens.init`
+
+## [12.2.0] - 2022-06-25
+- Adds new FDI support (1.14)
+
+## [12.1.0] - 2022-06-15
+
+### Changed
+
+- Calling `SuperTokens.signOut` now throws `STGeneralError` if the API responds with a general error status
 
 ## [12.0.0] - 2022-06-02
 

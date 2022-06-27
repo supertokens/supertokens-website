@@ -416,13 +416,7 @@ export async function onUnauthorisedResponse(
                     preAPIResult.url,
                     preAPIResult.requestInit
                 );
-                await AuthHttpRequest.config.postAPIHook({
-                    action: "REFRESH_SESSION",
-                    fetchResponse: (response as Response).clone(),
-                    requestInit: preAPIResult.requestInit,
-                    url: preAPIResult.url,
-                    userContext: {}
-                });
+
                 logDebugMessage("onUnauthorisedResponse: Refresh call ended");
                 let removeIdRefreshToken = true;
                 const idRefreshToken = response.headers.get("id-refresh-token");
@@ -443,6 +437,14 @@ export async function onUnauthorisedResponse(
                 if (response.status >= 300) {
                     throw response;
                 }
+
+                await AuthHttpRequest.config.postAPIHook({
+                    action: "REFRESH_SESSION",
+                    fetchResponse: (response as Response).clone(),
+                    requestInit: preAPIResult.requestInit,
+                    url: preAPIResult.url,
+                    userContext: {}
+                });
 
                 if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
                     logDebugMessage("onUnauthorisedResponse: sIRTFrontend is remove, so returning session expired");

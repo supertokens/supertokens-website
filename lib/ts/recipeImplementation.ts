@@ -17,10 +17,10 @@ export default function RecipeImplementation(recipeImplInput: {
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
+            return async function(url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return input.originalFetch(typeof url === "string" ? url : url.clone(), {
+                        return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
                             ...config
                         });
                     },
@@ -115,6 +115,16 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("signOut: Calling API");
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
             logDebugMessage("signOut: API ended");
+            logDebugMessage("signOut: API responded with status code: " + resp.status);
+
+            if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
+                // refresh must have already sent session expiry event
+                return;
+            }
+
+            if (resp.status >= 300) {
+                throw resp;
+            }
 
             await recipeImplInput.postAPIHook({
                 action: "SIGN_OUT",
@@ -130,19 +140,6 @@ export default function RecipeImplementation(recipeImplInput: {
                 logDebugMessage("doRequest: Throwing general error");
                 let message = responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
                 throw new STGeneralError(message);
-            }
-
-            logDebugMessage("signOut: API ended");
-
-            logDebugMessage("signOut: API responded with status code: " + resp.status);
-
-            if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
-                // refresh must have already sent session expiry event
-                return;
-            }
-
-            if (resp.status >= 300) {
-                throw resp;
             }
 
             // we do not send an event here since it's triggered in setIdRefreshToken area.
