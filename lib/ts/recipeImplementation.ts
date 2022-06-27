@@ -17,10 +17,10 @@ export default function RecipeImplementation(recipeImplInput: {
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
+            return async function(url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return input.originalFetch(typeof url === "string" ? url : url.clone(), {
+                        return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
                             ...config
                         });
                     },

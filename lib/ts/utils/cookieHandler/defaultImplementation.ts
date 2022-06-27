@@ -28,13 +28,7 @@ export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
     getCookie: async function() {
         return getWindowOrThrow().document.cookie;
     },
-    getCookieSync: function() {
-        return getWindowOrThrow().document.cookie;
-    },
     setCookie: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
-    },
-    setCookieSync: async function(cookieString: string) {
         getWindowOrThrow().document.cookie = cookieString;
     }
 };

@@ -57,14 +57,7 @@ supertokens.init({
             getCookie: async function () {
                 return "";
             },
-            getCookieSync: function () {
-                return "";
-            },
             setCookie: async function (newString) {
-                const _: string = newString;
-                return;
-            },
-            setCookieSync: function (newString) {
                 const _: string = newString;
                 return;
             },

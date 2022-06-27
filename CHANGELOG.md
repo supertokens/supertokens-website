@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [13.0.0] - 2022-06-27
+
+### Breaking changes
+
+- Removes `setCookieSync` and `getCookieSync` from the interface for `cookieHandler` when calling `SuperTokens.init`
+
 ## [12.2.0] - 2022-06-25
 - Adds new FDI support (1.14)
 

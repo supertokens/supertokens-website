@@ -1,3 +1,6 @@
+/**
+ * Refer to this issue to know why this is required: https://github.com/supertokens/supertokens-website/issues/134
+ */
 export declare type StorageHandler = {
     key: (index: number) => Promise<string | null>;
     getItem: (key: string) => Promise<string | null>;
