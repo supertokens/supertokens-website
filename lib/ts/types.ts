@@ -114,6 +114,12 @@ export type RecipeInterface = {
         claimValidators: SessionClaimValidator[];
         userContext?: any;
     }) => Promise<ClaimValidationError[] | undefined>;
+
+    getGlobalClaimValidators(input: {
+        userId: string;
+        claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        userContext: any;
+    }): Promise<SessionClaimValidator[]> | SessionClaimValidator[];
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };

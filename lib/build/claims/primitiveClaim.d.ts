@@ -12,7 +12,8 @@ export declare class PrimitiveClaim<T, V extends Record<string, (...arsg: any[])
     readonly id: string;
     readonly refresh: (userContext?: any) => Promise<void>;
     constructor(config: PrimitiveClaimValidatorConfig, customValidators?: V);
-    getValueFromPayload(payload?: any, _userContext?: any): T;
+    getValueFromPayload(payload: any, _userContext?: any): T;
+    getLastFetchedTime(payload: any, _userContext?: any): Date | undefined;
     validators: BasePrimitiveClaimValidators<T> & V;
 }
 export {};

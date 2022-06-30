@@ -78,8 +78,12 @@ export class PrimitiveClaim<T, V extends Record<string, (...arsg: any[]) => Sess
         }
     }
 
-    getValueFromPayload(payload?: any, _userContext?: any): T {
+    getValueFromPayload(payload: any, _userContext?: any): T {
         return payload[this.config.id] === undefined ? payload[this.config.id].v : undefined;
+    }
+
+    getLastFetchedTime(payload: any, _userContext?: any): Date | undefined {
+        return payload[this.config.id] === undefined ? new Date(payload[this.config.id].t) : undefined;
     }
 
     validators: BasePrimitiveClaimValidators<T> & V;

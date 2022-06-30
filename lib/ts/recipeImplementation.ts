@@ -146,6 +146,12 @@ export default function RecipeImplementation(recipeImplInput: {
             // we do not send an event here since it's triggered in setIdRefreshToken area.
         },
 
+        getGlobalClaimValidators: async function(input: {
+            claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        }) {
+            return input.claimValidatorsAddedByOtherRecipes;
+        },
+
         validateClaims: async function(input: {
             claimValidators: SessionClaimValidator[];
             userContext?: any;

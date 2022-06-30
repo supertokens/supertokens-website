@@ -93,6 +93,11 @@ export declare type RecipeInterface = {
         claimValidators: SessionClaimValidator[];
         userContext?: any;
     }) => Promise<ClaimValidationError[] | undefined>;
+    getGlobalClaimValidators(input: {
+        userId: string;
+        claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        userContext: any;
+    }): Promise<SessionClaimValidator[]> | SessionClaimValidator[];
 };
 export declare type ClaimValidationResult = {
     isValid: true;
