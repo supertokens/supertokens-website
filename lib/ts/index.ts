@@ -20,6 +20,7 @@ import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import { AxiosResponse } from "axios";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -92,6 +93,12 @@ export default class AuthHttpRequest {
         });
     };
 
+    static getInvalidClaimsFromResponse = async function(
+        response: AxiosResponse | Response
+    ): Promise<ClaimValidationError[]> {
+        return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({ response });
+    };
+
     static validateClaims = async (
         claimValidators: SessionClaimValidator[],
         userContext?: any
@@ -138,6 +145,7 @@ export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
 export const validateClaims = AuthHttpRequest.validateClaims;
+export const getInvalidClaimsFromResponse = AuthHttpRequest.getInvalidClaimsFromResponse;
 export { RecipeInterface, InputType };
 
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";

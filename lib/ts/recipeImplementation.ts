@@ -147,7 +147,7 @@ export default function RecipeImplementation(recipeImplInput: {
             // we do not send an event here since it's triggered in setIdRefreshToken area.
         },
 
-        async getInvalidClaimsFromResponse(input: {
+        getInvalidClaimsFromResponse: async function(input: {
             response: AxiosResponse | Response;
         }): Promise<ClaimValidationError[]> {
             let body;
