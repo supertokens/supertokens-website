@@ -97,7 +97,14 @@ export default class AuthHttpRequest {
         userContext?: any
     ): Promise<ClaimValidationError[] | undefined> => {
         let accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely();
-        // We first refresh all claims that may need it to avoid
+        // We first refresh all claims that may need to be refreshed, before running any validators,
+        // to avoid a situation where:
+        // 1. The payload passes claimValidators[0].
+        // 2. claimValidators[1] requires a refresh
+        // 3. The accessTokenPayload is refreshed to a state where it no longer passes claimValidators[0]
+        // 4. We return no errors since both claimValidators[0] and claimValidators[1] passed (but different states of the payload)
+        // Running all refreshes before validation avoids this.
+
         for (const validator of claimValidators) {
             if (await validator.shouldRefresh(accessTokenPayload, userContext)) {
                 await validator.refresh(userContext);
@@ -130,6 +137,7 @@ export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
+export const validateClaims = AuthHttpRequest.validateClaims;
 export { RecipeInterface, InputType };
 
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";

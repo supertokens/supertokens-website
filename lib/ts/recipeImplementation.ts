@@ -3,6 +3,7 @@ import {
     EventHandler,
     RecipePreAPIHookFunction,
     RecipePostAPIHookFunction,
+    SessionClaimValidator,
     ClaimValidationError
 } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
@@ -157,6 +158,49 @@ export default function RecipeImplementation(recipeImplInput: {
             }
 
             return body.claimValidationErrors;
+        },
+
+        getGlobalClaimValidators: async function(input: {
+            claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        }) {
+            return input.claimValidatorsAddedByOtherRecipes;
+        },
+
+        validateClaims: async function(input: {
+            claimValidators: SessionClaimValidator[];
+            userContext?: any;
+        }): Promise<ClaimValidationError[] | undefined> {
+            let accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+            // We first refresh all claims that may need to be refreshed, before running any validators,
+            // to avoid a situation where:
+            // 1. The payload passes claimValidators[0].
+            // 2. claimValidators[1] requires a refresh
+            // 3. The accessTokenPayload is refreshed to a state where it no longer passes claimValidators[0]
+            // 4. We return no errors since both claimValidators[0] and claimValidators[1] passed (but different states of the payload)
+            // Running all refreshes before validation avoids this.
+
+            for (const validator of input.claimValidators) {
+                if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
+                    await validator.refresh(input.userContext);
+                    accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+                }
+            }
+
+            const errors = [];
+            for (const validator of input.claimValidators) {
+                const validationRes = await validator.validate(accessTokenPayload, input.userContext);
+                if (!validationRes.isValid) {
+                    errors.push({
+                        validatorId: validator.id,
+                        reason: validationRes.reason
+                    });
+                }
+            }
+
+            if (errors.length > 0) {
+                return errors;
+            }
+            return undefined;
         }
     };
 }

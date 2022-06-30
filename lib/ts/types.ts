@@ -118,6 +118,17 @@ export type RecipeInterface = {
     signOut: (input: { userContext: any }) => Promise<void>;
 
     getInvalidClaimsFromResponse(input: { response: AxiosResponse | Response }): Promise<ClaimValidationError[]>;
+
+    validateClaims: (input: {
+        claimValidators: SessionClaimValidator[];
+        userContext?: any;
+    }) => Promise<ClaimValidationError[] | undefined>;
+
+    getGlobalClaimValidators(input: {
+        userId: string;
+        claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        userContext: any;
+    }): Promise<SessionClaimValidator[]> | SessionClaimValidator[];
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
@@ -135,8 +146,8 @@ export abstract class SessionClaimValidator {
     abstract refresh(userContext: any): Promise<void>;
 
     /**
-     * Decides if we need to refresh the claim value before checking the payload with `isClaimValid`.
-     * E.g.: if the information in the payload is expired, or is not sufficient for this check.
+     * Decides if we need to refresh the claim value before checking the payload with `validate`.
+     * E.g.: if the information in the payload is expired, or is not sufficient for this validator.
      */
     abstract shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
 

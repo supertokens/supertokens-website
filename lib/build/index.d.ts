@@ -29,6 +29,7 @@ export declare let addAxiosInterceptors: (axiosInstance: any, userContext?: any)
 export declare let signOut: (input?: {
     userContext?: any;
 } | undefined) => Promise<void>;
+export declare const validateClaims: (claimValidators: SessionClaimValidator[], userContext?: any) => Promise<ClaimValidationError[] | undefined>;
 export { RecipeInterface, InputType };
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
 export { PrimitiveClaim } from "./claims/primitiveClaim";
