@@ -96,37 +96,10 @@ export default class AuthHttpRequest {
         claimValidators: SessionClaimValidator[],
         userContext?: any
     ): Promise<ClaimValidationError[] | undefined> => {
-        let accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely();
-        // We first refresh all claims that may need to be refreshed, before running any validators,
-        // to avoid a situation where:
-        // 1. The payload passes claimValidators[0].
-        // 2. claimValidators[1] requires a refresh
-        // 3. The accessTokenPayload is refreshed to a state where it no longer passes claimValidators[0]
-        // 4. We return no errors since both claimValidators[0] and claimValidators[1] passed (but different states of the payload)
-        // Running all refreshes before validation avoids this.
-
-        for (const validator of claimValidators) {
-            if (await validator.shouldRefresh(accessTokenPayload, userContext)) {
-                await validator.refresh(userContext);
-                accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely();
-            }
-        }
-
-        const errors = [];
-        for (const validator of claimValidators) {
-            const validationRes = await validator.validate(accessTokenPayload, userContext);
-            if (!validationRes.isValid) {
-                errors.push({
-                    validatorId: validator.id,
-                    reason: validationRes.reason
-                });
-            }
-        }
-
-        if (errors.length > 0) {
-            return errors;
-        }
-        return undefined;
+        return AuthHttpRequestFetch.recipeImpl.validateClaims({
+            claimValidators,
+            userContext: getNormalisedUserContext(userContext)
+        });
     };
 }
 
