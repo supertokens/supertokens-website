@@ -26,6 +26,7 @@ export type Event =
     | {
           action: "API_INVALID_CLAIM";
           claimValidationErrors: ClaimValidationError[];
+          userContext: any;
       }
     | {
           action: "UNAUTHORISED";

@@ -543,7 +543,8 @@ export function onTokenUpdate() {
 export function onInvalidClaimResponse(claimValidationErrors: ClaimValidationError[]) {
     AuthHttpRequest.config.onHandleEvent({
         action: "API_INVALID_CLAIM",
-        claimValidationErrors: claimValidationErrors
+        claimValidationErrors: claimValidationErrors,
+        userContext: {}
     });
 }
 
