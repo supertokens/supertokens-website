@@ -16,7 +16,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
-import { RecipeInterface, NormalisedInputType } from "./types";
+import { RecipeInterface, NormalisedInputType, ClaimValidationError } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
@@ -298,6 +298,11 @@ export default class AuthHttpRequest {
                     }
                     logDebugMessage("doRequest: Retrying original request");
                 } else {
+                    if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
+                        onInvalidClaimResponse(
+                            await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({ response })
+                        );
+                    }
                     const antiCsrfToken = response.headers.get("anti-csrf");
                     if (antiCsrfToken) {
                         const tok = await getIdRefreshToken(true);
@@ -532,6 +537,13 @@ export function onTokenUpdate() {
     AuthHttpRequest.config.onHandleEvent({
         action: "ACCESS_TOKEN_PAYLOAD_UPDATED",
         userContext: {}
+    });
+}
+
+export function onInvalidClaimResponse(claimValidationErrors: ClaimValidationError[]) {
+    AuthHttpRequest.config.onHandleEvent({
+        action: "API_INVALID_CLAIM",
+        claimValidationErrors: claimValidationErrors
     });
 }
 
