@@ -160,18 +160,13 @@ getUserId({
 });
 
 
-const TestBoolClaimWithCustomValidators: BooleanClaim<{ custVal: (minTimeStamp: number) => SessionClaimValidator }> =
-    new BooleanClaim(
-        {
-            id: "test1",
-            refresh: async (ctx) => {
-                if (ctx) {
-                    ctx.refreshCalled = 1;
-                }
-            },
-        },
-        {
-            custVal: (minTimeStamp) => ({
+class BoolClaimWithCustomValidators extends BooleanClaim {
+    constructor(conf) {
+        super(conf);
+
+        this.validators = {
+            ...this.validators,
+            custVal: (minTimeStamp: number) => ({
                 id: "test1-v1",
                 refresh: TestBoolClaimWithCustomValidators.refresh,
                 shouldRefresh: (payload: any, ctx?: any) =>
@@ -180,7 +175,12 @@ const TestBoolClaimWithCustomValidators: BooleanClaim<{ custVal: (minTimeStamp: 
                 validate: () => ({ isValid: true }),
             }),
         }
-    );
+    }
+
+    validators!: BooleanClaim["validators"] & { custVal: (minTimeStamp: number) => SessionClaimValidator};
+}
+
+const TestBoolClaimWithCustomValidators = new BoolClaimWithCustomValidators({});
 
 const customValidator = TestBoolClaimWithCustomValidators.validators.custVal(123);
 customValidator.validate({}, {});

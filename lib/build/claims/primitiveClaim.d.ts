@@ -1,19 +1,16 @@
 import { SessionClaimValidator } from "../types";
-export declare type PrimitiveClaimValidatorConfig = {
+export declare type PrimitiveClaimConfig = {
     id: string;
     refresh: (userContext?: any) => Promise<void>;
 };
-declare type BasePrimitiveClaimValidators<T> = {
-    hasValue: (val: T, id?: string) => SessionClaimValidator;
-    hasFreshValue: (val: T, maxAgeInSeconds: number, id?: string) => SessionClaimValidator;
-};
-export declare class PrimitiveClaim<T, V extends Record<string, (...arsg: any[]) => SessionClaimValidator> | void = void> {
-    protected readonly config: PrimitiveClaimValidatorConfig;
+export declare class PrimitiveClaim<ValueType> {
     readonly id: string;
-    readonly refresh: (userContext?: any) => Promise<void>;
-    constructor(config: PrimitiveClaimValidatorConfig, customValidators?: V);
-    getValueFromPayload(payload: any, _userContext?: any): T;
+    readonly refresh: SessionClaimValidator["refresh"];
+    constructor(config: PrimitiveClaimConfig);
+    getValueFromPayload(payload: any, _userContext?: any): ValueType;
     getLastFetchedTime(payload: any, _userContext?: any): Date | undefined;
-    validators: BasePrimitiveClaimValidators<T> & V;
+    validators: {
+        hasValue: (val: ValueType, id?: string | undefined) => SessionClaimValidator;
+        hasFreshValue: (val: ValueType, maxAgeInSeconds: number, id?: string | undefined) => SessionClaimValidator;
+    };
 }
-export {};
