@@ -101,7 +101,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         invalidClaimStatusCode = options.invalidClaimStatusCode;
     }
 
-    if (options.sessionExpiredStatusCode === options.invalidClaimStatusCode) {
+    if (sessionExpiredStatusCode === invalidClaimStatusCode) {
         throw new Error("sessionExpiredStatusCode and invalidClaimStatusCode cannot be the same.");
     }
 
