@@ -300,7 +300,7 @@ export default class AuthHttpRequest {
                 } else {
                     if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
                         onInvalidClaimResponse(
-                            await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({ response })
+                            await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({ response, userContext: {} })
                         );
                     }
                     const antiCsrfToken = response.headers.get("anti-csrf");

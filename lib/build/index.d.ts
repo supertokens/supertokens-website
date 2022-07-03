@@ -1,6 +1,7 @@
 import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
 import { AxiosResponse } from "axios";
 export default class AuthHttpRequest {
+    private static claimValidatorsAddedByOtherRecipes;
     private static axiosInterceptorQueue;
     static init(options: InputType): void;
     static getUserId(input?: {
@@ -17,8 +18,10 @@ export default class AuthHttpRequest {
     static signOut: (input?: {
         userContext?: any;
     } | undefined) => Promise<void>;
-    static getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response) => Promise<ClaimValidationError[]>;
-    static validateClaims: (claimValidators: SessionClaimValidator[], userContext?: any) => Promise<ClaimValidationError[] | undefined>;
+    static getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response, userContext?: any) => Promise<ClaimValidationError[]>;
+    static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
+    static addClaimValidatorFromOtherRecipe: (builder: SessionClaimValidator) => void;
+    static getClaimValidatorsAddedByOtherRecipes: () => SessionClaimValidator[];
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
@@ -31,8 +34,8 @@ export declare let addAxiosInterceptors: (axiosInstance: any, userContext?: any)
 export declare let signOut: (input?: {
     userContext?: any;
 } | undefined) => Promise<void>;
-export declare const validateClaims: (claimValidators: SessionClaimValidator[], userContext?: any) => Promise<ClaimValidationError[] | undefined>;
-export declare const getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response) => Promise<ClaimValidationError[]>;
+export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
+export declare const getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response, userContext?: any) => Promise<ClaimValidationError[]>;
 export { RecipeInterface, InputType };
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
 export { PrimitiveClaim } from "./claims/primitiveClaim";

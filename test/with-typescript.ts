@@ -196,9 +196,9 @@ const TestNumberClaim = new PrimitiveClaim<number>({
 
 const boolValidator = TestNumberClaim.validators.hasValue(123);
 
-supertokens.validateClaims([boolValidator, customValidator]);
+supertokens.validateClaims((oc) => [...oc, boolValidator, customValidator]);
 
-validateClaims([boolValidator, customValidator],
+supertokens.validateClaims((oc) => [...oc, boolValidator, customValidator],
     {
         refreshCalled: 0,
     },

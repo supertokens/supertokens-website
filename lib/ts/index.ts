@@ -23,6 +23,7 @@ import WindowHandlerReference from "./utils/windowHandler";
 import { AxiosResponse } from "axios";
 
 export default class AuthHttpRequest {
+    private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
     private static axiosInterceptorQueue: (() => void)[] = [];
 
     static init(options: InputType) {
@@ -94,19 +95,49 @@ export default class AuthHttpRequest {
     };
 
     static getInvalidClaimsFromResponse = async function(
-        response: AxiosResponse | Response
+        response: AxiosResponse | Response,
+        userContext?: any
     ): Promise<ClaimValidationError[]> {
-        return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({ response });
+        return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
+            response,
+            userContext: getNormalisedUserContext(userContext)
+        });
     };
 
-    static validateClaims = async (
-        claimValidators: SessionClaimValidator[],
+    static validateClaims = (
+        overrideGlobalClaimValidators?: (
+            globalClaimValidators: SessionClaimValidator[],
+            userContext: any
+        ) => SessionClaimValidator[],
         userContext?: any
-    ): Promise<ClaimValidationError[] | undefined> => {
+    ): Promise<ClaimValidationError[]> | ClaimValidationError[] => {
+        const normalisedUserContext = getNormalisedUserContext(userContext);
+        const claimValidatorsAddedByOtherRecipes = AuthHttpRequest.getClaimValidatorsAddedByOtherRecipes();
+        const globalClaimValidators = AuthHttpRequestFetch.recipeImpl.getGlobalClaimValidators({
+            claimValidatorsAddedByOtherRecipes,
+            userContext: normalisedUserContext
+        });
+        const claimValidators =
+            overrideGlobalClaimValidators !== undefined
+                ? overrideGlobalClaimValidators(globalClaimValidators, normalisedUserContext)
+                : globalClaimValidators;
+
+        if (claimValidators.length === 0) {
+            return [];
+        }
+
         return AuthHttpRequestFetch.recipeImpl.validateClaims({
             claimValidators,
             userContext: getNormalisedUserContext(userContext)
         });
+    };
+
+    static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
+        AuthHttpRequest.claimValidatorsAddedByOtherRecipes.push(builder);
+    };
+
+    static getClaimValidatorsAddedByOtherRecipes = (): SessionClaimValidator[] => {
+        return AuthHttpRequest.claimValidatorsAddedByOtherRecipes;
     };
 }
 

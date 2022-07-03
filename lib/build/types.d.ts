@@ -98,16 +98,16 @@ export declare type RecipeInterface = {
     }) => Promise<void>;
     getInvalidClaimsFromResponse(input: {
         response: AxiosResponse | Response;
+        userContext: any;
     }): Promise<ClaimValidationError[]>;
     validateClaims: (input: {
         claimValidators: SessionClaimValidator[];
-        userContext?: any;
-    }) => Promise<ClaimValidationError[] | undefined>;
+        userContext: any;
+    }) => Promise<ClaimValidationError[]>;
     getGlobalClaimValidators(input: {
-        userId: string;
         claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
         userContext: any;
-    }): Promise<SessionClaimValidator[]> | SessionClaimValidator[];
+    }): SessionClaimValidator[];
 };
 export declare type ClaimValidationResult = {
     isValid: true;

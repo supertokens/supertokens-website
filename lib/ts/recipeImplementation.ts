@@ -149,6 +149,7 @@ export default function RecipeImplementation(recipeImplInput: {
 
         getInvalidClaimsFromResponse: async function(input: {
             response: AxiosResponse | Response;
+            userContext: any;
         }): Promise<ClaimValidationError[]> {
             let body;
             if ("body" in input.response) {
@@ -160,16 +161,17 @@ export default function RecipeImplementation(recipeImplInput: {
             return body.claimValidationErrors;
         },
 
-        getGlobalClaimValidators: async function(input: {
+        getGlobalClaimValidators: function(input: {
             claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+            userContext: any;
         }) {
             return input.claimValidatorsAddedByOtherRecipes;
         },
 
         validateClaims: async function(input: {
             claimValidators: SessionClaimValidator[];
-            userContext?: any;
-        }): Promise<ClaimValidationError[] | undefined> {
+            userContext: any;
+        }): Promise<ClaimValidationError[]> {
             let accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
             // We first refresh all claims that may need to be refreshed, before running any validators,
             // to avoid a situation where:
@@ -197,10 +199,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 }
             }
 
-            if (errors.length > 0) {
-                return errors;
-            }
-            return undefined;
+            return errors;
         }
     };
 }

@@ -193,7 +193,10 @@ export function responseInterceptor(axiosInstance: any) {
             } else {
                 if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                     onInvalidClaimResponse(
-                        await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({ response })
+                        await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
+                            response,
+                            userContext: {}
+                        })
                     );
                 }
                 let antiCsrfToken = response.headers["anti-csrf"];
@@ -256,7 +259,10 @@ export function responseErrorInterceptor(axiosInstance: any) {
                 error.response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode
             ) {
                 onInvalidClaimResponse(
-                    await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({ response: error.response })
+                    await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
+                        response: error.response,
+                        userContext: {}
+                    })
                 );
             }
             throw error;
@@ -416,7 +422,8 @@ export default class AuthHttpRequest {
                         if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                             onInvalidClaimResponse(
                                 await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                                    response
+                                    response,
+                                    userContext: {}
                                 })
                             );
                         }
@@ -461,7 +468,8 @@ export default class AuthHttpRequest {
                             if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                                 onInvalidClaimResponse(
                                     await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                                        response
+                                        response,
+                                        userContext: {}
                                     })
                                 );
                             }
