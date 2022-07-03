@@ -20,7 +20,6 @@ import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
-import { AxiosResponse } from "axios";
 
 export default class AuthHttpRequest {
     private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
@@ -94,13 +93,13 @@ export default class AuthHttpRequest {
         });
     };
 
-    static getInvalidClaimsFromResponse = async function(
-        response: AxiosResponse | Response,
-        userContext?: any
-    ): Promise<ClaimValidationError[]> {
+    static getInvalidClaimsFromResponse = async function(input: {
+        response: { data: any } | Response;
+        userContext?: any;
+    }): Promise<ClaimValidationError[]> {
         return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-            response,
-            userContext: getNormalisedUserContext(userContext)
+            response: input.response,
+            userContext: getNormalisedUserContext(input.userContext)
         });
     };
 

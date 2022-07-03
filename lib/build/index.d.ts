@@ -1,5 +1,4 @@
 import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
-import { AxiosResponse } from "axios";
 export default class AuthHttpRequest {
     private static claimValidatorsAddedByOtherRecipes;
     private static axiosInterceptorQueue;
@@ -18,7 +17,12 @@ export default class AuthHttpRequest {
     static signOut: (input?: {
         userContext?: any;
     } | undefined) => Promise<void>;
-    static getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response, userContext?: any) => Promise<ClaimValidationError[]>;
+    static getInvalidClaimsFromResponse: (input: {
+        response: Response | {
+            data: any;
+        };
+        userContext?: any;
+    }) => Promise<ClaimValidationError[]>;
     static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
     static addClaimValidatorFromOtherRecipe: (builder: SessionClaimValidator) => void;
     static getClaimValidatorsAddedByOtherRecipes: () => SessionClaimValidator[];
@@ -35,7 +39,12 @@ export declare let signOut: (input?: {
     userContext?: any;
 } | undefined) => Promise<void>;
 export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
-export declare const getInvalidClaimsFromResponse: (response: AxiosResponse<any, any> | Response, userContext?: any) => Promise<ClaimValidationError[]>;
+export declare const getInvalidClaimsFromResponse: (input: {
+    response: Response | {
+        data: any;
+    };
+    userContext?: any;
+}) => Promise<ClaimValidationError[]>;
 export { RecipeInterface, InputType };
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
 export { PrimitiveClaim } from "./claims/primitiveClaim";

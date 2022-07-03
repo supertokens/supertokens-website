@@ -1,4 +1,3 @@
-import { AxiosResponse } from "axios";
 import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
@@ -97,7 +96,9 @@ export declare type RecipeInterface = {
         userContext: any;
     }) => Promise<void>;
     getInvalidClaimsFromResponse(input: {
-        response: AxiosResponse | Response;
+        response: {
+            data: any;
+        } | Response;
         userContext: any;
     }): Promise<ClaimValidationError[]>;
     validateClaims: (input: {

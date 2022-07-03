@@ -10,7 +10,6 @@ import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
-import { AxiosResponse } from "axios";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -148,7 +147,7 @@ export default function RecipeImplementation(recipeImplInput: {
         },
 
         getInvalidClaimsFromResponse: async function(input: {
-            response: AxiosResponse | Response;
+            response: { data: any } | Response;
             userContext: any;
         }): Promise<ClaimValidationError[]> {
             let body;
