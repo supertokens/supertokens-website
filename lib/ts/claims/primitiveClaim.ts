@@ -15,11 +15,11 @@ export class PrimitiveClaim<ValueType> {
     }
 
     getValueFromPayload(payload: any, _userContext?: any): ValueType {
-        return payload[this.id] === undefined ? payload[this.id].v : undefined;
+        return payload[this.id] !== undefined ? payload[this.id].v : undefined;
     }
 
-    getLastFetchedTime(payload: any, _userContext?: any): Date | undefined {
-        return payload[this.id] === undefined ? new Date(payload[this.id].t) : undefined;
+    getLastFetchedTime(payload: any, _userContext?: any): number | undefined {
+        return payload[this.id] !== undefined ? payload[this.id].t : undefined;
     }
 
     validators = {

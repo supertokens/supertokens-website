@@ -20,9 +20,9 @@ import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
 
 export default class AuthHttpRequest {
-    private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
     private static axiosInterceptorQueue: (() => void)[] = [];
 
     static init(options: InputType) {
@@ -111,7 +111,7 @@ export default class AuthHttpRequest {
         userContext?: any
     ): Promise<ClaimValidationError[]> | ClaimValidationError[] => {
         const normalisedUserContext = getNormalisedUserContext(userContext);
-        const claimValidatorsAddedByOtherRecipes = AuthHttpRequest.getClaimValidatorsAddedByOtherRecipes();
+        const claimValidatorsAddedByOtherRecipes = SessionClaimValidatorStore.getClaimValidatorsAddedByOtherRecipes();
         const globalClaimValidators = AuthHttpRequestFetch.recipeImpl.getGlobalClaimValidators({
             claimValidatorsAddedByOtherRecipes,
             userContext: normalisedUserContext
@@ -129,14 +129,6 @@ export default class AuthHttpRequest {
             claimValidators,
             userContext: getNormalisedUserContext(userContext)
         });
-    };
-
-    static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
-        AuthHttpRequest.claimValidatorsAddedByOtherRecipes.push(builder);
-    };
-
-    static getClaimValidatorsAddedByOtherRecipes = (): SessionClaimValidator[] => {
-        return AuthHttpRequest.claimValidatorsAddedByOtherRecipes;
     };
 }
 
