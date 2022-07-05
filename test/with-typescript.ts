@@ -1,5 +1,8 @@
 import supertokens, { addAxiosInterceptors, signOut, getUserId, BooleanClaim, PrimitiveClaim, SessionClaimValidator, validateClaims } from "../";
 import axios from "axios";
+import { STGeneralError } from '../utils/error';
+
+STGeneralError.isThisError(new Error())
 
 supertokens.addAxiosInterceptors(axios, {});
 addAxiosInterceptors(axios, undefined);
@@ -54,14 +57,7 @@ supertokens.init({
             getCookie: async function () {
                 return "";
             },
-            getCookieSync: function() {
-                return "";
-            },
-            setCookie: async function(newString) {
-                const _: string = newString;
-                return;
-            },
-            setCookieSync: function (newString) {
+            setCookie: async function (newString) {
                 const _: string = newString;
                 return;
             },
@@ -91,7 +87,7 @@ supertokens.init({
             location: {
                 assign: function (url) {
                     // with-typescript doesnt recognise DOM types, hence any here 
-                    const _:any = url;
+                    const _: any = url;
                     return;
                 },
                 getHash: function () {

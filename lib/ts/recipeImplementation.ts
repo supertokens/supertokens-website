@@ -10,6 +10,7 @@ import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
+import { STGeneralError } from "./error";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -23,10 +24,10 @@ export default function RecipeImplementation(recipeImplInput: {
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function(url: RequestInfo, config?: RequestInit): Promise<Response> {
+            return async function(url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return input.originalFetch(typeof url === "string" ? url : url.clone(), {
+                        return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
                             ...config
                         });
                     },
@@ -121,17 +122,6 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("signOut: Calling API");
             let resp = await fetch(preAPIResult.url, preAPIResult.requestInit);
             logDebugMessage("signOut: API ended");
-
-            await recipeImplInput.postAPIHook({
-                action: "SIGN_OUT",
-                requestInit: preAPIResult.requestInit,
-                url: preAPIResult.url,
-                fetchResponse: resp.clone(),
-                userContext: input.userContext
-            });
-
-            logDebugMessage("signOut: API ended");
-
             logDebugMessage("signOut: API responded with status code: " + resp.status);
 
             if (resp.status === recipeImplInput.sessionExpiredStatusCode) {
@@ -141,6 +131,22 @@ export default function RecipeImplementation(recipeImplInput: {
 
             if (resp.status >= 300) {
                 throw resp;
+            }
+
+            await recipeImplInput.postAPIHook({
+                action: "SIGN_OUT",
+                requestInit: preAPIResult.requestInit,
+                url: preAPIResult.url,
+                fetchResponse: resp.clone(),
+                userContext: input.userContext
+            });
+
+            let responseJson = await resp.clone().json();
+
+            if (responseJson.status === "GENERAL_ERROR") {
+                logDebugMessage("doRequest: Throwing general error");
+                let message = responseJson.message === undefined ? "No Error Message Provided" : responseJson.message;
+                throw new STGeneralError(message);
             }
 
             // we do not send an event here since it's triggered in setIdRefreshToken area.

@@ -12,23 +12,20 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import { CookieHandlerInterface } from "./types";
 
-function getWindowOrThrow(): Window {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
+/**
+ * This error usually indicates that the API exposed by the backend SDKs responded
+ * with `{status: "GENERAL_ERROR"}`. This should be used to show errors to the user
+ * in your frontend application.
+ */
+export class STGeneralError extends Error {
+    isSuperTokensGeneralError = true;
+
+    constructor(message: string) {
+        super(message);
     }
 
-    return window;
+    static isThisError(err: any): err is STGeneralError {
+        return err.isSuperTokensGeneralError === true;
+    }
 }
-
-export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
-    getCookie: async function() {
-        return getWindowOrThrow().document.cookie;
-    },
-    setCookie: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
-    }
-};

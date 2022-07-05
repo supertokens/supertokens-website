@@ -12,23 +12,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import { CookieHandlerInterface } from "./types";
-
-function getWindowOrThrow(): Window {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
-}
-
-export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
-    getCookie: async function() {
-        return getWindowOrThrow().document.cookie;
-    },
-    setCookie: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
-    }
-};
+export * from "../../lib/build/error";
+/**
+ * 'export *' does not re-export a default.
+ * import SuperTokens from "supertokens-website";
+ * the above import statement won't be possible unless either
+ * - user add "esModuleInterop": true in their tsconfig.json file
+ * - we do the following change:
+ */
+import * as _default from "../../lib/build/error";
+export default _default;

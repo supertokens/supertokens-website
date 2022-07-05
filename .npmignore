@@ -18,3 +18,4 @@ webpack.config.js
 .gitattributes
 docs/
 .prettierignore
+.devcontainer/
