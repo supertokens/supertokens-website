@@ -1,4 +1,4 @@
-import { InputType, RecipeInterface } from "./types";
+import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue;
     static init(options: InputType): void;
@@ -16,6 +16,13 @@ export default class AuthHttpRequest {
     static signOut: (input?: {
         userContext?: any;
     } | undefined) => Promise<void>;
+    static getInvalidClaimsFromResponse: (input: {
+        response: Response | {
+            data: any;
+        };
+        userContext?: any;
+    }) => Promise<ClaimValidationError[]>;
+    static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
@@ -28,4 +35,14 @@ export declare let addAxiosInterceptors: (axiosInstance: any, userContext?: any)
 export declare let signOut: (input?: {
     userContext?: any;
 } | undefined) => Promise<void>;
+export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
+export declare const getInvalidClaimsFromResponse: (input: {
+    response: Response | {
+        data: any;
+    };
+    userContext?: any;
+}) => Promise<ClaimValidationError[]>;
 export { RecipeInterface, InputType };
+export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
+export { PrimitiveClaim } from "./claims/primitiveClaim";
+export { BooleanClaim } from "./claims/booleanClaim";
