@@ -199,7 +199,8 @@ export default function RecipeImplementation(recipeImplInput: {
                 if (!validationRes.isValid) {
                     errors.push({
                         validatorId: validator.id,
-                        reason: validationRes.reason
+                        reason: validationRes.reason,
+                        redirectPath: validationRes.redirectPath
                     });
                 }
             }

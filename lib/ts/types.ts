@@ -133,10 +133,11 @@ export type RecipeInterface = {
     }): SessionClaimValidator[];
 };
 
-export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
+export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any; redirectPath?: string };
 export type ClaimValidationError = {
     validatorId: string;
     reason?: any;
+    redirectPath?: string;
 };
 
 export abstract class SessionClaimValidator {

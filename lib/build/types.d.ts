@@ -115,10 +115,12 @@ export declare type ClaimValidationResult = {
 } | {
     isValid: false;
     reason?: any;
+    redirectPath?: string;
 };
 export declare type ClaimValidationError = {
     validatorId: string;
     reason?: any;
+    redirectPath?: string;
 };
 export declare abstract class SessionClaimValidator {
     readonly id: string;
