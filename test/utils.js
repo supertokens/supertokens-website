@@ -13,6 +13,7 @@
  * under the License.
  */
 let axios = require("axios");
+const { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 
 module.exports.BASE_URL = "http://localhost.org:8080";
 module.exports.BASE_URL_FOR_ST =
@@ -135,4 +136,17 @@ module.exports.checkIfJWTIsEnabled = async function() {
     let featureFlags = await module.exports.getFeatureFlags();
 
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
+};
+
+module.exports.resetSessionClaimValidatorStore = function() {
+    require("../lib/build/utils/sessionClaimValidatorStore").SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes = [];
+};
+
+module.exports.resetAuthHttpRequestFetch = function() {
+    AuthHttpRequestFetch.initCalled = false;
+    if (AuthHttpRequestFetch.env !== undefined && AuthHttpRequestFetch.env.__supertokensOriginalFetch !== undefined) {
+        AuthHttpRequestFetch.env.fetch = AuthHttpRequestFetch.env.__supertokensOriginalFetch;
+        AuthHttpRequestFetch.env.__supertokensSessionRecipe = undefined;
+        AuthHttpRequestFetch.env.__supertokensOriginalFetch = undefined;
+    }
 };

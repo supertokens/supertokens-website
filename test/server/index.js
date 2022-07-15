@@ -275,6 +275,23 @@ app.post(
     }
 );
 
+app.post(
+    "/session-claims-error",
+    (req, res, next) =>
+        verifySession({
+            overrideGlobalClaimValidators: () => [
+                {
+                    id: "test-claim-failing",
+                    shouldRefetch: () => false,
+                    validate: () => ({ isValid: false, reason: { message: "testReason" } })
+                }
+            ]
+        })(req, res, next),
+    async (req, res) => {
+        res.json({});
+    }
+);
+
 app.use("/testing", async (req, res) => {
     let tH = req.headers["testing"];
     if (tH !== undefined) {
