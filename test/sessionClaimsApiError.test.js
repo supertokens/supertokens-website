@@ -16,8 +16,7 @@
 let axios = require("axios");
 let jsdom = require("mocha-jsdom");
 const { spawn } = require("child_process");
-let { BASE_URL_FOR_ST, BASE_URL, startST, resetAuthHttpRequestFetch } = require("./utils");
-let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
+let { BASE_URL_FOR_ST, BASE_URL, startST, resetAuthHttpRequestFetch, checkSessionClaimsSupport } = require("./utils");
 let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 
@@ -25,18 +24,28 @@ describe("Session claims error handling", function() {
     jsdom({
         url: "http://localhost"
     });
+    let skipped = false;
 
     before(async function() {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 2000));
+        spawn(
+            "./test/startServer",
+            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
+            {
+                stdio: "inherit"
+            }
+        );
+        await new Promise(r => setTimeout(r, 1000));
+        if (!(await checkSessionClaimsSupport())) {
+            skipped = true;
+            this.skip();
+        }
     });
 
     after(async function() {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
+        if (!skipped) {
+            await instance.post(BASE_URL_FOR_ST + "/after");
+        }
         try {
             await instance.get(BASE_URL_FOR_ST + "/stop");
         } catch (err) {}

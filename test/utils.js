@@ -138,6 +138,12 @@ module.exports.checkIfJWTIsEnabled = async function() {
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
 };
 
+module.exports.checkSessionClaimsSupport = async function() {
+    let featureFlags = await module.exports.getFeatureFlags();
+
+    return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionClaims === true;
+};
+
 module.exports.resetSessionClaimValidatorStore = function() {
     require("../lib/build/utils/sessionClaimValidatorStore").SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes = [];
 };
