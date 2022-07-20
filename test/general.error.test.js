@@ -16,7 +16,7 @@
 let axios = require("axios");
 let jsdom = require("mocha-jsdom");
 const { spawn } = require("child_process");
-let { BASE_URL_FOR_ST, BASE_URL, startST } = require("./utils");
+let { BASE_URL_FOR_ST, BASE_URL, startST, resetAuthHttpRequestFetch } = require("./utils");
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
@@ -43,7 +43,7 @@ describe("General Error Tests", function() {
     });
 
     beforeEach(async function() {
-        AuthHttpRequestFetch.initCalled = false;
+        resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();

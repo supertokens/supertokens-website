@@ -170,7 +170,8 @@ app.get("/featureFlags", async (req, res) => {
 
     res.status(200).json({
         sessionJwt:
-            maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true
+            maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true,
+        sessionClaims: maxVersion(supertokens_node_version, "12.0") === supertokens_node_version
     });
 });
 
@@ -272,6 +273,23 @@ app.post(
             await Session.updateAccessTokenPayload(req.session.getHandle(), req.body);
             res.json(req.session.getAccessTokenPayload());
         }
+    }
+);
+
+app.post(
+    "/session-claims-error",
+    (req, res, next) =>
+        verifySession({
+            overrideGlobalClaimValidators: () => [
+                {
+                    id: "test-claim-failing",
+                    shouldRefetch: () => false,
+                    validate: () => ({ isValid: false, reason: { message: "testReason" } })
+                }
+            ]
+        })(req, res, next),
+    async (req, res) => {
+        res.json({});
     }
 );
 

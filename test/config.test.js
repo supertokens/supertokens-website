@@ -23,6 +23,7 @@ let {
     shouldDoInterceptionBasedOnUrl
 } = require("../lib/build/utils");
 let assert = require("assert");
+const { resetAuthHttpRequestFetch } = require("./utils.js");
 let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 
 describe("Config tests", function() {
@@ -31,7 +32,7 @@ describe("Config tests", function() {
     });
 
     beforeEach(async function() {
-        AuthHttpRequestFetch.initCalled = false;
+        resetAuthHttpRequestFetch();
         global.document = {};
     });
 
