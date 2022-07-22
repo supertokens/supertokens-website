@@ -45,4 +45,5 @@ export declare const getInvalidClaimsFromResponse: (input: {
 export { RecipeInterface, InputType };
 export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
 export { PrimitiveClaim } from "./claims/primitiveClaim";
+export { PrimitiveArrayClaim } from "./claims/primitiveArrayClaim";
 export { BooleanClaim } from "./claims/booleanClaim";
