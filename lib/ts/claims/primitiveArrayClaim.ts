@@ -181,48 +181,6 @@ export class PrimitiveArrayClaim<ValueType> {
                           };
                 }
             };
-        },
-        strictEquals: (val: ValueType[], maxAgeInSeconds: number, id?: string): SessionClaimValidator => {
-            return {
-                id: id !== undefined ? id : this.id + "-strictEquals",
-                refresh: ctx => this.refresh(ctx),
-                shouldRefresh: (payload, ctx) =>
-                    this.getValueFromPayload(payload, ctx) === undefined ||
-                    // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
-                validate: async (payload, ctx) => {
-                    const claimVal = this.getValueFromPayload(payload, ctx);
-                    if (claimVal === undefined) {
-                        return {
-                            isValid: false,
-                            reason: { message: "value does not exist", expectedValue: val, actualValue: claimVal }
-                        };
-                    }
-
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
-                    if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
-                        return {
-                            isValid: false,
-                            reason: {
-                                message: "expired",
-                                ageInSeconds,
-                                maxAgeInSeconds
-                            }
-                        };
-                    }
-                    for (const [i, v] of Array.from(val.entries())) {
-                        if (claimVal[i] !== v) {
-                            return {
-                                isValid: false,
-                                reason: { message: "wrong value", expectedValue: val, actualValue: claimVal }
-                            };
-                        }
-                    }
-                    return {
-                        isValid: true
-                    };
-                }
-            };
         }
     };
 }
