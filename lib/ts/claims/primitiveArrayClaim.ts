@@ -101,7 +101,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 }
             };
         },
-        includesAll: (val: ValueType[], maxAgeInSeconds: number, id?: string): SessionClaimValidator => {
+        includesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id + "-includesAll",
                 refresh: ctx => this.refresh(ctx),
@@ -139,7 +139,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 }
             };
         },
-        excludesAll: (val: ValueType[], maxAgeInSeconds: number, id?: string): SessionClaimValidator => {
+        excludesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id + "excludesAll",
                 refresh: ctx => this.refresh(ctx),

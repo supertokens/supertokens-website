@@ -12,7 +12,7 @@ export declare class PrimitiveArrayClaim<ValueType> {
     validators: {
         includes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
         excludes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
-        includesAll: (val: ValueType[], maxAgeInSeconds: number, id?: string | undefined) => SessionClaimValidator;
-        excludesAll: (val: ValueType[], maxAgeInSeconds: number, id?: string | undefined) => SessionClaimValidator;
+        includesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
+        excludesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
     };
 }
