@@ -11,18 +11,18 @@ export default class AuthHttpRequest {
     static attemptRefreshingSession: () => Promise<boolean>;
     static doesSessionExist: (input?: {
         userContext?: any;
-    } | undefined) => Promise<boolean>;
+    }) => Promise<boolean>;
     static addAxiosInterceptors: (axiosInstance: any, userContext?: any) => void;
     static signOut: (input?: {
         userContext?: any;
-    } | undefined) => Promise<void>;
+    }) => Promise<void>;
     static getInvalidClaimsFromResponse: (input: {
-        response: Response | {
+        response: {
             data: any;
-        };
+        } | Response;
         userContext?: any;
     }) => Promise<ClaimValidationError[]>;
-    static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
+    static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => Promise<ClaimValidationError[]> | ClaimValidationError[];
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
@@ -30,16 +30,16 @@ export declare let getAccessTokenPayloadSecurely: typeof AuthHttpRequest.getAcce
 export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: (input?: {
     userContext?: any;
-} | undefined) => Promise<boolean>;
+}) => Promise<boolean>;
 export declare let addAxiosInterceptors: (axiosInstance: any, userContext?: any) => void;
 export declare let signOut: (input?: {
     userContext?: any;
-} | undefined) => Promise<void>;
-export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => ClaimValidationError[] | Promise<ClaimValidationError[]>;
+}) => Promise<void>;
+export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => Promise<ClaimValidationError[]> | ClaimValidationError[];
 export declare const getInvalidClaimsFromResponse: (input: {
-    response: Response | {
+    response: {
         data: any;
-    };
+    } | Response;
     userContext?: any;
 }) => Promise<ClaimValidationError[]>;
 export { RecipeInterface, InputType };

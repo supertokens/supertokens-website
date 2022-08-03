@@ -10,9 +10,9 @@ export declare class PrimitiveArrayClaim<ValueType> {
     getValueFromPayload(payload: any, _userContext?: any): ValueType[];
     getLastFetchedTime(payload: any, _userContext?: any): number | undefined;
     validators: {
-        includes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
-        excludes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
-        includesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
-        excludesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string | undefined) => SessionClaimValidator;
+        includes: (val: ValueType, maxAgeInSeconds?: number, id?: string) => SessionClaimValidator;
+        excludes: (val: ValueType, maxAgeInSeconds?: number, id?: string) => SessionClaimValidator;
+        includesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string) => SessionClaimValidator;
+        excludesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string) => SessionClaimValidator;
     };
 }

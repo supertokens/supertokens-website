@@ -30,7 +30,7 @@ export default class AuthHttpRequest {
     static recipeImpl: RecipeInterface;
     static config: NormalisedInputType;
     static init(config: NormalisedInputType, recipeImpl: RecipeInterface): void;
-    static doRequest: (httpCall: (config?: RequestInit | undefined) => Promise<Response>, config?: RequestInit | undefined, url?: any) => Promise<Response>;
+    static doRequest: (httpCall: (config?: RequestInit) => Promise<Response>, config?: RequestInit, url?: any) => Promise<Response>;
     static attemptRefreshingSession: () => Promise<boolean>;
 }
 /**

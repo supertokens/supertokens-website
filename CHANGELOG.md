@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added the `API_INVALID_CLAIM` event and the related `invalidClaimStatusCode` config prop.
 - Adds base classes, types for session claims, and a `validateClaims` functions.
+### Changes
+
+- Updates README
+- Updates dependencies to fix building in node 17 + match typescript version of auth-react
 
 ## [13.0.1] - 2022-06-27
 - Fixes node dependency for integration tests
