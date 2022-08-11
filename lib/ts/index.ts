@@ -150,6 +150,7 @@ export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
 export const validateClaims = AuthHttpRequest.validateClaims;
+export const getClaimValue = AuthHttpRequest.getClaimValue;
 export const getInvalidClaimsFromResponse = AuthHttpRequest.getInvalidClaimsFromResponse;
 export { RecipeInterface, InputType };
 

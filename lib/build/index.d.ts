@@ -40,6 +40,10 @@ export declare let signOut: (input?: {
     userContext?: any;
 }) => Promise<void>;
 export declare const validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => Promise<ClaimValidationError[]> | ClaimValidationError[];
+export declare const getClaimValue: <T>(input: {
+    claim: SessionClaim<T>;
+    userContext?: any;
+}) => Promise<T | undefined>;
 export declare const getInvalidClaimsFromResponse: (input: {
     response: {
         data: any;
