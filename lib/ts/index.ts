@@ -14,7 +14,7 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
+import { ClaimValidationError, InputType, RecipeInterface, SessionClaim, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
@@ -101,6 +101,16 @@ export default class AuthHttpRequest {
             response: input.response,
             userContext: getNormalisedUserContext(input.userContext)
         });
+    };
+
+    static getClaimValue = async function<T>(input: {
+        claim: SessionClaim<T>;
+        userContext?: any;
+    }): Promise<T | undefined> {
+        const userContext = getNormalisedUserContext(input === undefined ? undefined : input.userContext);
+        const accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely({ userContext });
+
+        return input.claim.getValueFromPayload(accessTokenPayload, userContext);
     };
 
     static validateClaims = (
