@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updates README
 - Updates dependencies to fix building in node 17 + match typescript version of auth-react
+- Refactors the way the SDK exports the error class
 
 ## [13.0.1] - 2022-06-27
 - Fixes node dependency for integration tests
