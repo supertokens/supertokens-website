@@ -14,7 +14,7 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import { ClaimValidationError, InputType, RecipeInterface, SessionClaimValidator } from "./types";
+import { ClaimValidationError, InputType, RecipeInterface, SessionClaim, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
@@ -103,6 +103,16 @@ export default class AuthHttpRequest {
         });
     };
 
+    static getClaimValue = async function<T>(input: {
+        claim: SessionClaim<T>;
+        userContext?: any;
+    }): Promise<T | undefined> {
+        const userContext = getNormalisedUserContext(input === undefined ? undefined : input.userContext);
+        const accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely({ userContext });
+
+        return input.claim.getValueFromPayload(accessTokenPayload, userContext);
+    };
+
     static validateClaims = (
         overrideGlobalClaimValidators?: (
             globalClaimValidators: SessionClaimValidator[],
@@ -140,6 +150,7 @@ export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
 export const validateClaims = AuthHttpRequest.validateClaims;
+export const getClaimValue = AuthHttpRequest.getClaimValue;
 export const getInvalidClaimsFromResponse = AuthHttpRequest.getInvalidClaimsFromResponse;
 export { RecipeInterface, InputType };
 

@@ -161,3 +161,9 @@ export abstract class SessionClaimValidator {
         userContext: any
     ): Promise<ClaimValidationResult> | ClaimValidationResult;
 }
+
+export type SessionClaim<ValueType> = {
+    refresh(userContext: any): Promise<void>;
+    getValueFromPayload(payload: any, _userContext?: any): ValueType | undefined;
+    getLastFetchedTime(payload: any, _userContext?: any): number | undefined;
+};
