@@ -51,7 +51,7 @@ export declare const getInvalidClaimsFromResponse: (input: {
     userContext?: any;
 }) => Promise<ClaimValidationError[]>;
 export { RecipeInterface, InputType };
-export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator } from "./types";
+export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator, SessionClaim } from "./types";
 export { PrimitiveClaim } from "./claims/primitiveClaim";
 export { PrimitiveArrayClaim } from "./claims/primitiveArrayClaim";
 export { BooleanClaim } from "./claims/booleanClaim";
