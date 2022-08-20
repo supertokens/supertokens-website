@@ -100,6 +100,8 @@ export type PreAPIHookFunction = (context: {
 export type RecipeInterface = {
     addFetchInterceptorsAndReturnModifiedFetch: (input: { originalFetch: any; userContext: any }) => typeof fetch;
 
+    addXMLHttpRequestInterceptor: (input: { userContext: any }) => void;
+
     addAxiosInterceptors: (input: { axiosInstance: any; userContext: any }) => void;
 
     getUserId: (input: { userContext: any }) => Promise<string>;

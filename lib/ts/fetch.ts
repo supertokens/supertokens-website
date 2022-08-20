@@ -183,6 +183,9 @@ export default class AuthHttpRequest {
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
                 userContext: {}
             });
+            (AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface).addXMLHttpRequestInterceptor({
+                userContext: {}
+            });
         }
         AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
         AuthHttpRequest.initCalled = true;

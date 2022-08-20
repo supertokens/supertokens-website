@@ -73,6 +73,9 @@ export declare type RecipeInterface = {
         originalFetch: any;
         userContext: any;
     }) => typeof fetch;
+    addXMLHttpRequestInterceptor: (input: {
+        userContext: any;
+    }) => void;
     addAxiosInterceptors: (input: {
         axiosInstance: any;
         userContext: any;

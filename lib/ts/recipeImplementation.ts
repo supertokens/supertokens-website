@@ -4,6 +4,7 @@ import { interceptorFunctionRequestFulfilled, responseInterceptor, responseError
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
 import { STGeneralError } from "./error";
+import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -12,6 +13,10 @@ export default function RecipeImplementation(recipeImplInput: {
     sessionExpiredStatusCode: number;
 }): RecipeInterface {
     return {
+        addXMLHttpRequestInterceptor: function(_): void {
+            logDebugMessage("addXMLHttpRequestInterceptorAndReturnModified: called");
+            addInterceptorsToXMLHttpRequest();
+        },
         addFetchInterceptorsAndReturnModifiedFetch: function(input: {
             originalFetch: any;
             userContext: any;
