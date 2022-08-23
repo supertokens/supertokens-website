@@ -29,44 +29,57 @@
 
 // Taken from http://jsfiddle.net/8nyku97o/
 
+type XMLHttpRequestType = typeof XMLHttpRequest.prototype & { [key: string]: any };
+
 export function addInterceptorsToXMLHttpRequest() {
     // create XMLHttpRequest proxy object
     let oldXMLHttpRequest = XMLHttpRequest;
 
     // define constructor for my proxy object
-    XMLHttpRequest = function(this: typeof XMLHttpRequest.prototype) {
-        let actual: any = new oldXMLHttpRequest();
-        let self: any = this;
+    XMLHttpRequest = function(this: XMLHttpRequestType) {
+        let actual: XMLHttpRequestType = new oldXMLHttpRequest();
+        let self = this;
+        let requestHeaders: { name: string; value: string }[] = [];
 
-        // generic function for modifying the response that can be used by
-        // multiple event handlers
-        function handleResponse(prop: string) {
-            return function(this: typeof XMLHttpRequest.prototype) {
+        // TODO: do we need this?
+        // if (actual.addEventListener) {
+        //     self.addEventListener = function (event: any, fn: any, capture: any) {
+        //         return actual.addEventListener(
+        //             event,
+        //             function (this: XMLHttpRequestType, _) {
+        //                 return fn.apply(self, arguments);
+        //             },
+        //             capture
+        //         );
+        //     };
+        // }
+
+        function interceptFromActual(prop: string) {
+            return function(this: XMLHttpRequestType) {
+                console.log(prop, "!!!!!!");
                 if (self[prop]) {
                     return self[prop].apply(self, arguments);
                 }
             };
         }
+        actual.onerror = interceptFromActual("onerror");
+        actual.onload = interceptFromActual("onload");
 
-        // properties we don't proxy because we override their behavior
-        self.onloadend = null;
-        if (actual.addEventListener) {
-            self.addEventListener = function(event: any, fn: any, capture: any) {
-                return actual.addEventListener(
-                    event,
-                    function(this: typeof XMLHttpRequest.prototype, _: any) {
-                        return fn.apply(self, arguments);
-                    },
-                    capture
-                );
-            };
-        }
+        self.send = function(body) {
+            console.log("SENDING", body);
+            if (requestHeaders.length !== 0) {
+                for (let i = 0; i < requestHeaders.length; i++) {
+                    actual.setRequestHeader.apply(actual, [requestHeaders[i].name, requestHeaders[i].value]);
+                }
+            }
+            return actual.send.apply(actual, [body]);
+        };
 
-        // // this is the actual handler on the real XMLHttpRequest object
-        // actual.onreadystatechange = handleResponse("onreadystatechange");
-        // actual.onload = handleResponse("onload");
-        actual.onloadend = handleResponse("onloadend");
+        self.setRequestHeader = function(name: string, value: string) {
+            requestHeaders.push({ name, value });
+        };
 
+        let doNotProxy = ["onload", "onerror", "send", "setRequestHeader"];
         // iterate all properties in actual to proxy them according to their type
         // For functions, we call actual and return the result
         // For non-functions, we make getters/setters
@@ -74,7 +87,7 @@ export function addInterceptorsToXMLHttpRequest() {
         for (const prop in actual) {
             // skip properties we already have - this will skip both the above defined properties
             // that we don't want to proxy and skip properties on the prototype belonging to Object
-            if (!(prop in self)) {
+            if (!(prop in self) && !doNotProxy.includes(prop)) {
                 // create closure to capture value of prop
                 (function(prop) {
                     if (typeof actual[prop] === "function") {
