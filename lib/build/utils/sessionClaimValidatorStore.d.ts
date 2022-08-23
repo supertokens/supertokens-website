@@ -4,3 +4,4 @@ export declare class SessionClaimValidatorStore {
     static addClaimValidatorFromOtherRecipe: (builder: SessionClaimValidator) => void;
     static getClaimValidatorsAddedByOtherRecipes: () => SessionClaimValidator[];
 }
+export default SessionClaimValidatorStore;

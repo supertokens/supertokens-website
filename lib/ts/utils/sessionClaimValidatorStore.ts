@@ -26,3 +26,5 @@ export class SessionClaimValidatorStore {
         return SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes;
     };
 }
+
+export default SessionClaimValidatorStore;
