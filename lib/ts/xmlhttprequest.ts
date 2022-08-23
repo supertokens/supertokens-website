@@ -27,49 +27,255 @@
 // import WindowHandlerReference from "./utils/windowHandler";
 // import { logDebugMessage } from "./logger";
 
+// Taken from http://jsfiddle.net/8nyku97o/
+
 export function addInterceptorsToXMLHttpRequest() {
-    let oldXHROpen = XMLHttpRequest.prototype.open;
-    let oldXHRSend = XMLHttpRequest.prototype.send;
-    let oldSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+    // create XMLHttpRequest proxy object
+    let oldXMLHttpRequest = XMLHttpRequest;
 
-    XMLHttpRequest.prototype.open = function(
-        this: typeof XMLHttpRequest.prototype,
-        method: string,
-        url: string | URL
-    ): void {
-        console.log("!!open", method, url);
-        // do something with the method, url and etc.
-        this.addEventListener("load", function() {
-            // do something with the response text
-            console.log("!!!!!!!!load: " + this.responseText);
-        });
+    // define constructor for my proxy object
+    XMLHttpRequest = function(this: typeof XMLHttpRequest.prototype) {
+        let actual: any = new oldXMLHttpRequest();
+        let self: any = this;
 
-        // we need to use "an any" cause TS complains with an error like this if we don't:
-        // "TS Argument of type 'IArguments' is not assignable to parameter of type..."
-        return oldXHROpen.apply(this, arguments as any);
-    };
-
-    XMLHttpRequest.prototype.send = function(
-        this: typeof XMLHttpRequest.prototype & { temp: string[] },
-        body?: Document | XMLHttpRequestBodyInit | null | undefined
-    ) {
-        console.log("!!!!!!!!!SEND!!!", body, JSON.stringify(this.temp));
-        return oldXHRSend.apply(this, [body]);
-    };
-
-    XMLHttpRequest.prototype.setRequestHeader = function(
-        this: typeof XMLHttpRequest.prototype & { temp: string[] },
-        name: string,
-        value: string
-    ) {
-        console.log("!!!SETTING HEADER", name);
-        if (!this.temp) {
-            this.temp = [];
+        // generic function for modifying the response that can be used by
+        // multiple event handlers
+        function handleResponse(prop: string) {
+            return function(this: typeof XMLHttpRequest.prototype) {
+                if (self[prop]) {
+                    return self[prop].apply(self, arguments);
+                }
+            };
         }
-        this.temp = [...this.temp, name, value];
-        return oldSetRequestHeader.apply(this, [name, value]);
-    };
+
+        // properties we don't proxy because we override their behavior
+        self.onloadend = null;
+        if (actual.addEventListener) {
+            self.addEventListener = function(event: any, fn: any, capture: any) {
+                return actual.addEventListener(
+                    event,
+                    function(this: typeof XMLHttpRequest.prototype, _: any) {
+                        return fn.apply(self, arguments);
+                    },
+                    capture
+                );
+            };
+        }
+
+        // // this is the actual handler on the real XMLHttpRequest object
+        // actual.onreadystatechange = handleResponse("onreadystatechange");
+        // actual.onload = handleResponse("onload");
+        actual.onloadend = handleResponse("onloadend");
+
+        // iterate all properties in actual to proxy them according to their type
+        // For functions, we call actual and return the result
+        // For non-functions, we make getters/setters
+        // If the property already exists on self, then don't proxy it
+        for (const prop in actual) {
+            // skip properties we already have - this will skip both the above defined properties
+            // that we don't want to proxy and skip properties on the prototype belonging to Object
+            if (!(prop in self)) {
+                // create closure to capture value of prop
+                (function(prop) {
+                    if (typeof actual[prop] === "function") {
+                        // define our own property that calls the same method on the actual
+                        Object.defineProperty(self, prop, {
+                            configurable: true,
+                            value: function() {
+                                return actual[prop].apply(actual, arguments);
+                            }
+                        });
+                    } else {
+                        // define our own property that just gets or sets the same prop on the actual
+                        Object.defineProperty(self, prop, {
+                            get: function() {
+                                return actual[prop];
+                            },
+                            set: function(val) {
+                                actual[prop] = val;
+                            }
+                        });
+                    }
+                })(prop);
+            }
+        }
+    } as any;
 }
+
+/**
+ *
+ * var request = new XMLHttpRequest();
+
+    // HTTP basic authentication
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
+      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+    }
+
+    var fullPath = buildFullPath(config.baseURL, config.url);
+    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
+
+    // Set the request timeout in MS
+    request.timeout = config.timeout;
+
+    function onloadend() {
+      if (!request) {
+        return;
+      }
+      // Prepare the response
+      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+      var responseData = !responseType || responseType === 'text' ||  responseType === 'json' ?
+        request.responseText : request.response;
+      var response = {
+        data: responseData,
+        status: request.status,
+        statusText: request.statusText,
+        headers: responseHeaders,
+        config: config,
+        request: request
+      };
+
+      settle(resolve, reject, response);
+
+      // Clean up request
+      request = null;
+    }
+
+    if ('onloadend' in request) {
+      // Use onloadend if available
+      request.onloadend = onloadend;
+    } else {
+      // Listen for ready state to emulate onloadend
+      request.onreadystatechange = function handleLoad() {
+        if (!request || request.readyState !== 4) {
+          return;
+        }
+
+        // The request errored out and we didn't get a response, this will be
+        // handled by onerror instead
+        // With one exception: request that using file: protocol, most browsers
+        // will return status as 0 even though it's a successful request
+        if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+          return;
+        }
+        // readystate handler is calling before onerror or ontimeout handlers,
+        // so we should call onloadend on the next 'tick'
+        setTimeout(onloadend);
+      };
+    }
+
+    // Handle browser request cancellation (as opposed to a manual cancellation)
+    request.onabort = function handleAbort() {
+      if (!request) {
+        return;
+      }
+
+      reject(createError('Request aborted', config, 'ECONNABORTED', request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle low level network errors
+    request.onerror = function handleError() {
+      // Real errors are hidden from us by the browser
+      // onerror should only fire if it's a network error
+      reject(createError('Network Error', config, null, request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle timeout
+    request.ontimeout = function handleTimeout() {
+      var timeoutErrorMessage = 'timeout of ' + config.timeout + 'ms exceeded';
+      if (config.timeoutErrorMessage) {
+        timeoutErrorMessage = config.timeoutErrorMessage;
+      }
+      reject(createError(
+        timeoutErrorMessage,
+        config,
+        config.transitional && config.transitional.clarifyTimeoutError ? 'ETIMEDOUT' : 'ECONNABORTED',
+        request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Add xsrf header
+    // This is only done if running in a standard browser environment.
+    // Specifically not if we're in a web worker, or react-native.
+    if (utils.isStandardBrowserEnv()) {
+      // Add xsrf header
+      var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
+        cookies.read(config.xsrfCookieName) :
+        undefined;
+
+      if (xsrfValue) {
+        requestHeaders[config.xsrfHeaderName] = xsrfValue;
+      }
+    }
+
+    // Add headers to the request
+    if ('setRequestHeader' in request) {
+      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+          // Remove Content-Type if data is undefined
+          delete requestHeaders[key];
+        } else {
+          // Otherwise add header to the request
+          request.setRequestHeader(key, val);
+        }
+      });
+    }
+
+    // Add withCredentials to request if needed
+    if (!utils.isUndefined(config.withCredentials)) {
+      request.withCredentials = !!config.withCredentials;
+    }
+
+    // Add responseType to request if needed
+    if (responseType && responseType !== 'json') {
+      request.responseType = config.responseType;
+    }
+
+    // Handle progress if needed
+    if (typeof config.onDownloadProgress === 'function') {
+      request.addEventListener('progress', config.onDownloadProgress);
+    }
+
+    // Not all browsers support upload events
+    if (typeof config.onUploadProgress === 'function' && request.upload) {
+      request.upload.addEventListener('progress', config.onUploadProgress);
+    }
+
+    if (config.cancelToken) {
+      // Handle cancellation
+      config.cancelToken.promise.then(function onCanceled(cancel) {
+        if (!request) {
+          return;
+        }
+
+        request.abort();
+        reject(cancel);
+        // Clean up request
+        request = null;
+      });
+    }
+
+    if (!requestData) {
+      requestData = null;
+    }
+
+    // Send the request
+    request.send(requestData);
+ *
+ *
+ *
+ *
+ *
+ */
 
 // function getUrlFromConfig(config: AxiosRequestConfig) {
 //     let url: string = config.url === undefined ? "" : config.url;
