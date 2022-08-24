@@ -62,7 +62,7 @@ describe("Session claims error handling", function() {
     });
 
     describe("fetch", () => {
-        it("should return a parseable body", async function() {
+        it("should return a parseable body and fire an event", async function() {
             await startST();
             const browser = await puppeteer.launch({
                 args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -73,9 +73,11 @@ describe("Session claims error handling", function() {
                 await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
                 await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
                 await page.evaluate(async () => {
+                    let lastEvent;
                     const BASE_URL = "http://localhost.org:8080";
                     supertokens.init({
-                        apiDomain: BASE_URL
+                        apiDomain: BASE_URL,
+                        onHandleEvent: ev => (lastEvent = ev)
                     });
 
                     const userId = "testing-supertokens-website";
@@ -102,10 +104,12 @@ describe("Session claims error handling", function() {
                     assertEqual(resp.status, 403);
 
                     const parsed = await supertokens.getInvalidClaimsFromResponse({ response: resp });
-
                     assertEqual(parsed.length, 1);
                     assertEqual(parsed[0].id, "test-claim-failing");
                     assertEqual(parsed[0].reason.message, "testReason");
+
+                    assertEqual(lastEvent.action, "API_INVALID_CLAIM");
+                    assertEqual(JSON.stringify(lastEvent.claimValidationErrors), JSON.stringify(parsed));
 
                     // Just to test that we left the body intact
                     await resp.json();
@@ -114,10 +118,59 @@ describe("Session claims error handling", function() {
                 await browser.close();
             }
         });
+
+        it("should work with 403 responses without a body", async function() {
+            await startST();
+            const browser = await puppeteer.launch({
+                args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            });
+
+            try {
+                const page = await browser.newPage();
+                await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+                await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+                await page.evaluate(async () => {
+                    let lastEvent;
+                    const BASE_URL = "http://localhost.org:8080";
+                    supertokens.init({
+                        apiDomain: BASE_URL,
+                        onHandleEvent: ev => (lastEvent = ev)
+                    });
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await fetch(`${BASE_URL}/login`, {
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(await loginResponse.text(), userId);
+                    const resp = await fetch(`${BASE_URL}/403-without-body`, {
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+                    assertEqual(resp.status, 403);
+
+                    // Just to test that we left the body intact
+                    assertEqual(resp.bodyUsed, false);
+                    assertNotEqual(lastEvent.action, "API_INVALID_CLAIM");
+                });
+            } finally {
+                await browser.close();
+            }
+        });
     });
 
     describe("axios", () => {
-        it("should throw with a parseable body", async function() {
+        it("should throw with a parseable body and fire an event", async function() {
             await startST();
             const browser = await puppeteer.launch({
                 args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -129,10 +182,12 @@ describe("Session claims error handling", function() {
                 await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
                 await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
                 await page.evaluate(async () => {
+                    let lastEvent;
                     const BASE_URL = "http://localhost.org:8080";
                     supertokens.addAxiosInterceptors(axios);
                     supertokens.init({
-                        apiDomain: BASE_URL
+                        apiDomain: BASE_URL,
+                        onHandleEvent: ev => (lastEvent = ev)
                     });
 
                     const userId = "testing-supertokens-website";
@@ -166,6 +221,62 @@ describe("Session claims error handling", function() {
                     assertEqual(parsed.length, 1);
                     assertEqual(parsed[0].id, "test-claim-failing");
                     assertEqual(parsed[0].reason.message, "testReason");
+
+                    assertEqual(lastEvent.action, "API_INVALID_CLAIM");
+                    assertEqual(JSON.stringify(lastEvent.claimValidationErrors), JSON.stringify(parsed));
+                });
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should work with 403 responses without a body", async function() {
+            await startST();
+            const browser = await puppeteer.launch({
+                args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            });
+
+            try {
+                const page = await browser.newPage();
+
+                await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+                await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+                await page.evaluate(async () => {
+                    let lastEvent;
+                    const BASE_URL = "http://localhost.org:8080";
+                    supertokens.addAxiosInterceptors(axios);
+                    supertokens.init({
+                        apiDomain: BASE_URL,
+                        onHandleEvent: ev => (lastEvent = ev)
+                    });
+
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    const userIdFromResponse = loginResponse.data;
+                    assertEqual(userId, userIdFromResponse);
+                    let error;
+                    try {
+                        await axios.post(`${BASE_URL}/403-without-body`, JSON.stringify({ userId }), {
+                            headers: {
+                                Accept: "application/json",
+                                "Content-Type": "application/json"
+                            }
+                        });
+                    } catch (ex) {
+                        error = ex;
+                    }
+
+                    assertNotEqual(error, undefined);
+                    assertEqual(error.response.status, 403);
+
+                    assertNotEqual(lastEvent.action, "API_INVALID_CLAIM");
                 });
             } finally {
                 await browser.close();

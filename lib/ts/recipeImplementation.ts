@@ -4,7 +4,8 @@ import {
     RecipePreAPIHookFunction,
     RecipePostAPIHookFunction,
     SessionClaimValidator,
-    ClaimValidationError
+    ClaimValidationError,
+    ResponseWithBody
 } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
@@ -153,7 +154,7 @@ export default function RecipeImplementation(recipeImplInput: {
         },
 
         getInvalidClaimsFromResponse: async function(input: {
-            response: { data: any } | Response;
+            response: ResponseWithBody;
             userContext: any;
         }): Promise<ClaimValidationError[]> {
             let body;
