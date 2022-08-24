@@ -38,6 +38,7 @@ export function addInterceptorsToXMLHttpRequest() {
     XMLHttpRequest = function(this: XMLHttpRequestType) {
         let actual: XMLHttpRequestType = new oldXMLHttpRequest();
         let self = this;
+
         let requestHeaders: { name: string; value: string }[] = [];
         // let method: string = "";
         let url: string | URL = "";

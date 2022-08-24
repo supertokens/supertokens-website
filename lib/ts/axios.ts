@@ -187,6 +187,7 @@ export function responseInterceptor(axiosInstance: any) {
                     config,
                     url,
                     response,
+                    undefined,
                     true
                 );
             } else {
@@ -364,6 +365,12 @@ export default class AuthHttpRequest {
                               }
                 };
                 try {
+                    // the first time it comes here and if
+                    // prevError or prevResponse are not undefined
+                    // it means that we had already made the first API call.
+                    // So we directly try and do the refreshing by throwing this
+                    // prevError, and then whey that retries, then prevError will be undefined
+                    // which will result in the user's API being called.
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;
                     prevError = undefined;
