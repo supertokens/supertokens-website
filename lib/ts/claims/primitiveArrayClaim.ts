@@ -3,15 +3,18 @@ import { SessionClaimValidator } from "../types";
 export type PrimitiveArrayClaimConfig = {
     id: string;
     refresh: (userContext?: any) => Promise<void>;
+    defaultMaxAgeInSeconds?: number;
 };
 
 export class PrimitiveArrayClaim<ValueType> {
     public readonly id: string;
     public readonly refresh: SessionClaimValidator["refresh"];
+    public readonly defaultMaxAgeInSeconds: number;
 
     constructor(config: PrimitiveArrayClaimConfig) {
         this.id = config.id;
         this.refresh = config.refresh;
+        this.defaultMaxAgeInSeconds = config.defaultMaxAgeInSeconds === undefined ? 300 : config.defaultMaxAgeInSeconds;
     }
 
     getValueFromPayload(payload: any, _userContext?: any): ValueType[] {
@@ -23,9 +26,13 @@ export class PrimitiveArrayClaim<ValueType> {
     }
 
     validators = {
-        includes: (val: ValueType, maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
+        includes: (
+            val: ValueType,
+            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            id?: string
+        ): SessionClaimValidator => {
             return {
-                id: id !== undefined ? id : this.id + "-includes",
+                id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
@@ -60,9 +67,13 @@ export class PrimitiveArrayClaim<ValueType> {
                 }
             };
         },
-        excludes: (val: ValueType, maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
+        excludes: (
+            val: ValueType,
+            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            id?: string
+        ): SessionClaimValidator => {
             return {
-                id: id !== undefined ? id : this.id + "-excludes",
+                id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
@@ -101,9 +112,13 @@ export class PrimitiveArrayClaim<ValueType> {
                 }
             };
         },
-        includesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
+        includesAll: (
+            val: ValueType[],
+            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            id?: string
+        ): SessionClaimValidator => {
             return {
-                id: id !== undefined ? id : this.id + "-includesAll",
+                id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
@@ -139,9 +154,13 @@ export class PrimitiveArrayClaim<ValueType> {
                 }
             };
         },
-        excludesAll: (val: ValueType[], maxAgeInSeconds?: number, id?: string): SessionClaimValidator => {
+        excludesAll: (
+            val: ValueType[],
+            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            id?: string
+        ): SessionClaimValidator => {
             return {
-                id: id !== undefined ? id : this.id + "excludesAll",
+                id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||

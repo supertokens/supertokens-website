@@ -293,6 +293,10 @@ app.post(
     }
 );
 
+app.post("/403-without-body", async (req, res) => {
+    res.sendStatus(403);
+});
+
 app.use("/testing", async (req, res) => {
     let tH = req.headers["testing"];
     if (tH !== undefined) {

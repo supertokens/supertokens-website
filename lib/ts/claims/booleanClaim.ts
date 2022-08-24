@@ -12,16 +12,10 @@ export class BooleanClaim extends PrimitiveClaim<boolean> {
         this.validators = {
             ...this.validators,
             isTrue: (maxAge?: number): SessionClaimValidator => {
-                if (maxAge) {
-                    return this.validators.hasFreshValue(true, maxAge);
-                }
-                return this.validators.hasValue(true);
+                return this.validators.hasValue(true, maxAge);
             },
             isFalse: (maxAge?: number): SessionClaimValidator => {
-                if (maxAge) {
-                    return this.validators.hasFreshValue(false, maxAge);
-                }
-                return this.validators.hasValue(false);
+                return this.validators.hasValue(false, maxAge);
             }
         };
     }

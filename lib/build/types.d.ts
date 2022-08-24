@@ -142,3 +142,6 @@ export declare type SessionClaim<ValueType> = {
     getValueFromPayload(payload: any, _userContext?: any): ValueType | undefined;
     getLastFetchedTime(payload: any, _userContext?: any): number | undefined;
 };
+export declare type ResponseWithBody = {
+    data: any;
+} | Response;

@@ -192,12 +192,8 @@ export function responseInterceptor(axiosInstance: any) {
                 );
             } else {
                 if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                    onInvalidClaimResponse(
-                        await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                            response,
-                            userContext: {}
-                        })
-                    );
+                    // only fire event if body is defined.
+                    await onInvalidClaimResponse(response);
                 }
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {
@@ -258,12 +254,7 @@ export function responseErrorInterceptor(axiosInstance: any) {
                 error.response !== undefined &&
                 error.response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode
             ) {
-                onInvalidClaimResponse(
-                    await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                        response: error.response,
-                        userContext: {}
-                    })
-                );
+                await onInvalidClaimResponse(error.response);
             }
             throw error;
         }
@@ -420,12 +411,7 @@ export default class AuthHttpRequest {
                         logDebugMessage("doRequest: Retrying original request");
                     } else {
                         if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                            onInvalidClaimResponse(
-                                await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                                    response,
-                                    userContext: {}
-                                })
-                            );
+                            await onInvalidClaimResponse(response);
                         }
                         let antiCsrfToken = response.headers["anti-csrf"];
                         if (antiCsrfToken !== undefined) {
@@ -466,12 +452,7 @@ export default class AuthHttpRequest {
                             logDebugMessage("doRequest: Retrying original request");
                         } else {
                             if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                                onInvalidClaimResponse(
-                                    await AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
-                                        response,
-                                        userContext: {}
-                                    })
-                                );
+                                await onInvalidClaimResponse(response);
                             }
                             throw err;
                         }
