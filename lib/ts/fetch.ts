@@ -540,7 +540,7 @@ export function onTokenUpdate() {
     });
 }
 
-type IdRefreshTokenType =
+export type IdRefreshTokenType =
     | {
           status: "NOT_EXISTS" | "MAY_EXIST";
       }

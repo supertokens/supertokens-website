@@ -16,10 +16,11 @@
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
-    getIdRefreshToken
-    // setIdRefreshToken,
-    // FrontToken,
-    // onUnauthorisedResponse
+    getIdRefreshToken,
+    setIdRefreshToken,
+    FrontToken
+    // onUnauthorisedResponse,
+    // IdRefreshTokenType
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -40,6 +41,7 @@ export function addInterceptorsToXMLHttpRequest() {
         let requestHeaders: { name: string; value: string }[] = [];
         // let method: string = "";
         let url: string | URL = "";
+        let doNotDoInterception = false;
 
         // we do not provide onerror cause that is fired only on
         // network level failures and nothing else. If a status code is > 400,
@@ -92,14 +94,62 @@ export function addInterceptorsToXMLHttpRequest() {
         };
 
         async function handleResponse() {
-            await new Promise(r => setTimeout(r, 0));
+            if (doNotDoInterception) {
+                logDebugMessage("handleResponse: Returning without interception");
+                return;
+            }
             try {
-                const status = actual.status;
-                if (status === 0 || (status >= 200 && status < 400)) {
-                    // The request has been completed successfully
-                    // console.log(actual.responseText);
-                } else {
-                    // Oh no! There has been an error with the request!
+                try {
+                    logDebugMessage("handleResponse: Interception started");
+
+                    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
+
+                    const status = actual.status;
+                    const idRefreshToken = actual.getResponseHeader("id-refresh-token");
+                    if (idRefreshToken) {
+                        logDebugMessage("handleResponse: Setting sIRTFrontend: " + idRefreshToken);
+                        await setIdRefreshToken(idRefreshToken, status);
+                    }
+
+                    if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                        logDebugMessage("responseInterceptor: Status code is: " + status);
+                        // let config = response.config;
+                        // return AuthHttpRequest.doRequest(
+                        //     (config: AxiosRequestConfig) => {
+                        //         // we create an instance since we don't want to intercept this.
+                        //         // const instance = axios.create();
+                        //         // return instance(config);
+                        //         return axiosInstance(config);
+                        //     },
+                        //     config,
+                        //     url,
+                        //     response,
+                        //     true
+                        // );
+                        // TODO: add refreshing and retry.
+                    } else {
+                        let antiCsrfToken = actual.getResponseHeader("anti-csrf");
+                        if (antiCsrfToken) {
+                            let tok = await getIdRefreshToken(true);
+                            if (tok.status === "EXISTS") {
+                                logDebugMessage("handleResponse: Setting anti-csrf token");
+                                await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
+                            }
+                        }
+                        let frontToken = actual.getResponseHeader("front-token");
+                        if (frontToken) {
+                            logDebugMessage("handleResponse: Setting sFrontToken: " + frontToken);
+                            await FrontToken.setItem(frontToken);
+                        }
+                    }
+                } finally {
+                    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
+                        logDebugMessage(
+                            "handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                        );
+                        await AntiCsrfToken.removeToken();
+                        await FrontToken.removeToken();
+                    }
                 }
             } catch (err) {
                 // there are couple of events here we can use:
@@ -120,10 +170,7 @@ export function addInterceptorsToXMLHttpRequest() {
         };
 
         self.send = function(body) {
-            let doNotDoInterception = false;
-
             logDebugMessage("send: called");
-
             try {
                 doNotDoInterception =
                     (typeof url === "string" &&

@@ -47,7 +47,7 @@ export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshToken
     result: "RETRY";
 }>;
 export declare function onTokenUpdate(): void;
-declare type IdRefreshTokenType = {
+export declare type IdRefreshTokenType = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {
     status: "EXISTS";
@@ -58,4 +58,3 @@ export declare function setIdRefreshToken(idRefreshToken: string | "remove", sta
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
-export {};
