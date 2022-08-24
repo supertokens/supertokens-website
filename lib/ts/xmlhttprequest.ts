@@ -41,17 +41,75 @@ export function addInterceptorsToXMLHttpRequest() {
         // let method: string = "";
         let url: string | URL = "";
 
-        actual.onerror = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-            if (self["onerror"]) {
-                return self.onerror(ev);
+        // we do not provide onerror cause that is fired only on
+        // network level failures and nothing else. If a status code is > 400,
+        // then onload and onreadystatechange are called.
+
+        self.onload = null;
+        actual.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+            if (!self["onload"]) {
+                return;
+            }
+
+            handleResponse().then(() => {
+                if (!self["onload"]) {
+                    return;
+                }
+                self.onload(ev);
+            });
+        };
+
+        self.onreadystatechange = null;
+        actual.onreadystatechange = function(ev: Event) {
+            if (!self["onreadystatechange"]) {
+                return;
+            }
+
+            // In local files, status is 0 upon success in Mozilla Firefox
+            if (actual.readyState === XMLHttpRequest.DONE) {
+                handleResponse().then(() => {
+                    if (!self["onreadystatechange"]) {
+                        return;
+                    }
+                    self.onreadystatechange(ev);
+                });
+            } else {
+                return self.onreadystatechange(ev);
             }
         };
 
-        actual.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-            if (self["onload"]) {
-                return self.onload(ev);
+        self.onloadend = null;
+        actual.onloadend = function(ev: ProgressEvent<EventTarget>) {
+            if (!self["onloadend"]) {
+                return;
             }
+            handleResponse().then(() => {
+                if (!self["onloadend"]) {
+                    return;
+                }
+                self.onloadend(ev);
+            });
         };
+
+        async function handleResponse() {
+            await new Promise(r => setTimeout(r, 0));
+            try {
+                const status = actual.status;
+                if (status === 0 || (status >= 200 && status < 400)) {
+                    // The request has been completed successfully
+                    // console.log(actual.responseText);
+                } else {
+                    // Oh no! There has been an error with the request!
+                }
+            } catch (err) {
+                // there are couple of events here we can use:
+                // - error -> called for network level issues..
+                // - timeout
+                // - abort
+                let event = new Event("error");
+                actual.dispatchEvent(event);
+            }
+        }
 
         self.open = function(_: string, u: string | URL) {
             // method = m;
@@ -116,7 +174,6 @@ export function addInterceptorsToXMLHttpRequest() {
 
                 if (AuthHttpRequestFetch.config.autoAddCredentials) {
                     logDebugMessage("send: Adding credentials include");
-                    // TODO: need to check if the default is false or not.
                     self.withCredentials = true;
                 }
 
@@ -150,7 +207,6 @@ export function addInterceptorsToXMLHttpRequest() {
             actual.setRequestHeader(name, value);
         };
 
-        let doNotProxy = ["onload", "onerror", "send", "setRequestHeader", "open"];
         // iterate all properties in actual to proxy them according to their type
         // For functions, we call actual and return the result
         // For non-functions, we make getters/setters
@@ -158,7 +214,7 @@ export function addInterceptorsToXMLHttpRequest() {
         for (const prop in actual) {
             // skip properties we already have - this will skip both the above defined properties
             // that we don't want to proxy and skip properties on the prototype belonging to Object
-            if (!(prop in self) && !doNotProxy.includes(prop)) {
+            if (!(prop in self)) {
                 // create closure to capture value of prop
                 (function(prop) {
                     if (typeof actual[prop] === "function") {
