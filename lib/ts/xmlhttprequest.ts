@@ -122,7 +122,43 @@ export function addInterceptorsToXMLHttpRequest() {
             // We need to create a new XHR with the same thing as the older one
             let retryXhr = new XMLHttpRequest();
 
-            // TODO: need to add listeners to retryXhr based on what the user added on self
+            // TODO: copy over all things just like it's done for actual
+            Object.defineProperty(self, "status", {
+                get: function() {
+                    return retryXhr["status"];
+                }
+            });
+
+            Object.defineProperty(self, "responseText", {
+                get: function() {
+                    return retryXhr["responseText"];
+                }
+            });
+
+            if (self["onload"]) {
+                retryXhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+                    if (!self["onload"]) {
+                        return;
+                    }
+                    self.onload(ev);
+                };
+            }
+            if (self["onreadystatechange"]) {
+                retryXhr.onreadystatechange = function(ev: Event) {
+                    if (!self["onreadystatechange"]) {
+                        return;
+                    }
+                    self.onreadystatechange(ev);
+                };
+            }
+            if (self["onloadend"]) {
+                retryXhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
+                    if (!self["onloadend"]) {
+                        return;
+                    }
+                    self.onloadend(ev);
+                };
+            }
 
             // this also calls the send function with the appropriate body
             listOfFunctionCallsInProxy.forEach(i => {
@@ -178,6 +214,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     }
                 }
             } catch (err) {
+                // TODO:... this part needs to be properly thought about..
                 // there are couple of events here we can use:
                 // - error -> called for network level issues..
                 // - timeout
@@ -316,6 +353,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     } else {
                         // define our own property that just gets or sets the same prop on the actual
                         Object.defineProperty(self, prop, {
+                            configurable: true,
                             get: function() {
                                 return actual[prop];
                             },
