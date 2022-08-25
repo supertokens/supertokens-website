@@ -261,7 +261,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             addBrowserConsole(page);
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
+                // supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
                 });

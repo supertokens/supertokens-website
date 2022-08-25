@@ -121,12 +121,13 @@ export function addInterceptorsToXMLHttpRequest() {
             logDebugMessage("handleRetryPostRefreshing: Retrying original request");
             // We need to create a new XHR with the same thing as the older one
             let retryXhr = new XMLHttpRequest();
+
+            // TODO: need to add listeners to retryXhr based on what the user added on self
+
+            // this also calls the send function with the appropriate body
             listOfFunctionCallsInProxy.forEach(i => {
                 i(retryXhr);
             });
-
-            addCallbackListenersToOldXHRInstance(retryXhr);
-            retryXhr.send();
         }
 
         async function handleResponse(xhr: XMLHttpRequestType): Promise<boolean> {
@@ -200,6 +201,9 @@ export function addInterceptorsToXMLHttpRequest() {
         };
 
         self.send = function(body) {
+            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                xhr.send(body);
+            });
             logDebugMessage("send: called");
             try {
                 doNotDoInterception =
