@@ -315,6 +315,8 @@ export function addInterceptorsToXMLHttpRequest() {
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
                 xhr.setRequestHeader(name, value);
             });
+            // TODO: If this is called twice on the same key, is the older version
+            // removed or is the newer value just appended..
             if (
                 requestHeaders.some(i => {
                     i.name === name;
