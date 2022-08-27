@@ -101,22 +101,26 @@ export function addInterceptorsToXMLHttpRequest() {
             };
         }
 
-        async function handleRetryPostRefreshing(xhr: XMLHttpRequestType) {
+        async function handleRetryPostRefreshing(xhr: XMLHttpRequestType): Promise<boolean> {
             if (preRequestIdToken === undefined) {
                 throw new Error("Should never come here..");
             }
             const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage("handleRetryPostRefreshing: Not retrying original request");
-                // Returning refreshResult.error as an Axios Error if we attempted a refresh
-                // Returning the response to the original response as an error if we did not attempt refreshing
-                // TODO:... this part needs to be properly thought about..
-                // returnObj = refreshResult.error
-                //     ? await createAxiosErrorFromFetchResp(refreshResult.error)
-                //     : await createAxiosErrorFromAxiosResp(response);
-                let event = new Event("error");
-                xhr.dispatchEvent(event);
-                return;
+                // for session expired, we simply let the self's onloadend (etc..) be called
+                // since it already had a 401 status code.
+                if (refreshResult.result !== "SESSION_EXPIRED") {
+                    // Returning refreshResult.error as an Axios Error if we attempted a refresh
+                    // Returning the response to the original response as an error if we did not attempt refreshing
+                    // TODO:... this part needs to be properly thought about..
+                    // returnObj = refreshResult.error
+                    //     ? await createAxiosErrorFromFetchResp(refreshResult.error)
+                    //     : await createAxiosErrorFromAxiosResp(response);
+                    let event = new Event("error");
+                    xhr.dispatchEvent(event);
+                }
+                return true;
             }
             logDebugMessage("handleRetryPostRefreshing: Retrying original request");
             // We need to create a new XHR with the same thing as the older one
@@ -164,6 +168,8 @@ export function addInterceptorsToXMLHttpRequest() {
             listOfFunctionCallsInProxy.forEach(i => {
                 i(retryXhr);
             });
+
+            return false;
         }
 
         async function handleResponse(xhr: XMLHttpRequestType): Promise<boolean> {
@@ -186,8 +192,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
-                        handleRetryPostRefreshing(xhr);
-                        return false;
+                        return await handleRetryPostRefreshing(xhr);
                     } else {
                         let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
                         if (antiCsrfToken) {
