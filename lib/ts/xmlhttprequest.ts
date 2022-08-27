@@ -53,52 +53,49 @@ export function addInterceptorsToXMLHttpRequest() {
         self.onload = null;
         self.onreadystatechange = null;
         self.onloadend = null;
-        addCallbackListenersToOldXHRInstance(actual);
 
-        function addCallbackListenersToOldXHRInstance(xhr: XMLHttpRequestType) {
-            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-                if (!self["onload"]) {
+        actual.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+            if (!self["onload"]) {
+                return;
+            }
+
+            handleResponse().then(callself => {
+                if (!self["onload"] || !callself) {
                     return;
                 }
+                self.onload(ev);
+            });
+        };
 
-                handleResponse(xhr).then(callself => {
-                    if (!self["onload"] || !callself) {
+        actual.onreadystatechange = function(ev: Event) {
+            if (!self["onreadystatechange"]) {
+                return;
+            }
+
+            // In local files, status is 0 upon success in Mozilla Firefox
+            if (actual.readyState === XMLHttpRequest.DONE) {
+                handleResponse().then(callself => {
+                    if (!self["onreadystatechange"] || !callself) {
                         return;
                     }
-                    self.onload(ev);
+                    self.onreadystatechange(ev);
                 });
-            };
+            } else {
+                return self.onreadystatechange(ev);
+            }
+        };
 
-            xhr.onreadystatechange = function(ev: Event) {
-                if (!self["onreadystatechange"]) {
+        actual.onloadend = function(ev: ProgressEvent<EventTarget>) {
+            if (!self["onloadend"]) {
+                return;
+            }
+            handleResponse().then(callself => {
+                if (!self["onloadend"] || !callself) {
                     return;
                 }
-
-                // In local files, status is 0 upon success in Mozilla Firefox
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    handleResponse(xhr).then(callself => {
-                        if (!self["onreadystatechange"] || !callself) {
-                            return;
-                        }
-                        self.onreadystatechange(ev);
-                    });
-                } else {
-                    return self.onreadystatechange(ev);
-                }
-            };
-
-            xhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
-                if (!self["onloadend"]) {
-                    return;
-                }
-                handleResponse(xhr).then(callself => {
-                    if (!self["onloadend"] || !callself) {
-                        return;
-                    }
-                    self.onloadend(ev);
-                });
-            };
-        }
+                self.onloadend(ev);
+            });
+        };
 
         async function handleRetryPostRefreshing(): Promise<boolean> {
             if (preRequestIdToken === undefined) {
@@ -168,7 +165,7 @@ export function addInterceptorsToXMLHttpRequest() {
             return false;
         }
 
-        async function handleResponse(xhr: XMLHttpRequestType): Promise<boolean> {
+        async function handleResponse(): Promise<boolean> {
             if (doNotDoInterception) {
                 logDebugMessage("handleResponse: Returning without interception");
                 return true;
@@ -180,8 +177,8 @@ export function addInterceptorsToXMLHttpRequest() {
 
                     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
-                    const status = xhr.status;
-                    const idRefreshToken = xhr.getResponseHeader("id-refresh-token");
+                    const status = actual.status;
+                    const idRefreshToken = actual.getResponseHeader("id-refresh-token");
                     if (idRefreshToken) {
                         logDebugMessage("handleResponse: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, status);
@@ -190,7 +187,7 @@ export function addInterceptorsToXMLHttpRequest() {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
                     } else if (status < 400) {
-                        let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
+                        let antiCsrfToken = actual.getResponseHeader("anti-csrf");
                         if (antiCsrfToken) {
                             let tok = await getIdRefreshToken(true);
                             if (tok.status === "EXISTS") {
@@ -198,7 +195,7 @@ export function addInterceptorsToXMLHttpRequest() {
                                 await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                             }
                         }
-                        let frontToken = xhr.getResponseHeader("front-token");
+                        let frontToken = actual.getResponseHeader("front-token");
                         if (frontToken) {
                             logDebugMessage("handleResponse: Setting sFrontToken: " + frontToken);
                             await FrontToken.setItem(frontToken);
@@ -237,7 +234,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     // - timeout
                     // - abort
                     let event = new Event("error");
-                    xhr.dispatchEvent(event);
+                    actual.dispatchEvent(event);
                 }
                 return true;
             }
