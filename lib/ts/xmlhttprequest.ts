@@ -174,6 +174,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 return true;
             }
             try {
+                let doFinallyCheck = true;
                 try {
                     logDebugMessage("handleResponse: Interception started");
 
@@ -185,11 +186,10 @@ export function addInterceptorsToXMLHttpRequest() {
                         logDebugMessage("handleResponse: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, status);
                     }
-
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
-                    } else {
+                    } else if (status < 400) {
                         let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
                         if (antiCsrfToken) {
                             let tok = await getIdRefreshToken(true);
@@ -203,15 +203,23 @@ export function addInterceptorsToXMLHttpRequest() {
                             logDebugMessage("handleResponse: Setting sFrontToken: " + frontToken);
                             await FrontToken.setItem(frontToken);
                         }
+                    } else {
+                        // we set this to false so that the finally
+                        // block below doesn't bother with checking for session related
+                        // things - cause the original API has returned a > 400 status code that is
+                        // not session expired, and nor is invalid claim.
+                        doFinallyCheck = false;
                     }
                     return true;
                 } finally {
-                    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
-                        logDebugMessage(
-                            "handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
-                        );
-                        await AntiCsrfToken.removeToken();
-                        await FrontToken.removeToken();
+                    if (doFinallyCheck) {
+                        if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
+                            logDebugMessage(
+                                "handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                            );
+                            await AntiCsrfToken.removeToken();
+                            await FrontToken.removeToken();
+                        }
                     }
                 }
             } catch (err) {
@@ -296,7 +304,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("send: Adding anti-csrf token to request");
-                        self.setRequestHeader("anti-csrf", antiCsrfToken);
+                        actual.setRequestHeader("anti-csrf", antiCsrfToken);
                     }
                 }
 
@@ -311,7 +319,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     })
                 ) {
                     logDebugMessage("send: Adding rid header: anti-csrf");
-                    self.setRequestHeader("rid", "anti-csrf");
+                    actual.setRequestHeader("rid", "anti-csrf");
                 } else {
                     logDebugMessage("send: rid header was already there in request");
                 }
@@ -329,11 +337,11 @@ export function addInterceptorsToXMLHttpRequest() {
             // removed or is the newer value just appended..
             if (
                 requestHeaders.some(i => {
-                    i.name === name;
+                    return i.name === name;
                 })
             ) {
                 requestHeaders = requestHeaders.filter(i => {
-                    i.name === name;
+                    return i.name !== name;
                 });
             }
             requestHeaders.push({ name, value });
