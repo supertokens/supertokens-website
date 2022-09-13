@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for new FDI (1.15)
 - Added the `API_INVALID_CLAIM` event and the related `invalidClaimStatusCode` config prop.
 - Adds base classes, types for session claims, and the `getInvalidClaimsFromResponse`, `validateClaims`, `getClaimValue` functions.
 
