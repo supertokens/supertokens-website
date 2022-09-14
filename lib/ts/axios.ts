@@ -20,7 +20,8 @@ import AuthHttpRequestFetch, {
     getIdRefreshToken,
     setIdRefreshToken,
     FrontToken,
-    onUnauthorisedResponse
+    onUnauthorisedResponse,
+    onInvalidClaimResponse
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -190,6 +191,10 @@ export function responseInterceptor(axiosInstance: any) {
                     true
                 );
             } else {
+                if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                    // only fire event if body is defined.
+                    await onInvalidClaimResponse(response);
+                }
                 let antiCsrfToken = response.headers["anti-csrf"];
                 if (antiCsrfToken !== undefined) {
                     let tok = await getIdRefreshToken(true);
@@ -223,7 +228,7 @@ export function responseInterceptor(axiosInstance: any) {
 }
 
 export function responseErrorInterceptor(axiosInstance: any) {
-    return (error: any) => {
+    return async (error: any) => {
         logDebugMessage("responseErrorInterceptor: called");
         if (
             error.response !== undefined &&
@@ -245,6 +250,12 @@ export function responseErrorInterceptor(axiosInstance: any) {
                 true
             );
         } else {
+            if (
+                error.response !== undefined &&
+                error.response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode
+            ) {
+                await onInvalidClaimResponse(error.response);
+            }
             throw error;
         }
     };
@@ -399,6 +410,9 @@ export default class AuthHttpRequest {
                         }
                         logDebugMessage("doRequest: Retrying original request");
                     } else {
+                        if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                            await onInvalidClaimResponse(response);
+                        }
                         let antiCsrfToken = response.headers["anti-csrf"];
                         if (antiCsrfToken !== undefined) {
                             let tok = await getIdRefreshToken(true);
@@ -415,14 +429,15 @@ export default class AuthHttpRequest {
                         return response;
                     }
                 } catch (err) {
-                    if ((err as any).response !== undefined) {
-                        let idRefreshToken = (err as any).response.headers["id-refresh-token"];
+                    const response = (err as any).response;
+                    if (response !== undefined) {
+                        let idRefreshToken = response.headers["id-refresh-token"];
                         if (idRefreshToken !== undefined) {
                             logDebugMessage("doRequest: Setting sIRTFrontend: " + idRefreshToken);
-                            await setIdRefreshToken(idRefreshToken, (err as any).response.status);
+                            await setIdRefreshToken(idRefreshToken, response.status);
                         }
-                        if ((err as any).response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
-                            logDebugMessage("doRequest: Status code is: " + (err as any).response.status);
+                        if (response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                            logDebugMessage("doRequest: Status code is: " + response.status);
                             const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
                             if (refreshResult.result !== "RETRY") {
                                 logDebugMessage("doRequest: Not retrying original request");
@@ -436,6 +451,9 @@ export default class AuthHttpRequest {
                             }
                             logDebugMessage("doRequest: Retrying original request");
                         } else {
+                            if (response.status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                                await onInvalidClaimResponse(response);
+                            }
                             throw err;
                         }
                     } else {

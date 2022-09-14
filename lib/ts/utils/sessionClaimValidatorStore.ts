@@ -12,6 +12,19 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-export const package_version = "13.0.2";
 
-export const supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12", "1.13", "1.14", "1.15"];
+import { SessionClaimValidator } from "../types";
+
+export class SessionClaimValidatorStore {
+    private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
+
+    static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
+        SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.push(builder);
+    };
+
+    static getClaimValidatorsAddedByOtherRecipes = (): SessionClaimValidator[] => {
+        return SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes;
+    };
+}
+
+export default SessionClaimValidatorStore;

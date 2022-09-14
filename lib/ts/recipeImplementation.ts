@@ -1,4 +1,12 @@
-import { RecipeInterface, EventHandler, RecipePreAPIHookFunction, RecipePostAPIHookFunction } from "./types";
+import {
+    RecipeInterface,
+    EventHandler,
+    RecipePreAPIHookFunction,
+    RecipePostAPIHookFunction,
+    SessionClaimValidator,
+    ClaimValidationError,
+    ResponseWithBody
+} from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
@@ -143,6 +151,61 @@ export default function RecipeImplementation(recipeImplInput: {
             }
 
             // we do not send an event here since it's triggered in setIdRefreshToken area.
+        },
+
+        getInvalidClaimsFromResponse: async function(input: {
+            response: ResponseWithBody;
+            userContext: any;
+        }): Promise<ClaimValidationError[]> {
+            let body;
+            if ("body" in input.response) {
+                body = await input.response.clone().json();
+            } else {
+                body = input.response.data;
+            }
+
+            return body.claimValidationErrors;
+        },
+
+        getGlobalClaimValidators: function(input: {
+            claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+            userContext: any;
+        }) {
+            return input.claimValidatorsAddedByOtherRecipes;
+        },
+
+        validateClaims: async function(input: {
+            claimValidators: SessionClaimValidator[];
+            userContext: any;
+        }): Promise<ClaimValidationError[]> {
+            let accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+            // We first refresh all claims that may need to be refreshed, before running any validators,
+            // to avoid a situation where:
+            // 1. The payload passes claimValidators[0].
+            // 2. claimValidators[1] requires a refresh
+            // 3. The accessTokenPayload is refreshed to a state where it no longer passes claimValidators[0]
+            // 4. We return no errors since both claimValidators[0] and claimValidators[1] passed (but different states of the payload)
+            // Running all refreshes before validation avoids this.
+
+            for (const validator of input.claimValidators) {
+                if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
+                    await validator.refresh(input.userContext);
+                    accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+                }
+            }
+
+            const errors = [];
+            for (const validator of input.claimValidators) {
+                const validationRes = await validator.validate(accessTokenPayload, input.userContext);
+                if (!validationRes.isValid) {
+                    errors.push({
+                        validatorId: validator.id,
+                        reason: validationRes.reason
+                    });
+                }
+            }
+
+            return errors;
         }
     };
 }

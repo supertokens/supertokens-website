@@ -1,4 +1,4 @@
-import supertokens, { addAxiosInterceptors, signOut, getUserId } from "../";
+import supertokens, { addAxiosInterceptors, signOut, getUserId, BooleanClaim, PrimitiveClaim, SessionClaimValidator, validateClaims } from "../";
 import axios from "axios";
 import { STGeneralError } from '../utils/error';
 
@@ -154,3 +154,48 @@ getUserId({
 }).catch(err => {
 
 });
+
+
+class BoolClaimWithCustomValidators extends BooleanClaim {
+    constructor(conf) {
+        super(conf);
+
+        this.validators = {
+            ...this.validators,
+            custVal: (minTimeStamp: number) => ({
+                id: "test1-v1",
+                refresh: TestBoolClaimWithCustomValidators.refresh,
+                shouldRefresh: (payload: any, ctx?: any) =>
+                    payload[TestBoolClaimWithCustomValidators.id] === undefined ||
+                    payload[TestBoolClaimWithCustomValidators.id].t <= minTimeStamp,
+                validate: () => ({ isValid: true }),
+            }),
+        }
+    }
+
+    validators!: BooleanClaim["validators"] & { custVal: (minTimeStamp: number) => SessionClaimValidator};
+}
+
+const TestBoolClaimWithCustomValidators = new BoolClaimWithCustomValidators({});
+
+const customValidator = TestBoolClaimWithCustomValidators.validators.custVal(123);
+customValidator.validate({}, {});
+
+const TestNumberClaim = new PrimitiveClaim<number>({
+    id: "test2",
+    refresh: async (ctx) => {
+        if (ctx) {
+            ctx.refreshCalled = 1;
+        }
+    },
+});
+
+const boolValidator = TestNumberClaim.validators.hasValue(123);
+
+supertokens.validateClaims((oc) => [...oc, boolValidator, customValidator]);
+
+supertokens.validateClaims((oc) => [...oc, boolValidator, customValidator],
+    {
+        refreshCalled: 0,
+    },
+);
