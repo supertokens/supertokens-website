@@ -189,7 +189,11 @@ export default function RecipeImplementation(recipeImplInput: {
 
             for (const validator of input.claimValidators) {
                 if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
-                    await validator.refresh(input.userContext);
+                    try {
+                        await validator.refresh(input.userContext);
+                    } catch (err) {
+                        console.error(`Encountered an error while refreshing validator ${validator.id}`, err);
+                    }
                     accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
                 }
             }
