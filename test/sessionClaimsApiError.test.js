@@ -27,13 +27,10 @@ describe("Session claims error handling", function() {
     let skipped = false;
 
     before(async function() {
-        spawn(
-            "./test/startServer",
-            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-            {
-                stdio: "inherit"
-            }
-        );
+        spawn("./test/startServer", [
+            process.env.INSTALL_PATH,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
+        ]);
         await new Promise(r => setTimeout(r, 1000));
         if (!(await checkSessionClaimsSupport())) {
             skipped = true;

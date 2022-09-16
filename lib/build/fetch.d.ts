@@ -1,4 +1,4 @@
-import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
+import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
@@ -55,6 +55,9 @@ declare type IdRefreshTokenType = {
     token: string;
 };
 export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
+export declare function getStorageNameForToken(tokenType: TokenType): "sIRTFrontend" | "st-refresh-token" | "st-access-token";
+export declare function setToken(tokenType: TokenType, value: string, expiry: number): Promise<void>;
+export declare function getToken(tokenType: TokenType): Promise<string | undefined>;
 export declare function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;

@@ -21,7 +21,9 @@ import AuthHttpRequestFetch, {
     setIdRefreshToken,
     FrontToken,
     onUnauthorisedResponse,
-    onInvalidClaimResponse
+    onInvalidClaimResponse,
+    setToken,
+    getToken
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -125,6 +127,8 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                   }
     };
 
+    await setTokenHeaders(configWithAntiCsrf);
+
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
     return configWithAntiCsrf;
 }
@@ -170,7 +174,9 @@ export function responseInterceptor(axiosInstance: any) {
 
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
-            let idRefreshToken = response.headers["id-refresh-token"];
+            await saveTokensFromHeaders(response);
+
+            let idRefreshToken = response.headers["st-id-refresh-token"];
             if (idRefreshToken !== undefined) {
                 logDebugMessage("responseInterceptor: Setting sIRTFrontend: " + idRefreshToken);
                 await setIdRefreshToken(idRefreshToken, response.status);
@@ -374,6 +380,9 @@ export default class AuthHttpRequest {
                                   ...configWithAntiCsrf.headers
                               }
                 };
+
+                await setTokenHeaders(configWithAntiCsrf);
+
                 try {
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;
@@ -388,10 +397,14 @@ export default class AuthHttpRequest {
                     } else {
                         logDebugMessage("doRequest: Making user's http call");
                     }
+
                     let response =
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
+
                     logDebugMessage("doRequest: User's http call ended");
-                    let idRefreshToken = response.headers["id-refresh-token"];
+
+                    await saveTokensFromHeaders(response);
+                    let idRefreshToken = response.headers["st-id-refresh-token"];
                     if (idRefreshToken !== undefined) {
                         logDebugMessage("doRequest: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, response.status);
@@ -431,7 +444,9 @@ export default class AuthHttpRequest {
                 } catch (err) {
                     const response = (err as any).response;
                     if (response !== undefined) {
-                        let idRefreshToken = response.headers["id-refresh-token"];
+                        await saveTokensFromHeaders(response);
+
+                        let idRefreshToken = response.headers["st-id-refresh-token"];
                         if (idRefreshToken !== undefined) {
                             logDebugMessage("doRequest: Setting sIRTFrontend: " + idRefreshToken);
                             await setIdRefreshToken(idRefreshToken, response.status);
@@ -475,4 +490,63 @@ export default class AuthHttpRequest {
             }
         }
     };
+}
+
+async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
+    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
+        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+
+        logDebugMessage("setTokenHeaders: adding header preference to rid header");
+        requestConfig.headers = {
+            ...requestConfig.headers,
+            rid:
+                (requestConfig.headers === undefined || requestConfig.headers.rid === undefined
+                    ? "anti-csrf"
+                    : requestConfig.headers.rid) + ";header"
+        };
+
+        const idRefreshToken = await getToken("idRefresh");
+        logDebugMessage("setTokenHeaders: added st-id-refresh-token header");
+        if (idRefreshToken !== undefined) {
+            requestConfig.headers = {
+                ...requestConfig.headers,
+                "st-id-refresh-token": idRefreshToken
+            };
+        }
+
+        const accessToken = await getToken("access");
+        if (accessToken !== undefined) {
+            logDebugMessage("setTokenHeaders: added authorization header");
+            requestConfig.headers = {
+                ...requestConfig.headers,
+                Authorization: `Bearer ${accessToken}`
+            };
+        }
+
+        const refreshToken = await getToken("refresh");
+        if (refreshToken) {
+            logDebugMessage("setTokenHeaders: added st-refresh-token header");
+            requestConfig.headers = {
+                ...requestConfig.headers,
+                "st-refresh-token": refreshToken
+            };
+        }
+    }
+}
+
+async function saveTokensFromHeaders(response: AxiosResponse) {
+    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
+        logDebugMessage("doRequest: Saving updated tokens from the response");
+        const refreshToken = response.headers["st-refresh-token"];
+        if (refreshToken) {
+            const [value, expiry] = refreshToken.split(";");
+            await setToken("refresh", value, Number.parseInt(expiry));
+        }
+
+        const accessToken = response.headers["st-access-token"];
+        if (accessToken) {
+            const [value, expiry] = accessToken.split(";");
+            await setToken("access", value, Number.parseInt(expiry));
+        }
+    }
 }

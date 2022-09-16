@@ -1,2 +1,2 @@
 # use: ./test/startServer ../../../com-root
-(cd test/server && TEST_MODE=testing INSTALL_PATH=../../$1 NODE_PORT=$2 node .)
+(cd test/server && TEST_MODE=testing INSTALL_PATH=../../$1 NODE_PORT=$2 TRANSFER_METHOD=$3 node .)

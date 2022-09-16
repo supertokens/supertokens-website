@@ -14,6 +14,7 @@ export declare type Event = {
     userContext: any;
 };
 export declare type EventHandler = (event: Event) => void;
+export declare type TokenType = "access" | "refresh" | "idRefresh";
 export declare type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
@@ -23,6 +24,7 @@ export declare type InputType = {
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
+    tokenTransferMethod?: "cookie" | "header";
     cookieDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
@@ -41,6 +43,7 @@ export declare type NormalisedInputType = {
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
+    tokenTransferMethod: "cookie" | "header";
     cookieDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;

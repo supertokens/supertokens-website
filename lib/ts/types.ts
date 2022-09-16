@@ -34,6 +34,7 @@ export type Event =
       };
 
 export type EventHandler = (event: Event) => void;
+export type TokenType = "access" | "refresh" | "idRefresh";
 
 export type InputType = {
     enableDebugLogs?: boolean;
@@ -44,6 +45,11 @@ export type InputType = {
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
+    // TODO: get rid of st-id-refresh-token, instead access token set to remove
+
+    // TODO: Better name: (useCookie?)
+    tokenTransferMethod?: "cookie" | "header";
+    // TODO: better name, because this is the basis of interception `sessionDomain`
     cookieDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
@@ -66,6 +72,7 @@ export type NormalisedInputType = {
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
+    tokenTransferMethod: "cookie" | "header";
     cookieDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;

@@ -158,6 +158,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         invalidClaimStatusCode,
         autoAddCredentials,
         isInIframe,
+        tokenTransferMethod: options.tokenTransferMethod !== undefined ? options.tokenTransferMethod : "cookie",
         cookieDomain,
         preAPIHook,
         postAPIHook,

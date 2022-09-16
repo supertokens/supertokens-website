@@ -16,7 +16,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
-import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
+import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
@@ -279,15 +279,20 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: rid header was already there in request");
                 }
 
+                await setTokenHeaders(clonedHeaders);
+
                 logDebugMessage("doRequest: Making user's http call");
                 let response = await httpCall(configWithAntiCsrf);
                 logDebugMessage("doRequest: User's http call ended");
 
-                const idRefreshToken = response.headers.get("id-refresh-token");
+                await saveTokensFromHeaders(response);
+
+                const idRefreshToken = response.headers.get("st-id-refresh-token");
                 if (idRefreshToken) {
                     logDebugMessage("doRequest: Setting sIRTFrontend: " + idRefreshToken);
                     await setIdRefreshToken(idRefreshToken, response.status);
                 }
+
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
                     let retry = await onUnauthorisedResponse(preRequestIdToken);
@@ -345,6 +350,8 @@ export default class AuthHttpRequest {
 }
 
 const ID_REFRESH_TOKEN_NAME = "sIRTFrontend";
+const REFRESH_TOKEN_NAME = "st-refresh-token";
+const ACCESS_TOKEN_NAME = "st-access-token";
 const ANTI_CSRF_NAME = "sAntiCsrf";
 const FRONT_TOKEN_NAME = "sFrontToken";
 
@@ -386,23 +393,24 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
-                let headers: any = {};
+                const headers = new Headers();
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("onUnauthorisedResponse: Adding anti-csrf token to refresh API call");
-                        headers = {
-                            ...headers,
-                            "anti-csrf": antiCsrfToken
-                        };
+                        headers.set("anti-csrf", antiCsrfToken);
                     }
                 }
                 logDebugMessage("onUnauthorisedResponse: Adding rid and fdi-versions to refresh call header");
-                headers = {
-                    rid: AuthHttpRequest.rid, // adding for anti-csrf protection (via custom header)
-                    ...headers,
-                    "fdi-version": supported_fdi.join(",")
-                };
+                headers.set(
+                    "rid",
+                    AuthHttpRequest.config.tokenTransferMethod === "header"
+                        ? AuthHttpRequest.rid + ";header"
+                        : AuthHttpRequest.rid
+                );
+                headers.set("fdi-version", supported_fdi.join(","));
+                await setTokenHeaders(headers);
+
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
                 let preAPIResult = await AuthHttpRequest.config.preAPIHook({
                     action: "REFRESH_SESSION",
@@ -421,8 +429,11 @@ export async function onUnauthorisedResponse(
                 );
 
                 logDebugMessage("onUnauthorisedResponse: Refresh call ended");
+
+                await saveTokensFromHeaders(response);
+
                 let removeIdRefreshToken = true;
-                const idRefreshToken = response.headers.get("id-refresh-token");
+                const idRefreshToken = response.headers.get("st-id-refresh-token");
                 if (idRefreshToken) {
                     logDebugMessage(
                         "onUnauthorisedResponse: Setting sIRTFrontend from refresh API call: " + idRefreshToken
@@ -573,29 +584,8 @@ type IdRefreshTokenType =
 // else we return undefined.
 export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType> {
     logDebugMessage("getIdRefreshToken: called");
-    async function getIdRefreshTokenFromLocal(): Promise<string | undefined> {
-        async function getIDFromCookieOld(): Promise<string | undefined> {
-            let value = "; " + (await CookieHandlerReference.getReferenceOrThrow().cookieHandler.getCookie());
-            let parts = value.split("; " + ID_REFRESH_TOKEN_NAME + "=");
-            if (parts.length >= 2) {
-                let last = parts.pop();
-                if (last === "remove") {
-                    // it means no session exists. This is different from
-                    // it being undefined since in that case a session may or may not exist.
-                    return "remove";
-                }
-                if (last !== undefined) {
-                    return last.split(";").shift();
-                }
-            }
-            return undefined;
-        }
 
-        let fromCookie = await getIDFromCookieOld();
-        return fromCookie;
-    }
-
-    let token = await getIdRefreshTokenFromLocal();
+    const token = await getToken("idRefresh");
 
     if (token === "remove") {
         logDebugMessage("getIdRefreshToken: is removed");
@@ -636,55 +626,130 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     };
 }
 
-export async function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number) {
-    logDebugMessage("setIdRefreshToken: called");
-    async function setIDToCookie(idRefreshToken: string, domain: string) {
-        // if the value of the token is "remove", it means
-        // the session is being removed. So we set it to "remove" in the
-        // cookie. This way, when we query for this token, we will return
-        // undefined (see getIdRefreshToken), and not refresh the session
-        // unnecessarily.
+export function getStorageNameForToken(tokenType: TokenType) {
+    switch (tokenType) {
+        case "access":
+            return ACCESS_TOKEN_NAME;
+        case "idRefresh":
+            return ID_REFRESH_TOKEN_NAME;
+        case "refresh":
+            return REFRESH_TOKEN_NAME;
+    }
+}
 
-        let expires = "Fri, 31 Dec 9999 23:59:59 GMT";
-        let cookieVal = "remove";
-        if (idRefreshToken !== "remove") {
-            let splitted = idRefreshToken.split(";");
-            cookieVal = splitted[0];
+export function setToken(tokenType: TokenType, value: string, expiry: number) {
+    const name = getStorageNameForToken(tokenType);
+    // if the value of the token is "remove", it means
+    // the session is being removed. So we set it to "remove" in the
+    // cookie. This way, when we query for this token, we will return
+    // undefined (see getIdRefreshToken), and not refresh the session
+    // unnecessarily.
+    logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
+    return storeInCookies(name, value, expiry);
+}
 
-            // we must always respect this expiry and not set it to infinite
-            // cause this ties into the session's lifetime. If we set this
-            // to infinite, then a session may not exist, and this will exist,
-            // then for example, if we check a session exists, and this says yes,
-            // then if we getAccessTokenPayload, that will attempt a session refresh which will fail.
-            // Another reason to respect this is that if we don't, then signOut will
-            // call the API which will return 200 (no 401 cause the API thinks no session exists),
-            // in which case, we will not end up firing the SIGN_OUT on handle event.
-            expires = new Date(Number(splitted[1])).toUTCString();
-        }
-        if (
-            domain === "localhost" ||
-            domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
-        ) {
-            // since some browsers ignore cookies with domain set to localhost
-            // see https://github.com/supertokens/supertokens-website/issues/25
-            await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`
-            );
-        } else {
-            await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                `${ID_REFRESH_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                    AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                }`
-            );
+function storeInCookies(name: string, value: string, expiry: number) {
+    let expires = "Fri, 31 Dec 9999 23:59:59 GMT";
+    if (value !== "remove") {
+        // we must always respect this expiry and not set it to infinite
+        // cause this ties into the session's lifetime. If we set this
+        // to infinite, then a session may not exist, and this will exist,
+        // then for example, if we check a session exists, and this says yes,
+        // then if we getAccessTokenPayload, that will attempt a session refresh which will fail.
+        // Another reason to respect this is that if we don't, then signOut will
+        // call the API which will return 200 (no 401 cause the API thinks no session exists),
+        // in which case, we will not end up firing the SIGN_OUT on handle event.
+        expires = new Date(expiry).toUTCString();
+    }
+    const domain = AuthHttpRequest.config.sessionScope;
+    if (
+        domain === "localhost" ||
+        domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
+    ) {
+        // since some browsers ignore cookies with domain set to localhost
+        // see https://github.com/supertokens/supertokens-website/issues/25
+        return CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
+            `${name}=${value};expires=${expires};path=/;samesite=${
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+            }`
+        );
+    } else {
+        return CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
+            `${name}=${value};expires=${expires};domain=${domain};path=/;samesite=${
+                AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
+            }`
+        );
+    }
+}
+
+export async function getToken(tokenType: TokenType) {
+    const name = getStorageNameForToken(tokenType);
+
+    return getFromCookies(name);
+}
+
+async function getFromCookies(name: string) {
+    let value = "; " + (await CookieHandlerReference.getReferenceOrThrow().cookieHandler.getCookie());
+    let parts = value.split("; " + name + "=");
+    if (parts.length >= 2) {
+        let last = parts.pop();
+        if (last !== undefined) {
+            return last.split(";").shift();
         }
     }
+    return undefined;
+}
+
+async function setTokenHeaders(clonedHeaders: Headers) {
+    if (AuthHttpRequest.config.tokenTransferMethod === "header") {
+        logDebugMessage("setTokenHeaders: adding ';header' to the rid header");
+        clonedHeaders.set("rid", clonedHeaders.get("rid") + ";header");
+        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+        const idRefreshToken = await getToken("idRefresh");
+        if (idRefreshToken !== undefined) {
+            logDebugMessage("setTokenHeaders: added st-id-refresh-token header");
+            clonedHeaders.set("st-id-refresh-token", idRefreshToken);
+        }
+
+        const accessToken = await getToken("access");
+        if (accessToken !== undefined) {
+            logDebugMessage("setTokenHeaders: added authorization header");
+            clonedHeaders.set("Authorization", `Bearer ${accessToken}`);
+        }
+
+        const refreshToken = await getToken("refresh");
+        if (refreshToken) {
+            logDebugMessage("setTokenHeaders: added st-refresh-token header");
+            clonedHeaders.set("st-refresh-token", refreshToken);
+        }
+    }
+}
+
+async function saveTokensFromHeaders(response: Response) {
+    if (AuthHttpRequest.config.tokenTransferMethod === "header") {
+        logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response headers");
+        const refreshToken = response.headers.get("st-refresh-token");
+        if (refreshToken) {
+            const [value, expiry] = refreshToken.split(";");
+            await setToken("refresh", value, Number.parseInt(expiry));
+        }
+
+        const accessToken = response.headers.get("st-access-token");
+        if (accessToken) {
+            const [value, expiry] = accessToken.split(";");
+            await setToken("access", value, Number.parseInt(expiry));
+        }
+    }
+}
+
+export async function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number) {
+    logDebugMessage("setIdRefreshToken: called");
 
     const { status } = await getIdRefreshToken(false);
 
     logDebugMessage("setIdRefreshToken: setting: " + idRefreshToken);
-    await setIDToCookie(idRefreshToken, AuthHttpRequest.config.sessionScope);
+    const expiry = idRefreshToken === "remove" ? 0 : Number.parseInt(idRefreshToken.split(";")[1]);
+    await setToken("idRefresh", idRefreshToken, expiry);
 
     if (idRefreshToken === "remove" && status === "EXISTS") {
         // we check for wasLoggedIn cause we don't want to fire an event

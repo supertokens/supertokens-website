@@ -386,7 +386,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                         body: JSON.stringify({ message: "test" }),
                         headers: {
                             "Content-Type": "application/json",
-                            "id-refresh-token": "remove",
+                            "st-id-refresh-token": "remove",
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
                                 "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
