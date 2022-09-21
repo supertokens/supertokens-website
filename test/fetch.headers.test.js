@@ -54,7 +54,7 @@ const removedIdRefreshTokenJSON = `{"value":"remove","expiry":0}`;
     - allow-credentials should not be sent by our SDK by default.
     - User passed config should be sent as well
 */
-describe.only("Fetch AuthHttpRequest class tests with headers", function() {
+describe("Fetch AuthHttpRequest class tests with headers", function() {
     jsdom({
         url: "http://localhost"
     });

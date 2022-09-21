@@ -49,7 +49,7 @@ AuthHttpRequest.addAxiosInterceptors(axios);
     - Refresh API custom headers are working
     - allow-credentials should not be sent by our SDK by default.
 */
-describe.only("Axios AuthHttpRequest class tests", function() {
+describe("Axios AuthHttpRequest class tests", function() {
     jsdom({
         url: "http://localhost.org"
     });
