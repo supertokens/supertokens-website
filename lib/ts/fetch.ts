@@ -409,7 +409,7 @@ export async function onUnauthorisedResponse(
                         : AuthHttpRequest.rid
                 );
                 headers.set("fdi-version", supported_fdi.join(","));
-                await setTokenHeaders(headers);
+                await setTokenHeaders(headers, true);
 
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
                 let preAPIResult = await AuthHttpRequest.config.preAPIHook({
@@ -700,7 +700,7 @@ async function getFromCookies(name: string) {
     return undefined;
 }
 
-async function setTokenHeaders(clonedHeaders: Headers) {
+async function setTokenHeaders(clonedHeaders: Headers, addRefreshToken: boolean = false) {
     if (AuthHttpRequest.config.tokenTransferMethod === "header") {
         logDebugMessage("setTokenHeaders: adding ';header' to the rid header");
         clonedHeaders.set("rid", clonedHeaders.get("rid") + ";header");
@@ -718,7 +718,7 @@ async function setTokenHeaders(clonedHeaders: Headers) {
         }
 
         const refreshToken = await getToken("refresh");
-        if (refreshToken) {
+        if (refreshToken && addRefreshToken) {
             logDebugMessage("setTokenHeaders: added st-refresh-token header");
             clonedHeaders.set("st-refresh-token", refreshToken);
         }
