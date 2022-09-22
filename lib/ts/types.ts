@@ -47,10 +47,8 @@ export type InputType = {
     isInIframe?: boolean;
     // TODO: get rid of st-id-refresh-token, instead access token set to remove
 
-    // TODO: Better name: (useCookie?)
     tokenTransferMethod?: "cookie" | "header";
-    // TODO: better name, because this is the basis of interception `sessionDomain`
-    cookieDomain?: string;
+    sessionDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -73,7 +71,7 @@ export type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     tokenTransferMethod: "cookie" | "header";
-    cookieDomain: string | undefined;
+    sessionDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;

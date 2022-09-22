@@ -115,9 +115,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe = options.isInIframe;
     }
 
-    let cookieDomain: string | undefined = undefined;
-    if (options.cookieDomain !== undefined) {
-        cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
+    let sessionDomain: string | undefined = undefined;
+    if (options.sessionDomain !== undefined) {
+        sessionDomain = normaliseSessionScopeOrThrowError(options.sessionDomain);
     }
 
     let preAPIHook: RecipePreAPIHookFunction = async context => {
@@ -159,7 +159,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         autoAddCredentials,
         isInIframe,
         tokenTransferMethod: options.tokenTransferMethod !== undefined ? options.tokenTransferMethod : "cookie",
-        cookieDomain,
+        sessionDomain,
         preAPIHook,
         postAPIHook,
         onHandleEvent,
@@ -170,7 +170,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
 export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl: string,
     apiDomain: string,
-    cookieDomain: string | undefined
+    sessionDomain: string | undefined
 ): boolean {
     logDebugMessage(
         "shouldDoInterceptionBasedOnUrl: toCheckUrl: " +
@@ -178,7 +178,7 @@ export function shouldDoInterceptionBasedOnUrl(
             " apiDomain: " +
             apiDomain +
             " cookiDomain: " +
-            cookieDomain
+            sessionDomain
     );
     function isNumeric(str: any) {
         if (typeof str != "string") return false; // we only process strings!
@@ -189,25 +189,25 @@ export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
     let urlObj = new URL(toCheckUrl);
     let domain = urlObj.hostname;
-    if (cookieDomain === undefined) {
+    if (sessionDomain === undefined) {
         domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
         apiDomain = normaliseURLDomainOrThrowError(apiDomain);
         let apiUrlObj = new URL(apiDomain);
         return domain === (apiUrlObj.port === "" ? apiUrlObj.hostname : apiUrlObj.hostname + ":" + apiUrlObj.port);
     } else {
-        let normalisedCookieDomain = normaliseSessionScopeOrThrowError(cookieDomain);
-        if (cookieDomain.split(":").length > 1) {
+        let normalisedsessionDomain = normaliseSessionScopeOrThrowError(sessionDomain);
+        if (sessionDomain.split(":").length > 1) {
             // means port may provided
-            let portStr = cookieDomain.split(":")[cookieDomain.split(":").length - 1];
+            let portStr = sessionDomain.split(":")[sessionDomain.split(":").length - 1];
             if (isNumeric(portStr)) {
-                normalisedCookieDomain += ":" + portStr;
+                normalisedsessionDomain += ":" + portStr;
                 domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
             }
         }
-        if (cookieDomain.startsWith(".")) {
-            return ("." + domain).endsWith(normalisedCookieDomain);
+        if (sessionDomain.startsWith(".")) {
+            return ("." + domain).endsWith(normalisedsessionDomain);
         } else {
-            return domain === normalisedCookieDomain;
+            return domain === normalisedsessionDomain;
         }
     }
 }

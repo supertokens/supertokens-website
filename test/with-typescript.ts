@@ -51,7 +51,8 @@ supertokens.init({
     isInIframe: true,
     sessionExpiredStatusCode: 440,
     sessionScope: "",
-    cookieDomain: "",
+    tokenTransferMethod: "cookie",
+    sessionDomain: ".supertokens.com",
     cookieHandler: () => {
         return {
             getCookie: async function () {

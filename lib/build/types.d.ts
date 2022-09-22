@@ -25,7 +25,7 @@ export declare type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     tokenTransferMethod?: "cookie" | "header";
-    cookieDomain?: string;
+    sessionDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -44,7 +44,7 @@ export declare type NormalisedInputType = {
     autoAddCredentials: boolean;
     isInIframe: boolean;
     tokenTransferMethod: "cookie" | "header";
-    cookieDomain: string | undefined;
+    sessionDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;

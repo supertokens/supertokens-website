@@ -158,7 +158,7 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input apiBasePath: " + config.apiBasePath);
         logDebugMessage("init: Input apiDomain: " + config.apiDomain);
         logDebugMessage("init: Input autoAddCredentials: " + config.autoAddCredentials);
-        logDebugMessage("init: Input cookieDomain: " + config.cookieDomain);
+        logDebugMessage("init: Input sessionDomain: " + config.sessionDomain);
         logDebugMessage("init: Input isInIframe: " + config.isInIframe);
         logDebugMessage("init: Input sessionExpiredStatusCode: " + config.sessionExpiredStatusCode);
         logDebugMessage("init: Input sessionScope: " + config.sessionScope);
@@ -205,14 +205,14 @@ export default class AuthHttpRequest {
                     !shouldDoInterceptionBasedOnUrl(
                         url,
                         AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.cookieDomain
+                        AuthHttpRequest.config.sessionDomain
                     )) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
                     !shouldDoInterceptionBasedOnUrl(
                         url.url,
                         AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.cookieDomain
+                        AuthHttpRequest.config.sessionDomain
                     ));
         } catch (err) {
             if ((err as any).message === "Please provide a valid domain name") {
@@ -221,7 +221,7 @@ export default class AuthHttpRequest {
                 doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                     WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                     AuthHttpRequest.config.apiDomain,
-                    AuthHttpRequest.config.cookieDomain
+                    AuthHttpRequest.config.sessionDomain
                 );
             } else {
                 throw err;

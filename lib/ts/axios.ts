@@ -56,7 +56,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             !shouldDoInterceptionBasedOnUrl(
                 url,
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.cookieDomain
+                AuthHttpRequestFetch.config.sessionDomain
             );
     } catch (err) {
         if ((err as any).message === "Please provide a valid domain name") {
@@ -67,7 +67,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.cookieDomain
+                AuthHttpRequestFetch.config.sessionDomain
             );
         } else {
             throw err;
@@ -149,7 +149,7 @@ export function responseInterceptor(axiosInstance: any) {
                     !shouldDoInterceptionBasedOnUrl(
                         url,
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
+                        AuthHttpRequestFetch.config.sessionDomain
                     );
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
@@ -158,7 +158,7 @@ export function responseInterceptor(axiosInstance: any) {
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
+                        AuthHttpRequestFetch.config.sessionDomain
                     );
                 } else {
                     throw err;
@@ -298,7 +298,7 @@ export default class AuthHttpRequest {
                 !shouldDoInterceptionBasedOnUrl(
                     url,
                     AuthHttpRequestFetch.config.apiDomain,
-                    AuthHttpRequestFetch.config.cookieDomain
+                    AuthHttpRequestFetch.config.sessionDomain
                 ) &&
                 viaInterceptor;
         } catch (err) {
@@ -309,7 +309,7 @@ export default class AuthHttpRequest {
                     !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
+                        AuthHttpRequestFetch.config.sessionDomain
                     ) && viaInterceptor;
             } else {
                 throw err;
