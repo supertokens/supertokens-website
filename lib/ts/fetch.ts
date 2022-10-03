@@ -158,10 +158,10 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input apiBasePath: " + config.apiBasePath);
         logDebugMessage("init: Input apiDomain: " + config.apiDomain);
         logDebugMessage("init: Input autoAddCredentials: " + config.autoAddCredentials);
-        logDebugMessage("init: Input sessionDomain: " + config.sessionDomain);
+        logDebugMessage("init: Input sessionTokenBackendDomain: " + config.sessionTokenBackendDomain);
         logDebugMessage("init: Input isInIframe: " + config.isInIframe);
         logDebugMessage("init: Input sessionExpiredStatusCode: " + config.sessionExpiredStatusCode);
-        logDebugMessage("init: Input sessionScope: " + config.sessionScope);
+        logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.sessionTokenFrontendDomain);
 
         AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
 
@@ -205,14 +205,14 @@ export default class AuthHttpRequest {
                     !shouldDoInterceptionBasedOnUrl(
                         url,
                         AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.sessionDomain
+                        AuthHttpRequest.config.sessionTokenBackendDomain
                     )) ||
                 (url !== undefined &&
                 typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
                     !shouldDoInterceptionBasedOnUrl(
                         url.url,
                         AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.sessionDomain
+                        AuthHttpRequest.config.sessionTokenBackendDomain
                     ));
         } catch (err) {
             if ((err as any).message === "Please provide a valid domain name") {
@@ -221,7 +221,7 @@ export default class AuthHttpRequest {
                 doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                     WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                     AuthHttpRequest.config.apiDomain,
-                    AuthHttpRequest.config.sessionDomain
+                    AuthHttpRequest.config.sessionTokenBackendDomain
                 );
             } else {
                 throw err;
@@ -279,7 +279,7 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: rid header was already there in request");
                 }
 
-                await setTokenHeaders(clonedHeaders);
+                await setTokenHeadersIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
                 let response = await httpCall(configWithAntiCsrf);
@@ -402,14 +402,9 @@ export async function onUnauthorisedResponse(
                     }
                 }
                 logDebugMessage("onUnauthorisedResponse: Adding rid and fdi-versions to refresh call header");
-                headers.set(
-                    "rid",
-                    AuthHttpRequest.config.tokenTransferMethod === "header"
-                        ? AuthHttpRequest.rid + ";header"
-                        : AuthHttpRequest.rid
-                );
+                headers.set("rid", AuthHttpRequest.rid);
                 headers.set("fdi-version", supported_fdi.join(","));
-                await setTokenHeaders(headers, true);
+                await setTokenHeadersIfRequired(headers, true);
 
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
                 let preAPIResult = await AuthHttpRequest.config.preAPIHook({
@@ -661,7 +656,7 @@ function storeInCookies(name: string, value: string, expiry: number) {
         // in which case, we will not end up firing the SIGN_OUT on handle event.
         expires = new Date(expiry).toUTCString();
     }
-    const domain = AuthHttpRequest.config.sessionScope;
+    const domain = AuthHttpRequest.config.sessionTokenFrontendDomain;
     if (
         domain === "localhost" ||
         domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
@@ -700,26 +695,27 @@ async function getFromCookies(name: string) {
     return undefined;
 }
 
-async function setTokenHeaders(clonedHeaders: Headers, addRefreshToken: boolean = false) {
+async function setTokenHeadersIfRequired(clonedHeaders: Headers, addRefreshToken: boolean = false) {
     if (AuthHttpRequest.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeaders: adding ';header' to the rid header");
+        logDebugMessage("setTokenHeadersIfRequired: adding ';header' to the rid header");
         clonedHeaders.set("rid", clonedHeaders.get("rid") + ";header");
-        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
         const idRefreshToken = await getToken("idRefresh");
         if (idRefreshToken !== undefined) {
-            logDebugMessage("setTokenHeaders: added st-id-refresh-token header");
+            logDebugMessage("setTokenHeadersIfRequired: added st-id-refresh-token header");
             clonedHeaders.set("st-id-refresh-token", idRefreshToken);
         }
 
         const accessToken = await getToken("access");
-        if (accessToken !== undefined) {
-            logDebugMessage("setTokenHeaders: added authorization header");
+        // the Headers class normalizes header names so we don't have to worry about casing
+        if (accessToken !== undefined && !clonedHeaders.has("Authorization")) {
+            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
             clonedHeaders.set("Authorization", `Bearer ${accessToken}`);
         }
 
         const refreshToken = await getToken("refresh");
         if (refreshToken && addRefreshToken) {
-            logDebugMessage("setTokenHeaders: added st-refresh-token header");
+            logDebugMessage("setTokenHeadersIfRequired: added st-refresh-token header");
             clonedHeaders.set("st-refresh-token", refreshToken);
         }
     }
@@ -739,6 +735,8 @@ async function saveTokensFromHeaders(response: Response) {
             const [value, expiry] = accessToken.split(";");
             await setToken("access", value, Number.parseInt(expiry));
         }
+        logDebugMessage("saveTokensFromHeaders: Removing AntiCsrfToken if exists since we are in header mode");
+        await AntiCsrfToken.removeToken();
     }
 }
 
@@ -856,7 +854,7 @@ export async function setAntiCSRF(antiCSRFToken: string | undefined) {
         }
     }
 
-    await setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
+    await setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionTokenFrontendDomain);
 }
 
 async function getFrontTokenFromCookie(): Promise<string | null> {
@@ -947,5 +945,5 @@ export async function setFrontToken(frontToken: string | undefined) {
             onTokenUpdate();
         }
     }
-    await setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
+    await setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionTokenFrontendDomain);
 }

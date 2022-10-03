@@ -56,7 +56,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             !shouldDoInterceptionBasedOnUrl(
                 url,
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.sessionDomain
+                AuthHttpRequestFetch.config.sessionTokenBackendDomain
             );
     } catch (err) {
         if ((err as any).message === "Please provide a valid domain name") {
@@ -67,7 +67,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.sessionDomain
+                AuthHttpRequestFetch.config.sessionTokenBackendDomain
             );
         } else {
             throw err;
@@ -127,7 +127,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                   }
     };
 
-    await setTokenHeaders(configWithAntiCsrf);
+    await setTokenHeadersIfRequired(configWithAntiCsrf);
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
     return configWithAntiCsrf;
@@ -149,7 +149,7 @@ export function responseInterceptor(axiosInstance: any) {
                     !shouldDoInterceptionBasedOnUrl(
                         url,
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
+                        AuthHttpRequestFetch.config.sessionTokenBackendDomain
                     );
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
@@ -158,7 +158,7 @@ export function responseInterceptor(axiosInstance: any) {
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
+                        AuthHttpRequestFetch.config.sessionTokenBackendDomain
                     );
                 } else {
                     throw err;
@@ -298,7 +298,7 @@ export default class AuthHttpRequest {
                 !shouldDoInterceptionBasedOnUrl(
                     url,
                     AuthHttpRequestFetch.config.apiDomain,
-                    AuthHttpRequestFetch.config.sessionDomain
+                    AuthHttpRequestFetch.config.sessionTokenBackendDomain
                 ) &&
                 viaInterceptor;
         } catch (err) {
@@ -309,7 +309,7 @@ export default class AuthHttpRequest {
                     !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
+                        AuthHttpRequestFetch.config.sessionTokenBackendDomain
                     ) && viaInterceptor;
             } else {
                 throw err;
@@ -381,7 +381,7 @@ export default class AuthHttpRequest {
                               }
                 };
 
-                await setTokenHeaders(configWithAntiCsrf);
+                await setTokenHeadersIfRequired(configWithAntiCsrf);
 
                 try {
                     let localPrevError = prevError;
@@ -492,11 +492,11 @@ export default class AuthHttpRequest {
     };
 }
 
-async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
+async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
     if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
 
-        logDebugMessage("setTokenHeaders: adding header preference to rid header");
+        logDebugMessage("setTokenHeadersIfRequired: adding header preference to rid header");
         requestConfig.headers = {
             ...requestConfig.headers,
             rid:
@@ -506,7 +506,7 @@ async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
         };
 
         const idRefreshToken = await getToken("idRefresh");
-        logDebugMessage("setTokenHeaders: added st-id-refresh-token header");
+        logDebugMessage("setTokenHeadersIfRequired: added st-id-refresh-token header");
         if (idRefreshToken !== undefined) {
             requestConfig.headers = {
                 ...requestConfig.headers,
@@ -515,8 +515,12 @@ async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
         }
 
         const accessToken = await getToken("access");
-        if (accessToken !== undefined) {
-            logDebugMessage("setTokenHeaders: added authorization header");
+        if (
+            accessToken !== undefined &&
+            requestConfig.headers["Authorization"] === undefined &&
+            requestConfig.headers["authorization"] === undefined
+        ) {
+            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
             requestConfig.headers = {
                 ...requestConfig.headers,
                 Authorization: `Bearer ${accessToken}`
@@ -525,7 +529,7 @@ async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
 
         const refreshToken = await getToken("refresh");
         if (refreshToken) {
-            logDebugMessage("setTokenHeaders: added st-refresh-token header");
+            logDebugMessage("setTokenHeadersIfRequired: added st-refresh-token header");
             requestConfig.headers = {
                 ...requestConfig.headers,
                 "st-refresh-token": refreshToken

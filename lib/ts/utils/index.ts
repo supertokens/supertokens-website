@@ -35,41 +35,41 @@ export function normaliseURLPathOrThrowError(input: string): string {
     return new NormalisedURLPath(input).getAsStringDangerous();
 }
 
-export function normaliseSessionScopeOrThrowError(sessionScope: string): string {
-    function helper(sessionScope: string): string {
-        sessionScope = sessionScope.trim().toLowerCase();
+export function normaliseSessionScopeOrThrowError(sessionTokenFrontendDomain: string): string {
+    function helper(sessionTokenFrontendDomain: string): string {
+        sessionTokenFrontendDomain = sessionTokenFrontendDomain.trim().toLowerCase();
 
         // first we convert it to a URL so that we can use the URL class
-        if (sessionScope.startsWith(".")) {
-            sessionScope = sessionScope.substr(1);
+        if (sessionTokenFrontendDomain.startsWith(".")) {
+            sessionTokenFrontendDomain = sessionTokenFrontendDomain.substr(1);
         }
 
-        if (!sessionScope.startsWith("http://") && !sessionScope.startsWith("https://")) {
-            sessionScope = "http://" + sessionScope;
+        if (!sessionTokenFrontendDomain.startsWith("http://") && !sessionTokenFrontendDomain.startsWith("https://")) {
+            sessionTokenFrontendDomain = "http://" + sessionTokenFrontendDomain;
         }
 
         try {
-            let urlObj = new URL(sessionScope);
-            sessionScope = urlObj.hostname;
+            let urlObj = new URL(sessionTokenFrontendDomain);
+            sessionTokenFrontendDomain = urlObj.hostname;
 
             // remove leading dot
-            if (sessionScope.startsWith(".")) {
-                sessionScope = sessionScope.substr(1);
+            if (sessionTokenFrontendDomain.startsWith(".")) {
+                sessionTokenFrontendDomain = sessionTokenFrontendDomain.substr(1);
             }
 
-            return sessionScope;
+            return sessionTokenFrontendDomain;
         } catch (err) {
-            throw new Error("Please provide a valid sessionScope");
+            throw new Error("Please provide a valid sessionTokenFrontendDomain");
         }
     }
 
-    let noDotNormalised = helper(sessionScope);
+    let noDotNormalised = helper(sessionTokenFrontendDomain);
 
     if (noDotNormalised === "localhost" || isAnIpAddress(noDotNormalised)) {
         return noDotNormalised;
     }
 
-    if (sessionScope.startsWith(".")) {
+    if (sessionTokenFrontendDomain.startsWith(".")) {
         return "." + noDotNormalised;
     }
 
@@ -87,8 +87,10 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
 
     // See https://github.com/supertokens/supertokens-website/issues/98
-    let sessionScope = normaliseSessionScopeOrThrowError(
-        options !== undefined && options.sessionScope !== undefined ? options.sessionScope : defaultSessionScope
+    let sessionTokenFrontendDomain = normaliseSessionScopeOrThrowError(
+        options !== undefined && options.sessionTokenFrontendDomain !== undefined
+            ? options.sessionTokenFrontendDomain
+            : defaultSessionScope
     );
 
     let sessionExpiredStatusCode = 401;
@@ -115,9 +117,9 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe = options.isInIframe;
     }
 
-    let sessionDomain: string | undefined = undefined;
-    if (options.sessionDomain !== undefined) {
-        sessionDomain = normaliseSessionScopeOrThrowError(options.sessionDomain);
+    let sessionTokenBackendDomain: string | undefined = undefined;
+    if (options.sessionTokenBackendDomain !== undefined) {
+        sessionTokenBackendDomain = normaliseSessionScopeOrThrowError(options.sessionTokenBackendDomain);
     }
 
     let preAPIHook: RecipePreAPIHookFunction = async context => {
@@ -153,13 +155,13 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     return {
         apiDomain,
         apiBasePath,
-        sessionScope,
+        sessionTokenFrontendDomain,
         sessionExpiredStatusCode,
         invalidClaimStatusCode,
         autoAddCredentials,
         isInIframe,
         tokenTransferMethod: options.tokenTransferMethod !== undefined ? options.tokenTransferMethod : "cookie",
-        sessionDomain,
+        sessionTokenBackendDomain: sessionTokenBackendDomain,
         preAPIHook,
         postAPIHook,
         onHandleEvent,
@@ -170,7 +172,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
 export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl: string,
     apiDomain: string,
-    sessionDomain: string | undefined
+    sessionTokenBackendDomain: string | undefined
 ): boolean {
     logDebugMessage(
         "shouldDoInterceptionBasedOnUrl: toCheckUrl: " +
@@ -178,7 +180,7 @@ export function shouldDoInterceptionBasedOnUrl(
             " apiDomain: " +
             apiDomain +
             " cookiDomain: " +
-            sessionDomain
+            sessionTokenBackendDomain
     );
     function isNumeric(str: any) {
         if (typeof str != "string") return false; // we only process strings!
@@ -189,22 +191,22 @@ export function shouldDoInterceptionBasedOnUrl(
     toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
     let urlObj = new URL(toCheckUrl);
     let domain = urlObj.hostname;
-    if (sessionDomain === undefined) {
+    if (sessionTokenBackendDomain === undefined) {
         domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
         apiDomain = normaliseURLDomainOrThrowError(apiDomain);
         let apiUrlObj = new URL(apiDomain);
         return domain === (apiUrlObj.port === "" ? apiUrlObj.hostname : apiUrlObj.hostname + ":" + apiUrlObj.port);
     } else {
-        let normalisedsessionDomain = normaliseSessionScopeOrThrowError(sessionDomain);
-        if (sessionDomain.split(":").length > 1) {
+        let normalisedsessionDomain = normaliseSessionScopeOrThrowError(sessionTokenBackendDomain);
+        if (sessionTokenBackendDomain.split(":").length > 1) {
             // means port may provided
-            let portStr = sessionDomain.split(":")[sessionDomain.split(":").length - 1];
+            let portStr = sessionTokenBackendDomain.split(":")[sessionTokenBackendDomain.split(":").length - 1];
             if (isNumeric(portStr)) {
                 normalisedsessionDomain += ":" + portStr;
                 domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
             }
         }
-        if (sessionDomain.startsWith(".")) {
+        if (sessionTokenBackendDomain.startsWith(".")) {
             return ("." + domain).endsWith(normalisedsessionDomain);
         } else {
             return domain === normalisedsessionDomain;

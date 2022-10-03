@@ -19,13 +19,13 @@ export declare type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionTokenFrontendDomain?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     tokenTransferMethod?: "cookie" | "header";
-    sessionDomain?: string;
+    sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -38,13 +38,13 @@ export declare type InputType = {
 export declare type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionTokenFrontendDomain: string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     tokenTransferMethod: "cookie" | "header";
-    sessionDomain: string | undefined;
+    sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
