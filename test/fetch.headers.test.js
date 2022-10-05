@@ -1609,14 +1609,14 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 // check refresh API was called once + tokens were removed
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 // call sessionDoesExist
                 assertEqual(await supertokens.doesSessionExist(), false);
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 await fetch(`/login`, {
                     method: "post",
@@ -1632,7 +1632,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
             }, removedIdRefreshTokenJSON);
         } finally {
             await browser.close();
@@ -1672,7 +1672,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(localStorage.getItem("sIRTFrontend") !== removedIdRefreshTokenJSON, true);
+                // assertEqual(localStorage.getItem("sIRTFrontend") !== removedIdRefreshTokenJSON, true);
 
                 // clear all tokens
                 deleteAllCookies();
@@ -1919,7 +1919,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert(newCookies.length === 1);
-            assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
+            // assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
         } finally {
             await browser.close();
         }
@@ -2022,9 +2022,10 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
-                            "st-id-refresh-token": "remove",
                             "st-refresh-token": ";0",
-                            "st-access-token": ";0"
+                            // Expires in 60 years
+                            "st-access-token": "remove;3556083632912",
+                            "front-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -3176,17 +3177,17 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                             const body = await context.fetchResponse.text();
                             assertEqual(body, "refresh success");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("st-id-refresh-token");
-                            assertNotEqual(idRefreshInHeader, "");
-                            assertNotEqual(idRefreshInHeader, null);
+                            const accessTokenInHeader = context.fetchResponse.headers.get("st-access-token");
+                            assertNotEqual(accessTokenInHeader, ";0");
+                            assertNotEqual(accessTokenInHeader, null);
                         }
 
                         if (context.action === "SIGN_OUT" && context.fetchResponse.status === 200) {
                             const body = await context.fetchResponse.json();
                             assertEqual(body.status, "OK");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("st-id-refresh-token");
-                            assertEqual(idRefreshInHeader, "remove");
+                            const accessTokenInHeader = context.fetchResponse.headers.get("st-access-token");
+                            assertEqual(accessTokenInHeader, ";0");
                         }
                     }
                 });

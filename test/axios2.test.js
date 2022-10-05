@@ -386,12 +386,11 @@ describe("Axios AuthHttpRequest class tests", function() {
                         body: JSON.stringify({ message: "test" }),
                         headers: {
                             "Content-Type": "application/json",
-                            "st-id-refresh-token": "remove",
                             "Set-Cookie": [
-                                "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                                "sAccessToken=remove; Path=/; Expires=Fri, 31 Dec 9999 23:59:59 GMT; HttpOnly; SameSite=Lax",
                                 "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
-                            ]
+                            ],
+                            "front-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {

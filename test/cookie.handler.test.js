@@ -181,7 +181,7 @@ describe("Cookie Handler Tests", function() {
             });
 
             assert(consoleLogs.includes("ST_LOGS GET_COOKIE"));
-            assert(consoleLogs.includes("ST_LOGS SET_COOKIE sIRTFrontend"));
+            assert(consoleLogs.includes("ST_LOGS SET_COOKIE st-last-refresh-attempt"));
             assert(consoleLogs.includes("ST_LOGS SET_COOKIE sAntiCsrf"));
             assert(consoleLogs.includes("ST_LOGS SET_COOKIE sFrontToken"));
             // Website SDK does not use the sync functions

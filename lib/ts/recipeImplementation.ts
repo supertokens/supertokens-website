@@ -7,7 +7,7 @@ import {
     ClaimValidationError,
     ResponseWithBody
 } from "./types";
-import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
+import AuthHttpRequest, { FrontToken, getLocalSessionState } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
@@ -92,12 +92,12 @@ export default function RecipeImplementation(recipeImplInput: {
         },
         doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
             logDebugMessage("doesSessionExist: called");
-            return (await getIdRefreshToken(true)).status === "EXISTS";
+            return (await getLocalSessionState(true)).status === "EXISTS";
         },
         signOut: async function(input: { userContext: any }): Promise<void> {
             logDebugMessage("signOut: called");
             if (!(await this.doesSessionExist(input))) {
-                logDebugMessage("signOut: existing early because session does not exist");
+                logDebugMessage("signOut: exiting early because session does not exist");
                 logDebugMessage("signOut: firing SIGN_OUT event");
                 recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT",

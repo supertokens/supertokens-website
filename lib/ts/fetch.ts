@@ -107,7 +107,7 @@ export class FrontToken {
         logDebugMessage("FrontToken.getTokenInfo: called");
         let frontToken = await getFrontToken();
         if (frontToken === null) {
-            if ((await getIdRefreshToken(false)).status === "EXISTS") {
+            if ((await getLocalSessionState(false)).status === "EXISTS") {
                 // this means that the id refresh token has been set, so we must
                 // wait for this to be set or removed
                 await new Promise(resolve => {
@@ -133,10 +133,23 @@ export class FrontToken {
     }
 
     static async setItem(frontToken: string) {
+        // We update the refresh attempt info here as well, since this means that we've updated the session in some way
+        // maybe through a custom endpoint...
+        await saveRefreshAttempt();
+
+        if (frontToken === "remove") {
+            return FrontToken.removeToken();
+        }
+
         logDebugMessage("FrontToken.setItem: called");
         await setFrontToken(frontToken);
         FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
+    }
+
+    static async doesTokenExists() {
+        const frontToken = await getFrontTokenFromCookie();
+        return frontToken !== null;
     }
 }
 
@@ -241,7 +254,7 @@ export default class AuthHttpRequest {
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
-                const preRequestIdToken = await getIdRefreshToken(true);
+                const preRequestLSS = await getLocalSessionState(true);
                 const clonedHeaders = new Headers(
                     config !== undefined && config.headers !== undefined ? config.headers : url.headers
                 );
@@ -249,8 +262,8 @@ export default class AuthHttpRequest {
                     ...config,
                     headers: clonedHeaders
                 };
-                if (preRequestIdToken.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
+                if (preRequestLSS.status === "EXISTS") {
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("doRequest: Adding anti-csrf token to request");
                         clonedHeaders.set("anti-csrf", antiCsrfToken);
@@ -287,15 +300,9 @@ export default class AuthHttpRequest {
 
                 await saveTokensFromHeaders(response);
 
-                const idRefreshToken = response.headers.get("st-id-refresh-token");
-                if (idRefreshToken) {
-                    logDebugMessage("doRequest: Setting sIRTFrontend: " + idRefreshToken);
-                    await setIdRefreshToken(idRefreshToken, response.status);
-                }
-
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
-                    let retry = await onUnauthorisedResponse(preRequestIdToken);
+                    let retry = await onUnauthorisedResponse(preRequestLSS);
                     if (retry.result !== "RETRY") {
                         logDebugMessage("doRequest: Not retrying original request");
                         returnObj = retry.error !== undefined ? retry.error : response;
@@ -306,19 +313,11 @@ export default class AuthHttpRequest {
                     if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
                         await onInvalidClaimResponse(response);
                     }
-                    const antiCsrfToken = response.headers.get("anti-csrf");
-                    if (antiCsrfToken) {
-                        const tok = await getIdRefreshToken(true);
-                        if (tok.status === "EXISTS") {
-                            logDebugMessage("doRequest: Setting anti-csrf token");
-                            await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
-                        }
-                    }
-                    const frontToken = response.headers.get("front-token");
-                    if (frontToken) {
-                        logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
-                        await FrontToken.setItem(frontToken);
-                    }
+                    fireSessionUpdateEventsIfNecessary(
+                        preRequestLSS.status === "EXISTS",
+                        response.status,
+                        response.headers.get("front-token")
+                    );
                     return response;
                 }
             }
@@ -328,7 +327,7 @@ export default class AuthHttpRequest {
         } finally {
             // If we get here we already tried refreshing so we should have the already id refresh token either in EXISTS or NOT_EXISTS, so no need to call the backend
             // or the backend is down and we don't need to call it.
-            const postRequestIdToken = await getIdRefreshToken(false);
+            const postRequestIdToken = await getLocalSessionState(false);
             if (postRequestIdToken.status === "NOT_EXISTS") {
                 logDebugMessage("doRequest: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken");
                 await AntiCsrfToken.removeToken();
@@ -338,7 +337,11 @@ export default class AuthHttpRequest {
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
-        const preRequestIdToken = await getIdRefreshToken(false);
+        if (!AuthHttpRequest.initCalled) {
+            throw Error("init function not called");
+        }
+
+        const preRequestIdToken = await getLocalSessionState(false);
         const refresh = await onUnauthorisedResponse(preRequestIdToken);
 
         if (refresh.result === "API_ERROR") {
@@ -349,7 +352,7 @@ export default class AuthHttpRequest {
     };
 }
 
-const ID_REFRESH_TOKEN_NAME = "sIRTFrontend";
+const LAST_REFRESH_ATTEMPT_NAME = "st-last-refresh-attempt";
 const REFRESH_TOKEN_NAME = "st-refresh-token";
 const ACCESS_TOKEN_NAME = "st-access-token";
 const ANTI_CSRF_NAME = "sAntiCsrf";
@@ -360,7 +363,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
 export async function onUnauthorisedResponse(
-    preRequestIdToken: IdRefreshTokenType
+    preRequestLSS: LocalSessionState
 ): Promise<{ result: "SESSION_EXPIRED"; error?: any } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
     let lock = new Lock();
     while (true) {
@@ -369,9 +372,9 @@ export async function onUnauthorisedResponse(
             logDebugMessage("onUnauthorisedResponse: lock acquired");
             // to sync across tabs. the 1000 ms wait is for how much time to try and acquire the lock
             try {
-                let postLockID = await getIdRefreshToken(false);
-                if (postLockID.status === "NOT_EXISTS") {
-                    logDebugMessage("onUnauthorisedResponse: Not refreshing because sIRTFrontend is remove");
+                let postLockLSS = await getLocalSessionState(false);
+                if (postLockLSS.status === "NOT_EXISTS") {
+                    logDebugMessage("onUnauthorisedResponse: Not refreshing because local session state is NOT_EXISTS");
                     // if it comes here, it means a request was made thinking
                     // that the session exists, but it doesn't actually exist.
                     AuthHttpRequest.config.onHandleEvent({
@@ -382,10 +385,10 @@ export async function onUnauthorisedResponse(
                     return { result: "SESSION_EXPIRED" };
                 }
                 if (
-                    postLockID.status !== preRequestIdToken.status ||
-                    (postLockID.status === "EXISTS" &&
-                        preRequestIdToken.status === "EXISTS" &&
-                        postLockID.token !== preRequestIdToken.token)
+                    postLockLSS.status !== preRequestLSS.status ||
+                    (postLockLSS.status === "EXISTS" &&
+                        preRequestLSS.status === "EXISTS" &&
+                        postLockLSS.lastRefreshAttempt !== preRequestLSS.lastRefreshAttempt)
                 ) {
                     logDebugMessage(
                         "onUnauthorisedResponse: Retrying early because pre and post id refresh tokens don't match"
@@ -393,9 +396,12 @@ export async function onUnauthorisedResponse(
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
+
+                await saveRefreshAttempt();
+
                 const headers = new Headers();
-                if (preRequestIdToken.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
+                if (preRequestLSS.status === "EXISTS") {
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("onUnauthorisedResponse: Adding anti-csrf token to refresh API call");
                         headers.set("anti-csrf", antiCsrfToken);
@@ -432,22 +438,15 @@ export async function onUnauthorisedResponse(
 
                 await saveTokensFromHeaders(response);
 
-                let removeIdRefreshToken = true;
-                const idRefreshToken = response.headers.get("st-id-refresh-token");
-                if (idRefreshToken) {
-                    logDebugMessage(
-                        "onUnauthorisedResponse: Setting sIRTFrontend from refresh API call: " + idRefreshToken
-                    );
-                    await setIdRefreshToken(idRefreshToken, response.status);
-                    removeIdRefreshToken = false;
-                }
-                if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                    logDebugMessage("onUnauthorisedResponse: Refresh status code is: " + response.status);
-                    // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
-                    if (removeIdRefreshToken) {
-                        await setIdRefreshToken("remove", response.status);
-                    }
-                }
+                logDebugMessage("onUnauthorisedResponse: Refresh status code is: " + response.status);
+
+                // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
+
+                fireSessionUpdateEventsIfNecessary(
+                    preRequestLSS.status === "EXISTS",
+                    response.status,
+                    response.headers.get("front-token")
+                );
                 if (response.status >= 300) {
                     throw response;
                 }
@@ -460,10 +459,10 @@ export async function onUnauthorisedResponse(
                     userContext: {}
                 });
 
-                if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                     logDebugMessage("onUnauthorisedResponse: sIRTFrontend is remove, so returning session expired");
                     // The execution should never come here.. but just in case.
-                    // removed by server. So we logout
+                    // removed by server during refresh. So we logout
 
                     // we do not send "UNAUTHORISED" event here because
                     // this is a result of the refresh API returning a session expiry, which
@@ -471,19 +470,7 @@ export async function onUnauthorisedResponse(
                     // in the first place.
                     return { result: "SESSION_EXPIRED" };
                 }
-                const antiCsrfToken = response.headers.get("anti-csrf");
-                if (antiCsrfToken) {
-                    const tok = await getIdRefreshToken(true);
-                    if (tok.status === "EXISTS") {
-                        logDebugMessage("onUnauthorisedResponse: setting anti-csrf token");
-                        await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
-                    }
-                }
-                const frontToken = response.headers.get("front-token");
-                if (frontToken) {
-                    logDebugMessage("onUnauthorisedResponse: setting sFrontToken: " + frontToken);
-                    await FrontToken.setItem(frontToken);
-                }
+
                 AuthHttpRequest.config.onHandleEvent({
                     action: "REFRESH_SESSION",
                     userContext: {}
@@ -491,7 +478,7 @@ export async function onUnauthorisedResponse(
                 logDebugMessage("onUnauthorisedResponse: Sending RETRY signal");
                 return { result: "RETRY" };
             } catch (error) {
-                if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                     logDebugMessage("onUnauthorisedResponse: sIRTFrontend is remove, so returning session expired");
                     // removed by server.
 
@@ -510,7 +497,7 @@ export async function onUnauthorisedResponse(
                 // we do not call doesSessionExist here cause that
                 // may cause an infinite recursive loop when using in an iframe setting
                 // as cookies may not get set at all.
-                if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
+                if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                     logDebugMessage(
                         "onUnauthorisedResponse: sIRTFrontend is remove, so removing anti-csrf and sFrontToken"
                     );
@@ -519,7 +506,7 @@ export async function onUnauthorisedResponse(
                 }
             }
         }
-        let idCookieValue = await getIdRefreshToken(false);
+        let idCookieValue = await getLocalSessionState(false);
         if (idCookieValue.status === "NOT_EXISTS") {
             logDebugMessage(
                 "onUnauthorisedResponse: lock acquired failed and sIRTFrontend is remove, so sending SESSION_EXPIRED"
@@ -528,10 +515,10 @@ export async function onUnauthorisedResponse(
             return { result: "SESSION_EXPIRED" };
         } else {
             if (
-                idCookieValue.status !== preRequestIdToken.status ||
+                idCookieValue.status !== preRequestLSS.status ||
                 (idCookieValue.status === "EXISTS" &&
-                    preRequestIdToken.status === "EXISTS" &&
-                    idCookieValue.token !== preRequestIdToken.token)
+                    preRequestLSS.status === "EXISTS" &&
+                    idCookieValue.lastRefreshAttempt !== preRequestLSS.lastRefreshAttempt)
             ) {
                 logDebugMessage(
                     "onUnauthorisedResponse: lock acquired failed and retrying early because pre and post id refresh tokens don't match"
@@ -571,67 +558,61 @@ export async function onInvalidClaimResponse(response: ResponseWithBody) {
     }
 }
 
-type IdRefreshTokenType =
+type LocalSessionState =
     | {
           status: "NOT_EXISTS" | "MAY_EXIST";
       }
     | {
           status: "EXISTS";
-          token: string;
+          // This is a number (timestamp) encoded as a string (we save it in cookies), but we never actually need to use it as number
+          // We only use it for strict equal checks
+          lastRefreshAttempt: string;
       };
 
 // if tryRefresh is true & this token doesn't exist, we try and refresh the session
 // else we return undefined.
-export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType> {
-    logDebugMessage("getIdRefreshToken: called");
+export async function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState> {
+    logDebugMessage("getLocalSessionState: called");
 
-    const token = await getToken("idRefresh");
-
-    if (token === "remove") {
-        logDebugMessage("getIdRefreshToken: is removed");
-        return {
-            status: "NOT_EXISTS"
-        };
-    }
-
-    if (token === undefined) {
-        logDebugMessage("getIdRefreshToken: is undefined");
-        let response: IdRefreshTokenType = {
+    const lastRefreshAttempt = await getFromCookies(LAST_REFRESH_ATTEMPT_NAME);
+    const frontTokenExists = await FrontToken.doesTokenExists();
+    if (frontTokenExists && lastRefreshAttempt !== undefined) {
+        logDebugMessage("getLocalSessionState: returning EXISTS since both frontToken and lastRefreshAttempt exists");
+        return { status: "EXISTS", lastRefreshAttempt };
+    } else if (lastRefreshAttempt) {
+        logDebugMessage(
+            "getLocalSessionState: returning NOT_EXISTS since frontToken was cleared but lastRefreshAttempt exists"
+        );
+        return { status: "NOT_EXISTS" };
+    } else {
+        let response: LocalSessionState = {
             status: "MAY_EXIST"
         };
         if (tryRefresh) {
-            logDebugMessage("getIdRefreshToken: trying to refresg");
-            // either session doesn't exist, or the
-            // cookies have expired (privacy feature that caps lifetime of cookies to 7 days)
+            logDebugMessage("getLocalSessionState: trying to refresh");
+            // either session doesn't exist, or the frontend cookies have expired
+            // privacy feature in Safari that caps lifetime of frontend cookies to 7 days
             const res = await onUnauthorisedResponse(response);
             if (res.result !== "RETRY") {
-                logDebugMessage("getIdRefreshToken: false NOT_EXISTS in case error from backend");
+                logDebugMessage("getLocalSessionState: return NOT_EXISTS in case error from backend" + res.result);
                 // in case the backend is not working, we treat it as the session not existing...
                 return {
                     status: "NOT_EXISTS"
                 };
             }
-            logDebugMessage("getIdRefreshToken: Retrying post refresh");
-            return await getIdRefreshToken(tryRefresh);
+            logDebugMessage("getLocalSessionState: Retrying post refresh");
+            return await getLocalSessionState(tryRefresh);
         } else {
-            logDebugMessage("getIdRefreshToken: returning: " + response.status);
+            logDebugMessage("getLocalSessionState: returning: " + response.status);
             return response;
         }
     }
-
-    logDebugMessage("getIdRefreshToken: returning EXISTS: " + token);
-    return {
-        status: "EXISTS",
-        token
-    };
 }
 
 export function getStorageNameForToken(tokenType: TokenType) {
     switch (tokenType) {
         case "access":
             return ACCESS_TOKEN_NAME;
-        case "idRefresh":
-            return ID_REFRESH_TOKEN_NAME;
         case "refresh":
             return REFRESH_TOKEN_NAME;
     }
@@ -642,7 +623,7 @@ export function setToken(tokenType: TokenType, value: string, expiry: number) {
     // if the value of the token is "remove", it means
     // the session is being removed. So we set it to "remove" in the
     // cookie. This way, when we query for this token, we will return
-    // undefined (see getIdRefreshToken), and not refresh the session
+    // undefined (see getLocalSessionState), and not refresh the session
     // unnecessarily.
     logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
     return storeInCookies(name, value, expiry);
@@ -650,7 +631,7 @@ export function setToken(tokenType: TokenType, value: string, expiry: number) {
 
 function storeInCookies(name: string, value: string, expiry: number) {
     let expires = "Fri, 31 Dec 9999 23:59:59 GMT";
-    if (value !== "remove") {
+    if (value !== "remove" && expiry !== Number.MAX_SAFE_INTEGER) {
         // we must always respect this expiry and not set it to infinite
         // cause this ties into the session's lifetime. If we set this
         // to infinite, then a session may not exist, and this will exist,
@@ -705,11 +686,6 @@ async function setTokenHeaders(clonedHeaders: Headers, addRefreshToken: boolean 
         logDebugMessage("setTokenHeaders: adding ';header' to the rid header");
         clonedHeaders.set("rid", clonedHeaders.get("rid") + ";header");
         logDebugMessage("setTokenHeaders: adding existing tokens as header");
-        const idRefreshToken = await getToken("idRefresh");
-        if (idRefreshToken !== undefined) {
-            logDebugMessage("setTokenHeaders: added st-id-refresh-token header");
-            clonedHeaders.set("st-id-refresh-token", idRefreshToken);
-        }
 
         const accessToken = await getToken("access");
         if (accessToken !== undefined) {
@@ -740,52 +716,35 @@ async function saveTokensFromHeaders(response: Response) {
             await setToken("access", value, Number.parseInt(expiry));
         }
     }
-}
-
-export async function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number) {
-    logDebugMessage("setIdRefreshToken: called");
-
-    const { status } = await getIdRefreshToken(false);
-
-    logDebugMessage("setIdRefreshToken: setting: " + idRefreshToken);
-    const expiry = idRefreshToken === "remove" ? 0 : Number.parseInt(idRefreshToken.split(";")[1]);
-    await setToken("idRefresh", idRefreshToken, expiry);
-
-    if (idRefreshToken === "remove" && status === "EXISTS") {
-        // we check for wasLoggedIn cause we don't want to fire an event
-        // unnecessarily on first app load or if the user tried
-        // to query an API that returned 401 while the user was not logged in...
-        if (statusCode === AuthHttpRequest.config.sessionExpiredStatusCode) {
-            logDebugMessage("setIdRefreshToken: firing UNAUTHORISED event");
-            AuthHttpRequest.config.onHandleEvent({
-                action: "UNAUTHORISED",
-                sessionExpiredOrRevoked: true,
-                userContext: {}
-            });
-        } else {
-            logDebugMessage("setIdRefreshToken: firing SIGN_OUT event");
-            AuthHttpRequest.config.onHandleEvent({
-                action: "SIGN_OUT",
-                userContext: {}
-            });
+    const frontToken = response.headers.get("front-token");
+    if (frontToken) {
+        logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
+        await FrontToken.setItem(frontToken);
+    }
+    const antiCsrfToken = response.headers.get("anti-csrf");
+    if (antiCsrfToken) {
+        const tok = await getLocalSessionState(true);
+        if (tok.status === "EXISTS") {
+            logDebugMessage("doRequest: Setting anti-csrf token");
+            await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
         }
     }
+}
 
-    if (idRefreshToken !== "remove" && status === "NOT_EXISTS") {
-        logDebugMessage("setIdRefreshToken: firing SESSION_CREATED event");
-        AuthHttpRequest.config.onHandleEvent({
-            action: "SESSION_CREATED",
-            userContext: {}
-        });
-    }
+export async function saveRefreshAttempt() {
+    logDebugMessage("setIdRefreshToken: called");
+
+    const now = Date.now().toString();
+    logDebugMessage("setIdRefreshToken: setting " + now);
+    await storeInCookies(LAST_REFRESH_ATTEMPT_NAME, now, Number.MAX_SAFE_INTEGER);
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
     logDebugMessage("getAntiCSRFToken: called");
     // we do not call doesSessionExist here cause the user might override that
     // function here and then it may break the logic of our original implementation.
-    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
-        logDebugMessage("getAntiCSRFToken: Returning because sIRTFrontend != EXISTS");
+    if (!((await getLocalSessionState(true)).status === "EXISTS")) {
+        logDebugMessage("getAntiCSRFToken: Returning because local session state != EXISTS");
         return null;
     }
 
@@ -813,67 +772,17 @@ async function getAntiCSRFToken(): Promise<string | null> {
 // give antiCSRFToken as undefined to remove it.
 export async function setAntiCSRF(antiCSRFToken: string | undefined) {
     logDebugMessage("setAntiCSRF: called: " + antiCSRFToken);
-    async function setAntiCSRFToCookie(antiCSRFToken: string | undefined, domain: string) {
-        let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
-        let cookieVal = "";
-        if (antiCSRFToken !== undefined) {
-            cookieVal = antiCSRFToken;
-            expires = undefined; // set cookie without expiry
-        }
-        if (
-            domain === "localhost" ||
-            domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
-        ) {
-            // since some browsers ignore cookies with domain set to localhost
-            // see https://github.com/supertokens/supertokens-website/issues/25
-            if (expires !== undefined) {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            } else {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${ANTI_CSRF_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            }
-        } else {
-            if (expires !== undefined) {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${ANTI_CSRF_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            } else {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${ANTI_CSRF_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            }
-        }
+    if (antiCSRFToken !== undefined) {
+        await storeInCookies(ANTI_CSRF_NAME, antiCSRFToken, Number.MAX_SAFE_INTEGER);
+    } else {
+        await storeInCookies(ANTI_CSRF_NAME, "", 0);
     }
-
-    await setAntiCSRFToCookie(antiCSRFToken, AuthHttpRequest.config.sessionScope);
 }
 
 async function getFrontTokenFromCookie(): Promise<string | null> {
     logDebugMessage("getFrontTokenFromCookie: called");
-    let value = "; " + (await CookieHandlerReference.getReferenceOrThrow().cookieHandler.getCookie());
-    let parts = value.split("; " + FRONT_TOKEN_NAME + "=");
-    if (parts.length >= 2) {
-        let last = parts.pop();
-        if (last !== undefined) {
-            let temp = last.split(";").shift();
-            if (temp === undefined) {
-                return null;
-            }
-            return temp;
-        }
-    }
-    return null;
+    const val = await getFromCookies(FRONT_TOKEN_NAME);
+    return val === undefined ? null : val;
 }
 
 function parseFrontToken(frontToken: string): { uid: string; ate: number; up: any } {
@@ -884,7 +793,7 @@ export async function getFrontToken(): Promise<string | null> {
     logDebugMessage("getFrontToken: called");
     // we do not call doesSessionExist here cause the user might override that
     // function here and then it may break the logic of our original implementation.
-    if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
+    if (!((await getLocalSessionState(true)).status === "EXISTS")) {
         logDebugMessage("getFrontToken: Returning because sIRTFrontend != EXISTS");
         return null;
     }
@@ -896,48 +805,6 @@ export async function getFrontToken(): Promise<string | null> {
 
 export async function setFrontToken(frontToken: string | undefined) {
     logDebugMessage("setFrontToken: called");
-    async function setFrontTokenToCookie(frontToken: string | undefined, domain: string) {
-        let expires: string | undefined = "Thu, 01 Jan 1970 00:00:01 GMT";
-        let cookieVal = "";
-        if (frontToken !== undefined) {
-            cookieVal = frontToken;
-            expires = undefined; // set cookie without expiry
-        }
-        if (
-            domain === "localhost" ||
-            domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
-        ) {
-            // since some browsers ignore cookies with domain set to localhost
-            // see https://github.com/supertokens/supertokens-website/issues/25
-            if (expires !== undefined) {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            } else {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            }
-        } else {
-            if (expires !== undefined) {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${FRONT_TOKEN_NAME}=${cookieVal};expires=${expires};domain=${domain};path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            } else {
-                await CookieHandlerReference.getReferenceOrThrow().cookieHandler.setCookie(
-                    `${FRONT_TOKEN_NAME}=${cookieVal};domain=${domain};expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/;samesite=${
-                        AuthHttpRequest.config.isInIframe ? "none;secure" : "lax"
-                    }`
-                );
-            }
-        }
-    }
 
     const oldToken = await getFrontTokenFromCookie();
     if (oldToken !== null && frontToken !== undefined) {
@@ -947,5 +814,57 @@ export async function setFrontToken(frontToken: string | undefined) {
             onTokenUpdate();
         }
     }
-    await setFrontTokenToCookie(frontToken, AuthHttpRequest.config.sessionScope);
+
+    if (frontToken === undefined) {
+        // clear the cookie
+        await storeInCookies(FRONT_TOKEN_NAME, "", 0);
+    } else {
+        await storeInCookies(FRONT_TOKEN_NAME, frontToken, Number.MAX_SAFE_INTEGER);
+    }
+}
+
+export function fireSessionUpdateEventsIfNecessary(
+    wasLoggedIn: boolean,
+    status: number,
+    frontTokenHeader: string | null | undefined
+) {
+    if (frontTokenHeader === undefined || frontTokenHeader === null) {
+        // The access token (and the session) hasn't been updated.
+        logDebugMessage("fireSessionUpdateEventsIfNecessary returning early because the front token was not updated");
+        return;
+    }
+
+    // if the current endpoint clears the session it'll set the front-token to remove
+    // any other update means it's created or updated.
+    const frontTokenExistsAfter = frontTokenHeader !== "remove";
+
+    logDebugMessage(
+        `fireSessionUpdateEventsIfNecessary wasLoggedIn: ${wasLoggedIn} frontTokenExistsAfter: ${frontTokenExistsAfter} status: ${status}`
+    );
+    // we check for wasLoggedIn cause we don't want to fire an event unnecessarily on first app load
+    if (wasLoggedIn) {
+        if (!frontTokenExistsAfter) {
+            // to query an API that returned 401 while the user was not logged in...
+            if (status === AuthHttpRequest.config.sessionExpiredStatusCode) {
+                logDebugMessage("onUnauthorisedResponse: firing UNAUTHORISED event");
+                AuthHttpRequest.config.onHandleEvent({
+                    action: "UNAUTHORISED",
+                    sessionExpiredOrRevoked: true,
+                    userContext: {}
+                });
+            } else {
+                logDebugMessage("onUnauthorisedResponse: firing SIGN_OUT event");
+                AuthHttpRequest.config.onHandleEvent({
+                    action: "SIGN_OUT",
+                    userContext: {}
+                });
+            }
+        }
+    } else if (frontTokenExistsAfter) {
+        logDebugMessage("onUnauthorisedResponse: firing SESSION_CREATED event");
+        AuthHttpRequest.config.onHandleEvent({
+            action: "SESSION_CREATED",
+            userContext: {}
+        });
+    }
 }

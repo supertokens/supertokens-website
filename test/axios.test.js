@@ -320,6 +320,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
             });
+            console.log(consoleLogs);
             assert(consoleLogs.length === 1);
             assert(consoleLogs[0] === "ST_SESSION_CREATED");
         } finally {
@@ -469,7 +470,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             });
 
             let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "st-last-refresh-attempt" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -1905,14 +1906,14 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // check refresh API was called once + document.cookie has removed
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 // call sessionDoesExist
                 assertEqual(await supertokens.doesSessionExist(), false);
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
@@ -1928,7 +1929,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
             });
         } finally {
             await browser.close();
@@ -1945,17 +1946,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                function deleteAllCookies() {
-                    var cookies = document.cookie.split(";");
-
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = cookies[i];
-                        var eqPos = cookie.indexOf("=");
-                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                    }
-                }
-
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
@@ -1980,7 +1970,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
 
                 // clear all cookies
                 deleteAllCookies();
@@ -2009,17 +1999,6 @@ describe("Axios AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                function deleteAllCookies() {
-                    var cookies = document.cookie.split(";");
-
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = cookies[i];
-                        var eqPos = cookie.indexOf("=");
-                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                    }
-                }
-
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
@@ -2044,7 +2023,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
 
                 // clear all cookies
                 deleteAllCookies();
@@ -2116,7 +2095,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert(newCookies.length === 1);
-            assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
+            // assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
         } finally {
             await browser.close();
         }

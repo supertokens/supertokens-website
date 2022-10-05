@@ -1623,14 +1623,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // check refresh API was called once + document.cookie has removed
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 // call sessionDoesExist
                 assertEqual(await supertokens.doesSessionExist(), false);
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie, "sIRTFrontend=remove");
+                // assertEqual(document.cookie, "sIRTFrontend=remove");
 
                 await fetch(`/login`, {
                     method: "post",
@@ -1646,7 +1646,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
             });
         } finally {
             await browser.close();
@@ -1663,17 +1663,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                function deleteAllCookies() {
-                    var cookies = document.cookie.split(";");
-
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = cookies[i];
-                        var eqPos = cookie.indexOf("=");
-                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                    }
-                }
-
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1697,7 +1686,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1726,17 +1715,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                function deleteAllCookies() {
-                    var cookies = document.cookie.split(";");
-
-                    for (var i = 0; i < cookies.length; i++) {
-                        var cookie = cookies[i];
-                        var eqPos = cookie.indexOf("=");
-                        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                    }
-                }
-
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1760,7 +1738,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 // check refresh API not called
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assertEqual(document.cookie !== "sIRTFrontend=remove", true);
+                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1968,6 +1946,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             let consoleLogs = [];
             page.on("console", message => {
+                console.log(message.text());
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1978,6 +1957,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
+                    enableDebugLogs: true,
                     onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
@@ -1996,8 +1976,9 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
             });
 
+            console.log(await page.cookies());
             let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "st-last-refresh-attempt" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -2005,16 +1986,20 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await client.send("Network.clearBrowserCache");
 
             await page.setCookie(...originalCookies);
+            console.log(originalCookies);
             let cookies = await page.cookies();
             assert(cookies.length === 3);
-
+            console.log("=========================================");
+            console.log("=========================================");
+            console.log("=========================================");
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
             });
 
-            assert(consoleLogs.length === 2);
+            console.log(consoleLogs);
+            assert.strictEqual(consoleLogs.length, 2);
 
             assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
 
@@ -2077,7 +2062,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert(newCookies.length === 1);
-            assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
+            // assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
         } finally {
             await browser.close();
         }
@@ -2181,12 +2166,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
-                            "st-id-refresh-token": "remove",
                             "Set-Cookie": [
-                                "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                                "sAccessToken=remove; Path=/; Expires=Fri, 31 Dec 9999 23:59:59 GMT; HttpOnly; SameSite=Lax",
                                 "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
-                            ]
+                            ],
+                            "front-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -3330,17 +3314,17 @@ describe("Fetch AuthHttpRequest class tests", function() {
                             const body = await context.fetchResponse.text();
                             assertEqual(body, "refresh success");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("st-id-refresh-token");
-                            assertNotEqual(idRefreshInHeader, "");
-                            assertNotEqual(idRefreshInHeader, null);
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assertNotEqual(frontTokenInHeader, "remove");
+                            assertNotEqual(frontTokenInHeader, null);
                         }
 
                         if (context.action === "SIGN_OUT" && context.fetchResponse.status === 200) {
                             const body = await context.fetchResponse.json();
                             assertEqual(body.status, "OK");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("st-id-refresh-token");
-                            assertEqual(idRefreshInHeader, "remove");
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assertEqual(frontTokenInHeader, "remove");
                         }
                     }
                 });

@@ -34,7 +34,7 @@ export type Event =
       };
 
 export type EventHandler = (event: Event) => void;
-export type TokenType = "access" | "refresh" | "idRefresh";
+export type TokenType = "access" | "refresh";
 
 export type InputType = {
     enableDebugLogs?: boolean;
@@ -45,7 +45,6 @@ export type InputType = {
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
-    // TODO: get rid of st-id-refresh-token, instead access token set to remove
 
     tokenTransferMethod?: "cookie" | "header";
     sessionDomain?: string;
