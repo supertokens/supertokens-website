@@ -29,81 +29,49 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 type XMLHttpRequestType = typeof XMLHttpRequest.prototype & { [key: string]: any };
 
 export function addInterceptorsToXMLHttpRequest() {
+    const oldXMLHttpRequest = XMLHttpRequest;
+    logDebugMessage("addInterceptorsToXMLHttpRequest called");
+
     // create XMLHttpRequest proxy object
-    let oldXMLHttpRequest = XMLHttpRequest;
 
     // define constructor for my proxy object
     XMLHttpRequest = function(this: XMLHttpRequestType) {
-        let actual: XMLHttpRequestType = new oldXMLHttpRequest();
+        const actual: XMLHttpRequestType = new oldXMLHttpRequest();
 
-        let self = this;
-        let listOfFunctionCallsInProxy: { (xhr: XMLHttpRequestType): void }[] = [];
+        const self = this;
+        const listOfFunctionCallsInProxy: { (xhr: XMLHttpRequestType): void }[] = [];
 
-        let requestHeaders: { name: string; value: string }[] = [];
+        const requestHeaders: { name: string; value: string }[] = [];
+        const customGetterValues: { [key: string]: any } = {};
+        let customResponseHeaders: Headers | undefined;
+
+        // We define these during open
         // let method: string = "";
         let url: string | URL = "";
         let doNotDoInterception = false;
         let preRequestIdToken: IdRefreshTokenType | undefined = undefined;
-        let customGetterValues: { [key: string]: any } = {};
+        let body: Document | XMLHttpRequestBodyInit | null | undefined;
 
         // we do not provide onerror cause that is fired only on
         // network level failures and nothing else. If a status code is > 400,
         // then onload and onreadystatechange are called.
 
+        // Setting up props (event handlers) that we use in event handlers
+        // These require processing the response (and possibly retrying) before they are forwarded to the user
         self.onload = null;
         self.onreadystatechange = null;
         self.onloadend = null;
-
-        actual.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-            if (!self["onload"]) {
-                return;
-            }
-
-            handleResponse().then(callself => {
-                if (!self["onload"] || !callself) {
-                    return;
-                }
-                self.onload(ev);
-            });
-        };
-
-        actual.onreadystatechange = function(ev: Event) {
-            if (!self["onreadystatechange"]) {
-                return;
-            }
-
-            // In local files, status is 0 upon success in Mozilla Firefox
-            if (actual.readyState === XMLHttpRequest.DONE) {
-                handleResponse().then(callself => {
-                    if (!self["onreadystatechange"] || !callself) {
-                        return;
-                    }
-                    self.onreadystatechange(ev);
-                });
-            } else {
-                return self.onreadystatechange(ev);
-            }
-        };
-
-        actual.onloadend = function(ev: ProgressEvent<EventTarget>) {
-            if (!self["onloadend"]) {
-                return;
-            }
-            handleResponse().then(callself => {
-                if (!self["onloadend"] || !callself) {
-                    return;
-                }
-                self.onloadend(ev);
-            });
-        };
 
         async function handleRetryPostRefreshing(): Promise<boolean> {
             if (preRequestIdToken === undefined) {
                 throw new Error("Should never come here..");
             }
+            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestIdToken " + preRequestIdToken.status);
             const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
             if (refreshResult.result !== "RETRY") {
-                logDebugMessage("handleRetryPostRefreshing: Not retrying original request");
+                logDebugMessage(
+                    "XHRInterceptor.handleRetryPostRefreshing: Not retrying original request " + !!refreshResult.error
+                );
                 if (refreshResult.error !== undefined) {
                     // this will cause the responseText of the self to be updated
                     // to the error message and make the status code the same as
@@ -115,89 +83,53 @@ export function addInterceptorsToXMLHttpRequest() {
                 // pass through.
                 return true;
             }
-            logDebugMessage("handleRetryPostRefreshing: Retrying original request");
+            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: Retrying original request");
             // We need to create a new XHR with the same thing as the older one
-            let retryXhr = new XMLHttpRequest();
+            let retryXhr = new oldXMLHttpRequest();
 
-            // TODO: copy over all things just like it's done for actual
-            Object.defineProperty(self, "status", {
-                get: function() {
-                    return retryXhr["status"];
-                }
-            });
-
-            Object.defineProperty(self, "responseText", {
-                get: function() {
-                    return retryXhr["responseText"];
-                }
-            });
-
-            if (self["onload"]) {
-                retryXhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-                    if (!self["onload"]) {
-                        return;
-                    }
-                    self.onload(ev);
-                };
-            }
-            if (self["onreadystatechange"]) {
-                retryXhr.onreadystatechange = function(ev: Event) {
-                    if (!self["onreadystatechange"]) {
-                        return;
-                    }
-                    self.onreadystatechange(ev);
-                };
-            }
-            if (self["onloadend"]) {
-                retryXhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
-                    if (!self["onloadend"]) {
-                        return;
-                    }
-                    self.onloadend(ev);
-                };
-            }
-
+            setUpXHR(self, retryXhr, true);
             // this also calls the send function with the appropriate body
             listOfFunctionCallsInProxy.forEach(i => {
                 i(retryXhr);
             });
+            sendXHR(retryXhr, body);
 
             return false;
         }
 
-        async function handleResponse(): Promise<boolean> {
+        async function handleResponse(xhr: XMLHttpRequestType): Promise<boolean> {
             if (doNotDoInterception) {
-                logDebugMessage("handleResponse: Returning without interception");
+                logDebugMessage("XHRInterceptor.handleResponse: Returning without interception");
                 return true;
             }
             try {
                 let doFinallyCheck = true;
                 try {
-                    logDebugMessage("handleResponse: Interception started");
+                    logDebugMessage("XHRInterceptor.handleResponse: Interception started");
 
                     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
-                    const status = actual.status;
-                    const idRefreshToken = actual.getResponseHeader("id-refresh-token");
+                    const status = xhr.status;
+                    const idRefreshToken = xhr.getResponseHeader("id-refresh-token");
                     if (idRefreshToken) {
-                        logDebugMessage("handleResponse: Setting sIRTFrontend: " + idRefreshToken);
+                        logDebugMessage("XHRInterceptor.handleResponse: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, status);
                     }
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
                     } else if (status < 400) {
-                        let antiCsrfToken = actual.getResponseHeader("anti-csrf");
+                        let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
                         if (antiCsrfToken) {
                             let tok = await getIdRefreshToken(true);
                             if (tok.status === "EXISTS") {
-                                logDebugMessage("handleResponse: Setting anti-csrf token");
+                                logDebugMessage("XHRInterceptor.handleResponse: Setting anti-csrf token");
                                 await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                             }
                         }
-                        let frontToken = actual.getResponseHeader("front-token");
+                        let frontToken = xhr.getResponseHeader("front-token");
                         if (frontToken) {
-                            logDebugMessage("handleResponse: Setting sFrontToken: " + frontToken);
+                            logDebugMessage("XHRInterceptor.handleResponse: Setting sFrontToken: " + frontToken);
                             await FrontToken.setItem(frontToken);
                         }
                     } else {
@@ -210,9 +142,10 @@ export function addInterceptorsToXMLHttpRequest() {
                     return true;
                 } finally {
                     if (doFinallyCheck) {
-                        if (!((await getIdRefreshToken(true)).status === "EXISTS")) {
+                        logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
+                        if (!((await getIdRefreshToken(false)).status === "EXISTS")) {
                             logDebugMessage(
-                                "handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                                "XHRInterceptor.handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
                             );
                             await AntiCsrfToken.removeToken();
                             await FrontToken.removeToken();
@@ -220,6 +153,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     }
                 }
             } catch (err) {
+                logDebugMessage("XHRInterceptor.handleResponse: caught error");
                 if ((err as any).status !== undefined) {
                     // this is a fetch error from refresh token API failing...
                     let resp = await getXMLHttpStatusAndResponseTextFromFetchResponse(err as Response);
@@ -227,6 +161,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     customGetterValues["responseText"] = resp.responseText;
                     customGetterValues["statusText"] = resp.statusText;
                     customGetterValues["responseType"] = resp.responseType;
+                    customResponseHeaders = resp.headers;
                 } else {
                     // TODO:... this part needs to be properly thought about..
                     // there are couple of events here we can use:
@@ -234,7 +169,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     // - timeout
                     // - abort
                     let event = new Event("error");
-                    actual.dispatchEvent(event);
+                    xhr.dispatchEvent(event);
                 }
                 return true;
             }
@@ -247,16 +182,6 @@ export function addInterceptorsToXMLHttpRequest() {
             });
             // method = m;
             url = u;
-            // here we use the apply syntax cause there are other optional args that
-            // can be passed by the user.
-            actual.open.apply(actual, args);
-        };
-
-        self.send = function(body) {
-            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                xhr.send(body);
-            });
-            logDebugMessage("send: called");
             try {
                 doNotDoInterception =
                     (typeof url === "string" &&
@@ -273,7 +198,7 @@ export function addInterceptorsToXMLHttpRequest() {
                         ));
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
-                    logDebugMessage("send: Trying shouldDoInterceptionBasedOnUrl with location.origin");
+                    logDebugMessage("XHRInterceptor.open: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
@@ -285,12 +210,163 @@ export function addInterceptorsToXMLHttpRequest() {
                 }
             }
 
-            logDebugMessage("send: Value of doNotDoInterception: " + doNotDoInterception);
-            if (doNotDoInterception) {
-                logDebugMessage("send: Returning without interception");
-                return actual.send(body);
+            // here we use the apply syntax cause there are other optional args that
+            // can be passed by the user.
+            actual.open.apply(actual, args);
+        };
+
+        self.send = function(body) {
+            sendXHR(actual, body);
+        };
+
+        self.setRequestHeader = function(name: string, value: string) {
+            // TODO: Decide if we should do this or disable this interceptor in case another one is added
+            // We need to do this, because if there is another interceptor wrapping this (e.g.: the axios interceptor)
+            // then the anti-csrf token they add would be concatenated to the anti-csrf token added by this interceptor
+            if (!doNotDoInterception && name === "anti-csrf") {
+                return;
             }
-            logDebugMessage("send: Interception started");
+            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                xhr.setRequestHeader(name, value);
+            });
+            // The original version "combines" headers according to MDN.
+            requestHeaders.push({ name, value });
+            actual.setRequestHeader(name, value);
+        };
+
+        let copiedProps: string[] | undefined = undefined;
+        setUpXHR(self, actual, false);
+
+        function setUpXHR(self: XMLHttpRequestType, xhr: XMLHttpRequestType, isRetry: boolean) {
+            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+                if (!self["onload"]) {
+                    return;
+                }
+
+                handleResponse(xhr).then(callself => {
+                    if (!self["onload"] || !callself) {
+                        return;
+                    }
+                    self.onload(ev);
+                });
+            };
+
+            xhr.onreadystatechange = function(ev: Event) {
+                if (!self["onreadystatechange"]) {
+                    return;
+                }
+
+                // In local files, status is 0 upon success in Mozilla Firefox
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    handleResponse(xhr).then(callself => {
+                        if (!self["onreadystatechange"] || !callself) {
+                            return;
+                        }
+                        self.onreadystatechange(ev);
+                    });
+                } else {
+                    return self.onreadystatechange(ev);
+                }
+            };
+
+            xhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
+                if (!self["onloadend"]) {
+                    return;
+                }
+                handleResponse(xhr).then(callself => {
+                    if (!self["onloadend"] || !callself) {
+                        return;
+                    }
+                    self.onloadend(ev);
+                });
+            };
+
+            self.getAllResponseHeaders = function() {
+                let headersString: string;
+                if (customResponseHeaders) {
+                    headersString = "";
+                    customResponseHeaders.forEach((v, k) => (headersString += `${k}: ${v}\r\n`));
+                } else {
+                    headersString = xhr.getAllResponseHeaders();
+                }
+                // We use this "fake-header" to signal other interceptors (axios) that this is done
+                // in case both is applied
+                return headersString + "x-supertokens-xhr-intercepted: true\r\n";
+            };
+
+            self.getResponseHeader = function(name: string) {
+                if (name === "x-supertokens-xhr-intercepted") {
+                    return "true";
+                }
+                if (customResponseHeaders) {
+                    return customResponseHeaders.get(name);
+                }
+                return xhr.getResponseHeader(name);
+            };
+
+            if (copiedProps === undefined) {
+                copiedProps = [];
+                // iterate all properties in actual to proxy them according to their type
+                // For functions, we call actual and return the result
+                // For non-functions, we make getters/setters
+                // If the property already exists on self, then don't proxy it
+                for (const prop in xhr) {
+                    // skip properties we already have - this will skip both the above defined properties
+                    // that we don't want to proxy and skip properties on the prototype belonging to Object
+                    if (!(prop in self)) {
+                        // We save these props into an array - in case we need to set up a retry XHR
+                        copiedProps.push(prop);
+                    }
+                }
+            }
+
+            for (const prop of copiedProps) {
+                if (typeof xhr[prop] === "function") {
+                    // define our own property that calls the same method on the actual
+                    Object.defineProperty(self, prop, {
+                        configurable: true,
+                        value: function() {
+                            let args = arguments;
+                            if (!isRetry) {
+                                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                                    xhr[prop].apply(xhr, args);
+                                });
+                            }
+                            return xhr[prop].apply(xhr, args);
+                        }
+                    });
+                } else {
+                    // define our own property that just gets or sets the same prop on the actual
+                    Object.defineProperty(self, prop, {
+                        configurable: true,
+                        get: function() {
+                            if (customGetterValues[prop] !== undefined) {
+                                return customGetterValues[prop];
+                            }
+                            return xhr[prop];
+                        },
+                        set: function(val) {
+                            if (!isRetry) {
+                                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                                    xhr[prop] = val;
+                                });
+                            }
+                            xhr[prop] = val;
+                        }
+                    });
+                }
+            }
+        }
+
+        function sendXHR(xhr: XMLHttpRequestType, body: Document | XMLHttpRequestBodyInit | null | undefined) {
+            logDebugMessage("XHRInterceptor.send: called");
+
+            logDebugMessage("XHRInterceptor.send: Value of doNotDoInterception: " + doNotDoInterception);
+            if (doNotDoInterception) {
+                logDebugMessage("XHRInterceptor.send: Returning without interception");
+                return xhr.send(body);
+            }
+            logDebugMessage("XHRInterceptor.send: Interception started");
 
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
 
@@ -300,96 +376,30 @@ export function addInterceptorsToXMLHttpRequest() {
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
                     if (antiCsrfToken !== undefined) {
-                        logDebugMessage("send: Adding anti-csrf token to request");
-                        actual.setRequestHeader("anti-csrf", antiCsrfToken);
+                        logDebugMessage("XHRInterceptor.send: Adding anti-csrf token to request");
+                        xhr.setRequestHeader("anti-csrf", antiCsrfToken);
                     }
                 }
 
                 if (AuthHttpRequestFetch.config.autoAddCredentials) {
-                    logDebugMessage("send: Adding credentials include");
+                    logDebugMessage("XHRInterceptor.send: Adding credentials include");
                     self.withCredentials = true;
                 }
 
-                if (
-                    !requestHeaders.some(i => {
-                        i.name === "rid";
-                    })
-                ) {
-                    logDebugMessage("send: Adding rid header: anti-csrf");
-                    actual.setRequestHeader("rid", "anti-csrf");
+                if (!requestHeaders.some(i => i.name === "rid")) {
+                    logDebugMessage("XHRInterceptor.send: Adding rid header: anti-csrf");
+                    xhr.setRequestHeader("rid", "anti-csrf");
                 } else {
-                    logDebugMessage("send: rid header was already there in request");
+                    logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
-                logDebugMessage("send: Making user's http call");
-                return actual.send(body);
+                logDebugMessage("XHRInterceptor.send: Making user's http call");
+                return xhr.send(body);
             })();
-        };
-
-        self.setRequestHeader = function(name: string, value: string) {
-            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                xhr.setRequestHeader(name, value);
-            });
-            // TODO: If this is called twice on the same key, is the older version
-            // removed or is the newer value just appended..
-            if (
-                requestHeaders.some(i => {
-                    return i.name === name;
-                })
-            ) {
-                requestHeaders = requestHeaders.filter(i => {
-                    return i.name !== name;
-                });
-            }
-            requestHeaders.push({ name, value });
-            actual.setRequestHeader(name, value);
-        };
-
-        // iterate all properties in actual to proxy them according to their type
-        // For functions, we call actual and return the result
-        // For non-functions, we make getters/setters
-        // If the property already exists on self, then don't proxy it
-        for (const prop in actual) {
-            // skip properties we already have - this will skip both the above defined properties
-            // that we don't want to proxy and skip properties on the prototype belonging to Object
-            if (!(prop in self)) {
-                // create closure to capture value of prop
-                (function(prop) {
-                    if (typeof actual[prop] === "function") {
-                        // define our own property that calls the same method on the actual
-                        Object.defineProperty(self, prop, {
-                            configurable: true,
-                            value: function() {
-                                let args = arguments;
-                                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                                    xhr[prop].apply(xhr, args);
-                                });
-                                return actual[prop].apply(actual, args);
-                            }
-                        });
-                    } else {
-                        // define our own property that just gets or sets the same prop on the actual
-                        Object.defineProperty(self, prop, {
-                            configurable: true,
-                            get: function() {
-                                if (customGetterValues[prop] !== undefined) {
-                                    console.log("customGetterValues", prop);
-                                    return customGetterValues[prop];
-                                }
-                                return actual[prop];
-                            },
-                            set: function(val) {
-                                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                                    xhr[prop] = val;
-                                });
-                                actual[prop] = val;
-                            }
-                        });
-                    }
-                })(prop);
-            }
         }
     } as any;
+
+    (XMLHttpRequest as any).__original = oldXMLHttpRequest;
 }
 
 async function getXMLHttpStatusAndResponseTextFromFetchResponse(
@@ -399,6 +409,7 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
     responseText: string;
     statusText: string;
     responseType: XMLHttpRequestResponseType;
+    headers: Headers;
 }> {
     const contentType = response.headers.get("content-type");
 
@@ -416,14 +427,16 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
     } else if (contentType.includes("text/")) {
         data = await response.text();
     }
-    // TODO: in this function for axios, we had also handled blog type - should
-    // we handle that here as well?
 
-    // TODO: We also need to set the right response headers.
     return {
         status: response.status,
         responseText: data,
         statusText: response.statusText,
-        responseType
+        responseType,
+        headers: response.headers
     };
+}
+
+export function removeXMLHttpRequestInterceptor() {
+    XMLHttpRequest = (XMLHttpRequest as any).__original;
 }
