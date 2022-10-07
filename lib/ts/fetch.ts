@@ -333,6 +333,10 @@ export default class AuthHttpRequest {
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
+        if (!AuthHttpRequest.initCalled) {
+            throw Error("init function not called");
+        }
+
         const preRequestIdToken = await getIdRefreshToken(false);
         const refresh = await onUnauthorisedResponse(preRequestIdToken);
 
