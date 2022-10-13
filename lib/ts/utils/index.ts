@@ -175,6 +175,7 @@ export function shouldDoInterceptionBasedOnUrl(
             !isNaN(str as any) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
         ); // ...and ensure strings of whitespace fail
     }
+    // TODO: check if supertokensDoNotDoInterception=true is in the url and strip it when making the request
     toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
     let urlObj = new URL(toCheckUrl);
     let domain = urlObj.hostname;

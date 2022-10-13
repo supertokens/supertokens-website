@@ -62,6 +62,16 @@ export function addInterceptorsToXMLHttpRequest() {
         self.onreadystatechange = null;
         self.onloadend = null;
 
+        const eventTarget = new EventTarget();
+        self.addEventListener = eventTarget.addEventListener.bind(eventTarget);
+        self.removeEventListener = eventTarget.removeEventListener.bind(eventTarget);
+
+        function redispatchEvent(ev: Event) {
+            logDebugMessage(`XHRInterceptor redispatching ${ev.type}`);
+
+            eventTarget.dispatchEvent(new (ev as any).constructor(ev.type, ev));
+        }
+
         async function handleRetryPostRefreshing(): Promise<boolean> {
             if (preRequestIdToken === undefined) {
                 throw new Error("Should never come here..");
@@ -158,18 +168,25 @@ export function addInterceptorsToXMLHttpRequest() {
                     // this is a fetch error from refresh token API failing...
                     let resp = await getXMLHttpStatusAndResponseTextFromFetchResponse(err as Response);
                     customGetterValues["status"] = resp.status;
-                    customGetterValues["responseText"] = resp.responseText;
                     customGetterValues["statusText"] = resp.statusText;
                     customGetterValues["responseType"] = resp.responseType;
                     customResponseHeaders = resp.headers;
+
+                    if (resp.responseType === "json") {
+                        try {
+                            customGetterValues["response"] = JSON.parse(resp.responseText);
+                        } catch {
+                            customGetterValues["response"] = resp.responseText;
+                        }
+                    } else {
+                        customGetterValues["response"] = resp.responseText;
+                    }
+                    customGetterValues["responseText"] = resp.responseText;
                 } else {
-                    // TODO:... this part needs to be properly thought about..
-                    // there are couple of events here we can use:
-                    // - error -> called for network level issues..
-                    // - timeout
-                    // - abort
+                    // Here we only need to handle fetch related errors, from the refresh endpoint called by the retry
+                    // So we should only get network level errors here
                     let event = new Event("error");
-                    xhr.dispatchEvent(event);
+                    eventTarget.dispatchEvent(event);
                 }
                 return true;
             }
@@ -220,10 +237,13 @@ export function addInterceptorsToXMLHttpRequest() {
         };
 
         self.setRequestHeader = function(name: string, value: string) {
-            // TODO: Decide if we should do this or disable this interceptor in case another one is added
+            if (doNotDoInterception) {
+                actual.setRequestHeader(name, value);
+                return;
+            }
             // We need to do this, because if there is another interceptor wrapping this (e.g.: the axios interceptor)
             // then the anti-csrf token they add would be concatenated to the anti-csrf token added by this interceptor
-            if (!doNotDoInterception && name === "anti-csrf") {
+            if (name === "anti-csrf") {
                 return;
             }
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
@@ -238,46 +258,74 @@ export function addInterceptorsToXMLHttpRequest() {
         setUpXHR(self, actual, false);
 
         function setUpXHR(self: XMLHttpRequestType, xhr: XMLHttpRequestType, isRetry: boolean) {
-            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
-                if (!self["onload"]) {
-                    return;
-                }
+            let responseProcessed: Promise<boolean> | undefined;
+            const delayedEvents = ["load", "loadend", "readystatechange"];
+            const xhrEvents = [
+                "readystatechange",
+                "abort",
+                "error",
+                "load",
+                "loadend",
+                "loadstart",
+                "progress",
+                "timeout"
+            ];
+            for (const name of xhrEvents) {
+                xhr.addEventListener(name, (ev: any) => {
+                    if (!delayedEvents.includes(name)) {
+                        redispatchEvent(ev);
+                    }
+                });
+            }
 
-                handleResponse(xhr).then(callself => {
-                    if (!self["onload"] || !callself) {
+            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+                if (responseProcessed === undefined) {
+                    responseProcessed = handleResponse(xhr);
+                }
+                responseProcessed.then(callself => {
+                    if (!callself) {
                         return;
                     }
-                    self.onload(ev);
+                    if (self.onload) {
+                        self.onload(ev);
+                    }
+                    redispatchEvent(ev);
                 });
             };
 
             xhr.onreadystatechange = function(ev: Event) {
-                if (!self["onreadystatechange"]) {
-                    return;
-                }
-
                 // In local files, status is 0 upon success in Mozilla Firefox
                 if (xhr.readyState === XMLHttpRequest.DONE) {
-                    handleResponse(xhr).then(callself => {
-                        if (!self["onreadystatechange"] || !callself) {
+                    if (responseProcessed === undefined) {
+                        responseProcessed = handleResponse(xhr);
+                    }
+                    responseProcessed.then(callself => {
+                        if (!callself) {
                             return;
                         }
-                        self.onreadystatechange(ev);
+                        if (self.onreadystatechange) self.onreadystatechange(ev);
+                        redispatchEvent(ev);
                     });
                 } else {
-                    return self.onreadystatechange(ev);
+                    if (self.onreadystatechange) {
+                        self.onreadystatechange(ev);
+                    }
+                    redispatchEvent(ev);
                 }
             };
 
             xhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
-                if (!self["onloadend"]) {
-                    return;
+                if (responseProcessed === undefined) {
+                    responseProcessed = handleResponse(xhr);
                 }
-                handleResponse(xhr).then(callself => {
-                    if (!self["onloadend"] || !callself) {
+                responseProcessed.then(callself => {
+                    if (!callself) {
                         return;
                     }
-                    self.onloadend(ev);
+                    if (self.onloadend) {
+                        self.onloadend(ev);
+                    }
+                    redispatchEvent(ev);
                 });
             };
 
