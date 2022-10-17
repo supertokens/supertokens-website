@@ -30,6 +30,7 @@ let {
     checkIfJWTIsEnabled
 } = require("./utils");
 const { spawn } = require("child_process");
+const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 
 /* TODO: 
     - User passed config should be sent as well
@@ -59,13 +60,14 @@ const { spawn } = require("child_process");
         headers (as Headers)
         responseText (text)
 */
-function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
-    describe(`${name} interception`, function() {
+
+addTestCases((name, setupFunc, setupArgs = []) => {
+    describe(`${name}: interception basic tests 1`, function() {
         let browser;
         let page;
 
         function setup(config = {}) {
-            // page.on("console", c => console.log(c.text()));
+            page.on("console", c => console.log(c.text()));
             return page.evaluate(
                 setupFunc,
                 {
@@ -121,7 +123,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             }
         });
 
-        it("testing with fetch api methods without config", async function() {
+        it("testing api methods without config", async function() {
             await setup();
 
             await page.evaluate(async () => {
@@ -133,7 +135,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("testing with fetch api methods with config", async function() {
+        it("testing api methods with config", async function() {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -146,7 +148,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("testing with fetch api methods that doesn't exists", async function() {
+        it("testing api methods that doesn't exists", async function() {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -381,7 +383,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("test update jwt data  with fetch", async function() {
+        it("test update jwt data ", async function() {
             await startST(3);
             await setup();
 
@@ -459,7 +461,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //test custom headers are being sent when logged in and when not*****
-        it("test with fetch that custom headers are being sent", async function() {
+        it("test that custom headers are being sent", async function() {
             await startST();
             await setup();
 
@@ -525,7 +527,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //testing doesSessionExist works fine when user is logged in******
-        it("test with fetch that doesSessionExist works fine when the user is logged in", async function() {
+        it("test that doesSessionExist works fine when the user is logged in", async function() {
             await startST();
             await setup();
 
@@ -549,7 +551,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
-        it("test with fetch session should not exist when user calls log out", async function() {
+        it("test session should not exist when user calls log out", async function() {
             await startST();
             await setup();
             await page.evaluate(async () => {
@@ -583,7 +585,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 assert.strictEqual(loginResponse.responseText, userId);
 
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
-                assert.strictEqual(getAntiCSRFromCookie() !== null, true);
+                assert.notEqual(getAntiCSRFromCookie(), null);
 
                 let userIdFromToken = await supertokens.getUserId();
                 assert.strictEqual(userIdFromToken, userId);
@@ -601,7 +603,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
 
                 assert.strictEqual(logoutResponse.responseText, "success");
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
-                assert.strictEqual(getAntiCSRFromCookie() === null, true);
+                assert.strictEqual(getAntiCSRFromCookie(), null);
 
                 try {
                     await supertokens.getUserId();
@@ -620,7 +622,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         // testing attemptRefreshingSession works fine******
-        it("test with fetch that attemptRefreshingSession is working correctly", async function() {
+        it("test that attemptRefreshingSession is working correctly", async function() {
             await startST(5);
             await setup();
 
@@ -655,7 +657,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-        it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
+        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
             await startST(15);
             await setup();
 
@@ -710,7 +712,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         // - Things should work if anti-csrf is disabled.******
-        it("test with fetch that things should work correctly if anti-csrf is disabled", async function() {
+        it("test that things should work correctly if anti-csrf is disabled", async function() {
             await startST(3, false);
             await setup();
 
@@ -753,8 +755,8 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        // if any API throws error, it gets propogated to the user properly (with and without interception)******
-        it("test with fetch that if an api throws an error it gets propagated to the user with interception", async () => {
+        // if any API throws error, it gets propagated to the user properly (with and without interception)******
+        it("test that if an api throws an error it gets propagated to the user with interception", async () => {
             await startST();
             await setup();
             await page.evaluate(async () => {
@@ -769,8 +771,37 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        // if any API throws error, it gets propogated to the user properly (with and without interception)******
-        it("test with fetch that if an api throws an error it gets propagated to the user without interception", async () => {
+        it("test that if an api throws a 400 error it gets propagated to the user with interception", async () => {
+            await startST();
+            await setup();
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let val = await toTest({ url: `${BASE_URL}/testError?code=400` });
+                assert.strictEqual(val.responseText, "test error message");
+                assert.strictEqual(val.statusCode, 400);
+            });
+        });
+
+        it("test that if an api throws a 405 error it gets propagated to the user with interception", async () => {
+            await startST();
+            await setup();
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let val = await toTest({ url: `${BASE_URL}/testError?code=405` });
+                assert.strictEqual(val.responseText, "test error message");
+                assert.strictEqual(val.statusCode, 405);
+            });
+        });
+
+        it("test that if an api throws an error it gets propagated to the user without interception", async () => {
             await startST();
             await setup();
 
@@ -780,15 +811,114 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                     apiDomain: BASE_URL
                 });
 
-                let val = await toTest({ url: `${BASE_URL}/testError`, method: "get" });
+                let val = await toTest({ url: `${BASE_URL}/testError#superTokensDoNotDoInterception`, method: "get" });
 
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 500);
             });
         });
 
+        it("test that if an api throws a 400 error it gets propagated to the user without interception", async () => {
+            await startST();
+            await setup();
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let val = await toTest({
+                    url: `${BASE_URL}/testError?code=400#superTokensDoNotDoInterception`,
+                    method: "get"
+                });
+
+                assert.strictEqual(val.responseText, "test error message");
+                assert.strictEqual(val.statusCode, 400);
+            });
+        });
+
+        it("test that if an api throws a 405 error it gets propagated to the user without interception", async () => {
+            await startST();
+            await setup();
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let val = await toTest({ url: `${BASE_URL}/testError?code=405`, method: "get" });
+
+                assert.strictEqual(val.responseText, "test error message");
+                assert.strictEqual(val.statusCode, 405);
+            });
+        });
+
+        it("test that network errors are propagated to the user with interception", async () => {
+            await startST();
+            await setup();
+
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/testError") {
+                    req.abort();
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let caught;
+                try {
+                    await toTest({ url: `${BASE_URL}/testError`, method: "get" });
+                } catch (ex) {
+                    caught = ex;
+                }
+
+                assert.ok(caught);
+            });
+        });
+
+        it("test that network errors are propagated to the user without interception", async () => {
+            await startST();
+            await setup();
+
+            await page.setRequestInterception(true);
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/testError") {
+                    req.abort();
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                let caught;
+                try {
+                    await toTest({ url: `${BASE_URL}/testError#superTokensDoNotDoInterception`, method: "get" });
+                } catch (ex) {
+                    caught = ex;
+                }
+
+                assert.ok(caught);
+            });
+        });
+
         //    - Calling SuperTokens.init more than once works!*******
-        it("test with fetch that calling SuperTokens.init more than once works", async () => {
+        it("test that calling SuperTokens.init more than once works", async () => {
             await startST();
             await setup();
             await page.evaluate(async () => {
@@ -843,7 +973,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
-        it("test with fetch that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
+        it("test that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
             await startST(3);
             await setup();
             await page.evaluate(async () => {
@@ -881,7 +1011,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
-        it("test with fetch that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
+        it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
             await startST(5);
             await setup();
 
@@ -963,7 +1093,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         // //    - Interception should not happen when domain is not the one that they gave*******
-        // it("test with fetch interception should not happen when domain is not the one that they gave", async function() {
+        // it("test interception should not happen when domain is not the one that they gave", async function() {
         //   await startST(5);
         //   AuthHttpRequest.init({
         //     apiDomain: BASE_URL,
@@ -998,7 +1128,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         //   assert.notDeepEqual(verifyRequestState, undefined);
         // });
 
-        it("test with fetch interception should happen if api domain and website domain are the same and relative path is used", async function() {
+        it("test interception should happen if api domain and website domain are the same and relative path is used", async function() {
             await startST(5);
             await setup();
 
@@ -1026,7 +1156,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("test with fetch interception should not happen if api domain and website domain are different and relative path is used", async function() {
+        it("test interception should not happen if api domain and website domain are different and relative path is used", async function() {
             await startST(5);
             await setup();
 
@@ -1054,8 +1184,32 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
+        it("should not intercept if url contains superTokensDoNoDoInterception", async function() {
+            await startST(5);
+            await setup();
+
+            await page.evaluate(async () => {
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await toTest({
+                    url: `/login#superTokensDoNotDoInterception`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                assert.strictEqual(document.cookie, "");
+            });
+        });
+
         //cross domain login, userinfo, logout
-        it("test with fetch cross domain", async () => {
+        it("test cross domain", async () => {
             await startST(5);
             await setup();
 
@@ -1114,7 +1268,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //cross domain login, userinfo, logout
-        it("test with fetch cross domain, auto add credentials", async () => {
+        it("test cross domain, auto add credentials", async () => {
             await startST(5);
             await setup();
             await page.evaluate(async () => {
@@ -1170,7 +1324,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
         });
 
         //cross domain login, userinfo, logout
-        it("test with fetch cross domain, no auto add credentials, fail", async () => {
+        it("test cross domain, no auto add credentials, fail", async () => {
             await startST(5);
             await setup();
             await page.evaluate(async () => {
@@ -1248,7 +1402,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("fetch check sessionDoes exist calls refresh API just once", async function() {
+        it("check sessionDoes exist calls refresh API just once", async function() {
             await startST();
             await setup();
 
@@ -1288,11 +1442,11 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.strictEqual(document.cookie !== "sIRTFrontend=remove", true);
+                assert.notEqual(document.cookie, "sIRTFrontend=remove");
             });
         });
 
-        it("fetch check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+        it("check clearing all frontend set cookies still works (without anti-csrf)", async function() {
             await startST(3, false);
 
             await setup();
@@ -1332,7 +1486,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.strictEqual(document.cookie !== "sIRTFrontend=remove", true);
+                assert.notEqual(document.cookie, "sIRTFrontend=remove");
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1348,7 +1502,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
             });
         });
 
-        it("fetch check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+        it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
             await startST();
 
             await setup();
@@ -1388,7 +1542,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.strictEqual(document.cookie !== "sIRTFrontend=remove", true);
+                assert.notEqual(document.cookie, "sIRTFrontend=remove");
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1471,23 +1625,18 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
 
         it("test that setting headers works", async function() {
             await setup();
-            const [_, req1, req2, req3] = await Promise.all([
+            const [_, req2, req3] = await Promise.all([
                 page.evaluate(async () => {
                     let BASE_URL = "http://localhost.org:8080";
                     supertokens.init({
                         apiDomain: BASE_URL
                     });
-                    await fetch(new Request(`${BASE_URL}/test`, { headers: { asdf: "123" } }));
                     await toTest({ url: `${BASE_URL}/test2`, headers: { asdf2: "123" } });
                     await toTest({ url: `${BASE_URL}/test3` });
                 }),
-                page.waitForRequest(`${BASE_URL}/test`),
                 page.waitForRequest(`${BASE_URL}/test2`),
                 page.waitForRequest(`${BASE_URL}/test3`)
             ]);
-
-            assert.equal(req1.headers()["rid"], "anti-csrf");
-            assert.equal(req1.headers()["asdf"], "123");
 
             assert.equal(req2.headers()["rid"], "anti-csrf");
             assert.equal(req2.headers()["asdf2"], "123");
@@ -1827,7 +1976,7 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 assert.strictEqual(data.message, "test");
             });
             // It should call it once before the call - but after that doesn't work it should not try again after the API request
-            assert.equal(refreshCalled, name === "axios with axios interceptor" ? 2 : 1);
+            assert.strictEqual(refreshCalled, name === "axios with axios interceptor" ? 2 : 1);
         });
 
         it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
@@ -2854,160 +3003,59 @@ function getGenericInterceptionTestCases(name, setupFunc, setupArgs = []) {
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
             });
         });
-    });
-}
 
-getGenericInterceptionTestCases("fetch", config => {
-    supertokens.init({
-        ...config,
-        apiDomain: BASE_URL
-    });
-    window.toTest = async config => {
-        const resp = await fetch(config.url, config);
-        const responseText = await resp.text();
+        it("test disabled interception", async function() {
+            await startST();
 
-        return {
-            url: resp.url,
-            statusCode: resp.status,
-            headers: resp.headers,
-            responseText
-        };
-    };
-});
+            await setup();
+            await page.evaluate(async () => {
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    postAPIHook: async context => {
+                        assert.strictEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
-getGenericInterceptionTestCases("XHR", config => {
-    supertokens.init({
-        ...config,
-        apiDomain: BASE_URL
-    });
-    window.toTest = async config => {
-        const request = new XMLHttpRequest();
-        request.open(config.method || "GET", config.url);
-        config.headers = config.headers || {};
-        for (const [name, value] of Object.entries(config.headers)) {
-            request.setRequestHeader(name, value);
-        }
-        if (config.credentials === "include") {
-            request.withCredentials = true;
-        }
-        const loaded = new Promise((res, rej) => {
-            request.onloadend = res;
-            request.onerror = rej;
-            request.ontimeout = rej;
-            request.onabort = rej;
+                        if (context.action === "REFRESH_SESSION" && context.fetchResponse.statusCode === 200) {
+                            const body = await context.fetchResponse.text();
+                            assert.strictEqual(body, "refresh success");
+
+                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
+                            assertNotEqual(idRefreshInHeader, "");
+                            assertNotEqual(idRefreshInHeader, null);
+                        }
+
+                        if (context.action === "SIGN_OUT" && context.fetchResponse.statusCode === 200) {
+                            const body = await context.fetchResponse.json();
+                            assert.strictEqual(body.statusCode, "OK");
+
+                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
+                            assert.strictEqual(idRefreshInHeader, "remove");
+                        }
+                    }
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                await delay(2);
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assert.strictEqual(attemptRefresh, true);
+
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+                await supertokens.signOut();
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assert.strictEqual(await supertokens.doesSessionExist(), false);
+            });
         });
-        request.send(config.body);
-        await loaded;
-        const headers = new Headers(
-            request
-                .getAllResponseHeaders()
-                .trim()
-                .split("\r\n")
-                .map(line => line.split(": "))
-        );
-        const responseText = request.responseText;
-
-        return {
-            url: request.responseURL,
-            statusCode: request.status,
-            headers,
-            responseText
-        };
-    };
-});
-
-getGenericInterceptionTestCases("axios with axios interceptor", config => {
-    supertokens.addAxiosInterceptors(axios);
-    supertokens.init({
-        ...config,
-        apiDomain: BASE_URL
     });
-    window.toTest = async config => {
-        let resp;
-        try {
-            resp = await axios({
-                method: config.method,
-                data: config.body,
-                url: config.url,
-                headers: config.headers,
-                withCredentials: config.credentials === "include",
-                responseType: "text"
-            });
-        } catch (err) {
-            resp = err.response;
-        }
-        return {
-            url: resp.config.url,
-            statusCode: resp.status,
-            headers: new Headers(Object.entries(resp.headers)),
-            responseText: resp.data
-        };
-    };
-});
-
-getGenericInterceptionTestCases("axios", config => {
-    supertokens.init({
-        ...config,
-        apiDomain: BASE_URL
-    });
-    window.toTest = async config => {
-        let resp;
-        try {
-            resp = await axios({
-                method: config.method,
-                data: config.body,
-                url: config.url,
-                headers: config.headers,
-                withCredentials: config.credentials === "include",
-                responseType: "text"
-            });
-        } catch (err) {
-            resp = err.response;
-        }
-        return {
-            url: resp.config.url,
-            statusCode: resp.status,
-            headers: new Headers(Object.entries(resp.headers)),
-            responseText: resp.data
-        };
-    };
-});
-
-getGenericInterceptionTestCases("angular HTTPClient", async config => {
-    await loadAngular();
-
-    supertokens.init({
-        ...config,
-        apiDomain: BASE_URL
-    });
-
-    window.toTest = async config => {
-        let resp;
-        try {
-            resp = await angularHttpClient
-                .request(config.method || "GET", config.url, {
-                    headers: config.headers,
-                    body: config.body,
-                    withCredentials: config.credentials === "include",
-                    responseType: "text",
-                    observe: "response"
-                })
-                .toPromise();
-        } catch (error) {
-            if (error.status === 0) {
-                // A client-side or network error occurred. Handle it accordingly.
-                throw error;
-            } else {
-                // This mains we have a wrong error code, and this is about the same as resp above
-                resp = error;
-            }
-        }
-
-        return {
-            url: resp.url,
-            statusCode: resp.status,
-            headers: resp.headers,
-            responseText: resp.error || resp.body
-        };
-    };
 });

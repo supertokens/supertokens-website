@@ -114,7 +114,6 @@ export function addInterceptorsToXMLHttpRequest() {
                 return true;
             }
             try {
-                let doFinallyCheck = true;
                 try {
                     logDebugMessage("XHRInterceptor.handleResponse: Interception started");
 
@@ -129,7 +128,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
-                    } else if (status < 400) {
+                    } else {
                         if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                             await onInvalidClaimResponse({
                                 data: JSON.parse(xhr.responseText)
@@ -148,24 +147,16 @@ export function addInterceptorsToXMLHttpRequest() {
                             logDebugMessage("XHRInterceptor.handleResponse: Setting sFrontToken: " + frontToken);
                             await FrontToken.setItem(frontToken);
                         }
-                    } else {
-                        // we set this to false so that the finally
-                        // block below doesn't bother with checking for session related
-                        // things - cause the original API has returned a > 400 status code that is
-                        // not session expired, and nor is invalid claim.
-                        doFinallyCheck = false;
                     }
                     return true;
                 } finally {
-                    if (doFinallyCheck) {
-                        logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
-                        if (!((await getIdRefreshToken(false)).status === "EXISTS")) {
-                            logDebugMessage(
-                                "XHRInterceptor.handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
-                            );
-                            await AntiCsrfToken.removeToken();
-                            await FrontToken.removeToken();
-                        }
+                    logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
+                    if (!((await getIdRefreshToken(false)).status === "EXISTS")) {
+                        logDebugMessage(
+                            "XHRInterceptor.handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                        );
+                        await AntiCsrfToken.removeToken();
+                        await FrontToken.removeToken();
                     }
                 }
             } catch (err) {

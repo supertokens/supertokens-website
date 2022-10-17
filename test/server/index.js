@@ -383,7 +383,11 @@ app.get("/index.html", (req, res) => {
 app.use("/angular", express.static("./angular"));
 
 app.get("/testError", (req, res) => {
-    res.status(500).send("test error message");
+    let code = 500;
+    if (req.query.code) {
+        code = Number.parseInt(req.query.code);
+    }
+    res.status(code).send("test error message");
 });
 
 app.get("/stop", async (req, res) => {

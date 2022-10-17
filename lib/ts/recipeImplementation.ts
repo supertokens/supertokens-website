@@ -166,7 +166,11 @@ export default function RecipeImplementation(recipeImplInput: {
             if ("body" in input.response) {
                 body = await input.response.clone().json();
             } else {
-                body = input.response.data;
+                if (typeof input.response.data === "string") {
+                    body = JSON.parse(input.response.data);
+                } else {
+                    body = input.response.data;
+                }
             }
 
             return body.claimValidationErrors;
