@@ -68,6 +68,9 @@ export default class AuthHttpRequest {
         });
     };
 
+    /**
+     * @deprecated
+     */
     static addAxiosInterceptors = (axiosInstance: any, userContext?: any) => {
         if (!AuthHttpRequestFetch.initCalled) {
             // the recipe implementation has not been initialised yet, so add
@@ -147,6 +150,10 @@ export let getUserId = AuthHttpRequest.getUserId;
 export let getAccessTokenPayloadSecurely = AuthHttpRequest.getAccessTokenPayloadSecurely;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
+
+/**
+ * @deprecated
+ */
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
 export const validateClaims = AuthHttpRequest.validateClaims;

@@ -137,25 +137,30 @@ export function responseInterceptor(axiosInstance: any) {
                 throw new Error("init function not called");
             }
             logDebugMessage("responseInterceptor: started");
+            logDebugMessage(
+                "responseInterceptor: already intercepted: " + response.headers["x-supertokens-xhr-intercepted"]
+            );
             let url = getUrlFromConfig(response.config);
 
             try {
                 doNotDoInterception =
-                    typeof url === "string" &&
-                    !shouldDoInterceptionBasedOnUrl(
-                        url,
-                        AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
-                    );
+                    (typeof url === "string" &&
+                        !shouldDoInterceptionBasedOnUrl(
+                            url,
+                            AuthHttpRequestFetch.config.apiDomain,
+                            AuthHttpRequestFetch.config.cookieDomain
+                        )) ||
+                    !!response.headers["x-supertokens-xhr-intercepted"];
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
                     logDebugMessage("responseInterceptor: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
-                    doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                        WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
-                        AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
-                    );
+                    doNotDoInterception =
+                        !shouldDoInterceptionBasedOnUrl(
+                            WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
+                            AuthHttpRequestFetch.config.apiDomain,
+                            AuthHttpRequestFetch.config.cookieDomain
+                        ) || !!response.headers["x-supertokens-xhr-intercepted"];
                 } else {
                     throw err;
                 }
@@ -188,6 +193,7 @@ export function responseInterceptor(axiosInstance: any) {
                     config,
                     url,
                     response,
+                    undefined,
                     true
                 );
             } else {
@@ -230,6 +236,13 @@ export function responseInterceptor(axiosInstance: any) {
 export function responseErrorInterceptor(axiosInstance: any) {
     return async (error: any) => {
         logDebugMessage("responseErrorInterceptor: called");
+        logDebugMessage(
+            "responseErrorInterceptor: already intercepted: " +
+                (error.response && error.response.headers["x-supertokens-xhr-intercepted"])
+        );
+        if (error.response.headers["x-supertokens-xhr-intercepted"]) {
+            throw error;
+        }
         if (
             error.response !== undefined &&
             error.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
@@ -375,6 +388,12 @@ export default class AuthHttpRequest {
                               }
                 };
                 try {
+                    // the first time it comes here and if
+                    // prevError or prevResponse are not undefined
+                    // it means that we had already made the first API call.
+                    // So we directly try and do the refreshing by throwing this
+                    // prevError, and then whey that retries, then prevError will be undefined
+                    // which will result in the user's API being called.
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;
                     prevError = undefined;
@@ -390,6 +409,7 @@ export default class AuthHttpRequest {
                     }
                     let response =
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
+
                     logDebugMessage("doRequest: User's http call ended");
                     let idRefreshToken = response.headers["id-refresh-token"];
                     if (idRefreshToken !== undefined) {

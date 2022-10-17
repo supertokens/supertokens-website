@@ -185,6 +185,13 @@ export function shouldDoInterceptionBasedOnUrl(
             !isNaN(str as any) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
         ); // ...and ensure strings of whitespace fail
     }
+
+    // The safest/best way to add this is the hash as the browser strips it before sending
+    // but we don't have a reason to limit checking to that part.
+    if (toCheckUrl.includes("superTokensDoNotDoInterception")) {
+        return false;
+    }
+
     toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
     let urlObj = new URL(toCheckUrl);
     let domain = urlObj.hostname;
