@@ -5,6 +5,10 @@ export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
     userContext: any;
 } | {
+    action: "API_INVALID_CLAIM";
+    claimValidationErrors: ClaimValidationError[];
+    userContext: any;
+} | {
     action: "UNAUTHORISED";
     sessionExpiredOrRevoked: boolean;
     userContext: any;
@@ -16,6 +20,7 @@ export declare type InputType = {
     apiBasePath?: string;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
+    invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
     cookieDomain?: string;
@@ -33,6 +38,7 @@ export declare type NormalisedInputType = {
     apiBasePath: string;
     sessionScope: string;
     sessionExpiredStatusCode: number;
+    invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     cookieDomain: string | undefined;
@@ -92,4 +98,53 @@ export declare type RecipeInterface = {
     signOut: (input: {
         userContext: any;
     }) => Promise<void>;
+    getInvalidClaimsFromResponse(input: {
+        response: {
+            data: any;
+        } | Response;
+        userContext: any;
+    }): Promise<ClaimValidationError[]>;
+    validateClaims: (input: {
+        claimValidators: SessionClaimValidator[];
+        userContext: any;
+    }) => Promise<ClaimValidationError[]>;
+    getGlobalClaimValidators(input: {
+        claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
+        userContext: any;
+    }): SessionClaimValidator[];
 };
+export declare type ClaimValidationResult = {
+    isValid: true;
+} | {
+    isValid: false;
+    reason?: any;
+};
+export declare type ClaimValidationError = {
+    validatorId: string;
+    reason?: any;
+};
+export declare abstract class SessionClaimValidator {
+    readonly id: string;
+    constructor(id: string);
+    /**
+     * Makes an API call that will refresh the claim in the token.
+     */
+    abstract refresh(userContext: any): Promise<void>;
+    /**
+     * Decides if we need to refresh the claim value before checking the payload with `validate`.
+     * E.g.: if the information in the payload is expired, or is not sufficient for this validator.
+     */
+    abstract shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
+    /**
+     * Decides if the claim is valid based on the accessTokenPayload object (and not checking DB or anything else)
+     */
+    abstract validate(accessTokenPayload: any, userContext: any): Promise<ClaimValidationResult> | ClaimValidationResult;
+}
+export declare type SessionClaim<ValueType> = {
+    refresh(userContext: any): Promise<void>;
+    getValueFromPayload(payload: any, _userContext?: any): ValueType | undefined;
+    getLastFetchedTime(payload: any, _userContext?: any): number | undefined;
+};
+export declare type ResponseWithBody = {
+    data: any;
+} | Response;

@@ -20,7 +20,8 @@ import AuthHttpRequestFetch, {
     setIdRefreshToken,
     FrontToken,
     onUnauthorisedResponse,
-    IdRefreshTokenType
+    IdRefreshTokenType,
+    onInvalidClaimResponse
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -129,6 +130,11 @@ export function addInterceptorsToXMLHttpRequest() {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
                     } else if (status < 400) {
+                        if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                            await onInvalidClaimResponse({
+                                data: JSON.parse(xhr.responseText)
+                            });
+                        }
                         let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
                         if (antiCsrfToken) {
                             let tok = await getIdRefreshToken(true);

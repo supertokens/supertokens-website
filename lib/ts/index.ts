@@ -14,12 +14,13 @@
  */
 
 import AuthHttpRequestFetch from "./fetch";
-import { InputType, RecipeInterface } from "./types";
+import { ClaimValidationError, InputType, RecipeInterface, SessionClaim, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -91,6 +92,54 @@ export default class AuthHttpRequest {
             userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
+
+    static getInvalidClaimsFromResponse = async function(input: {
+        response: { data: any } | Response;
+        userContext?: any;
+    }): Promise<ClaimValidationError[]> {
+        return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
+            response: input.response,
+            userContext: getNormalisedUserContext(input.userContext)
+        });
+    };
+
+    static getClaimValue = async function<T>(input: {
+        claim: SessionClaim<T>;
+        userContext?: any;
+    }): Promise<T | undefined> {
+        const userContext = getNormalisedUserContext(input === undefined ? undefined : input.userContext);
+        const accessTokenPayload = await AuthHttpRequest.getAccessTokenPayloadSecurely({ userContext });
+
+        return input.claim.getValueFromPayload(accessTokenPayload, userContext);
+    };
+
+    static validateClaims = (
+        overrideGlobalClaimValidators?: (
+            globalClaimValidators: SessionClaimValidator[],
+            userContext: any
+        ) => SessionClaimValidator[],
+        userContext?: any
+    ): Promise<ClaimValidationError[]> | ClaimValidationError[] => {
+        const normalisedUserContext = getNormalisedUserContext(userContext);
+        const claimValidatorsAddedByOtherRecipes = SessionClaimValidatorStore.getClaimValidatorsAddedByOtherRecipes();
+        const globalClaimValidators = AuthHttpRequestFetch.recipeImpl.getGlobalClaimValidators({
+            claimValidatorsAddedByOtherRecipes,
+            userContext: normalisedUserContext
+        });
+        const claimValidators =
+            overrideGlobalClaimValidators !== undefined
+                ? overrideGlobalClaimValidators(globalClaimValidators, normalisedUserContext)
+                : globalClaimValidators;
+
+        if (claimValidators.length === 0) {
+            return [];
+        }
+
+        return AuthHttpRequestFetch.recipeImpl.validateClaims({
+            claimValidators,
+            userContext: getNormalisedUserContext(userContext)
+        });
+    };
 }
 
 export let init = AuthHttpRequest.init;
@@ -100,4 +149,12 @@ export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 export let addAxiosInterceptors = AuthHttpRequest.addAxiosInterceptors;
 export let signOut = AuthHttpRequest.signOut;
+export const validateClaims = AuthHttpRequest.validateClaims;
+export const getClaimValue = AuthHttpRequest.getClaimValue;
+export const getInvalidClaimsFromResponse = AuthHttpRequest.getInvalidClaimsFromResponse;
 export { RecipeInterface, InputType };
+
+export { ClaimValidationError, ClaimValidationResult, SessionClaimValidator, SessionClaim } from "./types";
+export { PrimitiveClaim } from "./claims/primitiveClaim";
+export { PrimitiveArrayClaim } from "./claims/primitiveArrayClaim";
+export { BooleanClaim } from "./claims/booleanClaim";

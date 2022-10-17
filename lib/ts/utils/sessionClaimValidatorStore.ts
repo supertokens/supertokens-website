@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.supported_fdi = exports.package_version = void 0;
 /* Copyright (c) 2020, VRAI Labs and/or its affiliates. All rights reserved.
  *
  * This software is licensed under the Apache License, Version 2.0 (the
@@ -15,5 +12,19 @@ exports.supported_fdi = exports.package_version = void 0;
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-exports.package_version = "13.1.1";
-exports.supported_fdi = ["1.8", "1.9", "1.10", "1.11", "1.12", "1.13", "1.14", "1.15"];
+
+import { SessionClaimValidator } from "../types";
+
+export class SessionClaimValidatorStore {
+    private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
+
+    static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
+        SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.push(builder);
+    };
+
+    static getClaimValidatorsAddedByOtherRecipes = (): SessionClaimValidator[] => {
+        return SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes;
+    };
+}
+
+export default SessionClaimValidatorStore;

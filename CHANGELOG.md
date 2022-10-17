@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [13.1.1] - 2022-10-14
+
+- Removed default max age from claims
+
+## [13.1.0] - 2022-09-14
+### Added
+
+- Support for new FDI (1.15)
+- Added the `API_INVALID_CLAIM` event and the related `invalidClaimStatusCode` config prop.
+- Adds base classes, types for session claims, and the `getInvalidClaimsFromResponse`, `validateClaims`, `getClaimValue` functions.
+
 ## [13.0.2] - 2022-08-11
 ### Changes
 

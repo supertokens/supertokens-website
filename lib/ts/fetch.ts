@@ -16,7 +16,7 @@ import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
 import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
-import { RecipeInterface, NormalisedInputType } from "./types";
+import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
@@ -301,6 +301,9 @@ export default class AuthHttpRequest {
                     }
                     logDebugMessage("doRequest: Retrying original request");
                 } else {
+                    if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
+                        await onInvalidClaimResponse(response);
+                    }
                     const antiCsrfToken = response.headers.get("anti-csrf");
                     if (antiCsrfToken) {
                         const tok = await getIdRefreshToken(true);
@@ -542,6 +545,26 @@ export function onTokenUpdate() {
         action: "ACCESS_TOKEN_PAYLOAD_UPDATED",
         userContext: {}
     });
+}
+
+export async function onInvalidClaimResponse(response: ResponseWithBody) {
+    try {
+        const claimValidationErrors = await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({
+            response,
+            userContext: {}
+        });
+        // This shouldn't be undefined normally, but since we can't be certain about the shape of the response object so we check it like this.
+        // It could still be something else, but chance of that happening by accident is really low.
+        if (claimValidationErrors) {
+            AuthHttpRequest.config.onHandleEvent({
+                action: "API_INVALID_CLAIM",
+                claimValidationErrors: claimValidationErrors,
+                userContext: {}
+            });
+        }
+    } catch {
+        // we ignore errors here, since these should only come from the user sending a custom 403 response which we do not want to handle.
+    }
 }
 
 export type IdRefreshTokenType =

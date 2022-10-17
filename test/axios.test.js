@@ -29,7 +29,8 @@ let {
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
-    getNumberOfTimesRefreshAttempted
+    getNumberOfTimesRefreshAttempted,
+    resetAuthHttpRequestFetch
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -70,7 +71,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     beforeEach(async function() {
-        AuthHttpRequestFetch.initCalled = false;
+        resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();

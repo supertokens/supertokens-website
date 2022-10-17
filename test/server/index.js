@@ -170,7 +170,8 @@ app.get("/featureFlags", async (req, res) => {
 
     res.status(200).json({
         sessionJwt:
-            maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true
+            maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true,
+        sessionClaims: maxVersion(supertokens_node_version, "12.0") === supertokens_node_version
     });
 });
 
@@ -274,6 +275,27 @@ app.post(
         }
     }
 );
+
+app.post(
+    "/session-claims-error",
+    (req, res, next) =>
+        verifySession({
+            overrideGlobalClaimValidators: () => [
+                {
+                    id: "test-claim-failing",
+                    shouldRefetch: () => false,
+                    validate: () => ({ isValid: false, reason: { message: "testReason" } })
+                }
+            ]
+        })(req, res, next),
+    async (req, res) => {
+        res.json({});
+    }
+);
+
+app.post("/403-without-body", async (req, res) => {
+    res.sendStatus(403);
+});
 
 app.use("/testing", async (req, res) => {
     let tH = req.headers["testing"];
