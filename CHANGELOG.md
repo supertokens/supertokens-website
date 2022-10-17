@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [14.0.0] - 2022-10-17
+
 ### Added
 
 - Adding an interceptor for XMLHttpRequest by default upon initializing SuperTokens
