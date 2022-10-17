@@ -481,7 +481,3 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
         headers: response.headers
     };
 }
-
-export function removeXMLHttpRequestInterceptor() {
-    XMLHttpRequest = (XMLHttpRequest as any).__original;
-}

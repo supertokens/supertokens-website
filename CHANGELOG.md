@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Adding an interceptor for XMLHttpRequest by default upon initializing SuperTokens
+- Marked `addAxiosInterceptors` as deprecated
+- Request interception can now be disabled by adding `superTokensDoNotDoInterception` to the hash of the request (works as a queryparam as well)
+
 ## [13.1.1] - 2022-10-14
 
 - Removed default max age from claims
