@@ -67,7 +67,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         let page;
 
         function setup(config = {}) {
-            page.on("console", c => console.log(c.text()));
+            // page.on("console", c => console.log(c.text()));
             return page.evaluate(
                 setupFunc,
                 {

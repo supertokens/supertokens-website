@@ -120,7 +120,15 @@ export function addInterceptorsToXMLHttpRequest() {
                     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
                     const status = xhr.status;
-                    const idRefreshToken = xhr.getResponseHeader("id-refresh-token");
+                    const headers = new Headers(
+                        xhr
+                            .getAllResponseHeaders()
+                            .trim()
+                            .split("\r\n")
+                            .map(line => line.split(": ") as [string, string])
+                    );
+
+                    const idRefreshToken = headers.get("id-refresh-token");
                     if (idRefreshToken) {
                         logDebugMessage("XHRInterceptor.handleResponse: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, status);
@@ -134,7 +142,7 @@ export function addInterceptorsToXMLHttpRequest() {
                                 data: JSON.parse(xhr.responseText)
                             });
                         }
-                        let antiCsrfToken = xhr.getResponseHeader("anti-csrf");
+                        let antiCsrfToken = headers.get("anti-csrf");
                         if (antiCsrfToken) {
                             let tok = await getIdRefreshToken(true);
                             if (tok.status === "EXISTS") {
@@ -142,7 +150,7 @@ export function addInterceptorsToXMLHttpRequest() {
                                 await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
                             }
                         }
-                        let frontToken = xhr.getResponseHeader("front-token");
+                        let frontToken = headers.get("front-token");
                         if (frontToken) {
                             logDebugMessage("XHRInterceptor.handleResponse: Setting sFrontToken: " + frontToken);
                             await FrontToken.setItem(frontToken);
