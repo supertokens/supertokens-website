@@ -2829,6 +2829,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     body: JSON.stringify({ test: 2 })
                 });
                 console.log("TEST_EV$UPDATE2_FINISH");
+                assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 2);
                 await delay(5);
 
                 await toTest({
@@ -2840,6 +2841,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     },
                     body: JSON.stringify({ test: 3 })
                 });
+                assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 3);
                 console.log("TEST_EV$UPDATE3_FINISH");
 
                 await toTest({
