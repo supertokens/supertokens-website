@@ -237,7 +237,8 @@ export function addInterceptorsToXMLHttpRequest() {
             actual.open.apply(actual, args);
         };
 
-        self.send = function(body) {
+        self.send = function(inputBody) {
+            body = inputBody;
             sendXHR(actual, body);
         };
 

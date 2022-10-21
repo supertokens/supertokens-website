@@ -1277,7 +1277,8 @@ describe("Axios AuthHttpRequest class tests", function() {
     it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            headless: false
         });
 
         try {
@@ -1307,13 +1308,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     }
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
-                await axios.post(`${BASE_URL}/update-jwt`, {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ test: 1 })
-                });
+                await axios.post(`${BASE_URL}/update-jwt`, { test: 1 });
                 console.log("TEST_EV$UPDATE1_FINISH");
                 await delay(5);
                 await axios.get(`${BASE_URL}/`, {
@@ -1324,23 +1319,13 @@ describe("Axios AuthHttpRequest class tests", function() {
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
-                await axios.post(`${BASE_URL}/update-jwt`, {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ test: 2 })
-                });
+                await axios.post(`${BASE_URL}/update-jwt`, { test: 2 });
+                assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 2);
                 console.log("TEST_EV$UPDATE2_FINISH");
 
                 await delay(5);
-                await axios.post(`${BASE_URL}/update-jwt`, {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ test: 3 })
-                });
+                await axios.post(`${BASE_URL}/update-jwt`, { test: 3 });
+                assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 3);
                 console.log("TEST_EV$UPDATE3_FINISH");
 
                 await axios.post(`${BASE_URL}/logout`, {
