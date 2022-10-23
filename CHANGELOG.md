@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixes
+
+- XMLHttpRequest event dispatching in Safari
+
 ## [14.0.1] - 2022-10-21
 
 ### Fixes

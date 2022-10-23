@@ -28,6 +28,20 @@ import WindowHandlerReference from "./utils/windowHandler";
 import { PROCESS_STATE, ProcessState } from "./processState";
 
 type XMLHttpRequestType = typeof XMLHttpRequest.prototype & { [key: string]: any };
+type XHREventListener<K extends keyof XMLHttpRequestEventMap> = (
+    this: XMLHttpRequestType,
+    ev: XMLHttpRequestEventMap[K]
+) => void;
+const XHR_EVENTS = [
+    "readystatechange",
+    "abort",
+    "error",
+    "load",
+    "loadend",
+    "loadstart",
+    "progress",
+    "timeout"
+] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
     const oldXMLHttpRequest = XMLHttpRequest;
@@ -46,6 +60,8 @@ export function addInterceptorsToXMLHttpRequest() {
         const customGetterValues: { [key: string]: any } = {};
         let customResponseHeaders: Headers | undefined;
 
+        const eventHandlers: Map<keyof XMLHttpRequestEventMap, Set<XHREventListener<any>>> = new Map();
+
         // We define these during open
         // let method: string = "";
         let url: string | URL = "";
@@ -63,14 +79,37 @@ export function addInterceptorsToXMLHttpRequest() {
         self.onreadystatechange = null;
         self.onloadend = null;
 
-        const eventTarget = new EventTarget();
-        self.addEventListener = eventTarget.addEventListener.bind(eventTarget);
-        self.removeEventListener = eventTarget.removeEventListener.bind(eventTarget);
+        // TODO: add support for other event listener options
+        // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#parameters
+        self.addEventListener = <K extends keyof XMLHttpRequestEventMap>(
+            type: K,
+            listener: (this: XMLHttpRequestType, ev: XMLHttpRequestEventMap[K]) => void,
+            _options: any
+        ) => {
+            let handlers = eventHandlers.get(type);
+            if (handlers === undefined) {
+                handlers = new Set();
+                eventHandlers.set(type, handlers);
+            }
+            handlers.add(listener);
+        };
 
-        function redispatchEvent(ev: Event) {
-            logDebugMessage(`XHRInterceptor redispatching ${ev.type}`);
+        self.removeEventListener = <K extends keyof XMLHttpRequestEventMap>(type: K, listener: XHREventListener<K>) => {
+            let handlers = eventHandlers.get(type);
+            if (handlers === undefined) {
+                handlers = new Set();
+                eventHandlers.set(type, handlers);
+            }
+            handlers.delete(listener);
+        };
 
-            eventTarget.dispatchEvent(new (ev as any).constructor(ev.type, ev));
+        function redispatchEvent(name: keyof XMLHttpRequestEventMap, ev: Event) {
+            const handlers = eventHandlers.get(name);
+
+            logDebugMessage(`XHRInterceptor dispatching ${ev.type} to ${handlers ? handlers.size : 0} listeners`);
+            if (handlers) {
+                Array.from(handlers).forEach(handler => handler.apply(self, [ev]));
+            }
         }
 
         async function handleRetryPostRefreshing(): Promise<boolean> {
@@ -190,8 +229,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 } else {
                     // Here we only need to handle fetch related errors, from the refresh endpoint called by the retry
                     // So we should only get network level errors here
-                    let event = new Event("error");
-                    eventTarget.dispatchEvent(event);
+                    redispatchEvent("error", new Event("error"));
                 }
                 return true;
             }
@@ -266,20 +304,14 @@ export function addInterceptorsToXMLHttpRequest() {
         function setUpXHR(self: XMLHttpRequestType, xhr: XMLHttpRequestType, isRetry: boolean) {
             let responseProcessed: Promise<boolean> | undefined;
             const delayedEvents = ["load", "loadend", "readystatechange"];
-            const xhrEvents = [
-                "readystatechange",
-                "abort",
-                "error",
-                "load",
-                "loadend",
-                "loadstart",
-                "progress",
-                "timeout"
-            ];
-            for (const name of xhrEvents) {
+
+            for (const name of XHR_EVENTS) {
+                logDebugMessage(`XHRInterceptor added listener for event ${name}`);
                 xhr.addEventListener(name, (ev: any) => {
+                    logDebugMessage(`XHRInterceptor got event ${name}`);
+
                     if (!delayedEvents.includes(name)) {
-                        redispatchEvent(ev);
+                        redispatchEvent(name, ev);
                     }
                 });
             }
@@ -295,13 +327,13 @@ export function addInterceptorsToXMLHttpRequest() {
                     if (self.onload) {
                         self.onload(ev);
                     }
-                    redispatchEvent(ev);
+                    redispatchEvent("load", ev);
                 });
             };
 
             xhr.onreadystatechange = function(ev: Event) {
                 // In local files, status is 0 upon success in Mozilla Firefox
-                if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.readyState === oldXMLHttpRequest.DONE) {
                     if (responseProcessed === undefined) {
                         responseProcessed = handleResponse(xhr);
                     }
@@ -310,13 +342,13 @@ export function addInterceptorsToXMLHttpRequest() {
                             return;
                         }
                         if (self.onreadystatechange) self.onreadystatechange(ev);
-                        redispatchEvent(ev);
+                        redispatchEvent("readystatechange", ev);
                     });
                 } else {
                     if (self.onreadystatechange) {
                         self.onreadystatechange(ev);
                     }
-                    redispatchEvent(ev);
+                    redispatchEvent("readystatechange", ev);
                 }
             };
 
@@ -331,7 +363,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     if (self.onloadend) {
                         self.onloadend(ev);
                     }
-                    redispatchEvent(ev);
+                    redispatchEvent("loadend", ev);
                 });
             };
 
