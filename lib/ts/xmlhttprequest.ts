@@ -44,6 +44,9 @@ const XHR_EVENTS = [
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
+    let firstEventLoopDone = true;
+    setTimeout(() => (firstEventLoopDone = false), 0);
+
     const oldXMLHttpRequest = XMLHttpRequest;
     logDebugMessage("addInterceptorsToXMLHttpRequest called");
 
@@ -52,6 +55,16 @@ export function addInterceptorsToXMLHttpRequest() {
     // define constructor for my proxy object
     XMLHttpRequest = function(this: XMLHttpRequestType) {
         const actual: XMLHttpRequestType = new oldXMLHttpRequest();
+        const delayActualCalls = !firstEventLoopDone;
+        function delayIfNecessary(cb: () => void) {
+            if (delayActualCalls) {
+                setTimeout(() => {
+                    cb();
+                }, 0);
+            } else {
+                cb();
+            }
+        }
 
         const self = this;
         const listOfFunctionCallsInProxy: { (xhr: XMLHttpRequestType): void }[] = [];
@@ -236,6 +249,7 @@ export function addInterceptorsToXMLHttpRequest() {
         }
 
         self.open = function(_: string, u: string | URL) {
+            logDebugMessage(`XHRInterceptor.open called`);
             let args: any = arguments;
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
                 xhr.open.apply(xhr, args);
@@ -272,7 +286,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
             // here we use the apply syntax cause there are other optional args that
             // can be passed by the user.
-            actual.open.apply(actual, args);
+            delayIfNecessary(() => actual.open.apply(actual, args));
         };
 
         self.send = function(inputBody) {
@@ -282,7 +296,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
         self.setRequestHeader = function(name: string, value: string) {
             if (doNotDoInterception) {
-                actual.setRequestHeader(name, value);
+                delayIfNecessary(() => actual.setRequestHeader(name, value));
                 return;
             }
             // We need to do this, because if there is another interceptor wrapping this (e.g.: the axios interceptor)
@@ -295,7 +309,7 @@ export function addInterceptorsToXMLHttpRequest() {
             });
             // The original version "combines" headers according to MDN.
             requestHeaders.push({ name, value });
-            actual.setRequestHeader(name, value);
+            delayIfNecessary(() => actual.setRequestHeader(name, value));
         };
 
         let copiedProps: string[] | undefined = undefined;
@@ -304,6 +318,7 @@ export function addInterceptorsToXMLHttpRequest() {
         function setUpXHR(self: XMLHttpRequestType, xhr: XMLHttpRequestType, isRetry: boolean) {
             let responseProcessed: Promise<boolean> | undefined;
             const delayedEvents = ["load", "loadend", "readystatechange"];
+            logDebugMessage(`XHRInterceptor.setUpXHR called`);
 
             for (const name of XHR_EVENTS) {
                 logDebugMessage(`XHRInterceptor added listener for event ${name}`);
@@ -437,7 +452,8 @@ export function addInterceptorsToXMLHttpRequest() {
                                     xhr[prop] = val;
                                 });
                             }
-                            xhr[prop] = val;
+                            logDebugMessage(`XHRInterceptor.set[${prop}] = ${val}`);
+                            delayIfNecessary(() => (xhr[prop] = val));
                         }
                     });
                 }
@@ -450,13 +466,14 @@ export function addInterceptorsToXMLHttpRequest() {
             logDebugMessage("XHRInterceptor.send: Value of doNotDoInterception: " + doNotDoInterception);
             if (doNotDoInterception) {
                 logDebugMessage("XHRInterceptor.send: Returning without interception");
-                return xhr.send(body);
+                delayIfNecessary(() => xhr.send(body));
+                return;
             }
             logDebugMessage("XHRInterceptor.send: Interception started");
 
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
 
-            (async function() {
+            delayIfNecessary(async () => {
                 preRequestIdToken = await getIdRefreshToken(true);
 
                 if (preRequestIdToken.status === "EXISTS") {
@@ -481,7 +498,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
                 return xhr.send(body);
-            })();
+            });
         }
     } as any;
 
