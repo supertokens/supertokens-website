@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [14.0.2] - 2022-10-24
+
+### Fixes
+
+- XMLHttpRequest event dispatching should now work in Safari.
+- A race-condition blocking XMLHttpRequests in Chrome is now fixed.
+
 ## [14.0.1] - 2022-10-21
 
 ### Fixes
