@@ -453,7 +453,7 @@ export function addInterceptorsToXMLHttpRequest() {
                                 });
                             }
                             logDebugMessage(`XHRInterceptor.set[${prop}] = ${val}`);
-                            delayIfNecessary(() => (xhr[prop] = val));
+                            xhr[prop] = val;
                         }
                     });
                 }
