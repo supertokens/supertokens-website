@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [14.0.2] - 2022-10-24
+
+### Fixes
+
+- XMLHttpRequest event dispatching should now work in Safari.
+- A race-condition blocking XMLHttpRequests in Chrome is now fixed.
+
+## [14.0.1] - 2022-10-21
+
+### Fixes
+- Retrying request post refreshing now remembers the original input body.
+
+## [14.0.0] - 2022-10-17
+
+### Added
+
+- Adding an interceptor for XMLHttpRequest by default upon initializing SuperTokens
+- Marked `addAxiosInterceptors` as deprecated
+- Request interception can now be disabled by adding `superTokensDoNotDoInterception` to the hash of the request (works as a queryparam as well)
+
+## [13.1.1] - 2022-10-14
+
+- Removed default max age from claims
+
 ## [13.1.0] - 2022-09-14
 ### Added
 

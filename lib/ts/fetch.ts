@@ -183,6 +183,9 @@ export default class AuthHttpRequest {
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
                 userContext: {}
             });
+            (AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface).addXMLHttpRequestInterceptor({
+                userContext: {}
+            });
         }
         AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
         AuthHttpRequest.initCalled = true;
@@ -338,6 +341,10 @@ export default class AuthHttpRequest {
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
+        if (!AuthHttpRequest.initCalled) {
+            throw Error("init function not called");
+        }
+
         const preRequestIdToken = await getIdRefreshToken(false);
         const refresh = await onUnauthorisedResponse(preRequestIdToken);
 
@@ -566,7 +573,7 @@ export async function onInvalidClaimResponse(response: ResponseWithBody) {
     }
 }
 
-type IdRefreshTokenType =
+export type IdRefreshTokenType =
     | {
           status: "NOT_EXISTS" | "MAY_EXIST";
       }
