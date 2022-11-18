@@ -119,10 +119,12 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      rid: "anti-csrf"
+                      rid: "anti-csrf",
+                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod
                   }
                 : {
                       rid: "anti-csrf",
+                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod,
                       ...configWithAntiCsrf.headers
                   }
     };
@@ -515,14 +517,10 @@ async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
     if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
         logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
 
-        logDebugMessage("setTokenHeadersIfRequired: adding header preference to rid header");
-        requestConfig.headers = {
-            ...requestConfig.headers,
-            rid:
-                (requestConfig.headers === undefined || requestConfig.headers.rid === undefined
-                    ? "anti-csrf"
-                    : requestConfig.headers.rid) + ";header"
-        };
+        if (requestConfig.headers === undefined) {
+            // This is makes TS happy
+            requestConfig.headers = {};
+        }
 
         const idRefreshToken = await getToken("idRefresh");
         logDebugMessage("setTokenHeadersIfRequired: added st-id-refresh-token header");
@@ -546,14 +544,7 @@ async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
             };
         }
 
-        const refreshToken = await getToken("refresh");
-        if (refreshToken) {
-            logDebugMessage("setTokenHeadersIfRequired: added st-refresh-token header");
-            requestConfig.headers = {
-                ...requestConfig.headers,
-                "st-refresh-token": refreshToken
-            };
-        }
+        // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     }
 }
 

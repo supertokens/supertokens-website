@@ -79,10 +79,17 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         }
 
         before(async function() {
-            spawn("./test/startServer", [
-                process.env.INSTALL_PATH,
-                process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-            ]);
+            spawn(
+                "./test/startServer",
+                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT]
+                // {
+                //     stdio: "inherit",
+                //     env: {
+                //         ...process.env,
+                //         DEBUG: "com.supertokens",
+                //     }
+                // }
+            );
             await new Promise(r => setTimeout(r, 1000));
         });
 
@@ -1184,7 +1191,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("should not intercept if url contains superTokensDoNoDoInterception", async function() {
+        it("should not intercept if url contains superTokensDoNotDoInterception", async function() {
             await startST(5);
             await setup();
 
@@ -1787,7 +1794,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
+            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken" && c.name !== "st-access-token");
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -1892,12 +1899,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
-                            "id-refresh-token": "remove",
-                            "Set-Cookie": [
-                                "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
-                            ]
+                            // Cookies don't actually matter as long as we clear the id-refresh-token
+                            "st-id-refresh-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -1976,7 +1979,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 assert.strictEqual(data.message, "test");
             });
             // It should call it once before the call - but after that doesn't work it should not try again after the API request
-            assert.strictEqual(refreshCalled, name === "axios with axios interceptor" ? 2 : 1);
+            assert.strictEqual(refreshCalled, name.startsWith("axios with axios interceptor") ? 2 : 1);
         });
 
         it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {

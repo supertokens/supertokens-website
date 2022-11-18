@@ -281,7 +281,8 @@ export default class AuthHttpRequest {
                 } else {
                     logDebugMessage("doRequest: rid header was already there in request");
                 }
-
+                logDebugMessage("doRequest: Adding st-auth-mode header: " + AuthHttpRequest.config.tokenTransferMethod);
+                clonedHeaders.set("st-auth-mode", AuthHttpRequest.config.tokenTransferMethod);
                 await setTokenHeadersIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
@@ -411,6 +412,12 @@ export async function onUnauthorisedResponse(
                 logDebugMessage("onUnauthorisedResponse: Adding rid and fdi-versions to refresh call header");
                 headers.set("rid", AuthHttpRequest.rid);
                 headers.set("fdi-version", supported_fdi.join(","));
+
+                logDebugMessage(
+                    "onUnauthorisedResponse: Adding st-auth-mode header: " + AuthHttpRequest.config.tokenTransferMethod
+                );
+                headers.set("st-auth-mode", AuthHttpRequest.config.tokenTransferMethod);
+
                 await setTokenHeadersIfRequired(headers, true);
 
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
@@ -704,8 +711,6 @@ async function getFromCookies(name: string) {
 
 async function setTokenHeadersIfRequired(clonedHeaders: Headers, addRefreshToken: boolean = false) {
     if (AuthHttpRequest.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeadersIfRequired: adding ';header' to the rid header");
-        clonedHeaders.set("rid", clonedHeaders.get("rid") + ";header");
         logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
         const idRefreshToken = await getToken("idRefresh");
         if (idRefreshToken !== undefined) {

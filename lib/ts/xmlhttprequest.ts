@@ -21,7 +21,9 @@ import AuthHttpRequestFetch, {
     FrontToken,
     onUnauthorisedResponse,
     IdRefreshTokenType,
-    onInvalidClaimResponse
+    onInvalidClaimResponse,
+    setToken,
+    getToken
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -172,15 +174,10 @@ export function addInterceptorsToXMLHttpRequest() {
                     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
                     const status = xhr.status;
-                    const headers = new Headers(
-                        xhr
-                            .getAllResponseHeaders()
-                            .trim()
-                            .split("\r\n")
-                            .map(line => line.split(": ") as [string, string])
-                    );
-
-                    const idRefreshToken = headers.get("id-refresh-token");
+                    const headers = getResponseHeadersFromXHR(xhr);
+                    console.log("Saving tokens from response headers");
+                    await saveTokensFromHeaders(headers);
+                    const idRefreshToken = headers.get("st-id-refresh-token");
                     if (idRefreshToken) {
                         logDebugMessage("XHRInterceptor.handleResponse: Setting sIRTFrontend: " + idRefreshToken);
                         await setIdRefreshToken(idRefreshToken, status);
@@ -496,6 +493,17 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
+                if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
+                    logDebugMessage(
+                        "XHRInterceptor.send: Adding st-auth-mode header: " +
+                            AuthHttpRequestFetch.config.tokenTransferMethod
+                    );
+                    xhr.setRequestHeader("st-auth-mode", AuthHttpRequestFetch.config.tokenTransferMethod);
+                } else {
+                    logDebugMessage("XHRInterceptor.send: st-auth-mode header was already there in request");
+                }
+                await setTokenHeadersIfRequired(xhr, requestHeaders);
+
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
                 return xhr.send(body);
             });
@@ -538,4 +546,52 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
         responseType,
         headers: response.headers
     };
+}
+
+async function setTokenHeadersIfRequired(xhr: XMLHttpRequestType, requestHeaders: { name: string; value: string }[]) {
+    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
+        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
+
+        const idRefreshToken = await getToken("idRefresh");
+        logDebugMessage("setTokenHeadersIfRequired: added st-id-refresh-token header");
+        if (idRefreshToken !== undefined) {
+            xhr.setRequestHeader("st-id-refresh-token", idRefreshToken);
+        }
+
+        const accessToken = await getToken("access");
+        console.log(JSON.stringify({ accessToken }));
+        if (accessToken !== undefined && !requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
+            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
+            xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+        }
+        // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    }
+}
+
+async function saveTokensFromHeaders(headers: Headers) {
+    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
+        logDebugMessage("doRequest: Saving updated tokens from the response");
+        console.log(JSON.stringify(Array.from(headers as any)));
+        const refreshToken = headers.get("st-refresh-token");
+        if (refreshToken) {
+            const [value, expiry] = refreshToken.split(";");
+            await setToken("refresh", value, Number.parseInt(expiry));
+        }
+
+        const accessToken = headers.get("st-access-token");
+        if (accessToken) {
+            const [value, expiry] = accessToken.split(";");
+            await setToken("access", value, Number.parseInt(expiry));
+        }
+    }
+}
+
+function getResponseHeadersFromXHR(xhr: XMLHttpRequestType) {
+    return new Headers(
+        xhr
+            .getAllResponseHeaders()
+            .trim()
+            .split("\r\n")
+            .map(line => line.split(": ") as [string, string])
+    );
 }
