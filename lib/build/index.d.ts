@@ -12,6 +12,9 @@ export default class AuthHttpRequest {
     static doesSessionExist: (input?: {
         userContext?: any;
     }) => Promise<boolean>;
+    /**
+     * @deprecated
+     */
     static addAxiosInterceptors: (axiosInstance: any, userContext?: any) => void;
     static signOut: (input?: {
         userContext?: any;
@@ -35,6 +38,9 @@ export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: (input?: {
     userContext?: any;
 }) => Promise<boolean>;
+/**
+ * @deprecated
+ */
 export declare let addAxiosInterceptors: (axiosInstance: any, userContext?: any) => void;
 export declare let signOut: (input?: {
     userContext?: any;

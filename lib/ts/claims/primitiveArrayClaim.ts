@@ -9,12 +9,12 @@ export type PrimitiveArrayClaimConfig = {
 export class PrimitiveArrayClaim<ValueType> {
     public readonly id: string;
     public readonly refresh: SessionClaimValidator["refresh"];
-    public readonly defaultMaxAgeInSeconds: number;
+    public readonly defaultMaxAgeInSeconds: number | undefined;
 
     constructor(config: PrimitiveArrayClaimConfig) {
         this.id = config.id;
         this.refresh = config.refresh;
-        this.defaultMaxAgeInSeconds = config.defaultMaxAgeInSeconds === undefined ? 300 : config.defaultMaxAgeInSeconds;
+        this.defaultMaxAgeInSeconds = config.defaultMaxAgeInSeconds;
     }
 
     getValueFromPayload(payload: any, _userContext?: any): ValueType[] {
@@ -28,7 +28,7 @@ export class PrimitiveArrayClaim<ValueType> {
     validators = {
         includes: (
             val: ValueType,
-            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
             return {
@@ -69,7 +69,7 @@ export class PrimitiveArrayClaim<ValueType> {
         },
         excludes: (
             val: ValueType,
-            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
             return {
@@ -114,7 +114,7 @@ export class PrimitiveArrayClaim<ValueType> {
         },
         includesAll: (
             val: ValueType[],
-            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
             return {
@@ -156,7 +156,7 @@ export class PrimitiveArrayClaim<ValueType> {
         },
         excludesAll: (
             val: ValueType[],
-            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
             return {

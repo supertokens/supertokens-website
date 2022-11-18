@@ -54,7 +54,7 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
             },
             recipeList: [
                 Session.init({
-                    getTokenTransferMethod: () => process.env.TRANSFER_METHOD || "cookie",
+                    getTokenTransferMethod: process.env.TRANSFER_METHOD ? () => process.env.TRANSFER_METHOD : undefined,
                     jwt: {
                         enable: true,
                         propertyNameInAccessTokenPayload: jwtPropertyName
@@ -115,7 +115,7 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
         },
         recipeList: [
             Session.init({
-                getTokenTransferMethod: () => process.env.TRANSFER_METHOD || "cookie",
+                getTokenTransferMethod: process.env.TRANSFER_METHOD ? () => process.env.TRANSFER_METHOD : undefined,
                 errorHandlers: {
                     onUnauthorised: (err, req, res) => {
                         res.setStatusCode(401);
@@ -393,8 +393,15 @@ app.post("/checkAllowCredentials", (req, res) => {
 app.get("/index.html", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
+
+app.use("/angular", express.static("./angular"));
+
 app.get("/testError", (req, res) => {
-    res.status(500).send("test error message");
+    let code = 500;
+    if (req.query.code) {
+        code = Number.parseInt(req.query.code);
+    }
+    res.status(code).send("test error message");
 });
 
 app.get("/stop", async (req, res) => {

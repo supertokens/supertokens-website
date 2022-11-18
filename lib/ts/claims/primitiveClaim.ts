@@ -9,12 +9,12 @@ export type PrimitiveClaimConfig = {
 export class PrimitiveClaim<ValueType> {
     public readonly id: string;
     public readonly refresh: SessionClaimValidator["refresh"];
-    public readonly defaultMaxAgeInSeconds: number;
+    public readonly defaultMaxAgeInSeconds: number | undefined;
 
     constructor(config: PrimitiveClaimConfig) {
         this.id = config.id;
         this.refresh = config.refresh;
-        this.defaultMaxAgeInSeconds = config.defaultMaxAgeInSeconds === undefined ? 300 : config.defaultMaxAgeInSeconds;
+        this.defaultMaxAgeInSeconds = config.defaultMaxAgeInSeconds;
     }
 
     getValueFromPayload(payload: any, _userContext?: any): ValueType {
@@ -28,7 +28,7 @@ export class PrimitiveClaim<ValueType> {
     validators = {
         hasValue: (
             val: ValueType,
-            maxAgeInSeconds: number = this.defaultMaxAgeInSeconds,
+            maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
             return {
@@ -37,7 +37,7 @@ export class PrimitiveClaim<ValueType> {
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    payload[this.id].t < Date.now() - maxAgeInSeconds * 1000,
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
                 validate: (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {

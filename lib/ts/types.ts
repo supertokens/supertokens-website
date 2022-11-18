@@ -40,14 +40,14 @@ export type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionTokenFrontendDomain?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
 
     tokenTransferMethod?: "cookie" | "header";
-    sessionDomain?: string;
+    sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -64,13 +64,13 @@ export type InputType = {
 export type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionTokenFrontendDomain: string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
     tokenTransferMethod: "cookie" | "header";
-    sessionDomain: string | undefined;
+    sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
@@ -110,6 +110,8 @@ export type PreAPIHookFunction = (context: {
 
 export type RecipeInterface = {
     addFetchInterceptorsAndReturnModifiedFetch: (input: { originalFetch: any; userContext: any }) => typeof fetch;
+
+    addXMLHttpRequestInterceptor: (input: { userContext: any }) => void;
 
     addAxiosInterceptors: (input: { axiosInstance: any; userContext: any }) => void;
 

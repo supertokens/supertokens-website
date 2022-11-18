@@ -134,7 +134,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing sessionScope normalisation", async function() {
+    it("testing sessionTokenFrontendDomain normalisation", async function() {
         assert(normaliseSessionScopeOrThrowError("api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("http://api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("https://api.example.com") === "api.example.com");
@@ -168,7 +168,7 @@ describe("Config tests", function() {
             normaliseSessionScopeOrThrowError("http://");
             assert(false);
         } catch (err) {
-            assert(err.message === "Please provide a valid sessionScope");
+            assert(err.message === "Please provide a valid sessionTokenFrontendDomain");
         }
     });
 
@@ -350,16 +350,16 @@ describe("Config tests", function() {
                 apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
+            assert(AuthHttpRequestFetch.config.sessionTokenFrontendDomain === "localhost.org");
         }
 
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                sessionScope: "a.b.example.com"
+                sessionTokenFrontendDomain: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
-            assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");
+            assert(AuthHttpRequestFetch.config.sessionTokenFrontendDomain === "a.b.example.com");
         }
     });
 });

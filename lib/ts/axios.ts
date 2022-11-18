@@ -56,7 +56,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             !shouldDoInterceptionBasedOnUrl(
                 url,
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.sessionDomain
+                AuthHttpRequestFetch.config.sessionTokenBackendDomain
             );
     } catch (err) {
         if ((err as any).message === "Please provide a valid domain name") {
@@ -67,7 +67,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
             doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                 WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                 AuthHttpRequestFetch.config.apiDomain,
-                AuthHttpRequestFetch.config.sessionDomain
+                AuthHttpRequestFetch.config.sessionTokenBackendDomain
             );
         } else {
             throw err;
@@ -119,15 +119,17 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      rid: "anti-csrf"
+                      rid: "anti-csrf",
+                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod
                   }
                 : {
                       rid: "anti-csrf",
+                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod,
                       ...configWithAntiCsrf.headers
                   }
     };
 
-    await setTokenHeaders(configWithAntiCsrf);
+    await setTokenHeadersIfRequired(configWithAntiCsrf);
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
     return configWithAntiCsrf;
@@ -141,25 +143,30 @@ export function responseInterceptor(axiosInstance: any) {
                 throw new Error("init function not called");
             }
             logDebugMessage("responseInterceptor: started");
+            logDebugMessage(
+                "responseInterceptor: already intercepted: " + response.headers["x-supertokens-xhr-intercepted"]
+            );
             let url = getUrlFromConfig(response.config);
 
             try {
                 doNotDoInterception =
-                    typeof url === "string" &&
-                    !shouldDoInterceptionBasedOnUrl(
-                        url,
-                        AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
-                    );
+                    (typeof url === "string" &&
+                        !shouldDoInterceptionBasedOnUrl(
+                            url,
+                            AuthHttpRequestFetch.config.apiDomain,
+                            AuthHttpRequestFetch.config.sessionTokenBackendDomain
+                        )) ||
+                    !!response.headers["x-supertokens-xhr-intercepted"];
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
                     logDebugMessage("responseInterceptor: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
-                    doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
-                        WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
-                        AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
-                    );
+                    doNotDoInterception =
+                        !shouldDoInterceptionBasedOnUrl(
+                            WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
+                            AuthHttpRequestFetch.config.apiDomain,
+                            AuthHttpRequestFetch.config.sessionTokenBackendDomain
+                        ) || !!response.headers["x-supertokens-xhr-intercepted"];
                 } else {
                     throw err;
                 }
@@ -195,6 +202,7 @@ export function responseInterceptor(axiosInstance: any) {
                     config,
                     url,
                     response,
+                    undefined,
                     true
                 );
             } else {
@@ -225,6 +233,13 @@ export function responseInterceptor(axiosInstance: any) {
 export function responseErrorInterceptor(axiosInstance: any) {
     return async (error: any) => {
         logDebugMessage("responseErrorInterceptor: called");
+        logDebugMessage(
+            "responseErrorInterceptor: already intercepted: " +
+                (error.response && error.response.headers["x-supertokens-xhr-intercepted"])
+        );
+        if (error.response.headers["x-supertokens-xhr-intercepted"]) {
+            throw error;
+        }
         if (
             error.response !== undefined &&
             error.response.status === AuthHttpRequestFetch.config.sessionExpiredStatusCode
@@ -287,7 +302,7 @@ export default class AuthHttpRequest {
                 !shouldDoInterceptionBasedOnUrl(
                     url,
                     AuthHttpRequestFetch.config.apiDomain,
-                    AuthHttpRequestFetch.config.sessionDomain
+                    AuthHttpRequestFetch.config.sessionTokenBackendDomain
                 ) &&
                 viaInterceptor;
         } catch (err) {
@@ -298,7 +313,7 @@ export default class AuthHttpRequest {
                     !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.sessionDomain
+                        AuthHttpRequestFetch.config.sessionTokenBackendDomain
                     ) && viaInterceptor;
             } else {
                 throw err;
@@ -370,9 +385,15 @@ export default class AuthHttpRequest {
                               }
                 };
 
-                await setTokenHeaders(configWithAntiCsrf);
+                await setTokenHeadersIfRequired(configWithAntiCsrf);
 
                 try {
+                    // the first time it comes here and if
+                    // prevError or prevResponse are not undefined
+                    // it means that we had already made the first API call.
+                    // So we directly try and do the refreshing by throwing this
+                    // prevError, and then whey that retries, then prevError will be undefined
+                    // which will result in the user's API being called.
                     let localPrevError = prevError;
                     let localPrevResponse = prevResponse;
                     prevError = undefined;
@@ -471,36 +492,29 @@ export default class AuthHttpRequest {
     };
 }
 
-async function setTokenHeaders(requestConfig: AxiosRequestConfig) {
+async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
     if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
 
-        logDebugMessage("setTokenHeaders: adding header preference to rid header");
-        requestConfig.headers = {
-            ...requestConfig.headers,
-            rid:
-                (requestConfig.headers === undefined || requestConfig.headers.rid === undefined
-                    ? "anti-csrf"
-                    : requestConfig.headers.rid) + ";header"
-        };
+        if (requestConfig.headers === undefined) {
+            // This is makes TS happy
+            requestConfig.headers = {};
+        }
 
         const accessToken = await getToken("access");
-        if (accessToken !== undefined) {
-            logDebugMessage("setTokenHeaders: added authorization header");
+        if (
+            accessToken !== undefined &&
+            requestConfig.headers["Authorization"] === undefined &&
+            requestConfig.headers["authorization"] === undefined
+        ) {
+            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
             requestConfig.headers = {
                 ...requestConfig.headers,
                 Authorization: `Bearer ${accessToken}`
             };
         }
 
-        const refreshToken = await getToken("refresh");
-        if (refreshToken) {
-            logDebugMessage("setTokenHeaders: added st-refresh-token header");
-            requestConfig.headers = {
-                ...requestConfig.headers,
-                "st-refresh-token": refreshToken
-            };
-        }
+        // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     }
 }
 

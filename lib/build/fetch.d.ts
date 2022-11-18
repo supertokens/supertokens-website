@@ -49,7 +49,7 @@ export declare function onUnauthorisedResponse(preRequestLSS: LocalSessionState)
 }>;
 export declare function onTokenUpdate(): void;
 export declare function onInvalidClaimResponse(response: ResponseWithBody): Promise<void>;
-declare type LocalSessionState = {
+export declare type LocalSessionState = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {
     status: "EXISTS";
@@ -64,4 +64,3 @@ export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
 export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeader: string | null | undefined): void;
-export {};

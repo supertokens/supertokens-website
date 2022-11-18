@@ -50,9 +50,9 @@ supertokens.init({
     autoAddCredentials: true,
     isInIframe: true,
     sessionExpiredStatusCode: 440,
-    sessionScope: "",
     tokenTransferMethod: "cookie",
-    sessionDomain: ".supertokens.com",
+    sessionTokenFrontendDomain: "",
+    sessionTokenBackendDomain: ".supertokens.com",
     cookieHandler: () => {
         return {
             getCookie: async function () {
