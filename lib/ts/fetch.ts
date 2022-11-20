@@ -747,6 +747,10 @@ export async function saveRefreshAttempt() {
     const now = Date.now().toString();
     logDebugMessage("saveRefreshAttempt: setting " + now);
     await storeInCookies(LAST_REFRESH_ATTEMPT_NAME, now, Number.MAX_SAFE_INTEGER);
+
+    // We clear the sIRTFrontend cookie
+    // We are handling this as a special case here because we want to limit the scope of legacy code
+    await storeInCookies("sIRTFrontend", "", 0);
 }
 
 async function getAntiCSRFToken(): Promise<string | null> {
