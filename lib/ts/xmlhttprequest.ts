@@ -22,7 +22,8 @@ import AuthHttpRequestFetch, {
     setToken,
     getToken,
     getLocalSessionState,
-    LocalSessionState
+    LocalSessionState,
+    fireSessionUpdateEventsIfNecessary
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -80,7 +81,7 @@ export function addInterceptorsToXMLHttpRequest() {
         // let method: string = "";
         let url: string | URL = "";
         let doNotDoInterception = false;
-        let preRequestIdToken: LocalSessionState | undefined = undefined;
+        let preRequestLSS: LocalSessionState | undefined = undefined;
         let body: Document | XMLHttpRequestBodyInit | null | undefined;
 
         // we do not provide onerror cause that is fired only on
@@ -127,11 +128,11 @@ export function addInterceptorsToXMLHttpRequest() {
         }
 
         async function handleRetryPostRefreshing(): Promise<boolean> {
-            if (preRequestIdToken === undefined) {
+            if (preRequestLSS === undefined) {
                 throw new Error("Should never come here..");
             }
-            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestIdToken " + preRequestIdToken.status);
-            const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
+            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestIdToken " + preRequestLSS.status);
+            const refreshResult = await onUnauthorisedResponse(preRequestLSS);
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage(
                     "XHRInterceptor.handleRetryPostRefreshing: Not retrying original request " + !!refreshResult.error
@@ -177,6 +178,11 @@ export function addInterceptorsToXMLHttpRequest() {
                     console.log("Saving tokens from response headers");
                     await saveTokensFromHeaders(headers);
 
+                    fireSessionUpdateEventsIfNecessary(
+                        preRequestLSS!.status === "EXISTS",
+                        status,
+                        headers.get("front-token")
+                    );
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
@@ -192,7 +198,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
                     if (!((await getLocalSessionState(false)).status === "EXISTS")) {
                         logDebugMessage(
-                            "XHRInterceptor.handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                            "XHRInterceptor.handleResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
                         );
                         await AntiCsrfToken.removeToken();
                         await FrontToken.removeToken();
@@ -453,10 +459,10 @@ export function addInterceptorsToXMLHttpRequest() {
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
 
             delayIfNecessary(async () => {
-                preRequestIdToken = await getLocalSessionState(true);
+                preRequestLSS = await getLocalSessionState(true);
 
-                if (preRequestIdToken.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.lastRefreshAttempt);
+                if (preRequestLSS.status === "EXISTS") {
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("XHRInterceptor.send: Adding anti-csrf token to request");
                         xhr.setRequestHeader("anti-csrf", antiCsrfToken);
@@ -492,6 +498,8 @@ export function addInterceptorsToXMLHttpRequest() {
         }
     } as any;
 
+    // This can be used by other interceptors (axios) to detect if this interceptor has been added or not
+    (XMLHttpRequest as any).__interceptedBySuperTokens = true;
     (XMLHttpRequest as any).__original = oldXMLHttpRequest;
 }
 

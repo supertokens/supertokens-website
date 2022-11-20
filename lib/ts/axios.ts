@@ -22,8 +22,8 @@ import AuthHttpRequestFetch, {
     onUnauthorisedResponse,
     onInvalidClaimResponse,
     setToken,
-    getToken,
-    fireSessionUpdateEventsIfNecessary
+    fireSessionUpdateEventsIfNecessary,
+    getToken
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -221,7 +221,7 @@ export function responseInterceptor(axiosInstance: any) {
                 !((await getLocalSessionState(true)).status === "EXISTS")
             ) {
                 logDebugMessage(
-                    "responseInterceptor: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                    "responseInterceptor: local session doesn't exist, so removing anti-csrf and sFrontToken"
                 );
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
@@ -484,7 +484,7 @@ export default class AuthHttpRequest {
             // The backend should not be down if we get here, but even if it were we shouldn't need to call refresh
             const postRequestIdToken = await getLocalSessionState(false);
             if (postRequestIdToken.status === "NOT_EXISTS") {
-                logDebugMessage("doRequest: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken");
+                logDebugMessage("doRequest: local session doesn't exist, so removing anti-csrf and sFrontToken");
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }

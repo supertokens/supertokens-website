@@ -155,7 +155,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 throw new STGeneralError(message);
             }
 
-            // we do not send an event here since it's triggered in setIdRefreshToken area.
+            // we do not send an event here since it's triggered during the response handler
         },
 
         getInvalidClaimsFromResponse: async function(input: {

@@ -333,7 +333,7 @@ export default class AuthHttpRequest {
             // or the backend is down and we don't need to call it.
             const postRequestIdToken = await getLocalSessionState(false);
             if (postRequestIdToken.status === "NOT_EXISTS") {
-                logDebugMessage("doRequest: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken");
+                logDebugMessage("doRequest: local session doesn't exist, so removing anti-csrf and sFrontToken");
                 await AntiCsrfToken.removeToken();
                 await FrontToken.removeToken();
             }
@@ -465,7 +465,9 @@ export async function onUnauthorisedResponse(
                 });
 
                 if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
-                    logDebugMessage("onUnauthorisedResponse: sIRTFrontend is remove, so returning session expired");
+                    logDebugMessage(
+                        "onUnauthorisedResponse: local session doesn't exist, so returning session expired"
+                    );
                     // The execution should never come here.. but just in case.
                     // removed by server during refresh. So we logout
 
@@ -484,7 +486,9 @@ export async function onUnauthorisedResponse(
                 return { result: "RETRY" };
             } catch (error) {
                 if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
-                    logDebugMessage("onUnauthorisedResponse: sIRTFrontend is remove, so returning session expired");
+                    logDebugMessage(
+                        "onUnauthorisedResponse: local session doesn't exist, so returning session expired"
+                    );
                     // removed by server.
 
                     // we do not send "UNAUTHORISED" event here because
@@ -504,7 +508,7 @@ export async function onUnauthorisedResponse(
                 // as cookies may not get set at all.
                 if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                     logDebugMessage(
-                        "onUnauthorisedResponse: sIRTFrontend is remove, so removing anti-csrf and sFrontToken"
+                        "onUnauthorisedResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
                     );
                     await AntiCsrfToken.removeToken();
                     await FrontToken.removeToken();
@@ -514,7 +518,7 @@ export async function onUnauthorisedResponse(
         let idCookieValue = await getLocalSessionState(false);
         if (idCookieValue.status === "NOT_EXISTS") {
             logDebugMessage(
-                "onUnauthorisedResponse: lock acquired failed and sIRTFrontend is remove, so sending SESSION_EXPIRED"
+                "onUnauthorisedResponse: lock acquired failed and local session doesn't exist, so sending SESSION_EXPIRED"
             );
             // removed by server. So we logout
             return { result: "SESSION_EXPIRED" };
@@ -738,10 +742,10 @@ async function saveTokensFromHeaders(response: Response) {
 }
 
 export async function saveRefreshAttempt() {
-    logDebugMessage("setIdRefreshToken: called");
+    logDebugMessage("saveRefreshAttempt: called");
 
     const now = Date.now().toString();
-    logDebugMessage("setIdRefreshToken: setting " + now);
+    logDebugMessage("saveRefreshAttempt: setting " + now);
     await storeInCookies(LAST_REFRESH_ATTEMPT_NAME, now, Number.MAX_SAFE_INTEGER);
 }
 
@@ -800,7 +804,7 @@ export async function getFrontToken(): Promise<string | null> {
     // we do not call doesSessionExist here cause the user might override that
     // function here and then it may break the logic of our original implementation.
     if (!((await getLocalSessionState(true)).status === "EXISTS")) {
-        logDebugMessage("getFrontToken: Returning because sIRTFrontend != EXISTS");
+        logDebugMessage("getFrontToken: Returning because local session doesn't exist");
         return null;
     }
 
