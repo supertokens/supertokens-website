@@ -7,7 +7,7 @@ import {
     ClaimValidationError,
     ResponseWithBody
 } from "./types";
-import AuthHttpRequest, { FrontToken, getIdRefreshToken } from "./fetch";
+import AuthHttpRequest, { FrontToken, getIdRefreshToken, onUnauthorisedResponse } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
@@ -97,7 +97,24 @@ export default function RecipeImplementation(recipeImplInput: {
         },
         doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
             logDebugMessage("doesSessionExist: called");
-            return (await getIdRefreshToken(true)).status === "EXISTS";
+
+            const tokenInfo = await FrontToken.getTokenInfo();
+
+            // The above includes getIdRefreshToken(true), which would call refresh if the FE cookies were cleared for some reason
+            if (tokenInfo === undefined) {
+                logDebugMessage("doesSessionExist: access token does not exist locally");
+                return false;
+            }
+
+            if (tokenInfo.ate < Date.now()) {
+                logDebugMessage("doesSessionExist: access token expired. Refreshing session");
+
+                const preRequestIdToken = await getIdRefreshToken(false);
+                const refresh = await onUnauthorisedResponse(preRequestIdToken);
+                return refresh.result === "RETRY";
+            }
+
+            return true;
         },
         signOut: async function(input: { userContext: any }): Promise<void> {
             logDebugMessage("signOut: called");
