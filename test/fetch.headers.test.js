@@ -1445,7 +1445,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
     });
 
     //cross domain login, userinfo, logout
-    it("test with fetch cross domain, no auto add credentials, fail", async () => {
+    it("test with fetch cross domain, no auto add credentials should keep working", async () => {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1485,50 +1485,11 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
-
-                let resp = await fetch(`${BASE_URL}/`, {
-                    method: "get"
-                });
-                assertEqual(resp.status, 401);
-
-                assertEqual(await supertokens.doesSessionExist(), false);
-
-                await fetch(`${BASE_URL}/login`, {
-                    method: "post",
-                    credentials: "include",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ userId })
-                });
-
                 // send a get session request , which should do a refresh session request
-                let getSessionResponse = await fetch(`${BASE_URL}/`, {
-                    method: "get",
-                    credentials: "include"
-                });
 
-                // check that the getSession was successfull
-                assertEqual(await getSessionResponse.text(), userId);
+                await axios.get(`${BASE_URL}/`);
 
-                // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
-
-                // do logout
-                let logoutResponse = await fetch(`${BASE_URL}/logout`, {
-                    method: "post",
-                    credentials: "include",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ userId })
-                });
-                assertEqual(await logoutResponse.text(), "success");
-
-                //check that session does not exist
-                assertEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(await supertokens.doesSessionExist(), true);
             });
         } finally {
             await browser.close();
@@ -1800,13 +1761,16 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 page.waitForRequest(`${BASE_URL}/test3`)
             ]);
 
-            assert.equal(req1.headers()["rid"], "anti-csrf;header");
+            assert.equal(req1.headers()["rid"], "anti-csrf");
+            assert.equal(req1.headers()["st-auth-mode"], "header");
             assert.equal(req1.headers()["asdf"], "123");
 
-            assert.equal(req2.headers()["rid"], "anti-csrf;header");
+            assert.equal(req2.headers()["rid"], "anti-csrf");
+            assert.equal(req2.headers()["st-auth-mode"], "header");
             assert.equal(req2.headers()["asdf2"], "123");
 
-            assert.equal(req3.headers()["rid"], "anti-csrf;header");
+            assert.equal(req3.headers()["rid"], "anti-csrf");
+            assert.equal(req3.headers()["st-auth-mode"], "header");
             assert.equal(req3.headers()["asdf"], undefined);
         } finally {
             await browser.close();

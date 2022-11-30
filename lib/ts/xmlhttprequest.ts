@@ -20,7 +20,7 @@ import AuthHttpRequestFetch, {
     onUnauthorisedResponse,
     onInvalidClaimResponse,
     setToken,
-    getToken,
+    getTokenForHeaderAuth,
     getLocalSessionState,
     LocalSessionState,
     fireSessionUpdateEventsIfNecessary
@@ -175,7 +175,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
                     const status = xhr.status;
                     const headers = getResponseHeadersFromXHR(xhr);
-                    console.log("Saving tokens from response headers");
+
                     await saveTokensFromHeaders(headers);
 
                     fireSessionUpdateEventsIfNecessary(
@@ -481,15 +481,6 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
-                if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
-                    logDebugMessage(
-                        "XHRInterceptor.send: Adding st-auth-mode header: " +
-                            AuthHttpRequestFetch.config.tokenTransferMethod
-                    );
-                    xhr.setRequestHeader("st-auth-mode", AuthHttpRequestFetch.config.tokenTransferMethod);
-                } else {
-                    logDebugMessage("XHRInterceptor.send: st-auth-mode header was already there in request");
-                }
                 await setTokenHeadersIfRequired(xhr, requestHeaders);
 
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
@@ -539,39 +530,53 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
 }
 
 async function setTokenHeadersIfRequired(xhr: XMLHttpRequestType, requestHeaders: { name: string; value: string }[]) {
-    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
+    const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+    if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
+        logDebugMessage("setTokenHeadersIfRequired: Adding st-auth-mode header: " + transferMethod);
+        xhr.setRequestHeader("st-auth-mode", transferMethod);
+    } else {
+        logDebugMessage("setTokenHeadersIfRequired: st-auth-mode header was already there in request");
+    }
 
-        const accessToken = await getToken("access");
+    logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
 
-        if (accessToken !== undefined && !requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
-            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
-            xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+    const accessToken = await getTokenForHeaderAuth("access");
+
+    if (accessToken) {
+        if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
+            logDebugMessage("setTokenHeadersIfRequired: Authorization header defined by the user, not adding");
+        } else {
+            if (accessToken !== undefined) {
+                logDebugMessage("setTokenHeadersIfRequired: added authorization header");
+                xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+            }
+            // We don't add the refresh token because that's only required by the refresh call which is done with fetch
         }
-        // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    } else {
+        logDebugMessage("setTokenHeadersIfRequired: token for header based auth not found");
     }
 }
 
 async function saveTokensFromHeaders(headers: Headers) {
-    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("doRequest: Saving updated tokens from the response");
-        console.log(JSON.stringify(Array.from(headers as any)));
-        const refreshToken = headers.get("st-refresh-token");
-        if (refreshToken) {
-            const [value, expiry] = refreshToken.split(";");
-            await setToken("refresh", value, Number.parseInt(expiry));
-        }
+    logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response");
 
-        const accessToken = headers.get("st-access-token");
-        if (accessToken) {
-            const [value, expiry] = accessToken.split(";");
-            await setToken("access", value, Number.parseInt(expiry));
-        }
+    const refreshToken = headers.get("st-refresh-token");
+    if (refreshToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new refresh token");
+        const [value, expiry] = refreshToken.split(";");
+        await setToken("refresh", value, Number.parseInt(expiry));
+    }
+
+    const accessToken = headers.get("st-access-token");
+    if (accessToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new access token");
+        const [value, expiry] = accessToken.split(";");
+        await setToken("access", value, Number.parseInt(expiry));
     }
 
     const frontToken = headers.get("front-token");
     if (frontToken) {
-        logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
+        logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
     }
 
@@ -579,7 +584,7 @@ async function saveTokensFromHeaders(headers: Headers) {
     if (antiCsrfToken) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
-            logDebugMessage("doRequest: Setting anti-csrf token");
+            logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
         }
     }

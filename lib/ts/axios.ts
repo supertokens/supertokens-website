@@ -23,7 +23,7 @@ import AuthHttpRequestFetch, {
     onInvalidClaimResponse,
     setToken,
     fireSessionUpdateEventsIfNecessary,
-    getToken
+    getTokenForHeaderAuth
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -81,10 +81,10 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     }
     logDebugMessage("interceptorFunctionRequestFulfilled: Modifying config");
     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
-    const preRequestIdToken = await getLocalSessionState(true);
+    const preRequestLSS = await getLocalSessionState(true);
     let configWithAntiCsrf: AxiosRequestConfig = config;
-    if (preRequestIdToken.status === "EXISTS") {
-        const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.lastRefreshAttempt);
+    if (preRequestLSS.status === "EXISTS") {
+        const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
         if (antiCsrfToken !== undefined) {
             logDebugMessage("interceptorFunctionRequestFulfilled: Adding anti-csrf token to request");
             configWithAntiCsrf = {
@@ -119,12 +119,10 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      rid: "anti-csrf",
-                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod
+                      rid: "anti-csrf"
                   }
                 : {
                       rid: "anti-csrf",
-                      "st-auth-mode": AuthHttpRequestFetch.config.tokenTransferMethod,
                       ...configWithAntiCsrf.headers
                   }
     };
@@ -493,45 +491,49 @@ export default class AuthHttpRequest {
 }
 
 async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
-    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
+    if (requestConfig.headers === undefined) {
+        // This is makes TS happy
+        requestConfig.headers = {};
+    }
 
-        if (requestConfig.headers === undefined) {
-            // This is makes TS happy
-            requestConfig.headers = {};
-        }
+    const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+    logDebugMessage("setTokenHeadersIfRequired: Adding st-auth-mode header: " + transferMethod);
+    requestConfig.headers["st-auth-mode"] = transferMethod;
 
-        const accessToken = await getToken("access");
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    const accessToken = await getTokenForHeaderAuth("access");
+    if (accessToken) {
         if (
-            accessToken !== undefined &&
-            requestConfig.headers["Authorization"] === undefined &&
-            requestConfig.headers["authorization"] === undefined
+            requestConfig.headers["Authorization"] !== undefined ||
+            requestConfig.headers["authorization"] !== undefined
         ) {
+            logDebugMessage("setTokenHeadersIfRequired: Authorization header defined by the user, not adding");
+        } else {
             logDebugMessage("setTokenHeadersIfRequired: added authorization header");
             requestConfig.headers = {
                 ...requestConfig.headers,
                 Authorization: `Bearer ${accessToken}`
             };
         }
-
-        // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    } else {
+        logDebugMessage("setTokenHeadersIfRequired: token for header based auth not found");
     }
 }
 
 async function saveTokensFromHeaders(response: AxiosResponse) {
-    if (AuthHttpRequestFetch.config.tokenTransferMethod === "header") {
-        logDebugMessage("doRequest: Saving updated tokens from the response");
-        const refreshToken = response.headers["st-refresh-token"];
-        if (refreshToken) {
-            const [value, expiry] = refreshToken.split(";");
-            await setToken("refresh", value, Number.parseInt(expiry));
-        }
+    logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response");
+    const refreshToken = response.headers["st-refresh-token"];
+    if (refreshToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new refresh token");
+        const [value, expiry] = refreshToken.split(";");
+        await setToken("refresh", value, Number.parseInt(expiry));
+    }
 
-        const accessToken = response.headers["st-access-token"];
-        if (accessToken) {
-            const [value, expiry] = accessToken.split(";");
-            await setToken("access", value, Number.parseInt(expiry));
-        }
+    const accessToken = response.headers["st-access-token"];
+    if (accessToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new access token");
+        const [value, expiry] = accessToken.split(";");
+        await setToken("access", value, Number.parseInt(expiry));
     }
 
     const frontToken = response.headers["front-token"];

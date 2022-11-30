@@ -22,7 +22,7 @@ export default function RecipeImplementation(recipeImplInput: {
 }): RecipeInterface {
     return {
         addXMLHttpRequestInterceptor: function(_): void {
-            logDebugMessage("addXMLHttpRequestInterceptorAndReturnModified: called");
+            logDebugMessage("addXMLHttpRequestInterceptor: called");
             addInterceptorsToXMLHttpRequest();
         },
         addFetchInterceptorsAndReturnModifiedFetch: function(input: {
@@ -44,6 +44,22 @@ export default function RecipeImplementation(recipeImplInput: {
         },
         addAxiosInterceptors: function(input: { axiosInstance: any; userContext: any }): void {
             logDebugMessage("addAxiosInterceptors: called");
+
+            if ((XMLHttpRequest as any).__interceptedBySuperTokens) {
+                console.warn(
+                    "Not adding axios interceptor since XMLHttpRequest is already added. This is just a warning."
+                );
+                console.warn("Our axios and XMLHttpRequest interceptors cannot be used at the same time.");
+                console.warn(
+                    "Since XMLHttpRequest is added automatically and supports axios by default, you can just remove addAxiosInterceptors from your code."
+                );
+                console.warn(
+                    "If you want to continue using our axios interceptor, you can override addXMLHttpRequestInterceptor with an empty function."
+                );
+
+                logDebugMessage("addAxiosInterceptors: not adding, because XHR interceptors are already in place");
+                return;
+            }
             // we first check if this axiosInstance already has our interceptors.
             let requestInterceptors = input.axiosInstance.interceptors.request;
             for (let i = 0; i < requestInterceptors.handlers.length; i++) {

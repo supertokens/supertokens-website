@@ -294,8 +294,6 @@ export default class AuthHttpRequest {
                 } else {
                     logDebugMessage("doRequest: rid header was already there in request");
                 }
-                logDebugMessage("doRequest: Adding st-auth-mode header: " + AuthHttpRequest.config.tokenTransferMethod);
-                clonedHeaders.set("st-auth-mode", AuthHttpRequest.config.tokenTransferMethod);
                 await setTokenHeadersIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
@@ -415,11 +413,6 @@ export async function onUnauthorisedResponse(
                 headers.set("rid", AuthHttpRequest.rid);
                 headers.set("fdi-version", supported_fdi.join(","));
 
-                logDebugMessage(
-                    "onUnauthorisedResponse: Adding st-auth-mode header: " + AuthHttpRequest.config.tokenTransferMethod
-                );
-                headers.set("st-auth-mode", AuthHttpRequest.config.tokenTransferMethod);
-
                 await setTokenHeadersIfRequired(headers, true);
 
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
@@ -445,12 +438,18 @@ export async function onUnauthorisedResponse(
 
                 logDebugMessage("onUnauthorisedResponse: Refresh status code is: " + response.status);
 
-                // there is a case where frontend still has id refresh token, but backend doesn't get it. In this event, session expired error will be thrown and the frontend should remove this token
+                const isUnauthorised = response.status === AuthHttpRequest.config.sessionExpiredStatusCode;
+
+                // There is a case where the FE thinks the session is valid, but backend doesn't get the tokens.
+                // In this event, session expired error will be thrown and the frontend should remove this token
+                if (isUnauthorised && response.headers.get("front-token") === null) {
+                    FrontToken.setItem("remove");
+                }
 
                 fireSessionUpdateEventsIfNecessary(
                     preRequestLSS.status === "EXISTS",
                     response.status,
-                    response.headers.get("front-token")
+                    isUnauthorised ? "remove" : response.headers.get("front-token")
                 );
                 if (response.status >= 300) {
                     throw response;
@@ -672,7 +671,7 @@ function storeInCookies(name: string, value: string, expiry: number) {
     }
 }
 
-export async function getToken(tokenType: TokenType) {
+export async function getTokenForHeaderAuth(tokenType: TokenType) {
     const name = getStorageNameForToken(tokenType);
 
     return getFromCookies(name);
@@ -691,51 +690,56 @@ async function getFromCookies(name: string) {
 }
 
 async function setTokenHeadersIfRequired(clonedHeaders: Headers, addRefreshToken: boolean = false) {
-    if (AuthHttpRequest.config.tokenTransferMethod === "header") {
-        logDebugMessage("setTokenHeaders: adding existing tokens as header");
+    const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
 
-        const accessToken = await getToken("access");
+    logDebugMessage("setTokenHeadersIfRequired: Adding st-auth-mode header: " + transferMethod);
+    clonedHeaders.set("st-auth-mode", transferMethod);
+
+    logDebugMessage("setTokenHeaders: adding existing tokens as header");
+
+    const token = await getTokenForHeaderAuth(addRefreshToken ? "refresh" : "access");
+    if (token) {
         // the Headers class normalizes header names so we don't have to worry about casing
-        if (accessToken !== undefined && !clonedHeaders.has("Authorization")) {
-            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
-            clonedHeaders.set("Authorization", `Bearer ${accessToken}`);
+        if (clonedHeaders.has("Authorization")) {
+            logDebugMessage("setTokenHeadersIfRequired: Authorization header defined by the user, not adding");
+        } else {
+            if (token !== undefined) {
+                logDebugMessage("setTokenHeadersIfRequired: added authorization header");
+                clonedHeaders.set("Authorization", `Bearer ${token}`);
+            }
         }
-
-        const refreshToken = await getToken("refresh");
-        if (refreshToken && addRefreshToken) {
-            logDebugMessage("setTokenHeadersIfRequired: added st-refresh-token header");
-            clonedHeaders.set("st-refresh-token", refreshToken);
-        }
+    } else {
+        logDebugMessage("setTokenHeadersIfRequired: token for header based auth not found");
     }
 }
 
 async function saveTokensFromHeaders(response: Response) {
-    if (AuthHttpRequest.config.tokenTransferMethod === "header") {
-        logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response headers");
-        const refreshToken = response.headers.get("st-refresh-token");
-        if (refreshToken) {
-            const [value, expiry] = refreshToken.split(";");
-            await setToken("refresh", value, Number.parseInt(expiry));
-        }
+    logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response headers");
 
-        const accessToken = response.headers.get("st-access-token");
-        if (accessToken) {
-            const [value, expiry] = accessToken.split(";");
-            await setToken("access", value, Number.parseInt(expiry));
-        }
-        logDebugMessage("saveTokensFromHeaders: Removing AntiCsrfToken if exists since we are in header mode");
-        await AntiCsrfToken.removeToken();
+    const refreshToken = response.headers.get("st-refresh-token");
+    if (refreshToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new refresh token");
+        const [value, expiry] = refreshToken.split(";");
+        await setToken("refresh", value, Number.parseInt(expiry));
     }
+
+    const accessToken = response.headers.get("st-access-token");
+    if (accessToken) {
+        logDebugMessage("saveTokensFromHeaders: saving new access token");
+        const [value, expiry] = accessToken.split(";");
+        await setToken("access", value, Number.parseInt(expiry));
+    }
+
     const frontToken = response.headers.get("front-token");
     if (frontToken) {
-        logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
+        logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
     if (antiCsrfToken) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
-            logDebugMessage("doRequest: Setting anti-csrf token");
+            logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
         }
     }

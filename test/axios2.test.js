@@ -454,10 +454,12 @@ describe("Axios AuthHttpRequest class tests", function() {
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
+
+        let refreshCalled = 0;
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            refreshCalled = 0;
+
             page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
@@ -511,7 +513,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             });
             // This will make the call twice - once by the axios interceptor and once by the xhr interceptor
             // But neither after the request was sent
-            assert.equal(refreshCalled, 2);
+            assert.equal(refreshCalled, 1);
         } finally {
             await browser.close();
         }

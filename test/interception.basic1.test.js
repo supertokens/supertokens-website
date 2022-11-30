@@ -61,7 +61,7 @@ const { addGenericTestCases: addTestCases } = require("./interception.testgen");
         responseText (text)
 */
 
-addTestCases((name, setupFunc, setupArgs = []) => {
+addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
     describe(`${name}: interception basic tests 1`, function() {
         let browser;
         let page;
@@ -81,14 +81,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         before(async function() {
             spawn(
                 "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT]
-                // {
-                //     stdio: "inherit",
-                //     env: {
-                //         ...process.env,
-                //         DEBUG: "com.supertokens",
-                //     }
-                // }
+                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
+                {
+                    // stdio: "inherit",
+                    // env: {
+                    //     ...process.env,
+                    //     DEBUG: "com.supertokens",
+                    // }
+                }
             );
             await new Promise(r => setTimeout(r, 1000));
         });
@@ -1425,14 +1425,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 // check refresh API was called once + document.cookie has removed
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.strictEqual(document.cookie, "sIRTFrontend=remove");
+                // assert.strictEqual(document.cookie, "sIRTFrontend=remove");
 
                 // call sessionDoesExist
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.strictEqual(document.cookie, "sIRTFrontend=remove");
+                // assert.strictEqual(document.cookie, "sIRTFrontend=remove");
 
                 await toTest({
                     url: `/login`,
@@ -1449,7 +1449,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.notEqual(document.cookie, "sIRTFrontend=remove");
+                // assert.notEqual(document.cookie, "sIRTFrontend=remove");
             });
         });
 
@@ -1493,7 +1493,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.notEqual(document.cookie, "sIRTFrontend=remove");
+                // assert.notEqual(document.cookie, "sIRTFrontend=remove");
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1549,7 +1549,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 // check refresh API not called
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-                assert.notEqual(document.cookie, "sIRTFrontend=remove");
+                // assert.notEqual(document.cookie, "sIRTFrontend=remove");
 
                 // clear all cookies
                 deleteAllCookies();
@@ -1708,6 +1708,10 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+            if (transferMethod === "header") {
+                // We skip this in header mode: it should work the same without httpOnly cookies
+                this.skip();
+            }
             await startST();
             await setup();
             let consoleLogs = [];
@@ -1739,9 +1743,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 assert.strictEqual(loginResponse.responseText, userId);
             });
 
-            let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
-            );
+            let originalCookies = (await page.cookies()).filter(c => !c.httpOnly);
 
             const client = await page.target().createCDPSession();
             await client.send("Network.clearBrowserCookies");
@@ -1805,12 +1807,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 // assert.strictEqual(resp.url, `${BASE_URL}/auth/session/refresh`);
             });
 
-            // and we assert that the only cookie that exists is the sIRTFrontend with the value of "remove"
+            // and we assert that the only cookie that exists is the st-last-refresh-attempt
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert.strictEqual(newCookies.length, 1);
-            assert.strictEqual(newCookies[0].name, "sIRTFrontend");
-            assert.strictEqual(newCookies[0].value, "remove");
+            assert.strictEqual(newCookies[0].name, "st-last-refresh-attempt");
         });
 
         it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function() {
@@ -1899,8 +1900,10 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
-                            // Cookies don't actually matter as long as we clear the id-refresh-token
-                            "st-id-refresh-token": "remove"
+                            // Cookies don't actually matter as long as we clear the front-token
+                            // this is because the frontend will still have st-last-refresh-attempt w/ a removed front-token
+                            // This is interpreted as a logged-out state
+                            "front-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -1934,7 +1937,6 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                 assertNotEqual(resp, undefined);
                 assert.strictEqual(resp.statusCode, 401);
-                assert.strictEqual(resp.url, `${BASE_URL}/`);
                 const data = JSON.parse(resp.responseText);
                 assertNotEqual(data, undefined);
                 assert.strictEqual(data.message, "test");
@@ -1979,7 +1981,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 assert.strictEqual(data.message, "test");
             });
             // It should call it once before the call - but after that doesn't work it should not try again after the API request
-            assert.strictEqual(refreshCalled, name.startsWith("axios with axios interceptor") ? 2 : 1);
+            assert.strictEqual(refreshCalled, 1);
         });
 
         it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {

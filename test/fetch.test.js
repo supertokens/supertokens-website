@@ -59,10 +59,13 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     before(async function() {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
+        spawn(
+            "./test/startServer",
+            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
+            {
+                // stdio: "inherit"
+            }
+        );
         await new Promise(r => setTimeout(r, 1000));
     });
 
@@ -1946,7 +1949,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
             const page = await browser.newPage();
             let consoleLogs = [];
             page.on("console", message => {
-                console.log(message.text());
+                // console.log(message.text());
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1957,7 +1960,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    enableDebugLogs: true,
+                    // enableDebugLogs: true,
                     onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
@@ -1976,7 +1979,6 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(await loginResponse.text(), userId);
             });
 
-            console.log(await page.cookies());
             let originalCookies = (await page.cookies()).filter(
                 c => c.name === "sFrontToken" || c.name === "st-last-refresh-attempt" || c.name === "sAntiCsrf"
             );
@@ -1986,19 +1988,14 @@ describe("Fetch AuthHttpRequest class tests", function() {
             await client.send("Network.clearBrowserCache");
 
             await page.setCookie(...originalCookies);
-            console.log(originalCookies);
             let cookies = await page.cookies();
             assert(cookies.length === 3);
-            console.log("=========================================");
-            console.log("=========================================");
-            console.log("=========================================");
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
             });
 
-            console.log(consoleLogs);
             assert.strictEqual(consoleLogs.length, 2);
 
             assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
@@ -2058,11 +2055,11 @@ describe("Fetch AuthHttpRequest class tests", function() {
                 assertEqual(resp.url, `${BASE_URL}/auth/session/refresh`);
             });
 
-            // and we assert that the only cookie that exists is the sIRTFrontend with the value of "remove"
+            // and we assert that the only cookie that exists is the st-last-refresh-attempt
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert(newCookies.length === 1);
-            // assert(newCookies[0].name === "sIRTFrontend" && newCookies[0].value === "remove");
+            assert(newCookies[0].name === "st-last-refresh-attempt");
         } finally {
             await browser.close();
         }

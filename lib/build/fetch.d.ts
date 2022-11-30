@@ -58,7 +58,7 @@ export declare type LocalSessionState = {
 export declare function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState>;
 export declare function getStorageNameForToken(tokenType: TokenType): "st-refresh-token" | "st-access-token";
 export declare function setToken(tokenType: TokenType, value: string, expiry: number): Promise<void>;
-export declare function getToken(tokenType: TokenType): Promise<string | undefined>;
+export declare function getTokenForHeaderAuth(tokenType: TokenType): Promise<string | undefined>;
 export declare function saveRefreshAttempt(): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;

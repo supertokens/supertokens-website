@@ -3,6 +3,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
         // for (const tokenTransferMethod of ["header"]) {
         getTestCases(
             "fetch using " + tokenTransferMethod,
+            tokenTransferMethod,
             (config, tokenTransferMethod) => {
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
@@ -27,6 +28,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
 
         getTestCases(
             "XHR using " + tokenTransferMethod,
+            tokenTransferMethod,
             (config, tokenTransferMethod) => {
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
@@ -74,6 +76,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
 
         getTestCases(
             "axios with axios interceptor using " + tokenTransferMethod,
+            tokenTransferMethod,
             (config, tokenTransferMethod) => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
@@ -109,6 +112,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
 
         getTestCases(
             "axios using " + tokenTransferMethod,
+            tokenTransferMethod,
             (config, tokenTransferMethod) => {
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
@@ -143,6 +147,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
 
         getTestCases(
             "angular HTTPClient using " + tokenTransferMethod,
+            tokenTransferMethod,
             async (config, tokenTransferMethod) => {
                 await loadAngular();
 
