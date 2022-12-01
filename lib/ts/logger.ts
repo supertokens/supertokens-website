@@ -15,7 +15,7 @@
 
 import { package_version as version } from "./version";
 
-const SUPERTOKENS_DEBUG_NAMESPACE = "com.supertokens.node";
+const SUPERTOKENS_DEBUG_NAMESPACE = "com.supertokens";
 
 let __supertokensWebsiteLogging = false;
 
