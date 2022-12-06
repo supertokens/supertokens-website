@@ -809,10 +809,9 @@ function parseFrontToken(frontToken: string): { uid: string; ate: number; up: an
 
 export async function getFrontToken(): Promise<string | null> {
     logDebugMessage("getFrontToken: called");
-    // we do not call doesSessionExist here cause the user might override that
-    // function here and then it may break the logic of our original implementation.
+    // we do not call doesSessionExist here because that directly calls this function.
     if (!((await getLocalSessionState(true)).status === "EXISTS")) {
-        logDebugMessage("getFrontToken: Returning because local session doesn't exist");
+        logDebugMessage("getFrontToken: Returning because sIRTFrontend != EXISTS");
         return null;
     }
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [14.0.3] - 2022-11-24
+
+### Fixes
+
+- doesSessionExist now refreshes the session if it detects an expired access token
+
 ## [14.0.2] - 2022-10-24
 
 ### Fixes
