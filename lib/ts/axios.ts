@@ -127,6 +127,10 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                   }
     };
 
+    const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+    logDebugMessage("interceptorFunctionRequestFulfilled: Adding st-auth-mode header: " + transferMethod);
+    configWithAntiCsrf.headers!["st-auth-mode"] = transferMethod;
+
     await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
@@ -384,6 +388,10 @@ export default class AuthHttpRequest {
                               }
                 };
 
+                const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+                logDebugMessage("doRequest: Adding st-auth-mode header: " + transferMethod);
+                configWithAntiCsrf.headers!["st-auth-mode"] = transferMethod;
+
                 await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
                 try {
@@ -497,15 +505,15 @@ async function setAuthorizationHeaderIfRequired(requestConfig: AxiosRequestConfi
         requestConfig.headers = {};
     }
 
+    logDebugMessage("setAuthorizationHeaderIfRequired: adding existing tokens as header");
+
     // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
     // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
     // The new session preference should be applied at the start of the next session, if the backend allows it.
-    const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
-    logDebugMessage("setAuthorizationHeaderIfRequired: Adding st-auth-mode header: " + transferMethod);
-    requestConfig.headers["st-auth-mode"] = transferMethod;
 
-    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     const accessToken = await getTokenForHeaderAuth("access");
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+
     if (accessToken) {
         if (
             requestConfig.headers["Authorization"] !== undefined ||

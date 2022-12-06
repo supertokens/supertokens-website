@@ -299,6 +299,11 @@ export default class AuthHttpRequest {
                 } else {
                     logDebugMessage("doRequest: rid header was already there in request");
                 }
+
+                const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
+                logDebugMessage("doRequest: Adding st-auth-mode header: " + transferMethod);
+                clonedHeaders.set("st-auth-mode", transferMethod);
+
                 await setAuthorizationHeaderIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
@@ -417,6 +422,10 @@ export async function onUnauthorisedResponse(
                 logDebugMessage("onUnauthorisedResponse: Adding rid and fdi-versions to refresh call header");
                 headers.set("rid", AuthHttpRequest.rid);
                 headers.set("fdi-version", supported_fdi.join(","));
+
+                const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
+                logDebugMessage("onUnauthorisedResponse: Adding st-auth-mode header: " + transferMethod);
+                headers.set("st-auth-mode", transferMethod);
 
                 await setAuthorizationHeaderIfRequired(headers, true);
 
@@ -691,13 +700,11 @@ async function getFromCookies(name: string) {
 }
 
 async function setAuthorizationHeaderIfRequired(clonedHeaders: Headers, addRefreshToken: boolean = false) {
-    const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
-
-    logDebugMessage("setAuthorizationHeaderIfRequired: Adding st-auth-mode header: " + transferMethod);
-    clonedHeaders.set("st-auth-mode", transferMethod);
-
     logDebugMessage("setTokenHeaders: adding existing tokens as header");
 
+    // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
+    // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
+    // The new session preference should be applied at the start of the next session, if the backend allows it.
     const token = await getTokenForHeaderAuth(addRefreshToken ? "refresh" : "access");
     if (token) {
         // the Headers class normalizes header names so we don't have to worry about casing

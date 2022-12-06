@@ -481,6 +481,14 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
+                const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+                if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
+                    logDebugMessage("XHRInterceptor.send: Adding st-auth-mode header: " + transferMethod);
+                    xhr.setRequestHeader("st-auth-mode", transferMethod);
+                } else {
+                    logDebugMessage("XHRInterceptor.send: st-auth-mode header was already there in request");
+                }
+
                 await setAuthorizationHeaderIfRequired(xhr, requestHeaders);
 
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
@@ -533,17 +541,14 @@ async function setAuthorizationHeaderIfRequired(
     xhr: XMLHttpRequestType,
     requestHeaders: { name: string; value: string }[]
 ) {
-    const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
-    if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
-        logDebugMessage("setAuthorizationHeaderIfRequired: Adding st-auth-mode header: " + transferMethod);
-        xhr.setRequestHeader("st-auth-mode", transferMethod);
-    } else {
-        logDebugMessage("setAuthorizationHeaderIfRequired: st-auth-mode header was already there in request");
-    }
-
     logDebugMessage("setAuthorizationHeaderIfRequired: adding existing tokens as header");
 
+    // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
+    // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
+    // The new session preference should be applied at the start of the next session, if the backend allows it.
+
     const accessToken = await getTokenForHeaderAuth("access");
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
 
     if (accessToken) {
         if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
