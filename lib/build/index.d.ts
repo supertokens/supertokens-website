@@ -30,6 +30,9 @@ export default class AuthHttpRequest {
         userContext?: any;
     }) => Promise<T | undefined>;
     static validateClaims: (overrideGlobalClaimValidators?: ((globalClaimValidators: SessionClaimValidator[], userContext: any) => SessionClaimValidator[]) | undefined, userContext?: any) => Promise<ClaimValidationError[]> | ClaimValidationError[];
+    static getAccessToken: (input?: {
+        userContext?: any;
+    }) => Promise<string | undefined>;
 }
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;

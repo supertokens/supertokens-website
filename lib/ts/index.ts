@@ -13,7 +13,7 @@
  * under the License.
  */
 
-import AuthHttpRequestFetch from "./fetch";
+import AuthHttpRequestFetch, { getTokenForHeaderAuth } from "./fetch";
 import { ClaimValidationError, InputType, RecipeInterface, SessionClaim, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
@@ -142,6 +142,15 @@ export default class AuthHttpRequest {
             claimValidators,
             userContext: getNormalisedUserContext(userContext)
         });
+    };
+
+    static getAccessToken = async (input?: { userContext?: any }): Promise<string | undefined> => {
+        // This takes care of refreshing the access token if necessary.
+        await AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+        });
+
+        return getTokenForHeaderAuth("access");
     };
 }
 
