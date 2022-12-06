@@ -179,7 +179,7 @@ export function shouldDoInterceptionBasedOnUrl(
             toCheckUrl +
             " apiDomain: " +
             apiDomain +
-            " cookiDomain: " +
+            " sessionTokenBackendDomain: " +
             sessionTokenBackendDomain
     );
     function isNumeric(str: any) {

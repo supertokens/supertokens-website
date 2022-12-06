@@ -2,9 +2,9 @@ import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } fro
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
-    static getToken(associatedIdRefreshToken: string | undefined): Promise<string | undefined>;
+    static getToken(associatedRefreshAttempt: string | undefined): Promise<string | undefined>;
     static removeToken(): Promise<void>;
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): Promise<void>;
+    static setItem(associatedRefreshAttempt: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
     private static waiters;
@@ -63,4 +63,4 @@ export declare function saveRefreshAttempt(): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
-export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeader: string | null | undefined): void;
+export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeaderFromResponse: string | null | undefined): void;

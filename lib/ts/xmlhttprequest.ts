@@ -481,7 +481,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
-                await setTokenHeadersIfRequired(xhr, requestHeaders);
+                await setAuthorizationHeaderIfRequired(xhr, requestHeaders);
 
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
                 return xhr.send(body);
@@ -529,31 +529,34 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
     };
 }
 
-async function setTokenHeadersIfRequired(xhr: XMLHttpRequestType, requestHeaders: { name: string; value: string }[]) {
+async function setAuthorizationHeaderIfRequired(
+    xhr: XMLHttpRequestType,
+    requestHeaders: { name: string; value: string }[]
+) {
     const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
     if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
-        logDebugMessage("setTokenHeadersIfRequired: Adding st-auth-mode header: " + transferMethod);
+        logDebugMessage("setAuthorizationHeaderIfRequired: Adding st-auth-mode header: " + transferMethod);
         xhr.setRequestHeader("st-auth-mode", transferMethod);
     } else {
-        logDebugMessage("setTokenHeadersIfRequired: st-auth-mode header was already there in request");
+        logDebugMessage("setAuthorizationHeaderIfRequired: st-auth-mode header was already there in request");
     }
 
-    logDebugMessage("setTokenHeadersIfRequired: adding existing tokens as header");
+    logDebugMessage("setAuthorizationHeaderIfRequired: adding existing tokens as header");
 
     const accessToken = await getTokenForHeaderAuth("access");
 
     if (accessToken) {
         if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
-            logDebugMessage("setTokenHeadersIfRequired: Authorization header defined by the user, not adding");
+            logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");
         } else {
             if (accessToken !== undefined) {
-                logDebugMessage("setTokenHeadersIfRequired: added authorization header");
+                logDebugMessage("setAuthorizationHeaderIfRequired: added authorization header");
                 xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
             }
             // We don't add the refresh token because that's only required by the refresh call which is done with fetch
         }
     } else {
-        logDebugMessage("setTokenHeadersIfRequired: token for header based auth not found");
+        logDebugMessage("setAuthorizationHeaderIfRequired: token for header based auth not found");
     }
 }
 

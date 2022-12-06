@@ -127,7 +127,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                   }
     };
 
-    await setTokenHeadersIfRequired(configWithAntiCsrf);
+    await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
     return configWithAntiCsrf;
@@ -179,6 +179,7 @@ export function responseInterceptor(axiosInstance: any) {
 
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
+            // This is preRequest, because we read the state before saving the updates from the response
             const preRequestLSS = await getLocalSessionState(false);
             await saveTokensFromHeaders(response);
 
@@ -383,7 +384,7 @@ export default class AuthHttpRequest {
                               }
                 };
 
-                await setTokenHeadersIfRequired(configWithAntiCsrf);
+                await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
                 try {
                     // the first time it comes here and if
@@ -490,14 +491,17 @@ export default class AuthHttpRequest {
     };
 }
 
-async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
+async function setAuthorizationHeaderIfRequired(requestConfig: AxiosRequestConfig) {
     if (requestConfig.headers === undefined) {
         // This is makes TS happy
         requestConfig.headers = {};
     }
 
+    // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
+    // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
+    // The new session preference should be applied at the start of the next session, if the backend allows it.
     const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
-    logDebugMessage("setTokenHeadersIfRequired: Adding st-auth-mode header: " + transferMethod);
+    logDebugMessage("setAuthorizationHeaderIfRequired: Adding st-auth-mode header: " + transferMethod);
     requestConfig.headers["st-auth-mode"] = transferMethod;
 
     // We don't add the refresh token because that's only required by the refresh call which is done with fetch
@@ -507,16 +511,16 @@ async function setTokenHeadersIfRequired(requestConfig: AxiosRequestConfig) {
             requestConfig.headers["Authorization"] !== undefined ||
             requestConfig.headers["authorization"] !== undefined
         ) {
-            logDebugMessage("setTokenHeadersIfRequired: Authorization header defined by the user, not adding");
+            logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");
         } else {
-            logDebugMessage("setTokenHeadersIfRequired: added authorization header");
+            logDebugMessage("setAuthorizationHeaderIfRequired: added authorization header");
             requestConfig.headers = {
                 ...requestConfig.headers,
                 Authorization: `Bearer ${accessToken}`
             };
         }
     } else {
-        logDebugMessage("setTokenHeadersIfRequired: token for header based auth not found");
+        logDebugMessage("setAuthorizationHeaderIfRequired: token for header based auth not found");
     }
 }
 
