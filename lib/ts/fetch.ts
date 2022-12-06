@@ -705,16 +705,20 @@ async function setAuthorizationHeaderIfRequired(clonedHeaders: Headers, addRefre
     // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
     // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
     // The new session preference should be applied at the start of the next session, if the backend allows it.
-    const token = await getTokenForHeaderAuth(addRefreshToken ? "refresh" : "access");
-    if (token) {
+
+    const accessToken = await getTokenForHeaderAuth("access");
+    const refreshToken = await getTokenForHeaderAuth("refresh");
+
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
+    // access token to the frontend while using cookie based auth
+    if (accessToken !== undefined && refreshToken !== undefined) {
         // the Headers class normalizes header names so we don't have to worry about casing
         if (clonedHeaders.has("Authorization")) {
             logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");
         } else {
-            if (token !== undefined) {
-                logDebugMessage("setAuthorizationHeaderIfRequired: added authorization header");
-                clonedHeaders.set("Authorization", `Bearer ${token}`);
-            }
+            logDebugMessage("setAuthorizationHeaderIfRequired: added authorization header");
+            clonedHeaders.set("Authorization", `Bearer ${addRefreshToken ? refreshToken : accessToken}`);
         }
     } else {
         logDebugMessage("setAuthorizationHeaderIfRequired: token for header based auth not found");

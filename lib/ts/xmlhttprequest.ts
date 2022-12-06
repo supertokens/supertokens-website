@@ -548,9 +548,12 @@ async function setAuthorizationHeaderIfRequired(
     // The new session preference should be applied at the start of the next session, if the backend allows it.
 
     const accessToken = await getTokenForHeaderAuth("access");
-    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    const refreshToken = await getTokenForHeaderAuth("refresh");
 
-    if (accessToken) {
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
+    // access token to the frontend while using cookie based auth
+    if (accessToken !== undefined && refreshToken !== undefined) {
         if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
             logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");
         } else {
