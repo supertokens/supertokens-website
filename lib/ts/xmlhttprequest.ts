@@ -131,7 +131,7 @@ export function addInterceptorsToXMLHttpRequest() {
             if (preRequestLSS === undefined) {
                 throw new Error("Should never come here..");
             }
-            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestIdToken " + preRequestLSS.status);
+            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestLSS " + preRequestLSS.status);
             const refreshResult = await onUnauthorisedResponse(preRequestLSS);
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage(
@@ -288,6 +288,15 @@ export function addInterceptorsToXMLHttpRequest() {
             // then the anti-csrf token they add would be concatenated to the anti-csrf token added by this interceptor
             if (name === "anti-csrf") {
                 return;
+            }
+            if (name.toLowerCase() === "authorization") {
+                const accessToken = getTokenForHeaderAuth("access");
+                if (value === `Bearer ${accessToken}`) {
+                    logDebugMessage(
+                        "XHRInterceptor.setRequestHeader: skipping Authorization from user provided headers because it contains our access token"
+                    );
+                    return;
+                }
             }
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
                 xhr.setRequestHeader(name, value);
@@ -552,7 +561,7 @@ async function setAuthorizationHeaderIfRequired(
 
     // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
-    // access token to the frontend while using cookie based auth
+    // access token to the frontend while using cookie based auth - so that users can get the access token to use
     if (accessToken !== undefined && refreshToken !== undefined) {
         if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
             logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");

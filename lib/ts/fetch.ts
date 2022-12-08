@@ -254,6 +254,21 @@ export default class AuthHttpRequest {
             logDebugMessage("doRequest: Returning without interception");
             return await httpCall(config);
         }
+
+        const origHeaders = new Headers(
+            config !== undefined && config.headers !== undefined ? config.headers : url.headers
+        );
+
+        if (origHeaders.has("Authorization")) {
+            const accessToken = await getTokenForHeaderAuth("access");
+            if (accessToken !== undefined && origHeaders.get("Authorization") === `Bearer ${accessToken}`) {
+                logDebugMessage(
+                    "doRequest: Removing Authorization from user provided headers because it contains our access token"
+                );
+                origHeaders.delete("Authorization");
+            }
+        }
+
         logDebugMessage("doRequest: Interception started");
 
         ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
@@ -263,9 +278,8 @@ export default class AuthHttpRequest {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
                 // to avoid race conditions
                 const preRequestLSS = await getLocalSessionState(true);
-                const clonedHeaders = new Headers(
-                    config !== undefined && config.headers !== undefined ? config.headers : url.headers
-                );
+                const clonedHeaders = new Headers(origHeaders);
+
                 let configWithAntiCsrf: RequestInit | undefined = {
                     ...config,
                     headers: clonedHeaders
@@ -353,8 +367,8 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
 
-        const preRequestIdToken = await getLocalSessionState(false);
-        const refresh = await onUnauthorisedResponse(preRequestIdToken);
+        const preRequestLSS = await getLocalSessionState(false);
+        const refresh = await onUnauthorisedResponse(preRequestLSS);
 
         if (refresh.result === "API_ERROR") {
             throw refresh.error;
@@ -711,7 +725,7 @@ async function setAuthorizationHeaderIfRequired(clonedHeaders: Headers, addRefre
 
     // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
-    // access token to the frontend while using cookie based auth
+    // access token to the frontend while using cookie based auth - so that users can get the access token to use
     if (accessToken !== undefined && refreshToken !== undefined) {
         // the Headers class normalizes header names so we don't have to worry about casing
         if (clonedHeaders.has("Authorization")) {

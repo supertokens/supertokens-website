@@ -131,6 +131,16 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     logDebugMessage("interceptorFunctionRequestFulfilled: Adding st-auth-mode header: " + transferMethod);
     configWithAntiCsrf.headers!["st-auth-mode"] = transferMethod;
 
+    const accessToken = getTokenForHeaderAuth("access");
+    if (accessToken !== undefined) {
+        if (configWithAntiCsrf.headers!.authorization === `Bearer ${accessToken}`) {
+            logDebugMessage(
+                "interceptorFunctionRequestFulfilled: Removing Authorization from user provided headers because it contains our access token"
+            );
+            delete configWithAntiCsrf.headers!.authorization;
+        }
+    }
+
     await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
@@ -516,7 +526,7 @@ async function setAuthorizationHeaderIfRequired(requestConfig: AxiosRequestConfi
 
     // We don't add the refresh token because that's only required by the refresh call which is done with fetch
     // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
-    // access token to the frontend while using cookie based auth
+    // access token to the frontend while using cookie based auth - so that users can get the access token to use
     if (accessToken !== undefined && refreshToken !== undefined) {
         if (
             requestConfig.headers["Authorization"] !== undefined ||

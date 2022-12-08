@@ -116,7 +116,7 @@ export default function RecipeImplementation(recipeImplInput: {
 
             const tokenInfo = await FrontToken.getTokenInfo();
 
-            // The above includes getIdRefreshToken(true), which would call refresh if the FE cookies were cleared for some reason
+            // The above includes getLocalSessionState(true), which would call refresh if the FE cookies were cleared for some reason
             if (tokenInfo === undefined) {
                 logDebugMessage("doesSessionExist: access token does not exist locally");
                 return false;
@@ -125,8 +125,8 @@ export default function RecipeImplementation(recipeImplInput: {
             if (tokenInfo.ate < Date.now()) {
                 logDebugMessage("doesSessionExist: access token expired. Refreshing session");
 
-                const preRequestIdToken = await getLocalSessionState(false);
-                const refresh = await onUnauthorisedResponse(preRequestIdToken);
+                const preRequestLSS = await getLocalSessionState(false);
+                const refresh = await onUnauthorisedResponse(preRequestLSS);
                 return refresh.result === "RETRY";
             }
 
