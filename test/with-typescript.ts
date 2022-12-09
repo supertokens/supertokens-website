@@ -113,6 +113,9 @@ supertokens.init({
                     return;
                 },
             },
+            getWindowUnsafe: function () {
+                return original;
+            }
         };
     },
     override: {

@@ -34,5 +34,6 @@ export declare type WindowHandlerInterface = {
     getDocument: () => Document;
     localStorage: StorageHandler;
     sessionStorage: StorageHandler;
+    getWindowUnsafe: () => typeof window;
 };
 export declare type WindowHandlerInput = (original: WindowHandlerInterface) => WindowHandlerInterface;
