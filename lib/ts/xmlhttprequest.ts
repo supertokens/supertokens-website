@@ -471,7 +471,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 preRequestLSS = await getLocalSessionState(true);
 
                 if (preRequestLSS.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("XHRInterceptor.send: Adding anti-csrf token to request");
                         xhr.setRequestHeader("anti-csrf", antiCsrfToken);
@@ -605,7 +605,7 @@ async function saveTokensFromHeaders(headers: Headers) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
-            await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
+            await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
         }
     }
 }

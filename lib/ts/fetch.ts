@@ -36,14 +36,14 @@ export class AntiCsrfToken {
         | undefined
         | {
               antiCsrf: string;
-              associatedRefreshAttempt: string;
+              associatedAccessTokenUpdate: string;
           };
 
     private constructor() {}
 
-    static async getToken(associatedRefreshAttempt: string | undefined): Promise<string | undefined> {
+    static async getToken(associatedAccessTokenUpdate: string | undefined): Promise<string | undefined> {
         logDebugMessage("AntiCsrfToken.getToken: called");
-        if (associatedRefreshAttempt === undefined) {
+        if (associatedAccessTokenUpdate === undefined) {
             AntiCsrfToken.tokenInfo = undefined;
             logDebugMessage("AntiCsrfToken.getToken: returning undefined");
             return undefined;
@@ -56,12 +56,12 @@ export class AntiCsrfToken {
             }
             AntiCsrfToken.tokenInfo = {
                 antiCsrf,
-                associatedRefreshAttempt
+                associatedAccessTokenUpdate
             };
-        } else if (AntiCsrfToken.tokenInfo.associatedRefreshAttempt !== associatedRefreshAttempt) {
+        } else if (AntiCsrfToken.tokenInfo.associatedAccessTokenUpdate !== associatedAccessTokenUpdate) {
             // csrf token has changed.
             AntiCsrfToken.tokenInfo = undefined;
-            return await AntiCsrfToken.getToken(associatedRefreshAttempt);
+            return await AntiCsrfToken.getToken(associatedAccessTokenUpdate);
         }
         logDebugMessage("AntiCsrfToken.getToken: returning: " + AntiCsrfToken.tokenInfo.antiCsrf);
         return AntiCsrfToken.tokenInfo.antiCsrf;
@@ -73,8 +73,8 @@ export class AntiCsrfToken {
         await setAntiCSRF(undefined);
     }
 
-    static async setItem(associatedRefreshAttempt: string | undefined, antiCsrf: string) {
-        if (associatedRefreshAttempt === undefined) {
+    static async setItem(associatedAccessTokenUpdate: string | undefined, antiCsrf: string) {
+        if (associatedAccessTokenUpdate === undefined) {
             AntiCsrfToken.tokenInfo = undefined;
             return;
         }
@@ -82,7 +82,7 @@ export class AntiCsrfToken {
         await setAntiCSRF(antiCsrf);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
-            associatedRefreshAttempt
+            associatedAccessTokenUpdate
         };
     }
 }
@@ -139,7 +139,7 @@ export class FrontToken {
         // another request has failed with a 401 with the previous access token and the token still exists.
         // Check the start and end of onUnauthorisedResponse
         // As a side-effect we reload the anti-csrf token to check if it was changed by another tab.
-        await saveRefreshAttempt();
+        await saveLastAccessTokenUpdate();
 
         if (frontToken === "remove") {
             return FrontToken.removeToken();
@@ -285,7 +285,7 @@ export default class AuthHttpRequest {
                     headers: clonedHeaders
                 };
                 if (preRequestLSS.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("doRequest: Adding anti-csrf token to request");
                         clonedHeaders.set("anti-csrf", antiCsrfToken);
@@ -326,6 +326,12 @@ export default class AuthHttpRequest {
 
                 await saveTokensFromHeaders(response);
 
+                fireSessionUpdateEventsIfNecessary(
+                    preRequestLSS.status === "EXISTS",
+                    response.status,
+                    response.headers.get("front-token")
+                );
+
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
                     let retry = await onUnauthorisedResponse(preRequestLSS);
@@ -339,11 +345,6 @@ export default class AuthHttpRequest {
                     if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
                         await onInvalidClaimResponse(response);
                     }
-                    fireSessionUpdateEventsIfNecessary(
-                        preRequestLSS.status === "EXISTS",
-                        response.status,
-                        response.headers.get("front-token")
-                    );
                     return response;
                 }
             }
@@ -378,7 +379,7 @@ export default class AuthHttpRequest {
     };
 }
 
-const LAST_REFRESH_ATTEMPT_NAME = "st-last-refresh-attempt";
+const LAST_ACCESS_TOKEN_UPDATE = "st-last-access-token-update";
 const REFRESH_TOKEN_NAME = "st-refresh-token";
 const ACCESS_TOKEN_NAME = "st-access-token";
 const ANTI_CSRF_NAME = "sAntiCsrf";
@@ -414,7 +415,7 @@ export async function onUnauthorisedResponse(
                     postLockLSS.status !== preRequestLSS.status ||
                     (postLockLSS.status === "EXISTS" &&
                         preRequestLSS.status === "EXISTS" &&
-                        postLockLSS.lastRefreshAttempt !== preRequestLSS.lastRefreshAttempt)
+                        postLockLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate)
                 ) {
                     logDebugMessage(
                         "onUnauthorisedResponse: Retrying early because pre and post id refresh tokens don't match"
@@ -423,11 +424,9 @@ export async function onUnauthorisedResponse(
                     return { result: "RETRY" };
                 }
 
-                await saveRefreshAttempt();
-
                 const headers = new Headers();
                 if (preRequestLSS.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("onUnauthorisedResponse: Adding anti-csrf token to refresh API call");
                         headers.set("anti-csrf", antiCsrfToken);
@@ -556,7 +555,7 @@ export async function onUnauthorisedResponse(
                 postRequestLSS.status !== preRequestLSS.status ||
                 (postRequestLSS.status === "EXISTS" &&
                     preRequestLSS.status === "EXISTS" &&
-                    postRequestLSS.lastRefreshAttempt !== preRequestLSS.lastRefreshAttempt)
+                    postRequestLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate)
             ) {
                 logDebugMessage(
                     "onUnauthorisedResponse: lock acquired failed and retrying early because pre and post id refresh tokens don't match"
@@ -604,7 +603,7 @@ export type LocalSessionState =
           status: "EXISTS";
           // This is a number (timestamp) encoded as a string (we save it in cookies), but we never actually need to use it as number
           // We only use it for strict equal checks
-          lastRefreshAttempt: string;
+          lastAccessTokenUpdate: string;
       };
 
 // if tryRefresh is true & this token doesn't exist, we try and refresh the session
@@ -612,14 +611,16 @@ export type LocalSessionState =
 export async function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState> {
     logDebugMessage("getLocalSessionState: called");
 
-    const lastRefreshAttempt = await getFromCookies(LAST_REFRESH_ATTEMPT_NAME);
+    const lastAccessTokenUpdate = await getFromCookies(LAST_ACCESS_TOKEN_UPDATE);
     const frontTokenExists = await FrontToken.doesTokenExists();
-    if (frontTokenExists && lastRefreshAttempt !== undefined) {
-        logDebugMessage("getLocalSessionState: returning EXISTS since both frontToken and lastRefreshAttempt exists");
-        return { status: "EXISTS", lastRefreshAttempt };
-    } else if (lastRefreshAttempt) {
+    if (frontTokenExists && lastAccessTokenUpdate !== undefined) {
         logDebugMessage(
-            "getLocalSessionState: returning NOT_EXISTS since frontToken was cleared but lastRefreshAttempt exists"
+            "getLocalSessionState: returning EXISTS since both frontToken and lastAccessTokenUpdate exists"
+        );
+        return { status: "EXISTS", lastAccessTokenUpdate: lastAccessTokenUpdate };
+    } else if (lastAccessTokenUpdate) {
+        logDebugMessage(
+            "getLocalSessionState: returning NOT_EXISTS since frontToken was cleared but lastAccessTokenUpdate exists"
         );
         return { status: "NOT_EXISTS" };
     } else {
@@ -766,17 +767,17 @@ async function saveTokensFromHeaders(response: Response) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
-            await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
+            await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
         }
     }
 }
 
-export async function saveRefreshAttempt() {
-    logDebugMessage("saveRefreshAttempt: called");
+export async function saveLastAccessTokenUpdate() {
+    logDebugMessage("saveLastAccessTokenUpdate: called");
 
     const now = Date.now().toString();
-    logDebugMessage("saveRefreshAttempt: setting " + now);
-    await storeInCookies(LAST_REFRESH_ATTEMPT_NAME, now, Number.MAX_SAFE_INTEGER);
+    logDebugMessage("saveLastAccessTokenUpdate: setting " + now);
+    await storeInCookies(LAST_ACCESS_TOKEN_UPDATE, now, Number.MAX_SAFE_INTEGER);
 
     // We clear the sIRTFrontend cookie
     // We are handling this as a special case here because we want to limit the scope of legacy code
@@ -871,6 +872,10 @@ export function fireSessionUpdateEventsIfNecessary(
     status: number,
     frontTokenHeaderFromResponse: string | null | undefined
 ) {
+    // In case we've received a 401 that didn't clear the session (e.g.: we've sent no session token, or we should try refreshing)
+    // then onUnauthorised will handle firing the UNAUTHORISED event if necessary
+    // In some rare cases (where we receive a 401 that also clears the session) this will fire the event twice.
+    // This may be considered a bug, but it is the existing behaviour before the rework
     if (frontTokenHeaderFromResponse === undefined || frontTokenHeaderFromResponse === null) {
         // The access token (and the session) hasn't been updated.
         logDebugMessage("fireSessionUpdateEventsIfNecessary returning early because the front token was not updated");

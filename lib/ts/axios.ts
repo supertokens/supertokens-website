@@ -84,7 +84,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     const preRequestLSS = await getLocalSessionState(true);
     let configWithAntiCsrf: AxiosRequestConfig = config;
     if (preRequestLSS.status === "EXISTS") {
-        const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
+        const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
         if (antiCsrfToken !== undefined) {
             logDebugMessage("interceptorFunctionRequestFulfilled: Adding anti-csrf token to request");
             configWithAntiCsrf = {
@@ -354,7 +354,7 @@ export default class AuthHttpRequest {
                 let configWithAntiCsrf: AxiosRequestConfig = config;
 
                 if (preRequestLSS.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastRefreshAttempt);
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("doRequest: Adding anti-csrf token to request");
                         configWithAntiCsrf = {
@@ -572,7 +572,7 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("doRequest: Setting anti-csrf token");
-            await AntiCsrfToken.setItem(tok.lastRefreshAttempt, antiCsrfToken);
+            await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
         }
     }
 }

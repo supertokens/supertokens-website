@@ -1796,7 +1796,9 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken" && c.name !== "st-access-token");
+            originalCookies = originalCookies.map(c =>
+                c.name !== "sRefreshToken" || c.name !== "st-refresh-token" ? { name: c.name, value: "broken" } : c
+            );
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -1807,11 +1809,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // assert.strictEqual(resp.url, `${BASE_URL}/auth/session/refresh`);
             });
 
-            // and we assert that the only cookie that exists is the st-last-refresh-attempt
+            // and we assert that the only cookie that exists is the st-last-access-token-update
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert.strictEqual(newCookies.length, 1);
-            assert.strictEqual(newCookies[0].name, "st-last-refresh-attempt");
+            assert.strictEqual(newCookies[0].name, "st-last-access-token-update");
         });
 
         it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function() {
@@ -1901,7 +1903,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                         body: JSON.stringify({ message: "test" }),
                         headers: {
                             // Cookies don't actually matter as long as we clear the front-token
-                            // this is because the frontend will still have st-last-refresh-attempt w/ a removed front-token
+                            // this is because the frontend will still have st-last-access-token-update w/ a removed front-token
                             // This is interpreted as a logged-out state
                             "front-token": "remove"
                         }

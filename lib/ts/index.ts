@@ -146,11 +146,14 @@ export default class AuthHttpRequest {
 
     static getAccessToken = async (input?: { userContext?: any }): Promise<string | undefined> => {
         // This takes care of refreshing the access token if necessary.
-        await AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
-        });
-
-        return getTokenForHeaderAuth("access");
+        if (
+            await AuthHttpRequestFetch.recipeImpl.doesSessionExist({
+                userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            })
+        ) {
+            return getTokenForHeaderAuth("access");
+        }
+        return undefined;
     };
 }
 

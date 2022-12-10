@@ -2,9 +2,9 @@ import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } fro
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
-    static getToken(associatedRefreshAttempt: string | undefined): Promise<string | undefined>;
+    static getToken(associatedAccessTokenUpdate: string | undefined): Promise<string | undefined>;
     static removeToken(): Promise<void>;
-    static setItem(associatedRefreshAttempt: string | undefined, antiCsrf: string): Promise<void>;
+    static setItem(associatedAccessTokenUpdate: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
     private static waiters;
@@ -53,13 +53,13 @@ export declare type LocalSessionState = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {
     status: "EXISTS";
-    lastRefreshAttempt: string;
+    lastAccessTokenUpdate: string;
 };
 export declare function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState>;
 export declare function getStorageNameForToken(tokenType: TokenType): "st-refresh-token" | "st-access-token";
 export declare function setToken(tokenType: TokenType, value: string, expiry: number): Promise<void>;
 export declare function getTokenForHeaderAuth(tokenType: TokenType): Promise<string | undefined>;
-export declare function saveRefreshAttempt(): Promise<void>;
+export declare function saveLastAccessTokenUpdate(): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;

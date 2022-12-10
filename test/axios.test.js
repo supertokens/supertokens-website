@@ -473,7 +473,7 @@ describe("Axios AuthHttpRequest class tests", function() {
             });
 
             let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "st-last-refresh-attempt" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "st-last-access-token-update" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -2096,11 +2096,11 @@ describe("Axios AuthHttpRequest class tests", function() {
                 }
             });
 
-            // and we assert that the only cookie that exists is the st-last-refresh-attempt
+            // and we assert that the only cookie that exists is the st-last-access-token-update
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             assert(newCookies.length === 1);
-            assert(newCookies[0].name === "st-last-refresh-attempt");
+            assert(newCookies[0].name === "st-last-access-token-update");
         } finally {
             await browser.close();
         }
