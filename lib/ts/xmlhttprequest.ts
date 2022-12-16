@@ -292,6 +292,9 @@ export function addInterceptorsToXMLHttpRequest() {
             if (name.toLowerCase() === "authorization") {
                 const accessToken = getTokenForHeaderAuth("access");
                 if (value === `Bearer ${accessToken}`) {
+                    // We are ignoring the Authorization header set by the user in this case, because it would cause issues
+                    // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
+                    // This causes an infinite refresh loop.
                     logDebugMessage(
                         "XHRInterceptor.setRequestHeader: skipping Authorization from user provided headers because it contains our access token"
                     );
@@ -583,15 +586,13 @@ async function saveTokensFromHeaders(headers: Headers) {
     const refreshToken = headers.get("st-refresh-token");
     if (refreshToken) {
         logDebugMessage("saveTokensFromHeaders: saving new refresh token");
-        const [value, expiry] = refreshToken.split(";");
-        await setToken("refresh", value, Number.parseInt(expiry));
+        await setToken("refresh", refreshToken);
     }
 
     const accessToken = headers.get("st-access-token");
     if (accessToken) {
         logDebugMessage("saveTokensFromHeaders: saving new access token");
-        const [value, expiry] = accessToken.split(";");
-        await setToken("access", value, Number.parseInt(expiry));
+        await setToken("access", accessToken);
     }
 
     const frontToken = headers.get("front-token");

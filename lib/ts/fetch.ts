@@ -262,6 +262,9 @@ export default class AuthHttpRequest {
         if (origHeaders.has("Authorization")) {
             const accessToken = await getTokenForHeaderAuth("access");
             if (accessToken !== undefined && origHeaders.get("Authorization") === `Bearer ${accessToken}`) {
+                // We are ignoring the Authorization header set by the user in this case, because it would cause issues
+                // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
+                // This causes an infinite refresh loop.
                 logDebugMessage(
                     "doRequest: Removing Authorization from user provided headers because it contains our access token"
                 );
@@ -533,7 +536,7 @@ export async function onUnauthorisedResponse(
 
                 // we do not call doesSessionExist here cause that
                 // may cause an infinite recursive loop when using in an iframe setting
-                // as cookies may not get set at all.
+                // as tokens may not get set at all.
                 if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                     logDebugMessage(
                         "onUnauthorisedResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
@@ -657,15 +660,12 @@ export function getStorageNameForToken(tokenType: TokenType) {
     }
 }
 
-export function setToken(tokenType: TokenType, value: string, expiry: number) {
+export function setToken(tokenType: TokenType, value: string) {
     const name = getStorageNameForToken(tokenType);
-    // if the value of the token is "remove", it means
-    // the session is being removed. So we set it to "remove" in the
-    // cookie. This way, when we query for this token, we will return
-    // undefined (see getLocalSessionState), and not refresh the session
-    // unnecessarily.
+
     logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
-    return storeInCookies(name, value, expiry);
+    // We save the tokens with a 100-year expiration time
+    return storeInCookies(name, value, Date.now() + 3153600000);
 }
 
 function storeInCookies(name: string, value: string, expiry: number) {
@@ -746,15 +746,13 @@ async function saveTokensFromHeaders(response: Response) {
     const refreshToken = response.headers.get("st-refresh-token");
     if (refreshToken) {
         logDebugMessage("saveTokensFromHeaders: saving new refresh token");
-        const [value, expiry] = refreshToken.split(";");
-        await setToken("refresh", value, Number.parseInt(expiry));
+        await setToken("refresh", refreshToken);
     }
 
     const accessToken = response.headers.get("st-access-token");
     if (accessToken) {
         logDebugMessage("saveTokensFromHeaders: saving new access token");
-        const [value, expiry] = accessToken.split(";");
-        await setToken("access", value, Number.parseInt(expiry));
+        await setToken("access", accessToken);
     }
 
     const frontToken = response.headers.get("front-token");
