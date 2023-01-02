@@ -3073,5 +3073,84 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
             });
         });
+
+        it("should work after refresh migrating old cookie based sessions", async function() {
+            if (transferMethod === "header") {
+                // We skip this in header mode, they can't have legacy sessions
+                this.skip();
+            }
+
+            await startST();
+            await setup();
+
+            await page.evaluate(async () => {
+                let userId = "testing-supertokens-website";
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            });
+
+            await page.setCookie({ name: "sIdRefreshToken", value: "asdf" });
+
+            assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+            let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                let resp = await toTest({ url: `${BASE_URL}/`, method: "GET" });
+                assert.strictEqual(resp.statusCode, 200);
+            });
+            assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+            let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.strictEqual(newCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+        });
+
+        it("should work after refresh migrating old cookie based sessions with expired access tokens", async function() {
+            if (transferMethod === "header") {
+                // We skip this in header mode, they can't have legacy sessions
+                this.skip();
+            }
+
+            await startST();
+            await setup();
+
+            await page.evaluate(async () => {
+                let userId = "testing-supertokens-website";
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+            });
+
+            // This would work even without sIdRefreshToken since we don't actually check the body of the response, just call refresh on all 401s
+            await page.setCookie({ name: "sIdRefreshToken", value: "asdf" });
+            await page.setCookie({ name: "sAccessToken", value: "", expiry: 0 });
+
+            assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+            let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                let resp = await toTest({ url: `${BASE_URL}/`, method: "GET" });
+                assert.strictEqual(resp.statusCode, 200);
+            });
+            assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+            let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sAccessToken"), undefined);
+            assert.strictEqual(newCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+        });
     });
 });
