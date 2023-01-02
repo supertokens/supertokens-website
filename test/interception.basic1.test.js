@@ -387,6 +387,13 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 await supertokens.signOut();
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
+
+                const getSessionResponse = await toTest({ url: `${BASE_URL}/` });
+
+                //check that the response to getSession after signout is 401
+                assert.strictEqual(getSessionResponse.statusCode, 401);
+                assert.strictEqual(getSessionResponse.url, `${BASE_URL}/`);
+                assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
             });
         });
 
@@ -1795,9 +1802,9 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 await toTest({ url: `${BASE_URL}/logout`, method: "POST" });
             });
 
-            // we set the old cookies without the access token
+            // we set the old cookies with invalid access token
             originalCookies = originalCookies.map(c =>
-                c.name !== "sRefreshToken" || c.name !== "st-refresh-token" ? { name: c.name, value: "broken" } : c
+                c.name === "sAccessToken" || c.name === "st-access-token" ? { ...c, value: "broken" } : c
             );
             await page.setCookie(...originalCookies);
 

@@ -1,6 +1,5 @@
 module.exports.addGenericTestCases = function(getTestCases) {
     for (const tokenTransferMethod of ["header", "cookie"]) {
-        // for (const tokenTransferMethod of ["header"]) {
         getTestCases(
             "fetch using " + tokenTransferMethod,
             tokenTransferMethod,
@@ -180,10 +179,15 @@ module.exports.addGenericTestCases = function(getTestCases) {
                         }
                     }
 
+                    const respHeaders = new Headers();
+                    for (const k of resp.headers.keys()) {
+                        respHeaders.append(k, resp.headers.get(k));
+                    }
+
                     return {
                         url: resp.url,
                         statusCode: resp.status,
-                        headers: resp.headers,
+                        headers: respHeaders,
                         responseText: resp.error || resp.body
                     };
                 };

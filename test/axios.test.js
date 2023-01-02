@@ -2082,8 +2082,10 @@ describe("Axios AuthHttpRequest class tests", function() {
                 await axios({ url: `${BASE_URL}/logout`, method: "POST" });
             });
 
-            // we set the old cookies without the access token
-            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
+            // we set the old cookies with invalid access token
+            originalCookies = originalCookies.map(c =>
+                c.name === "sAccessToken" || c.name === "st-access-token" ? { ...c, value: "broken" } : c
+            );
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.

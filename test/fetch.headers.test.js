@@ -1867,8 +1867,10 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                 await fetch(`${BASE_URL}/logout`, { method: "POST" });
             });
 
-            // we set the old cookies without the access token
-            originalCookies = originalCookies.filter(c => c.name !== "st-access-token");
+            // we set the old cookies with invalid access token
+            originalCookies = originalCookies.map(c =>
+                c.name === "sAccessToken" || c.name === "st-access-token" ? { ...c, value: "broken" } : c
+            );
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -1986,9 +1988,9 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                         status: 401,
                         body: JSON.stringify({ message: "test" }),
                         headers: {
-                            "st-refresh-token": ";0",
+                            "st-refresh-token": "",
                             // Expires in 60 years
-                            "st-access-token": "remove;3556083632912",
+                            "st-access-token": "",
                             "front-token": "remove"
                         }
                     });
@@ -3142,7 +3144,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                             assertEqual(body, "refresh success");
 
                             const accessTokenInHeader = context.fetchResponse.headers.get("st-access-token");
-                            assertNotEqual(accessTokenInHeader, ";0");
+                            assertNotEqual(accessTokenInHeader, "");
                             assertNotEqual(accessTokenInHeader, null);
                         }
 
@@ -3151,7 +3153,7 @@ describe("Fetch AuthHttpRequest class tests with headers", function() {
                             assertEqual(body.status, "OK");
 
                             const accessTokenInHeader = context.fetchResponse.headers.get("st-access-token");
-                            assertEqual(accessTokenInHeader, ";0");
+                            assertEqual(accessTokenInHeader, "");
                         }
                     }
                 });
