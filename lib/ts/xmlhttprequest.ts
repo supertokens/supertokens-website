@@ -584,25 +584,25 @@ async function saveTokensFromHeaders(headers: Headers) {
     logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response");
 
     const refreshToken = headers.get("st-refresh-token");
-    if (refreshToken) {
+    if (refreshToken !== null) {
         logDebugMessage("saveTokensFromHeaders: saving new refresh token");
         await setToken("refresh", refreshToken);
     }
 
     const accessToken = headers.get("st-access-token");
-    if (accessToken) {
+    if (accessToken !== null) {
         logDebugMessage("saveTokensFromHeaders: saving new access token");
         await setToken("access", accessToken);
     }
 
     const frontToken = headers.get("front-token");
-    if (frontToken) {
+    if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
     }
 
     const antiCsrfToken = headers.get("anti-csrf");
-    if (antiCsrfToken) {
+    if (antiCsrfToken !== null) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");

@@ -551,25 +551,25 @@ async function setAuthorizationHeaderIfRequired(requestConfig: AxiosRequestConfi
 async function saveTokensFromHeaders(response: AxiosResponse) {
     logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response");
     const refreshToken = response.headers["st-refresh-token"];
-    if (refreshToken) {
+    if (refreshToken !== undefined) {
         logDebugMessage("saveTokensFromHeaders: saving new refresh token");
         await setToken("refresh", refreshToken);
     }
 
     const accessToken = response.headers["st-access-token"];
-    if (accessToken) {
+    if (accessToken !== undefined) {
         logDebugMessage("saveTokensFromHeaders: saving new access token");
         await setToken("access", accessToken);
     }
 
     const frontToken = response.headers["front-token"];
-    if (frontToken) {
+    if (frontToken !== undefined) {
         logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
     }
 
     const antiCsrfToken = response.headers["anti-csrf"];
-    if (antiCsrfToken) {
+    if (antiCsrfToken !== undefined) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("doRequest: Setting anti-csrf token");

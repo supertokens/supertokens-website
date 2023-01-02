@@ -663,9 +663,14 @@ export function getStorageNameForToken(tokenType: TokenType) {
 export function setToken(tokenType: TokenType, value: string) {
     const name = getStorageNameForToken(tokenType);
 
-    logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
-    // We save the tokens with a 100-year expiration time
-    return storeInCookies(name, value, Date.now() + 3153600000);
+    if (value !== "") {
+        logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
+        // We save the tokens with a 100-year expiration time
+        return storeInCookies(name, value, Date.now() + 3153600000);
+    } else {
+        logDebugMessage(`setToken: cleared ${tokenType} token from cookies`);
+        return storeInCookies(name, value, 0);
+    }
 }
 
 function storeInCookies(name: string, value: string, expiry: number) {
@@ -744,24 +749,24 @@ async function saveTokensFromHeaders(response: Response) {
     logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response headers");
 
     const refreshToken = response.headers.get("st-refresh-token");
-    if (refreshToken) {
+    if (refreshToken !== null) {
         logDebugMessage("saveTokensFromHeaders: saving new refresh token");
         await setToken("refresh", refreshToken);
     }
 
     const accessToken = response.headers.get("st-access-token");
-    if (accessToken) {
+    if (accessToken !== null) {
         logDebugMessage("saveTokensFromHeaders: saving new access token");
         await setToken("access", accessToken);
     }
 
     const frontToken = response.headers.get("front-token");
-    if (frontToken) {
+    if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
-    if (antiCsrfToken) {
+    if (antiCsrfToken !== null) {
         const tok = await getLocalSessionState(true);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
