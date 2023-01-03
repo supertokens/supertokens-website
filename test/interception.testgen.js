@@ -82,7 +82,13 @@ module.exports.addGenericTestCases = function(getTestCases) {
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
                     ...config,
                     apiDomain: BASE_URL,
-                    tokenTransferMethod
+                    tokenTransferMethod,
+                    override: {
+                        functions: oI => ({
+                            ...oI,
+                            addXMLHttpRequestInterceptor: () => {}
+                        })
+                    }
                 });
                 window.toTest = async config => {
                     let resp;

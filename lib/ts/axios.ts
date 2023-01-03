@@ -131,18 +131,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     logDebugMessage("interceptorFunctionRequestFulfilled: Adding st-auth-mode header: " + transferMethod);
     configWithAntiCsrf.headers!["st-auth-mode"] = transferMethod;
 
-    const accessToken = getTokenForHeaderAuth("access");
-    if (accessToken !== undefined) {
-        if (configWithAntiCsrf.headers!.authorization === `Bearer ${accessToken}`) {
-            // We are ignoring the Authorization header set by the user in this case, because it would cause issues
-            // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
-            // This causes an infinite refresh loop.
-            logDebugMessage(
-                "interceptorFunctionRequestFulfilled: Removing Authorization from user provided headers because it contains our access token"
-            );
-            delete configWithAntiCsrf.headers!.authorization;
-        }
-    }
+    configWithAntiCsrf = await removeAuthHeaderIfMatchesLocalToken(configWithAntiCsrf);
 
     await setAuthorizationHeaderIfRequired(configWithAntiCsrf);
 
@@ -348,6 +337,7 @@ export default class AuthHttpRequest {
         }
         logDebugMessage("doRequest: Interception started");
 
+        config = await removeAuthHeaderIfMatchesLocalToken(config);
         try {
             let returnObj = undefined;
             while (true) {
@@ -576,4 +566,25 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
             await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
         }
     }
+}
+
+async function removeAuthHeaderIfMatchesLocalToken(config: AxiosRequestConfig<any>) {
+    const accessToken = await getTokenForHeaderAuth("access");
+    const authHeader = config.headers!.Authorization || config.headers!.authorization;
+
+    if (accessToken !== undefined) {
+        if (authHeader === `Bearer ${accessToken}`) {
+            // We are ignoring the Authorization header set by the user in this case, because it would cause issues
+            // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
+            // This causes an infinite refresh loop.
+            logDebugMessage(
+                "removeAuthHeaderIfMatchesLocalToken: Removing Authorization from user provided headers because it contains our access token"
+            );
+            const res = { ...config, headers: { ...config.headers } };
+            delete res.headers.authorization;
+            delete res.headers.Authorization;
+            return res;
+        }
+    }
+    return config;
 }
