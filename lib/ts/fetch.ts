@@ -729,7 +729,7 @@ async function setAuthorizationHeaderIfRequired(clonedHeaders: Headers, addRefre
     const accessToken = await getTokenForHeaderAuth("access");
     const refreshToken = await getTokenForHeaderAuth("refresh");
 
-    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    // We don't always need the refresh token because that's only required by the refresh call
     // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
     // access token to the frontend while using cookie based auth - so that users can get the access token to use
     if (accessToken !== undefined && refreshToken !== undefined) {
