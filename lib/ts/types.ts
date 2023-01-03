@@ -34,17 +34,20 @@ export type Event =
       };
 
 export type EventHandler = (event: Event) => void;
+export type TokenType = "access" | "refresh";
 
 export type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionTokenFrontendDomain?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
-    cookieDomain?: string;
+
+    tokenTransferMethod?: "cookie" | "header";
+    sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -61,12 +64,13 @@ export type InputType = {
 export type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionTokenFrontendDomain: string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
-    cookieDomain: string | undefined;
+    tokenTransferMethod: "cookie" | "header";
+    sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;

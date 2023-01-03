@@ -14,16 +14,18 @@ export declare type Event = {
     userContext: any;
 };
 export declare type EventHandler = (event: Event) => void;
+export declare type TokenType = "access" | "refresh";
 export declare type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
-    sessionScope?: string;
+    sessionTokenFrontendDomain?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
-    cookieDomain?: string;
+    tokenTransferMethod?: "cookie" | "header";
+    sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -36,12 +38,13 @@ export declare type InputType = {
 export declare type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionTokenFrontendDomain: string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
-    cookieDomain: string | undefined;
+    tokenTransferMethod: "cookie" | "header";
+    sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
