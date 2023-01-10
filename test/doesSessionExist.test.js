@@ -183,7 +183,6 @@ describe("doesSessionExist", function() {
         page.on("request", req => {
             const url = req.url();
 
-            console.log(url);
             if (url === BASE_URL + "/auth/session/refresh") {
                 ++refreshCalled;
                 return req.respond({

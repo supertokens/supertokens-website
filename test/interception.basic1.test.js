@@ -2980,17 +2980,17 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                             const body = await context.fetchResponse.text();
                             assert.strictEqual(body, "refresh success");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
-                            assertNotEqual(idRefreshInHeader, "");
-                            assertNotEqual(idRefreshInHeader, null);
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assertNotEqual(frontTokenInHeader, "");
+                            assertNotEqual(frontTokenInHeader, null);
                         }
 
                         if (context.action === "SIGN_OUT" && context.fetchResponse.statusCode === 200) {
                             const body = await context.fetchResponse.json();
                             assert.strictEqual(body.statusCode, "OK");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
-                            assert.strictEqual(idRefreshInHeader, "remove");
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assert.strictEqual(frontTokenInHeader, "remove");
                         }
                     }
                 });
@@ -3034,17 +3034,17 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                             const body = await context.fetchResponse.text();
                             assert.strictEqual(body, "refresh success");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
-                            assertNotEqual(idRefreshInHeader, "");
-                            assertNotEqual(idRefreshInHeader, null);
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assertNotEqual(frontTokenInHeader, "");
+                            assertNotEqual(frontTokenInHeader, null);
                         }
 
                         if (context.action === "SIGN_OUT" && context.fetchResponse.statusCode === 200) {
                             const body = await context.fetchResponse.json();
                             assert.strictEqual(body.statusCode, "OK");
 
-                            const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
-                            assert.strictEqual(idRefreshInHeader, "remove");
+                            const frontTokenInHeader = context.fetchResponse.headers.get("front-token");
+                            assert.strictEqual(frontTokenInHeader, "remove");
                         }
                     }
                 });

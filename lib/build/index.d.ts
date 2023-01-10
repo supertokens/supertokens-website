@@ -37,6 +37,9 @@ export default class AuthHttpRequest {
 export declare let init: typeof AuthHttpRequest.init;
 export declare let getUserId: typeof AuthHttpRequest.getUserId;
 export declare let getAccessTokenPayloadSecurely: typeof AuthHttpRequest.getAccessTokenPayloadSecurely;
+export declare let getAccessToken: (input?: {
+    userContext?: any;
+}) => Promise<string | undefined>;
 export declare let attemptRefreshingSession: () => Promise<boolean>;
 export declare let doesSessionExist: (input?: {
     userContext?: any;

@@ -289,24 +289,29 @@ export function addInterceptorsToXMLHttpRequest() {
             if (name === "anti-csrf") {
                 return;
             }
-            if (name.toLowerCase() === "authorization") {
-                const accessToken = getTokenForHeaderAuth("access");
-                if (value === `Bearer ${accessToken}`) {
-                    // We are ignoring the Authorization header set by the user in this case, because it would cause issues
-                    // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
-                    // This causes an infinite refresh loop.
-                    logDebugMessage(
-                        "XHRInterceptor.setRequestHeader: skipping Authorization from user provided headers because it contains our access token"
-                    );
-                    return;
+            void (async () => {
+                if (name.toLowerCase() === "authorization") {
+                    const accessToken = await getTokenForHeaderAuth("access");
+                    if (value === `Bearer ${accessToken}`) {
+                        // We are ignoring the Authorization header set by the user in this case, because it would cause issues
+                        // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
+                        // This causes an infinite refresh loop.
+                        logDebugMessage(
+                            "XHRInterceptor.setRequestHeader: skipping Authorization from user provided headers because it contains our access token"
+                        );
+                        return;
+                    }
                 }
-            }
-            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                xhr.setRequestHeader(name, value);
+                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                    xhr.setRequestHeader(name, value);
+                });
+                // The original version "combines" headers according to MDN.
+                requestHeaders.push({ name, value });
+                delayIfNecessary(() => actual.setRequestHeader(name, value));
+            })().catch(err => {
+                // This should basically never happen: it'd mean that getCookie threw an error
+                console.error("An error occured during setRequestHeader: ", err);
             });
-            // The original version "combines" headers according to MDN.
-            requestHeaders.push({ name, value });
-            delayIfNecessary(() => actual.setRequestHeader(name, value));
         };
 
         let copiedProps: string[] | undefined = undefined;

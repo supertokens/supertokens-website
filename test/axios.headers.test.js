@@ -57,7 +57,7 @@ describe.skip("Axios AuthHttpRequest class tests header", function() {
     before(async function() {
         spawn(
             "./test/startServer",
-            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "header"],
+            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
             {
                 stdio: "inherit"
             }

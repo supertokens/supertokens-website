@@ -160,6 +160,7 @@ export default class AuthHttpRequest {
 export let init = AuthHttpRequest.init;
 export let getUserId = AuthHttpRequest.getUserId;
 export let getAccessTokenPayloadSecurely = AuthHttpRequest.getAccessTokenPayloadSecurely;
+export let getAccessToken = AuthHttpRequest.getAccessToken;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 
