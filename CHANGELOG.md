@@ -11,14 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 
--   The frontend SDK should be updated to a version supporting the header-based sessions!
+-   The backend SDK should be updated to a version supporting the header-based sessions!
     -   supertokens-node: >= 13.0.0
     -   supertokens-python: >= 0.12.0
     -   supertokens-golang: >= 0.10.0
     -   !!!TODO: re-check before release
-- Renamed configuration options:
-  - `sessionScope` renamed to `sessionTokenFrontendDomain`
-  - `cookieDomain` renamed to `sessionTokenBackendDomain`
+-   Renamed configuration options:
+    -   `sessionScope` renamed to `sessionTokenFrontendDomain`
+    -   `cookieDomain` renamed to `sessionTokenBackendDomain`
 
 ### Added
 
