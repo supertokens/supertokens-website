@@ -21,6 +21,7 @@ import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from 
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
+import { LockFactoryReference } from './utils/lockFactory'
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -28,6 +29,8 @@ export default class AuthHttpRequest {
     static init(options: InputType) {
         CookieHandlerReference.init(options.cookieHandler);
         WindowHandlerReference.init(options.windowHandler);
+        LockFactoryReference.init(options.lockFactory)
+
         let config = validateAndNormaliseInputOrThrowError(options);
         const recipeImpl = new OverrideableBuilder(
             RecipeImplementation({

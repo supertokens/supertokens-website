@@ -12,38 +12,45 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-import { defaultWindowHandlerImplementation } from "./defaultImplementation";
-import { WindowHandlerInterface, WindowHandlerInput } from "./types";
+import { defaultWindowHandlerImplementation } from './defaultImplementation'
+import { WindowHandlerInterface, WindowHandlerInput } from './types'
 
 export default class WindowHandlerReference {
-    private static instance?: WindowHandlerReference;
+    private static instance?: WindowHandlerReference
 
-    windowHandler: WindowHandlerInterface;
+    // Declare subset of WindowHandlerReference that is actually used,
+    // so implementors don't need to over-engineer.
+    windowHandler: {
+        location: Pick<
+            WindowHandlerInterface['location'],
+            'getHostName' | 'getOrigin'
+        >
+    }
 
     constructor(windowHandlerInput?: WindowHandlerInput) {
-        let windowHandlerFunc: WindowHandlerInput = original => original;
+        let windowHandlerFunc: WindowHandlerInput = original => original
         if (windowHandlerInput !== undefined) {
-            windowHandlerFunc = windowHandlerInput;
+            windowHandlerFunc = windowHandlerInput
         }
 
-        this.windowHandler = windowHandlerFunc(defaultWindowHandlerImplementation);
+        this.windowHandler = windowHandlerFunc(defaultWindowHandlerImplementation)
     }
 
     static init(windowHandlerInput?: WindowHandlerInput): void {
         if (WindowHandlerReference.instance !== undefined) {
-            return;
+            return
         }
 
-        WindowHandlerReference.instance = new WindowHandlerReference(windowHandlerInput);
+        WindowHandlerReference.instance = new WindowHandlerReference(windowHandlerInput)
     }
 
     static getReferenceOrThrow(): WindowHandlerReference {
         if (WindowHandlerReference.instance === undefined) {
-            throw new Error("SuperTokensWindowHandler must be initialized before calling this method.");
+            throw new Error('SuperTokensWindowHandler must be initialized before calling this method.')
         }
 
-        return WindowHandlerReference.instance;
+        return WindowHandlerReference.instance
     }
 }
 
-export { WindowHandlerReference };
+export { WindowHandlerReference }
