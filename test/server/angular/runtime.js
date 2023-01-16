@@ -51,7 +51,7 @@
                 /******/ for (var j = 0; j < chunkIds.length; j++) {
                     /******/ if (
                         (priority & (1 === 0) || notFulfilled >= priority) &&
-                        Object.keys(__webpack_require__.O).every((key) => __webpack_require__.O[key](chunkIds[j]))
+                        Object.keys(__webpack_require__.O).every(key => __webpack_require__.O[key](chunkIds[j]))
                     ) {
                         /******/ chunkIds.splice(j--, 1);
                         /******/
@@ -79,7 +79,7 @@
 
     /******/ /******/ (() => {
         /******/ // getDefaultExport function for compatibility with non-harmony modules
-        /******/ __webpack_require__.n = (module) => {
+        /******/ __webpack_require__.n = module => {
             /******/ var getter =
                 module && module.__esModule ? /******/ () => module["default"] : /******/ () => module;
             /******/ __webpack_require__.d(getter, { a: getter });
@@ -114,7 +114,7 @@
 
     /******/ /******/ (() => {
         /******/ // define __esModule on exports
-        /******/ __webpack_require__.r = (exports) => {
+        /******/ __webpack_require__.r = exports => {
             /******/ if (typeof Symbol !== "undefined" && Symbol.toStringTag) {
                 /******/ Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
                 /******/
@@ -139,7 +139,7 @@
         }; /******/ /******/ /******/ /******/ /******/ // no chunk on demand loading // no prefetching // no preloaded // no HMR // no HMR manifest
         /******/
 
-        /******/ /******/ /******/ /******/ /******/ /******/ __webpack_require__.O.j = (chunkId) =>
+        /******/ /******/ /******/ /******/ /******/ /******/ __webpack_require__.O.j = chunkId =>
             installedChunks[chunkId] === 0; // install a JSONP callback for chunk loading
         /******/
 
@@ -148,7 +148,7 @@
             /******/ /******/ /******/ var moduleId,
                 chunkId,
                 i = 0;
-            /******/ if (chunkIds.some((id) => installedChunks[id] !== 0)) {
+            /******/ if (chunkIds.some(id => installedChunks[id] !== 0)) {
                 /******/ for (moduleId in moreModules) {
                     /******/ if (__webpack_require__.o(moreModules, moduleId)) {
                         /******/ __webpack_require__.m[moduleId] = moreModules[moduleId];

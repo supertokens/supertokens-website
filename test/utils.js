@@ -20,7 +20,7 @@ module.exports.BASE_URL_FOR_ST =
     process.env.NODE_PORT === undefined ? "http://localhost.org:8080" : "http://localhost.org:" + process.env.NODE_PORT;
 
 module.exports.delay = function (sec) {
-    return new Promise((res) => setTimeout(res, sec * 1000));
+    return new Promise(res => setTimeout(res, sec * 1000));
 };
 
 module.exports.checkIfIdRefreshIsCleared = function () {
@@ -91,10 +91,10 @@ module.exports.startSTWithJWTEnabled = async function (accessTokenValidity = 1) 
 };
 
 module.exports.addBrowserConsole = function (page) {
-    page.on("console", (message) => console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+    page.on("console", message => console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
         .on("pageerror", ({ message }) => console.log(message))
-        .on("response", (response) => console.log(`${response.status()} ${response.url()}`))
-        .on("requestfailed", (request) => console.log(`${request.failure().errorText} ${request.url()}`));
+        .on("response", response => console.log(`${response.status()} ${response.url()}`))
+        .on("requestfailed", request => console.log(`${request.failure().errorText} ${request.url()}`));
 };
 
 module.exports.coreTagEqualToOrAfter = function (targetTag) {

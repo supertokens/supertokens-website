@@ -63,7 +63,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function () {
@@ -283,7 +283,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             // page.on('console', console.log);
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
+            await page.evaluate(async coreSupportsMultipleSignigKeys => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1787,7 +1787,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1798,7 +1798,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log("ST_" + event.action);
                     }
                 });
@@ -1830,7 +1830,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1841,7 +1841,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1905,7 +1905,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1916,7 +1916,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1967,7 +1967,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1978,7 +1978,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1997,7 +1997,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             });
 
             let originalCookies = (await page.cookies()).filter(
-                (c) => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -2062,7 +2062,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter((c) => c.name !== "sAccessToken");
+            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -2093,7 +2093,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.setRequestInterception(true);
             let firstGet = true;
             let firstPost = true;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (firstGet) {
@@ -2173,7 +2173,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 // console.log('r', url);
                 if (url === BASE_URL + "/") {
@@ -2247,7 +2247,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
             refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 // console.log(url);
                 if (url === BASE_URL + "/") {
@@ -2308,7 +2308,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2469,7 +2469,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2600,7 +2600,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2739,7 +2739,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2869,7 +2869,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2989,7 +2989,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -3133,7 +3133,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -3143,7 +3143,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3234,7 +3234,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -3244,7 +3244,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3323,7 +3323,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    postAPIHook: async (context) => {
+                    postAPIHook: async context => {
                         assertEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.status === 200) {

@@ -33,7 +33,7 @@ export class PrimitiveArrayClaim<ValueType> {
         ): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id,
-                refresh: (ctx) => this.refresh(ctx),
+                refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
@@ -74,7 +74,7 @@ export class PrimitiveArrayClaim<ValueType> {
         ): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id,
-                refresh: (ctx) => this.refresh(ctx),
+                refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
@@ -119,7 +119,7 @@ export class PrimitiveArrayClaim<ValueType> {
         ): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id,
-                refresh: (ctx) => this.refresh(ctx),
+                refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
@@ -144,7 +144,7 @@ export class PrimitiveArrayClaim<ValueType> {
                         };
                     }
                     const claimSet = new Set(claimVal);
-                    const isValid = val.every((v) => claimSet.has(v));
+                    const isValid = val.every(v => claimSet.has(v));
                     return isValid
                         ? { isValid }
                         : {
@@ -161,7 +161,7 @@ export class PrimitiveArrayClaim<ValueType> {
         ): SessionClaimValidator => {
             return {
                 id: id !== undefined ? id : this.id,
-                refresh: (ctx) => this.refresh(ctx),
+                refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
@@ -191,7 +191,7 @@ export class PrimitiveArrayClaim<ValueType> {
                         };
                     }
                     const claimSet = new Set(claimVal);
-                    const isValid = val.every((v) => !claimSet.has(v));
+                    const isValid = val.every(v => !claimSet.has(v));
                     return isValid
                         ? { isValid: isValid }
                         : {

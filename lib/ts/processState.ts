@@ -56,7 +56,7 @@ export class ProcessState {
 
     waitForEvent = async (state: PROCESS_STATE, timeInMS = 7000) => {
         let startTime = Date.now();
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             let actualThis = this;
             function tryAndGet() {
                 let result = actualThis.getEventByLastEventByName(state);

@@ -1,11 +1,11 @@
 module.exports.addGenericTestCases = function (getTestCases) {
-    getTestCases("fetch", (config) => {
+    getTestCases("fetch", config => {
         supertokens.init({
-            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
             apiDomain: BASE_URL
         });
-        window.toTest = async (config) => {
+        window.toTest = async config => {
             const resp = await fetch(config.url, config);
             const responseText = await resp.text();
 
@@ -18,13 +18,13 @@ module.exports.addGenericTestCases = function (getTestCases) {
         };
     });
 
-    getTestCases("XHR", (config) => {
+    getTestCases("XHR", config => {
         supertokens.init({
-            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
             apiDomain: BASE_URL
         });
-        window.toTest = async (config) => {
+        window.toTest = async config => {
             const request = new XMLHttpRequest();
             request.open(config.method || "GET", config.url);
             config.headers = config.headers || {};
@@ -47,7 +47,7 @@ module.exports.addGenericTestCases = function (getTestCases) {
                     .getAllResponseHeaders()
                     .trim()
                     .split("\r\n")
-                    .map((line) => line.split(": "))
+                    .map(line => line.split(": "))
             );
             const responseText = request.responseText;
 
@@ -60,14 +60,14 @@ module.exports.addGenericTestCases = function (getTestCases) {
         };
     });
 
-    getTestCases("axios with axios interceptor", (config) => {
+    getTestCases("axios with axios interceptor", config => {
         supertokens.addAxiosInterceptors(axios);
         supertokens.init({
-            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
             apiDomain: BASE_URL
         });
-        window.toTest = async (config) => {
+        window.toTest = async config => {
             let resp;
             try {
                 resp = await axios({
@@ -90,13 +90,13 @@ module.exports.addGenericTestCases = function (getTestCases) {
         };
     });
 
-    getTestCases("axios", (config) => {
+    getTestCases("axios", config => {
         supertokens.init({
-            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
             apiDomain: BASE_URL
         });
-        window.toTest = async (config) => {
+        window.toTest = async config => {
             let resp;
             try {
                 resp = await axios({
@@ -119,16 +119,16 @@ module.exports.addGenericTestCases = function (getTestCases) {
         };
     });
 
-    getTestCases("angular HTTPClient", async (config) => {
+    getTestCases("angular HTTPClient", async config => {
         await loadAngular();
 
         supertokens.init({
-            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
             apiDomain: BASE_URL
         });
 
-        window.toTest = async (config) => {
+        window.toTest = async config => {
             let resp;
             try {
                 resp = await angularHttpClient

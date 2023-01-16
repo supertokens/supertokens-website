@@ -31,7 +31,7 @@ describe("General Error Tests", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function () {
@@ -62,7 +62,7 @@ describe("General Error Tests", function () {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
 
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
 
                 if (url === BASE_URL + "/auth/signout") {

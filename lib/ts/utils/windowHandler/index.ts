@@ -21,7 +21,7 @@ export default class WindowHandlerReference {
     windowHandler: WindowHandlerInterface;
 
     constructor(windowHandlerInput?: WindowHandlerInput) {
-        let windowHandlerFunc: WindowHandlerInput = (original) => original;
+        let windowHandlerFunc: WindowHandlerInput = original => original;
         if (windowHandlerInput !== undefined) {
             windowHandlerFunc = windowHandlerInput;
         }

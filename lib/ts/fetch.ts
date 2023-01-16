@@ -110,7 +110,7 @@ export class FrontToken {
             if ((await getIdRefreshToken(false)).status === "EXISTS") {
                 // this means that the id refresh token has been set, so we must
                 // wait for this to be set or removed
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     FrontToken.waiters.push(resolve);
                 });
                 return FrontToken.getTokenInfo();
@@ -128,14 +128,14 @@ export class FrontToken {
     static async removeToken() {
         logDebugMessage("FrontToken.removeToken: called");
         await setFrontToken(undefined);
-        FrontToken.waiters.forEach((f) => f(undefined));
+        FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
     }
 
     static async setItem(frontToken: string) {
         logDebugMessage("FrontToken.setItem: called");
         await setFrontToken(frontToken);
-        FrontToken.waiters.forEach((f) => f(undefined));
+        FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
     }
 }

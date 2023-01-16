@@ -66,7 +66,7 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                     },
                     antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
                     override: {
-                        apis: (oI) => {
+                        apis: oI => {
                             return {
                                 ...oI,
                                 refreshPOST: undefined
@@ -110,7 +110,7 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                 },
                 antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
                 override: {
-                    apis: (oI) => {
+                    apis: oI => {
                         return {
                             ...oI,
                             refreshPOST: undefined
@@ -326,7 +326,7 @@ app.post(
 
 app.post("/auth/session/refresh", async (req, res, next) => {
     noOfTimesRefreshAttemptedDuringTest += 1;
-    verifySession()(req, res, (err) => {
+    verifySession()(req, res, err => {
         if (err) {
             next(err);
         } else {

@@ -109,7 +109,7 @@
                         promiseCtor = getPromiseCtor(promiseCtor);
                         return new promiseCtor((resolve, reject) => {
                             const subscriber = new _Subscriber__WEBPACK_IMPORTED_MODULE_0__.SafeSubscriber({
-                                next: (value) => {
+                                next: value => {
                                     try {
                                         next(value);
                                     } catch (err) {
@@ -138,14 +138,14 @@
                         return new promiseCtor((resolve, reject) => {
                             let value;
                             this.subscribe(
-                                (x) => (value = x),
-                                (err) => reject(err),
+                                x => (value = x),
+                                err => reject(err),
                                 () => resolve(value)
                             );
                         });
                     }
                 }
-                Observable.create = (subscribe) => {
+                Observable.create = subscribe => {
                     return new Observable(subscribe);
                 };
                 function getPromiseCtor(promiseCtor) {
@@ -745,14 +745,14 @@
                     /*! ../Observable */ 833
                 );
 
-                const EMPTY = new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) =>
+                const EMPTY = new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber =>
                     subscriber.complete()
                 );
                 function empty(scheduler) {
                     return scheduler ? emptyScheduled(scheduler) : EMPTY;
                 }
                 function emptyScheduled(scheduler) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) =>
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber =>
                         scheduler.schedule(() => subscriber.complete())
                     );
                 }
@@ -871,7 +871,7 @@
                     _util_throwUnobservableError__WEBPACK_IMPORTED_MODULE_7__.createInvalidObservableTypeError)(input);
                 }
                 function fromInteropObservable(obj) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         const obs = obj[_symbol_observable__WEBPACK_IMPORTED_MODULE_8__.observable]();
 
                         if ((0, _util_isFunction__WEBPACK_IMPORTED_MODULE_9__.isFunction)(obs.subscribe)) {
@@ -882,7 +882,7 @@
                     });
                 }
                 function fromArrayLike(array) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         for (let i = 0; i < array.length && !subscriber.closed; i++) {
                             subscriber.next(array[i]);
                         }
@@ -891,22 +891,22 @@
                     });
                 }
                 function fromPromise(promise) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         promise
                             .then(
-                                (value) => {
+                                value => {
                                     if (!subscriber.closed) {
                                         subscriber.next(value);
                                         subscriber.complete();
                                     }
                                 },
-                                (err) => subscriber.error(err)
+                                err => subscriber.error(err)
                             )
                             .then(null, _util_reportUnhandledError__WEBPACK_IMPORTED_MODULE_10__.reportUnhandledError);
                     });
                 }
                 function fromIterable(iterable) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         for (const value of iterable) {
                             subscriber.next(value);
 
@@ -919,8 +919,8 @@
                     });
                 }
                 function fromAsyncIterable(asyncIterable) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
-                        process(asyncIterable, subscriber).catch((err) => subscriber.error(err));
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
+                        process(asyncIterable, subscriber).catch(err => subscriber.error(err));
                     });
                 }
                 function fromReadableStreamLike(readableStream) {
@@ -1148,7 +1148,7 @@
                         source.subscribe(
                             (0, _OperatorSubscriber__WEBPACK_IMPORTED_MODULE_1__.createOperatorSubscriber)(
                                 subscriber,
-                                (value) => predicate.call(thisArg, value, index++) && subscriber.next(value)
+                                value => predicate.call(thisArg, value, index++) && subscriber.next(value)
                             )
                         );
                     });
@@ -1180,7 +1180,7 @@
                         source.subscribe(
                             (0, _OperatorSubscriber__WEBPACK_IMPORTED_MODULE_1__.createOperatorSubscriber)(
                                 subscriber,
-                                (value) => {
+                                value => {
                                     subscriber.next(project.call(thisArg, value, index++));
                                 }
                             )
@@ -1257,8 +1257,8 @@
                             subscriber.complete();
                         }
                     };
-                    const outerNext = (value) => (active < concurrent ? doInnerSub(value) : buffer.push(value));
-                    const doInnerSub = (value) => {
+                    const outerNext = value => (active < concurrent ? doInnerSub(value) : buffer.push(value));
+                    const doInnerSub = value => {
                         expand && subscriber.next(value);
                         active++;
                         let innerComplete = false;
@@ -1267,7 +1267,7 @@
                         ).subscribe(
                             (0, _OperatorSubscriber__WEBPACK_IMPORTED_MODULE_1__.createOperatorSubscriber)(
                                 subscriber,
-                                (innerValue) => {
+                                innerValue => {
                                     onBeforeNext === null || onBeforeNext === void 0
                                         ? void 0
                                         : onBeforeNext(innerValue);
@@ -1399,7 +1399,7 @@
                         source.subscribe(
                             (0, _OperatorSubscriber__WEBPACK_IMPORTED_MODULE_1__.createOperatorSubscriber)(
                                 subscriber,
-                                (value) =>
+                                value =>
                                     (0, _util_executeSchedule__WEBPACK_IMPORTED_MODULE_2__.executeSchedule)(
                                         subscriber,
                                         scheduler,
@@ -1413,7 +1413,7 @@
                                         () => subscriber.complete(),
                                         delay
                                     ),
-                                (err) =>
+                                err =>
                                     (0, _util_executeSchedule__WEBPACK_IMPORTED_MODULE_2__.executeSchedule)(
                                         subscriber,
                                         scheduler,
@@ -1458,7 +1458,7 @@
                         resetOnComplete = true,
                         resetOnRefCountZero = true
                     } = options;
-                    return (wrapperSource) => {
+                    return wrapperSource => {
                         let connection;
                         let resetConnection;
                         let subject;
@@ -1496,8 +1496,8 @@
                             dest.subscribe(subscriber);
                             if (!connection && refCount > 0) {
                                 connection = new _Subscriber__WEBPACK_IMPORTED_MODULE_2__.SafeSubscriber({
-                                    next: (value) => dest.next(value),
-                                    error: (err) => {
+                                    next: value => dest.next(value),
+                                    error: err => {
                                         hasErrored = true;
                                         cancelReset();
                                         resetConnection = handleReset(reset, resetOnError, err);
@@ -1575,7 +1575,7 @@
                 );
 
                 function scheduleArray(input, scheduler) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         let i = 0;
                         return scheduler.schedule(function () {
                             if (i === input.length) {
@@ -1615,7 +1615,7 @@
                         throw new Error("Iterable cannot be null");
                     }
 
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         (0, _util_executeSchedule__WEBPACK_IMPORTED_MODULE_1__.executeSchedule)(
                             subscriber,
                             scheduler,
@@ -1625,7 +1625,7 @@
                                     subscriber,
                                     scheduler,
                                     () => {
-                                        iterator.next().then((result) => {
+                                        iterator.next().then(result => {
                                             if (result.done) {
                                                 subscriber.complete();
                                             } else {
@@ -1668,7 +1668,7 @@
                 );
 
                 function scheduleIterable(input, scheduler) {
-                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable((subscriber) => {
+                    return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         let iterator;
                         (0, _util_executeSchedule__WEBPACK_IMPORTED_MODULE_1__.executeSchedule)(
                             subscriber,
@@ -1968,7 +1968,7 @@
                 );
 
                 const ObjectUnsubscribedError = (0, _createErrorClass__WEBPACK_IMPORTED_MODULE_0__.createErrorClass)(
-                    (_super) =>
+                    _super =>
                         function ObjectUnsubscribedErrorImpl() {
                             _super(this);
                             this.name = "ObjectUnsubscribedError";
@@ -1994,7 +1994,7 @@
                 );
 
                 const UnsubscriptionError = (0, _createErrorClass__WEBPACK_IMPORTED_MODULE_0__.createErrorClass)(
-                    (_super) =>
+                    _super =>
                         function UnsubscriptionErrorImpl(errors) {
                             _super(this);
                             this.message = errors
@@ -2079,7 +2079,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
                     /* harmony export */
                 });
                 function createErrorClass(createImpl) {
-                    const _super = (instance) => {
+                    const _super = instance => {
                         Error.call(instance);
                         instance.stack = new Error().stack;
                     };
@@ -2191,7 +2191,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
                     /* harmony export */ isArrayLike: () => /* binding */ isArrayLike
                     /* harmony export */
                 });
-                const isArrayLike = (x) => x && typeof x.length === "number" && typeof x !== "function";
+                const isArrayLike = x => x && typeof x.length === "number" && typeof x !== "function";
 
                 /***/
             },
@@ -2409,7 +2409,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
                     );
                 }
                 function operate(init) {
-                    return (source) => {
+                    return source => {
                         if (hasLift(source)) {
                             return source.lift(function (liftedSource) {
                                 try {
@@ -3970,7 +3970,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         this._platformLocation = platformLocation;
                         this._baseHref = stripTrailingSlash(_stripIndexHtml(browserBaseHref));
 
-                        this._platformStrategy.onPopState((ev) => {
+                        this._platformStrategy.onPopState(ev => {
                             this._subject.emit({
                                 url: this.path(true),
                                 pop: true,
@@ -4123,7 +4123,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         this._urlChangeListeners.push(fn);
 
                         if (!this._urlChangeSubscription) {
-                            this._urlChangeSubscription = this.subscribe((v) => {
+                            this._urlChangeSubscription = this.subscribe(v => {
                                 this._notifyUrlChangeListeners(v.url, v.state);
                             });
                         }
@@ -4131,7 +4131,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     /** @internal */
 
                     _notifyUrlChangeListeners(url = "", state) {
-                        this._urlChangeListeners.forEach((fn) => fn(url, state));
+                        this._urlChangeListeners.forEach(fn => fn(url, state));
                     }
                     /**
                      * Subscribes to the platform's `popState` events.
@@ -4998,7 +4998,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     const rules =
                         data[_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵLocaleDataIndex"].ExtraData][2] || [];
                     /* ExtraDayPeriodsRules */
-                    return rules.map((rule) => {
+                    return rules.map(rule => {
                         if (typeof rule === "string") {
                             return extractTime(rule);
                         }
@@ -5235,7 +5235,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
 
                     let text = "";
-                    parts.forEach((value) => {
+                    parts.forEach(value => {
                         const dateFormatter = getDateFormatter(value);
                         text += dateFormatter
                             ? dateFormatter(date, locale, dateTimezoneOffset)
@@ -5484,7 +5484,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             if (extended) {
                                 const rules = getLocaleExtraDayPeriodRules(locale);
                                 const dayPeriods = getLocaleExtraDayPeriods(locale, form, width);
-                                const index = rules.findIndex((rule) => {
+                                const index = rules.findIndex(rule => {
                                     if (Array.isArray(rule)) {
                                         // morning, afternoon, evening, night
                                         const [from, to] = rule;
@@ -6062,7 +6062,7 @@ PERFORMANCE OF THIS SOFTWARE.
       If we leave the '-' ("2015-01-01") and try to create a new Date("2015-01-01") the timeoffset
       is applied.
       Note: ISO months are 0 for January, 1 for February, ... */
-                            const [y, m = 1, d = 1] = value.split("-").map((val) => +val);
+                            const [y, m = 1, d = 1] = value.split("-").map(val => +val);
                             return createDate(y, m - 1, d);
                         }
 
@@ -6197,7 +6197,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         let integerLen = parsedNumber.integerLen;
                         const exponent = parsedNumber.exponent;
                         let decimals = [];
-                        isZero = digits.every((d) => !d); // pad zeros for small numbers
+                        isZero = digits.every(d => !d); // pad zeros for small numbers
 
                         for (; integerLen < minInt; integerLen++) {
                             digits.unshift(0);
@@ -6616,7 +6616,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             if (t) {
                                 r = new t();
                             } else {
-                                r = ((locale) => new NgLocaleLocalization(locale))(
+                                r = (locale => new NgLocaleLocalization(locale))(
                                     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](
                                         _angular_core__WEBPACK_IMPORTED_MODULE_0__.LOCALE_ID
                                     )
@@ -6639,7 +6639,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     args: [
                                         {
                                             providedIn: "root",
-                                            useFactory: (locale) => new NgLocaleLocalization(locale),
+                                            useFactory: locale => new NgLocaleLocalization(locale),
                                             deps: [_angular_core__WEBPACK_IMPORTED_MODULE_0__.LOCALE_ID]
                                         }
                                     ]
@@ -6895,9 +6895,9 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
 
                     _applyKeyValueChanges(changes) {
-                        changes.forEachAddedItem((record) => this._toggleClass(record.key, record.currentValue));
-                        changes.forEachChangedItem((record) => this._toggleClass(record.key, record.currentValue));
-                        changes.forEachRemovedItem((record) => {
+                        changes.forEachAddedItem(record => this._toggleClass(record.key, record.currentValue));
+                        changes.forEachChangedItem(record => this._toggleClass(record.key, record.currentValue));
+                        changes.forEachRemovedItem(record => {
                             if (record.previousValue) {
                                 this._toggleClass(record.key, false);
                             }
@@ -6905,7 +6905,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
 
                     _applyIterableChanges(changes) {
-                        changes.forEachAddedItem((record) => {
+                        changes.forEachAddedItem(record => {
                             if (typeof record.item === "string") {
                                 this._toggleClass(record.item, true);
                             } else {
@@ -6915,7 +6915,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                 );
                             }
                         });
-                        changes.forEachRemovedItem((record) => this._toggleClass(record.item, false));
+                        changes.forEachRemovedItem(record => this._toggleClass(record.item, false));
                     }
                     /**
                      * Applies a collection of CSS classes to the DOM element.
@@ -6929,9 +6929,9 @@ PERFORMANCE OF THIS SOFTWARE.
                     _applyClasses(rawClassVal) {
                         if (rawClassVal) {
                             if (Array.isArray(rawClassVal) || rawClassVal instanceof Set) {
-                                rawClassVal.forEach((klass) => this._toggleClass(klass, true));
+                                rawClassVal.forEach(klass => this._toggleClass(klass, true));
                             } else {
-                                Object.keys(rawClassVal).forEach((klass) =>
+                                Object.keys(rawClassVal).forEach(klass =>
                                     this._toggleClass(klass, !!rawClassVal[klass])
                                 );
                             }
@@ -6945,9 +6945,9 @@ PERFORMANCE OF THIS SOFTWARE.
                     _removeClasses(rawClassVal) {
                         if (rawClassVal) {
                             if (Array.isArray(rawClassVal) || rawClassVal instanceof Set) {
-                                rawClassVal.forEach((klass) => this._toggleClass(klass, false));
+                                rawClassVal.forEach(klass => this._toggleClass(klass, false));
                             } else {
-                                Object.keys(rawClassVal).forEach((klass) => this._toggleClass(klass, false));
+                                Object.keys(rawClassVal).forEach(klass => this._toggleClass(klass, false));
                             }
                         }
                     }
@@ -6956,7 +6956,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         klass = klass.trim();
 
                         if (klass) {
-                            klass.split(/\s+/g).forEach((klass) => {
+                            klass.split(/\s+/g).forEach(klass => {
                                 if (enabled) {
                                     this._renderer.addClass(this._ngEl.nativeElement, klass);
                                 } else {
@@ -7494,7 +7494,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             context.ngForOf = this._ngForOf;
                         }
 
-                        changes.forEachIdentityChange((record) => {
+                        changes.forEachIdentityChange(record => {
                             const viewRef = viewContainer.get(record.currentIndex);
                             applyViewChange(viewRef, record);
                         });
@@ -8608,9 +8608,9 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
 
                     _applyChanges(changes) {
-                        changes.forEachRemovedItem((record) => this._setStyle(record.key, null));
-                        changes.forEachAddedItem((record) => this._setStyle(record.key, record.currentValue));
-                        changes.forEachChangedItem((record) => this._setStyle(record.key, record.currentValue));
+                        changes.forEachRemovedItem(record => this._setStyle(record.key, null));
+                        changes.forEachAddedItem(record => this._setStyle(record.key, record.currentValue));
+                        changes.forEachChangedItem(record => this._setStyle(record.key, record.currentValue));
                     }
                 }
 
@@ -8863,7 +8863,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     createSubscription(async, updateLatestValue) {
                         return async.subscribe({
                             next: updateLatestValue,
-                            error: (e) => {
+                            error: e => {
                                 throw e;
                             }
                         });
@@ -8880,7 +8880,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 class PromiseStrategy {
                     createSubscription(async, updateLatestValue) {
-                        return async.then(updateLatestValue, (e) => {
+                        return async.then(updateLatestValue, e => {
                             throw e;
                         });
                     }
@@ -8958,7 +8958,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     _subscribe(obj) {
                         this._obj = obj;
                         this._strategy = this._selectStrategy(obj);
-                        this._subscription = this._strategy.createSubscription(obj, (value) =>
+                        this._subscription = this._strategy.createSubscription(obj, value =>
                             this._updateLatestValue(obj, value)
                         );
                     }
@@ -9134,7 +9134,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                         return value.replace(
                             unicodeWordMatch,
-                            (txt) => txt[0].toUpperCase() + txt.substr(1).toLowerCase()
+                            txt => txt[0].toUpperCase() + txt.substr(1).toLowerCase()
                         );
                     }
                 }
@@ -9762,7 +9762,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                         if (differChanges) {
                             this.keyValues = [];
-                            differChanges.forEachItem((r) => {
+                            differChanges.forEachItem(r => {
                                 this.keyValues.push(makeKeyValuePair(r.key, r.currentValue));
                             });
                         }
@@ -10923,7 +10923,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         } else if (typeof headers === "string") {
                             this.lazyInit = () => {
                                 this.headers = new Map();
-                                headers.split("\n").forEach((line) => {
+                                headers.split("\n").forEach(line => {
                                     const index = line.indexOf(":");
 
                                     if (index > 0) {
@@ -10943,7 +10943,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         } else {
                             this.lazyInit = () => {
                                 this.headers = new Map();
-                                Object.keys(headers).forEach((name) => {
+                                Object.keys(headers).forEach(name => {
                                     let values = headers[name];
                                     const key = name.toLowerCase();
 
@@ -11075,7 +11075,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             this.lazyInit = null;
 
                             if (!!this.lazyUpdate) {
-                                this.lazyUpdate.forEach((update) => this.applyUpdate(update));
+                                this.lazyUpdate.forEach(update => this.applyUpdate(update));
                                 this.lazyUpdate = null;
                             }
                         }
@@ -11083,7 +11083,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                     copyFrom(other) {
                         other.init();
-                        Array.from(other.headers.keys()).forEach((key) => {
+                        Array.from(other.headers.keys()).forEach(key => {
                             this.headers.set(key, other.headers.get(key));
                             this.normalizedNames.set(key, other.normalizedNames.get(key));
                         });
@@ -11131,7 +11131,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                         return;
                                     }
 
-                                    existing = existing.filter((value) => toDelete.indexOf(value) === -1);
+                                    existing = existing.filter(value => toDelete.indexOf(value) === -1);
 
                                     if (existing.length === 0) {
                                         this.headers.delete(key);
@@ -11150,7 +11150,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                     forEach(fn) {
                         this.init();
-                        Array.from(this.normalizedNames.keys()).forEach((key) =>
+                        Array.from(this.normalizedNames.keys()).forEach(key =>
                             fn(this.normalizedNames.get(key), this.headers.get(key))
                         );
                     }
@@ -11220,7 +11220,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         // (e.g. `new HttpParams({ fromString: window.location.search })`). The `window.location.search`
                         // may start with the `?` char, so we strip it if it's present.
                         const params = rawParams.replace(/^\?/, "").split("&");
-                        params.forEach((param) => {
+                        params.forEach(param => {
                             const eqIdx = param.indexOf("=");
                             const [key, val] =
                                 eqIdx == -1
@@ -11288,7 +11288,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             this.map = paramParser(options.fromString, this.encoder);
                         } else if (!!options.fromObject) {
                             this.map = new Map();
-                            Object.keys(options.fromObject).forEach((key) => {
+                            Object.keys(options.fromObject).forEach(key => {
                                 const value = options.fromObject[key];
                                 this.map.set(key, Array.isArray(value) ? value : [value]);
                             });
@@ -11361,11 +11361,11 @@ PERFORMANCE OF THIS SOFTWARE.
 
                     appendAll(params) {
                         const updates = [];
-                        Object.keys(params).forEach((param) => {
+                        Object.keys(params).forEach(param => {
                             const value = params[param];
 
                             if (Array.isArray(value)) {
-                                value.forEach((_value) => {
+                                value.forEach(_value => {
                                     updates.push({
                                         param,
                                         value: _value,
@@ -11420,18 +11420,18 @@ PERFORMANCE OF THIS SOFTWARE.
                         this.init();
                         return (
                             this.keys()
-                                .map((key) => {
+                                .map(key => {
                                     const eKey = this.encoder.encodeKey(key); // `a: ['1']` produces `'a=1'`
                                     // `b: []` produces `''`
                                     // `c: ['1', '2']` produces `'c=1&c=2'`
 
                                     return this.map
                                         .get(key)
-                                        .map((value) => eKey + "=" + this.encoder.encodeValue(value))
+                                        .map(value => eKey + "=" + this.encoder.encodeValue(value))
                                         .join("&");
                                 }) // filter out empty values because `b: []` produces `''`
                                 // which results in `a=1&&c=1&c=2` instead of `a=1&c=1&c=2` if we don't
-                                .filter((param) => param !== "")
+                                .filter(param => param !== "")
                                 .join("&")
                         );
                     }
@@ -11452,8 +11452,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
                         if (this.cloneFrom !== null) {
                             this.cloneFrom.init();
-                            this.cloneFrom.keys().forEach((key) => this.map.set(key, this.cloneFrom.map.get(key)));
-                            this.updates.forEach((update) => {
+                            this.cloneFrom.keys().forEach(key => this.map.set(key, this.cloneFrom.map.get(key)));
+                            this.updates.forEach(update => {
                                 switch (update.op) {
                                     case "a":
                                     case "s":
@@ -12253,9 +12253,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         // subscription (this also makes retries re-run the handler, including interceptors).
 
                         const events$ = (0, rxjs__WEBPACK_IMPORTED_MODULE_0__.of)(req).pipe(
-                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_1__.concatMap)((req) =>
-                                this.handler.handle(req)
-                            )
+                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_1__.concatMap)(req => this.handler.handle(req))
                         ); // If coming via the API signature which accepts a previously constructed HttpRequest,
                         // the only option is to get the event stream. Otherwise, return the event stream if
                         // that is what was requested.
@@ -12268,7 +12266,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                         const res$ = events$.pipe(
                             (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.filter)(
-                                (event) => event instanceof HttpResponse
+                                event => event instanceof HttpResponse
                             )
                         ); // Decide which stream to return.
 
@@ -12282,7 +12280,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                 switch (req.responseType) {
                                     case "arraybuffer":
                                         return res$.pipe(
-                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)((res) => {
+                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)(res => {
                                                 // Validate that the body is an ArrayBuffer.
                                                 if (res.body !== null && !(res.body instanceof ArrayBuffer)) {
                                                     throw new Error("Response is not an ArrayBuffer.");
@@ -12294,7 +12292,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                                     case "blob":
                                         return res$.pipe(
-                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)((res) => {
+                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)(res => {
                                                 // Validate that the body is a Blob.
                                                 if (res.body !== null && !(res.body instanceof Blob)) {
                                                     throw new Error("Response is not a Blob.");
@@ -12306,7 +12304,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                                     case "text":
                                         return res$.pipe(
-                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)((res) => {
+                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)(res => {
                                                 // Validate that the body is a string.
                                                 if (res.body !== null && typeof res.body !== "string") {
                                                     throw new Error("Response is not a string.");
@@ -12320,7 +12318,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     default:
                                         // No validation needed for JSON responses, as they can be of any type.
                                         return res$.pipe(
-                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)((res) => res.body)
+                                            (0, rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)(res => res.body)
                                         );
                                 }
 
@@ -12604,7 +12602,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             throw new Error(JSONP_ERR_WRONG_RESPONSE_TYPE);
                         } // Everything else happens inside the Observable boundary.
 
-                        return new rxjs__WEBPACK_IMPORTED_MODULE_5__.Observable((observer) => {
+                        return new rxjs__WEBPACK_IMPORTED_MODULE_5__.Observable(observer => {
                             // The first step to make a request is to generate the callback name, and replace the
                             // callback placeholder in the URL with the name. Care has to be taken here to ensure
                             // a trailing &, if matched, gets inserted back into the URL in the correct place.
@@ -12622,7 +12620,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             // object in the browser. The script being loaded via the <script> tag will
                             // eventually call this callback.
 
-                            this.callbackMap[callback] = (data) => {
+                            this.callbackMap[callback] = data => {
                                 // Data has been received from the JSONP script. Firstly, delete this callback.
                                 delete this.callbackMap[callback]; // Set state to indicate data was received.
 
@@ -12645,7 +12643,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             // If something went wrong, onLoad() may run without the response callback
                             // having been invoked.
 
-                            const onLoad = (event) => {
+                            const onLoad = event => {
                                 // We wrap it in an extra Promise, to ensure the microtask
                                 // is scheduled after the loaded endpoint has executed any potential microtask itself,
                                 // which is not guaranteed in Internet Explorer and EdgeHTML. See issue #39496
@@ -12684,7 +12682,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             // a Javascript error. It emits the error via the Observable error channel as
                             // a HttpErrorResponse.
 
-                            const onError = (error) => {
+                            const onError = error => {
                                 cleanup(); // Wrap the error in a HttpErrorResponse.
 
                                 observer.error(
@@ -12879,7 +12877,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             );
                         } // Everything happens on Observable subscription.
 
-                        return new rxjs__WEBPACK_IMPORTED_MODULE_5__.Observable((observer) => {
+                        return new rxjs__WEBPACK_IMPORTED_MODULE_5__.Observable(observer => {
                             // Start by setting up the XHR object with request method, URL, and withCredentials flag.
                             const xhr = this.xhrFactory.build();
                             xhr.open(req.method, req.urlWithParams);
@@ -13027,7 +13025,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             // Connection timeout, DNS error, offline, etc. These are actual errors, and are
                             // transmitted on the error channel.
 
-                            const onError = (error) => {
+                            const onError = error => {
                                 const { url } = partialFromXhr();
                                 const res = new HttpErrorResponse({
                                     error,
@@ -13044,7 +13042,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             let sentHeaders = false; // The download progress event handler, which is only registered if
                             // progress events are enabled.
 
-                            const onDownProgress = (event) => {
+                            const onDownProgress = event => {
                                 // Send the HttpResponseHeaders event if it hasn't been sent already.
                                 if (!sentHeaders) {
                                     observer.next(partialFromXhr());
@@ -13071,7 +13069,7 @@ PERFORMANCE OF THIS SOFTWARE.
                             }; // The upload progress event handler, which is only registered if
                             // progress events are enabled.
 
-                            const onUpProgress = (event) => {
+                            const onUpProgress = event => {
                                 // Upload progress events are simpler. Begin building the progress
                                 // event.
                                 let progress = {
@@ -14405,7 +14403,7 @@ PERFORMANCE OF THIS SOFTWARE.
                 function throwInvalidProviderError(ngModuleType, providers, provider) {
                     let ngModuleDetail = "";
                     if (ngModuleType && providers) {
-                        const providerDetail = providers.map((v) => (v == provider ? "?" + provider + "?" : "..."));
+                        const providerDetail = providers.map(v => (v == provider ? "?" + provider + "?" : "..."));
                         ngModuleDetail = ` - only instances of Provider and Type are allowed, got: [${providerDetail.join(
                             ", "
                         )}]`;
@@ -15098,7 +15096,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         def.id += _renderCompCount++;
                         (def.inputs = invertObject(componentDefinition.inputs, declaredInputs)),
                             (def.outputs = invertObject(componentDefinition.outputs)),
-                            feature && feature.forEach((fn) => fn(def));
+                            feature && feature.forEach(fn => fn(def));
                         def.directiveDefs = directiveTypes
                             ? () =>
                                   (typeof directiveTypes === "function" ? directiveTypes() : directiveTypes).map(
@@ -15755,7 +15753,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  *
                  * @param profiler function provided by the caller or null value to disable profiling.
                  */
-                const setProfiler = (profiler) => {
+                const setProfiler = profiler => {
                     profilerCallback = profiler;
                 };
                 /**
@@ -17934,7 +17932,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         // (no Angular decorator on the superclass) or there is no constructor at all
                         // in the inheritance chain. Since the two cases cannot be distinguished, the
                         // latter has to be assumed.
-                        return (t) => new t();
+                        return t => new t();
                     });
                 }
                 function getFactoryOf(type) {
@@ -18093,7 +18091,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * @Annotation
                  * @publicApi
                  */
-                const Attribute = makeParamDecorator("Attribute", (attributeName) => ({
+                const Attribute = makeParamDecorator("Attribute", attributeName => ({
                     attributeName,
                     __NG_ELEMENT_ID__: () => ɵɵinjectAttribute(attributeName)
                 }));
@@ -18447,7 +18445,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     return dst;
                 }
                 function deepForEach(input, fn) {
-                    input.forEach((value) => (Array.isArray(value) ? deepForEach(value, fn) : fn(value)));
+                    input.forEach(value => (Array.isArray(value) ? deepForEach(value, fn) : fn(value)));
                 }
                 function addToArray(arr, index, value) {
                     // perf: array.push is faster than array.splice!
@@ -18832,9 +18830,9 @@ PERFORMANCE OF THIS SOFTWARE.
                             // Retain the non-function case for compatibility with older tsickle
                             const ctorParameters =
                                 typeof tsickleCtorParams === "function" ? tsickleCtorParams() : tsickleCtorParams;
-                            const paramTypes = ctorParameters.map((ctorParam) => ctorParam && ctorParam.type);
+                            const paramTypes = ctorParameters.map(ctorParam => ctorParam && ctorParam.type);
                             const paramAnnotations = ctorParameters.map(
-                                (ctorParam) => ctorParam && convertTsickleDecoratorIntoMetadata(ctorParam.decorators)
+                                ctorParam => ctorParam && convertTsickleDecoratorIntoMetadata(ctorParam.decorators)
                             );
                             return this._zipTypesAndAnnotations(paramTypes, paramAnnotations);
                         }
@@ -18907,7 +18905,7 @@ PERFORMANCE OF THIS SOFTWARE.
                         if (typeOrFunc.propDecorators && typeOrFunc.propDecorators !== parentCtor.propDecorators) {
                             const propDecorators = typeOrFunc.propDecorators;
                             const propMetadata = {};
-                            Object.keys(propDecorators).forEach((prop) => {
+                            Object.keys(propDecorators).forEach(prop => {
                                 propMetadata[prop] = convertTsickleDecoratorIntoMetadata(propDecorators[prop]);
                             });
                             return propMetadata;
@@ -18926,13 +18924,13 @@ PERFORMANCE OF THIS SOFTWARE.
                         const propMetadata = {};
                         if (parentCtor !== Object) {
                             const parentPropMetadata = this.propMetadata(parentCtor);
-                            Object.keys(parentPropMetadata).forEach((propName) => {
+                            Object.keys(parentPropMetadata).forEach(propName => {
                                 propMetadata[propName] = parentPropMetadata[propName];
                             });
                         }
                         const ownPropMetadata = this._ownPropMetadata(typeOrFunc, parentCtor);
                         if (ownPropMetadata) {
-                            Object.keys(ownPropMetadata).forEach((propName) => {
+                            Object.keys(ownPropMetadata).forEach(propName => {
                                 const decorators = [];
                                 if (propMetadata.hasOwnProperty(propName)) {
                                     decorators.push(...propMetadata[propName]);
@@ -18989,7 +18987,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     if (!decoratorInvocations) {
                         return [];
                     }
-                    return decoratorInvocations.map((decoratorInvocation) => {
+                    return decoratorInvocations.map(decoratorInvocation => {
                         const decoratorType = decoratorInvocation.type;
                         const annotationCls = decoratorType.annotationCls;
                         const annotationArgs = decoratorInvocation.args ? decoratorInvocation.args : [];
@@ -19206,7 +19204,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 const Inject = attachInjectFlag(
                     // Disable tslint because `DecoratorFlags` is a const enum which gets inlined.
                     // tslint:disable-next-line: no-toplevel-property-access
-                    makeParamDecorator("Inject", (token) => ({ token })),
+                    makeParamDecorator("Inject", token => ({ token })),
                     -1 /* Inject */
                 );
                 /**
@@ -19265,7 +19263,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     return convertDependencies(getReflect().parameters(type));
                 }
                 function convertDependencies(deps) {
-                    return deps.map((dep) => reflectDependency(dep));
+                    return deps.map(dep => reflectDependency(dep));
                 }
                 function reflectDependency(dep) {
                     const meta = {
@@ -19367,7 +19365,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const promises = [];
                         if (component.templateUrl) {
                             promises.push(
-                                cachedResourceResolve(component.templateUrl).then((template) => {
+                                cachedResourceResolve(component.templateUrl).then(template => {
                                     component.template = template;
                                 })
                             );
@@ -19379,7 +19377,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             styleUrls.forEach((styleUrl, index) => {
                                 styles.push(""); // pre-allocate array.
                                 promises.push(
-                                    cachedResourceResolve(styleUrl).then((style) => {
+                                    cachedResourceResolve(styleUrl).then(style => {
                                         styles[styleOffset + index] = style;
                                         styleUrls.splice(styleUrls.indexOf(styleUrl), 1);
                                         if (styleUrls.length == 0) {
@@ -19454,9 +19452,9 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         if (_global.trustedTypes) {
                             try {
                                 policy$1 = _global.trustedTypes.createPolicy("angular", {
-                                    createHTML: (s) => s,
-                                    createScript: (s) => s,
-                                    createScriptURL: (s) => s
+                                    createHTML: s => s,
+                                    createScript: s => s,
+                                    createScriptURL: s => s
                                 });
                             } catch (_a) {
                                 // trustedTypes.createPolicy throws if called with a name that is
@@ -19578,9 +19576,9 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         if (_global.trustedTypes) {
                             try {
                                 policy = _global.trustedTypes.createPolicy("angular#unsafe-bypass", {
-                                    createHTML: (s) => s,
-                                    createScript: (s) => s,
-                                    createScriptURL: (s) => s
+                                    createHTML: s => s,
+                                    createScript: s => s,
+                                    createScriptURL: s => s
                                 });
                             } catch (_a) {
                                 // trustedTypes.createPolicy throws if called with a name that is
@@ -19932,7 +19930,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     srcset = String(srcset);
                     return srcset
                         .split(",")
-                        .map((srcset) => _sanitizeUrl(srcset.trim()))
+                        .map(srcset => _sanitizeUrl(srcset.trim()))
                         .join(", ");
                 }
 
@@ -20934,7 +20932,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  *     sequence.
                  */
                 function escapeCommentText(value) {
-                    return value.replace(COMMENT_DISALLOWED, (text) =>
+                    return value.replace(COMMENT_DISALLOWED, text =>
                         text.replace(COMMENT_DELIMITER, COMMENT_DELIMITER_ESCAPED)
                     );
                 }
@@ -25253,7 +25251,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         // should only attach the flags when really scheduling a tick
                         rootContext.flags |= flags;
                         let res;
-                        rootContext.clean = new Promise((r) => (res = r));
+                        rootContext.clean = new Promise(r => (res = r));
                         rootContext.scheduler(() => {
                             if (rootContext.flags & 1 /* DetectChanges */) {
                                 rootContext.flags &= ~1 /* DetectChanges */;
@@ -25657,10 +25655,10 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         // included transitively in additional providers then do the same for `def`. This order is
                         // important because `def` may include providers that override ones in additionalProviders.
                         additionalProviders &&
-                            deepForEach(additionalProviders, (provider) =>
+                            deepForEach(additionalProviders, provider =>
                                 this.processProvider(provider, def, additionalProviders)
                             );
-                        deepForEach([def], (injectorDef) => this.processInjectorType(injectorDef, [], dedupStack));
+                        deepForEach([def], injectorDef => this.processInjectorType(injectorDef, [], dedupStack));
                         // Make sure the INJECTOR token provides this injector.
                         this.records.set(INJECTOR, makeRecord(undefined, this));
                         // Detect whether this injector has the APP_ROOT_SCOPE token and thus should provide
@@ -25688,7 +25686,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         this._destroyed = true;
                         try {
                             // Call all the lifecycle hooks.
-                            this.onDestroy.forEach((service) => service.ngOnDestroy());
+                            this.onDestroy.forEach(service => service.ngOnDestroy());
                         } finally {
                             // Release all references.
                             this.records.clear();
@@ -25756,7 +25754,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
                     /** @internal */
                     _resolveInjectorDefTypes() {
-                        this.injectorDefTypes.forEach((defType) => this.get(defType));
+                        this.injectorDefTypes.forEach(defType => this.get(defType));
                     }
                     toString() {
                         const tokens = [],
@@ -25822,7 +25820,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             dedupStack.push(defType);
                             let importTypesWithProviders;
                             try {
-                                deepForEach(def.imports, (imported) => {
+                                deepForEach(def.imports, imported => {
                                     if (this.processInjectorType(imported, parents, dedupStack)) {
                                         if (importTypesWithProviders === undefined) importTypesWithProviders = [];
                                         // If the processed import is an injector type with providers, we store it in the
@@ -25840,7 +25838,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             if (importTypesWithProviders !== undefined) {
                                 for (let i = 0; i < importTypesWithProviders.length; i++) {
                                     const { ngModule, providers } = importTypesWithProviders[i];
-                                    deepForEach(providers, (provider) =>
+                                    deepForEach(providers, provider =>
                                         this.processProvider(provider, ngModule, providers || EMPTY_ARRAY)
                                     );
                                 }
@@ -25855,7 +25853,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const defProviders = def.providers;
                         if (defProviders != null && !isDuplicate) {
                             const injectorType = defOrWrappedDef;
-                            deepForEach(defProviders, (provider) =>
+                            deepForEach(defProviders, provider =>
                                 this.processProvider(provider, injectorType, defProviders)
                             );
                         }
@@ -26506,7 +26504,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  */
                 function applyChanges(component) {
                     markDirty(component);
-                    getRootComponents(component).forEach((rootComponent) => detectChanges(rootComponent));
+                    getRootComponents(component).forEach(rootComponent => detectChanges(rootComponent));
                 }
 
                 /**
@@ -26738,7 +26736,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     const component = instantiateRootComponent(tView, rootLView, componentDef);
                     rootContext.components.push(component);
                     componentView[CONTEXT] = component;
-                    hostFeatures && hostFeatures.forEach((feature) => feature(component, componentDef));
+                    hostFeatures && hostFeatures.forEach(feature => feature(component, componentDef));
                     // We want to generate an empty QueryList for root content queries for backwards
                     // compatibility with ViewEngine.
                     if (componentDef.contentQueries) {
@@ -28376,7 +28374,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 function constructResolvingPath(keys) {
                     if (keys.length > 1) {
                         const reversed = findFirstClosedCycle(keys.slice().reverse());
-                        const tokenStrs = reversed.map((k) => stringify(k.token));
+                        const tokenStrs = reversed.map(k => stringify(k.token));
                         return " (" + tokenStrs.join(" -> ") + ")";
                     }
                     return "";
@@ -28782,7 +28780,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         factoryFn = reflector.factory(useClass);
                         resolvedDeps = _dependenciesFor(useClass);
                     } else if (provider.useExisting) {
-                        factoryFn = (aliasInstance) => aliasInstance;
+                        factoryFn = aliasInstance => aliasInstance;
                         resolvedDeps = [ReflectiveDependency.fromKey(ReflectiveKey.get(provider.useExisting))];
                     } else if (provider.useFactory) {
                         factoryFn = provider.useFactory;
@@ -28851,7 +28849,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     return normalizedProvidersMap;
                 }
                 function _normalizeProviders(providers, res) {
-                    providers.forEach((b) => {
+                    providers.forEach(b => {
                         if (b instanceof Type) {
                             res.push({ provide: b, useClass: b });
                         } else if (b && typeof b == "object" && b.provide !== undefined) {
@@ -28868,17 +28866,17 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     if (!dependencies) {
                         return _dependenciesFor(typeOrFunc);
                     } else {
-                        const params = dependencies.map((t) => [t]);
-                        return dependencies.map((t) => _extractToken(typeOrFunc, t, params));
+                        const params = dependencies.map(t => [t]);
+                        return dependencies.map(t => _extractToken(typeOrFunc, t, params));
                     }
                 }
                 function _dependenciesFor(typeOrFunc) {
                     const params = reflector.parameters(typeOrFunc);
                     if (!params) return [];
-                    if (params.some((p) => p == null)) {
+                    if (params.some(p => p == null)) {
                         throw noAnnotationError(typeOrFunc, params);
                     }
-                    return params.map((p) => _extractToken(typeOrFunc, p, params));
+                    return params.map(p => _extractToken(typeOrFunc, p, params));
                 }
                 function _extractToken(typeOrFunc, metadata, params) {
                     let token = null;
@@ -29121,7 +29119,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const factory = ResolvedReflectiveFactory.factory;
                         let deps;
                         try {
-                            deps = ResolvedReflectiveFactory.dependencies.map((dep) =>
+                            deps = ResolvedReflectiveFactory.dependencies.map(dep =>
                                 this._getByReflectiveDependency(dep)
                             );
                         } catch (e) {
@@ -29196,7 +29194,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         }
                     }
                     get displayName() {
-                        const providers = _mapProviders(this, (b) => ' "' + b.key.displayName + '" ').join(", ");
+                        const providers = _mapProviders(this, b => ' "' + b.key.displayName + '" ').join(", ");
                         return `ReflectiveInjector(providers: [${providers}])`;
                     }
                     toString() {
@@ -29808,7 +29806,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const target = eventTargetResolver ? eventTargetResolver(native) : native;
                         const lCleanupIndex = lCleanup.length;
                         const idxOrTargetGetter = eventTargetResolver
-                            ? (_lView) => eventTargetResolver(unwrapRNode(_lView[tNode.index]))
+                            ? _lView => eventTargetResolver(unwrapRNode(_lView[tNode.index]))
                             : tNode.index;
                         // In order to match current behavior, native DOM event listeners must be added for all
                         // events (including outputs).
@@ -36219,7 +36217,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             const content = phs || tmpl;
                             const placeholders = matches[content] || [];
                             if (!placeholders.length) {
-                                content.split("|").forEach((placeholder) => {
+                                content.split("|").forEach(placeholder => {
                                     const match = placeholder.match(PP_TEMPLATE_ID_REGEXP);
                                     const templateId = match ? parseInt(match[1], 10) : ROOT_TEMPLATE_ID;
                                     const isCloseTemplateTag = PP_CLOSE_TEMPLATE_REGEXP.test(placeholder);
@@ -36777,7 +36775,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @codeGenApi
                  */
                 function ɵɵProvidersFeature(providers, viewProviders = []) {
-                    return (definition) => {
+                    return definition => {
                         definition.providersResolver = (def, processProvidersFn) => {
                             return providersResolver(
                                 def, //
@@ -37826,7 +37824,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         ngDevMode && assertDefined(this.destroyCbs, "NgModule already destroyed");
                         const injector = this._r3Injector;
                         !injector.destroyed && injector.destroy();
-                        this.destroyCbs.forEach((fn) => fn());
+                        this.destroyCbs.forEach(fn => fn());
                         this.destroyCbs = null;
                     }
                     onDestroy(callback) {
@@ -38551,7 +38549,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
                 }
                 function _wrapInTimeout(fn) {
-                    return (value) => {
+                    return value => {
                         setTimeout(fn, undefined, value);
                     };
                 }
@@ -40059,7 +40057,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     const imports = maybeUnwrapFn(ngModuleDef.imports);
                     flatten(imports)
                         .map(unwrapModuleWithProvidersImports)
-                        .forEach((mod) => {
+                        .forEach(mod => {
                             verifySemanticsOfNgModuleImport(mod, moduleType);
                             verifySemanticsOfNgModuleDef(mod, false, moduleType);
                         });
@@ -40071,14 +40069,14 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         ...flatten(imports.map(computeCombinedExports)).map(resolveForwardRef)
                     ];
                     exports.forEach(verifyExportsAreDeclaredOrReExported);
-                    declarations.forEach((decl) => verifyDeclarationIsUnique(decl, allowDuplicateDeclarationsInRoot));
+                    declarations.forEach(decl => verifyDeclarationIsUnique(decl, allowDuplicateDeclarationsInRoot));
                     declarations.forEach(verifyComponentEntryComponentsIsPartOfNgModule);
                     const ngModule = getAnnotation(moduleType, "NgModule");
                     if (ngModule) {
                         ngModule.imports &&
                             flatten(ngModule.imports)
                                 .map(unwrapModuleWithProvidersImports)
-                                .forEach((mod) => {
+                                .forEach(mod => {
                                     verifySemanticsOfNgModuleImport(mod, moduleType);
                                     verifySemanticsOfNgModuleDef(mod, false, moduleType);
                                 });
@@ -40246,7 +40244,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     const ngModuleDef = getNgModuleDef(type, true);
                     return [
                         ...flatten(
-                            maybeUnwrapFn(ngModuleDef.exports).map((type) => {
+                            maybeUnwrapFn(ngModuleDef.exports).map(type => {
                                 const ngModuleDef = getNgModuleDef(type);
                                 if (ngModuleDef) {
                                     verifySemanticsOfNgModuleDef(type, false);
@@ -40266,7 +40264,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 function setScopeOnDeclaredComponents(moduleType, ngModule) {
                     const declarations = flatten(ngModule.declarations || EMPTY_ARRAY);
                     const transitiveScopes = transitiveScopesFor(moduleType);
-                    declarations.forEach((declaration) => {
+                    declarations.forEach(declaration => {
                         if (declaration.hasOwnProperty(NG_COMP_DEF)) {
                             // A `ɵcmp` field exists - go ahead and patch the component directly.
                             const component = declaration;
@@ -40288,12 +40286,10 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 function patchComponentDefWithScope(componentDef, transitiveScopes) {
                     componentDef.directiveDefs = () =>
                         Array.from(transitiveScopes.compilation.directives)
-                            .map((dir) =>
-                                dir.hasOwnProperty(NG_COMP_DEF) ? getComponentDef(dir) : getDirectiveDef(dir)
-                            )
-                            .filter((def) => !!def);
+                            .map(dir => (dir.hasOwnProperty(NG_COMP_DEF) ? getComponentDef(dir) : getDirectiveDef(dir)))
+                            .filter(def => !!def);
                     componentDef.pipeDefs = () =>
-                        Array.from(transitiveScopes.compilation.pipes).map((pipe) => getPipeDef$1(pipe));
+                        Array.from(transitiveScopes.compilation.pipes).map(pipe => getPipeDef$1(pipe));
                     componentDef.schemas = transitiveScopes.schemas;
                     // Since we avoid Components/Directives/Pipes recompiling in case there are no overrides, we
                     // may face a problem where previously compiled defs available to a given Component/Directive
@@ -40329,7 +40325,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             pipes: new Set()
                         }
                     };
-                    maybeUnwrapFn(def.imports).forEach((imported) => {
+                    maybeUnwrapFn(def.imports).forEach(imported => {
                         const importedType = imported;
                         if (!isNgModule(importedType)) {
                             throw new Error(`Importing ${importedType.name} which does not have a ɵmod property`);
@@ -40337,10 +40333,10 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         // When this module imports another, the imported module's exported directives and pipes are
                         // added to the compilation scope of this module.
                         const importedScope = transitiveScopesFor(importedType);
-                        importedScope.exported.directives.forEach((entry) => scopes.compilation.directives.add(entry));
-                        importedScope.exported.pipes.forEach((entry) => scopes.compilation.pipes.add(entry));
+                        importedScope.exported.directives.forEach(entry => scopes.compilation.directives.add(entry));
+                        importedScope.exported.pipes.forEach(entry => scopes.compilation.pipes.add(entry));
                     });
-                    maybeUnwrapFn(def.declarations).forEach((declared) => {
+                    maybeUnwrapFn(def.declarations).forEach(declared => {
                         const declaredWithDefs = declared;
                         if (getPipeDef$1(declaredWithDefs)) {
                             scopes.compilation.pipes.add(declared);
@@ -40351,7 +40347,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             scopes.compilation.directives.add(declared);
                         }
                     });
-                    maybeUnwrapFn(def.exports).forEach((exported) => {
+                    maybeUnwrapFn(def.exports).forEach(exported => {
                         const exportedType = exported;
                         // Either the type is a module, a pipe, or a component/directive (which may not have a
                         // ɵcmp as it might be compiled asynchronously).
@@ -40359,11 +40355,11 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             // When this module exports another, the exported module's exported directives and pipes are
                             // added to both the compilation and exported scopes of this module.
                             const exportedScope = transitiveScopesFor(exportedType);
-                            exportedScope.exported.directives.forEach((entry) => {
+                            exportedScope.exported.directives.forEach(entry => {
                                 scopes.compilation.directives.add(entry);
                                 scopes.exported.directives.add(entry);
                             });
-                            exportedScope.exported.pipes.forEach((entry) => {
+                            exportedScope.exported.pipes.forEach(entry => {
                                 scopes.compilation.pipes.add(entry);
                                 scopes.exported.pipes.add(entry);
                             });
@@ -40657,7 +40653,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     for (const field in propMetadata) {
                         if (propMetadata.hasOwnProperty(field)) {
                             const annotations = propMetadata[field];
-                            annotations.forEach((ann) => {
+                            annotations.forEach(ann => {
                                 if (isQueryAnn(ann)) {
                                     if (!ann.selector) {
                                         throw new Error(
@@ -40690,7 +40686,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     return value.ngMetadataName === "Input";
                 }
                 function splitByComma(value) {
-                    return value.split(",").map((piece) => piece.trim());
+                    return value.split(",").map(piece => piece.trim());
                 }
                 const LIFECYCLE_HOOKS = [
                     "ngOnChanges",
@@ -40704,7 +40700,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 ];
                 function shouldAddAbstractDirective(type) {
                     const reflect = getReflect();
-                    if (LIFECYCLE_HOOKS.some((hookName) => reflect.hasLifecycleHook(type, hookName))) {
+                    if (LIFECYCLE_HOOKS.some(hookName => reflect.hasLifecycleHook(type, hookName))) {
                         return true;
                     }
                     const propMetadata = reflect.propMetadata(type);
@@ -40832,7 +40828,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  */
                 const Pipe = makeDecorator(
                     "Pipe",
-                    (p) => Object.assign({ pure: true }, p),
+                    p => Object.assign({ pure: true }, p),
                     undefined,
                     undefined,
                     (type, meta) => compilePipe(type, meta)
@@ -40841,17 +40837,17 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @Annotation
                  * @publicApi
                  */
-                const Input = makePropDecorator("Input", (bindingPropertyName) => ({ bindingPropertyName }));
+                const Input = makePropDecorator("Input", bindingPropertyName => ({ bindingPropertyName }));
                 /**
                  * @Annotation
                  * @publicApi
                  */
-                const Output = makePropDecorator("Output", (bindingPropertyName) => ({ bindingPropertyName }));
+                const Output = makePropDecorator("Output", bindingPropertyName => ({ bindingPropertyName }));
                 /**
                  * @Annotation
                  * @publicApi
                  */
-                const HostBinding = makePropDecorator("HostBinding", (hostPropertyName) => ({ hostPropertyName }));
+                const HostBinding = makePropDecorator("HostBinding", hostPropertyName => ({ hostPropertyName }));
                 /**
                  * Decorator that binds a DOM event to a host listener and supplies configuration metadata.
                  * Angular invokes the supplied handler method when the host element emits the specified event,
@@ -40932,7 +40928,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  */
                 const NgModule = makeDecorator(
                     "NgModule",
-                    (ngModule) => ngModule,
+                    ngModule => ngModule,
                     undefined,
                     undefined,
                     /**
@@ -41096,7 +41092,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             .then(() => {
                                 complete();
                             })
-                            .catch((e) => {
+                            .catch(e => {
                                 this.reject(e);
                             });
                         if (asyncInitPromises.length === 0) {
@@ -42094,7 +42090,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         } else {
                             // Still not stable, send updates.
                             let pending = this.getPendingTasks();
-                            this._callbacks = this._callbacks.filter((cb) => {
+                            this._callbacks = this._callbacks.filter(cb => {
                                 if (cb.updateCb && cb.updateCb(pending)) {
                                     clearTimeout(cb.timeoutId);
                                     return false;
@@ -42109,7 +42105,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             return [];
                         }
                         // Copy the tasks data so that we don't leak tasks.
-                        return this.taskTrackingZone.macroTasks.map((t) => {
+                        return this.taskTrackingZone.macroTasks.map(t => {
                             return {
                                 source: t.source,
                                 // From TaskTrackingZone:
@@ -42123,7 +42119,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         let timeoutId = -1;
                         if (timeout && timeout > 0) {
                             timeoutId = setTimeout(() => {
-                                this._callbacks = this._callbacks.filter((cb) => cb.timeoutId !== timeoutId);
+                                this._callbacks = this._callbacks.filter(cb => cb.timeoutId !== timeoutId);
                                 cb(this._didWork, this.getPendingTasks());
                             }, timeout);
                         }
@@ -42320,13 +42316,13 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     // are bootstrapped with incompatible options, as a component can only be compiled according to
                     // a single set of options.
                     setJitOptions({
-                        defaultEncapsulation: _lastDefined(compilerOptions.map((opts) => opts.defaultEncapsulation)),
-                        preserveWhitespaces: _lastDefined(compilerOptions.map((opts) => opts.preserveWhitespaces))
+                        defaultEncapsulation: _lastDefined(compilerOptions.map(opts => opts.defaultEncapsulation)),
+                        preserveWhitespaces: _lastDefined(compilerOptions.map(opts => opts.preserveWhitespaces))
                     });
                     if (isComponentResourceResolutionQueueEmpty()) {
                         return Promise.resolve(moduleFactory);
                     }
-                    const compilerProviders = _mergeArrays(compilerOptions.map((o) => o.providers));
+                    const compilerProviders = _mergeArrays(compilerOptions.map(o => o.providers));
                     // In case there are no compiler providers, we just return the module factory as
                     // there won't be any resource loader. This can happen with Ivy, because AOT compiled
                     // modules can be still passed through "bootstrapModule". In that case we shouldn't
@@ -42343,7 +42339,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     const resourceLoader = compilerInjector.get(compiler.ResourceLoader);
                     // The resource loader can also return a string while the "resolveComponentResources"
                     // always expects a promise. Therefore we need to wrap the returned value in a promise.
-                    return resolveComponentResources((url) => Promise.resolve(resourceLoader.get(url))).then(
+                    return resolveComponentResources(url => Promise.resolve(resourceLoader.get(url))).then(
                         () => moduleFactory
                     );
                 }
@@ -42382,7 +42378,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     _platformInjector = injector;
                     const platform = injector.get(PlatformRef);
                     const inits = injector.get(PLATFORM_INITIALIZER, null);
-                    if (inits) inits.forEach((initFn) => initFn());
+                    if (inits) inits.forEach(initFn => initFn());
                     return platform;
                 }
                 /**
@@ -42530,7 +42526,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             }
                             ngZone.runOutsideAngular(() => {
                                 const subscription = ngZone.onError.subscribe({
-                                    next: (error) => {
+                                    next: error => {
                                         exceptionHandler.handleError(error);
                                     }
                                 });
@@ -42570,14 +42566,14 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                      */
                     bootstrapModule(moduleType, compilerOptions = []) {
                         const options = optionsReducer({}, compilerOptions);
-                        return compileNgModuleFactory(this.injector, options, moduleType).then((moduleFactory) =>
+                        return compileNgModuleFactory(this.injector, options, moduleType).then(moduleFactory =>
                             this.bootstrapModuleFactory(moduleFactory, options)
                         );
                     }
                     _moduleDoBootstrap(moduleRef) {
                         const appRef = moduleRef.injector.get(ApplicationRef);
                         if (moduleRef._bootstrapComponents.length > 0) {
-                            moduleRef._bootstrapComponents.forEach((f) => appRef.bootstrap(f));
+                            moduleRef._bootstrapComponents.forEach(f => appRef.bootstrap(f));
                         } else if (moduleRef.instance.ngDoBootstrap) {
                             moduleRef.instance.ngDoBootstrap(appRef);
                         } else {
@@ -42616,8 +42612,8 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     : "";
                             throw new RuntimeError(404 /* ALREADY_DESTROYED_PLATFORM */, errorMessage);
                         }
-                        this._modules.slice().forEach((module) => module.destroy());
-                        this._destroyListeners.forEach((listener) => listener());
+                        this._modules.slice().forEach(module => module.destroy());
+                        this._destroyListeners.forEach(listener => listener());
                         const destroyListener = this._injector.get(PLATFORM_ON_DESTROY, null);
                         destroyListener === null || destroyListener === void 0 ? void 0 : destroyListener();
                         this._destroyed = true;
@@ -42673,7 +42669,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     try {
                         const result = callback();
                         if (isPromise(result)) {
-                            return result.catch((e) => {
+                            return result.catch(e => {
                                 ngZone.runOutsideAngular(() => errorHandler.handleError(e));
                                 // rethrow as the exception handler might not do it
                                 throw e;
@@ -42815,7 +42811,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                 });
                             }
                         });
-                        const isCurrentlyStable = new rxjs__WEBPACK_IMPORTED_MODULE_2__.Observable((observer) => {
+                        const isCurrentlyStable = new rxjs__WEBPACK_IMPORTED_MODULE_2__.Observable(observer => {
                             this._stable =
                                 this._zone.isStable &&
                                 !this._zone.hasPendingMacrotasks &&
@@ -42825,7 +42821,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                 observer.complete();
                             });
                         });
-                        const isStable = new rxjs__WEBPACK_IMPORTED_MODULE_2__.Observable((observer) => {
+                        const isStable = new rxjs__WEBPACK_IMPORTED_MODULE_2__.Observable(observer => {
                             // Create the subscription to onStable outside the Angular Zone so that
                             // the callback is run outside the Angular Zone.
                             let stableSub;
@@ -43008,11 +43004,11 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const listeners = this._injector
                             .get(APP_BOOTSTRAP_LISTENER, [])
                             .concat(this._bootstrapListeners);
-                        listeners.forEach((listener) => listener(componentRef));
+                        listeners.forEach(listener => listener(componentRef));
                     }
                     /** @internal */
                     ngOnDestroy() {
-                        this._views.slice().forEach((view) => view.destroy());
+                        this._views.slice().forEach(view => view.destroy());
                         this._onMicrotaskEmptySubscription.unsubscribe();
                     }
                     /**
@@ -43072,7 +43068,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 }
                 function _mergeArrays(parts) {
                     const result = [];
-                    parts.forEach((part) => part && result.push(...part));
+                    parts.forEach(part => part && result.push(...part));
                     return result;
                 }
 
@@ -43372,7 +43368,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @publicApi
                  */
                 function asNativeElements(debugEls) {
-                    return debugEls.map((el) => el.nativeElement);
+                    return debugEls.map(el => el.nativeElement);
                 }
                 /**
                  * @publicApi
@@ -43417,7 +43413,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                      * properties.
                      */
                     get listeners() {
-                        return getListeners(this.nativeNode).filter((listener) => listener.type === "dom");
+                        return getListeners(this.nativeNode).filter(listener => listener.type === "dom");
                     }
                     /**
                      * Dictionary of objects associated with template local variables (e.g. #foo), keyed by the local
@@ -43574,7 +43570,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const className = element.className;
                         const classes =
                             typeof className !== "string" ? className.baseVal.split(" ") : className.split(" ");
-                        classes.forEach((value) => (result[value] = true));
+                        classes.forEach(value => (result[value] = true));
                         return result;
                     }
                     /**
@@ -43643,7 +43639,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     triggerEventHandler(eventName, eventObj) {
                         const node = this.nativeNode;
                         const invokedListeners = [];
-                        this.listeners.forEach((listener) => {
+                        this.listeners.forEach(listener => {
                             if (listener.name === eventName) {
                                 const callback = listener.callback;
                                 callback.call(node, eventObj);
@@ -43656,7 +43652,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             // Note that in Ivy we wrap event listeners with a call to `event.preventDefault` in some
                             // cases. We use '__ngUnwrap__' as a special token that gives us access to the actual event
                             // listener.
-                            node.eventListeners(eventName).forEach((listener) => {
+                            node.eventListeners(eventName).forEach(listener => {
                                 // In order to ensure that we can detect the special __ngUnwrap__ token described above, we
                                 // use `toString` on the listener and see if it contains the token. We use this approach to
                                 // ensure that it still worked with compiled code since it cannot remove or rename string
@@ -44128,7 +44124,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             }
                         } else {
                             index = 0;
-                            iterateListLike(collection, (item) => {
+                            iterateListLike(collection, item => {
                                 itemTrackBy = this._trackByFn(index, item);
                                 if (record === null || !Object.is(record.trackById, itemTrackBy)) {
                                     record = this._mismatch(record, item, itemTrackBy, index);
@@ -44833,7 +44829,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         if (obj instanceof Map) {
                             obj.forEach(fn);
                         } else {
-                            Object.keys(obj).forEach((k) => fn(obj[k], k));
+                            Object.keys(obj).forEach(k => fn(obj[k], k));
                         }
                     }
                 }
@@ -44906,7 +44902,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     static extend(factories) {
                         return {
                             provide: IterableDiffers,
-                            useFactory: (parent) => {
+                            useFactory: parent => {
                                 // if parent is null, it means that we are in the root injector and we have just overridden
                                 // the default injection mechanism for IterableDiffers, in such a case just assume
                                 // `defaultIterableDiffersFactory`.
@@ -44917,7 +44913,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         };
                     }
                     find(iterable) {
-                        const factory = this.factories.find((f) => f.supports(iterable));
+                        const factory = this.factories.find(f => f.supports(iterable));
                         if (factory != null) {
                             return factory;
                         } else {
@@ -44990,7 +44986,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     static extend(factories) {
                         return {
                             provide: KeyValueDiffers,
-                            useFactory: (parent) => {
+                            useFactory: parent => {
                                 // if parent is null, it means that we are in the root injector and we have just overridden
                                 // the default injection mechanism for KeyValueDiffers, in such a case just assume
                                 // `defaultKeyValueDiffersFactory`.
@@ -45001,7 +44997,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         };
                     }
                     find(kv) {
-                        const factory = this.factories.find((f) => f.supports(kv));
+                        const factory = this.factories.find(f => f.supports(kv));
                         if (factory) {
                             return factory;
                         }
@@ -45692,7 +45688,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     constructor(plugins, _zone) {
                         this._zone = _zone;
                         this._eventNameToPlugin = new Map();
-                        plugins.forEach((p) => (p.manager = this));
+                        plugins.forEach(p => (p.manager = this));
                         this._plugins = plugins.slice().reverse();
                     }
                     /**
@@ -45836,7 +45832,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
 
                     addStyles(styles) {
                         const additions = new Set();
-                        styles.forEach((style) => {
+                        styles.forEach(style => {
                             if (!this._stylesSet.has(style)) {
                                 this._stylesSet.add(style);
 
@@ -45889,7 +45885,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
 
                     _addStylesToHost(styles, host, styleNodes) {
-                        styles.forEach((style) => {
+                        styles.forEach(style => {
                             const styleEl = this._doc.createElement("style");
 
                             styleEl.textContent = style;
@@ -45922,7 +45918,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
 
                     ngOnDestroy() {
-                        this._hostNodes.forEach((styleNodes) => styleNodes.forEach(removeStyle));
+                        this._hostNodes.forEach(styleNodes => styleNodes.forEach(removeStyle));
                     }
                 }
 
@@ -46020,7 +46016,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     // decoratePreventDefault or is a listener added outside the Angular context so it can handle the
                     // two differently. In the first case, the special '__ngUnwrap__' token is passed to the unwrap
                     // the listener (see below).
-                    return (event) => {
+                    return event => {
                         // Ivy uses '__ngUnwrap__' as a special token that allows us to unwrap the function
                         // so that it can be invoked programmatically by `DebugNode.triggerEventHandler`. The debug_node
                         // can inspect the listener toString contents for the existence of this special token. Because
@@ -46524,10 +46520,10 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  */
 
                 const MODIFIER_KEY_GETTERS = {
-                    alt: (event) => event.altKey,
-                    control: (event) => event.ctrlKey,
-                    meta: (event) => event.metaKey,
-                    shift: (event) => event.shiftKey
+                    alt: event => event.altKey,
+                    control: event => event.ctrlKey,
+                    meta: event => event.metaKey,
+                    shift: event => event.shiftKey
                 };
                 /**
                  * @publicApi
@@ -46587,7 +46583,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         const key = KeyEventsPlugin._normalizeKey(parts.pop());
 
                         let fullKey = "";
-                        MODIFIER_KEYS.forEach((modifierName) => {
+                        MODIFIER_KEYS.forEach(modifierName => {
                             const index = parts.indexOf(modifierName);
 
                             if (index > -1) {
@@ -46621,7 +46617,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             key = "dot"; // because '.' is used as a separator in event names
                         }
 
-                        MODIFIER_KEYS.forEach((modifierName) => {
+                        MODIFIER_KEYS.forEach(modifierName => {
                             if (modifierName != key) {
                                 const modifierGetter = MODIFIER_KEY_GETTERS[modifierName];
 
@@ -47100,9 +47096,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             // just check that element with the same name already present on the page. We also need to
                             // check if element has tag attributes
 
-                            const elem = this.getTags(selector).filter((elem) =>
-                                this._containsAttributes(meta, elem)
-                            )[0];
+                            const elem = this.getTags(selector).filter(elem => this._containsAttributes(meta, elem))[0];
                             if (elem !== undefined) return elem;
                         }
 
@@ -47117,7 +47111,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
 
                     _setMetaElementAttributes(tag, el) {
-                        Object.keys(tag).forEach((prop) => el.setAttribute(this._getMetaKeyMap(prop), tag[prop]));
+                        Object.keys(tag).forEach(prop => el.setAttribute(this._getMetaKeyMap(prop), tag[prop]));
                         return el;
                     }
 
@@ -47127,9 +47121,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     }
 
                     _containsAttributes(tag, elem) {
-                        return Object.keys(tag).every(
-                            (key) => elem.getAttribute(this._getMetaKeyMap(key)) === tag[key]
-                        );
+                        return Object.keys(tag).every(key => elem.getAttribute(this._getMetaKeyMap(key)) === tag[key]);
                     }
 
                     _getMetaKeyMap(prop) {
@@ -47480,7 +47472,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         "<": "&l;",
                         ">": "&g;"
                     };
-                    return text.replace(/[&"'<>]/g, (s) => escapedText[s]);
+                    return text.replace(/[&"'<>]/g, s => escapedText[s]);
                 }
 
                 function unescapeHtml(text) {
@@ -47491,7 +47483,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         "&l;": "<",
                         "&g;": ">"
                     };
-                    return text.replace(/&[^;]+;/g, (s) => unescapedText[s]);
+                    return text.replace(/&[^;]+;/g, s => unescapedText[s]);
                 }
                 /**
                  * Create a `StateKey<T>` that can be used to store value of type T with `TransferState`.
@@ -47728,7 +47720,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                      */
 
                     static css(selector) {
-                        return (debugElement) => {
+                        return debugElement => {
                             return debugElement.nativeElement != null
                                 ? elementMatches(debugElement.nativeElement, selector)
                                 : false;
@@ -47744,7 +47736,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                      */
 
                     static directive(type) {
-                        return (debugNode) => debugNode.providerTokens.indexOf(type) !== -1;
+                        return debugNode => debugNode.providerTokens.indexOf(type) !== -1;
                     }
                 }
 

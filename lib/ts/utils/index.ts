@@ -120,7 +120,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
-    let preAPIHook: RecipePreAPIHookFunction = async (context) => {
+    let preAPIHook: RecipePreAPIHookFunction = async context => {
         return { url: context.url, requestInit: context.requestInit };
     };
 
@@ -142,7 +142,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     let override: {
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     } = {
-        functions: (oI) => oI,
+        functions: oI => oI,
         ...options.override
     };
 

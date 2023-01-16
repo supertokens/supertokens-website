@@ -47,7 +47,7 @@ describe("AuthHttpRequest claim handling", function () {
             apiDomain: "localhost.org",
 
             override: {
-                functions: (oI) => ({
+                functions: oI => ({
                     ...oI,
                     getAccessTokenPayloadSecurely: accessTokenStub
                 })
@@ -127,7 +127,7 @@ describe("AuthHttpRequest claim handling", function () {
             it("should return failure reasons in the order returned from the override", async () => {
                 SessionClaimValidatorStore.addClaimValidatorFromOtherRecipe(failingValidator);
                 assert.deepEqual(
-                    await AuthHttpRequest.validateClaims((globalClaimValidators) => [
+                    await AuthHttpRequest.validateClaims(globalClaimValidators => [
                         ...globalClaimValidators,
                         {
                             shouldRefresh: () => false,

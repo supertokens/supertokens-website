@@ -35,7 +35,7 @@ describe("Cookie Handler Tests", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function () {
@@ -134,7 +134,7 @@ describe("Cookie Handler Tests", function () {
         try {
             const page = await browser.newPage();
 
-            page.on("console", (event) => {
+            page.on("console", event => {
                 const log = event.text();
 
                 if (log.startsWith("ST_LOGS")) {
@@ -203,7 +203,7 @@ describe("Cookie Handler Tests", function () {
         try {
             const page = await browser.newPage();
 
-            page.on("console", (event) => {
+            page.on("console", event => {
                 const log = event.text();
 
                 console.log(log);

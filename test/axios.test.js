@@ -59,7 +59,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function () {
@@ -294,7 +294,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -306,7 +306,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log("ST_" + event.action);
                     }
                 });
@@ -335,7 +335,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -347,7 +347,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -378,7 +378,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -390,7 +390,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -441,7 +441,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -453,7 +453,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -469,7 +469,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
 
             let originalCookies = (await page.cookies()).filter(
-                (c) => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -1009,7 +1009,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that reponse of all requests are success
                 let noOfResponeSuccesses = 0;
-                multipleGetSessionResponse.forEach((element) => {
+                multipleGetSessionResponse.forEach(element => {
                     assertEqual(element.data, userId);
                     noOfResponeSuccesses += 1;
                 });
@@ -2099,7 +2099,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter((c) => c.name !== "sAccessToken");
+            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.

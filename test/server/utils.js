@@ -77,7 +77,7 @@ module.exports.stopST = async function (pid) {
     while (Date.now() - startTime < 10000) {
         let pidsAfter = await getListOfPids();
         if (pidsAfter.includes(pid)) {
-            await new Promise((r) => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 100));
             continue;
         } else {
             return;
@@ -108,7 +108,7 @@ module.exports.startST = async function (host = "localhost", port = 9000) {
                     port +
                     " test_mode"
             )
-            .catch((err) => {
+            .catch(err => {
                 if (!returned) {
                     returned = true;
                     reject(err);
@@ -118,10 +118,10 @@ module.exports.startST = async function (host = "localhost", port = 9000) {
         while (Date.now() - startTime < 10000) {
             let pidsAfter = await getListOfPids();
             if (pidsAfter.length <= pidsBefore.length) {
-                await new Promise((r) => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 100));
                 continue;
             }
-            let nonIntersection = pidsAfter.filter((x) => !pidsBefore.includes(x));
+            let nonIntersection = pidsAfter.filter(x => !pidsBefore.includes(x));
             if (nonIntersection.length !== 1) {
                 if (!returned) {
                     returned = true;

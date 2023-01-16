@@ -33,7 +33,7 @@ describe("doesSessionExist", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async () => {
@@ -71,7 +71,7 @@ describe("doesSessionExist", function () {
         await page.setRequestInterception(true);
 
         let refreshCalled = 0;
-        page.on("request", (req) => {
+        page.on("request", req => {
             const url = req.url();
 
             if (url === BASE_URL + "/auth/session/refresh") {
@@ -101,7 +101,7 @@ describe("doesSessionExist", function () {
 
         await page.setRequestInterception(true);
 
-        page.on("request", (req) => {
+        page.on("request", req => {
             const url = req.url();
 
             if (url === BASE_URL + "/auth/session/refresh") {
@@ -133,7 +133,7 @@ describe("doesSessionExist", function () {
         await page.setRequestInterception(true);
 
         let refreshCalled = 0;
-        page.on("request", (req) => {
+        page.on("request", req => {
             const url = req.url();
 
             if (url === BASE_URL + "/auth/session/refresh") {
@@ -180,7 +180,7 @@ describe("doesSessionExist", function () {
         await page.setRequestInterception(true);
 
         let refreshCalled = 0;
-        page.on("request", (req) => {
+        page.on("request", req => {
             const url = req.url();
 
             console.log(url);

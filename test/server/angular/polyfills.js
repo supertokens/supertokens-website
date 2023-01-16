@@ -837,7 +837,7 @@
                             if (!isPropertyWritable(prototypeDesc)) {
                                 continue;
                             }
-                            prototype[name] = ((delegate) => {
+                            prototype[name] = (delegate => {
                                 const patched = function () {
                                     return delegate.apply(this, bindArguments(arguments, source + "." + name));
                                 };
@@ -1131,7 +1131,7 @@
                     setNative = patchMethod(
                         obj,
                         funcName,
-                        (delegate) =>
+                        delegate =>
                             function (self, args) {
                                 const meta = metaCreator(self, args);
                                 if (meta.cbIdx >= 0 && typeof args[meta.cbIdx] === "function") {
@@ -1200,7 +1200,7 @@
                     const symbolPromise = __symbol__("Promise");
                     const symbolThen = __symbol__("then");
                     const creationTrace = "__creationTrace__";
-                    api.onUnhandledError = (e) => {
+                    api.onUnhandledError = e => {
                         if (api.showUncaughtError()) {
                             const rejection = e && e.rejection;
                             if (rejection) {
@@ -1265,7 +1265,7 @@
                     const REJECTED = false;
                     const REJECTED_NO_CATCH = 0;
                     function makeResolver(promise, state) {
-                        return (v) => {
+                        return v => {
                             try {
                                 resolvePromise(promise, state, v);
                             } catch (err) {
@@ -1493,14 +1493,14 @@
                             return new ZoneAwarePromise((resolve, reject) => {
                                 for (let i = 0; i < promises.length; i++) {
                                     promises[i].then(
-                                        (v) => {
+                                        v => {
                                             if (finished) {
                                                 return;
                                             }
                                             finished = true;
                                             resolve(v);
                                         },
-                                        (err) => {
+                                        err => {
                                             errors.push(err);
                                             count--;
                                             if (count === 0) {
@@ -1539,8 +1539,8 @@
                         static allSettled(values) {
                             const P = this && this.prototype instanceof ZoneAwarePromise ? this : ZoneAwarePromise;
                             return P.allWithCallback(values, {
-                                thenCallback: (value) => ({ status: "fulfilled", value }),
-                                errorCallback: (err) => ({ status: "rejected", reason: err })
+                                thenCallback: value => ({ status: "fulfilled", value }),
+                                errorCallback: err => ({ status: "rejected", reason: err })
                             });
                         }
                         static allWithCallback(values, callback) {
@@ -1561,7 +1561,7 @@
                                 const curValueIndex = valueIndex;
                                 try {
                                     value.then(
-                                        (value) => {
+                                        value => {
                                             resolvedValues[curValueIndex] = callback
                                                 ? callback.thenCallback(value)
                                                 : value;
@@ -1570,7 +1570,7 @@
                                                 resolve(resolvedValues);
                                             }
                                         },
-                                        (err) => {
+                                        err => {
                                             if (!callback) {
                                                 reject(err);
                                             } else {
@@ -1707,7 +1707,7 @@
                     }
                     if (NativePromise) {
                         patchThen(NativePromise);
-                        patchMethod(global, "fetch", (delegate) => zoneify(delegate));
+                        patchMethod(global, "fetch", delegate => zoneify(delegate));
                     }
                     // This is not part of public API, but it is useful for tests, so we expose it.
                     Promise[Zone.__symbol__("uncaughtPromiseErrors")] = _uncaughtPromiseErrors;
@@ -1723,7 +1723,7 @@
                  */
                 // override Function.prototype.toString to make zone.js patched function
                 // look like native function
-                Zone.__load_patch("toString", (global) => {
+                Zone.__load_patch("toString", global => {
                     // patch Func.prototype.toString to let them look like native
                     const originalFunctionToString = Function.prototype.toString;
                     const ORIGINAL_DELEGATE_SYMBOL = zoneSymbol("OriginalDelegate");
@@ -1827,7 +1827,7 @@
                         const delegate = task.callback;
                         if (typeof delegate === "object" && delegate.handleEvent) {
                             // create the bind version of handleEvent when invoke
-                            task.callback = (event) => delegate.handleEvent(event);
+                            task.callback = event => delegate.handleEvent(event);
                             task.originalDelegate = delegate;
                         }
                         // invoke static task.invoke
@@ -2420,7 +2420,7 @@
                         api.patchMethod(
                             Event.prototype,
                             "stopImmediatePropagation",
-                            (delegate) =>
+                            delegate =>
                                 function (self, args) {
                                     self[IMMEDIATE_PROPAGATION_SYMBOL] = true;
                                     // we need to call the native stopImmediatePropagation
@@ -2492,12 +2492,12 @@
                     if (!ignoreProperties || ignoreProperties.length === 0) {
                         return onProperties;
                     }
-                    const tip = ignoreProperties.filter((ip) => ip.target === target);
+                    const tip = ignoreProperties.filter(ip => ip.target === target);
                     if (!tip || tip.length === 0) {
                         return onProperties;
                     }
                     const targetIgnoreProperties = tip[0].ignoreProperties;
-                    return onProperties.filter((op) => targetIgnoreProperties.indexOf(op) === -1);
+                    return onProperties.filter(op => targetIgnoreProperties.indexOf(op) === -1);
                 }
                 function patchFilteredProperties(target, onProperties, ignoreProperties, prototype) {
                     // check whether target is available, sometimes target will be undefined
@@ -2514,8 +2514,8 @@
                  */
                 function getOnEventNames(target) {
                     return Object.getOwnPropertyNames(target)
-                        .filter((name) => name.startsWith("on") && name.length > 2)
-                        .map((name) => name.substring(2));
+                        .filter(name => name.startsWith("on") && name.length > 2)
+                        .map(name => name.substring(2));
                 }
                 function propertyDescriptorPatch(api, _global) {
                     if (isNode && !isMix) {
@@ -2664,7 +2664,7 @@
                     setNative = patchMethod(
                         window,
                         setName,
-                        (delegate) =>
+                        delegate =>
                             function (self, args) {
                                 if (typeof args[0] === "function") {
                                     const options = {
@@ -2746,7 +2746,7 @@
                     clearNative = patchMethod(
                         window,
                         cancelName,
-                        (delegate) =>
+                        delegate =>
                             function (self, args) {
                                 const id = args[0];
                                 let task;
@@ -2846,27 +2846,27 @@
                  * Use of this source code is governed by an MIT-style license that can be
                  * found in the LICENSE file at https://angular.io/license
                  */
-                Zone.__load_patch("legacy", (global) => {
+                Zone.__load_patch("legacy", global => {
                     const legacyPatch = global[Zone.__symbol__("legacyPatch")];
                     if (legacyPatch) {
                         legacyPatch();
                     }
                 });
                 Zone.__load_patch("queueMicrotask", (global, Zone, api) => {
-                    api.patchMethod(global, "queueMicrotask", (delegate) => {
+                    api.patchMethod(global, "queueMicrotask", delegate => {
                         return function (self, args) {
                             Zone.current.scheduleMicroTask("queueMicrotask", args[0]);
                         };
                     });
                 });
-                Zone.__load_patch("timers", (global) => {
+                Zone.__load_patch("timers", global => {
                     const set = "set";
                     const clear = "clear";
                     patchTimer(global, set, clear, "Timeout");
                     patchTimer(global, set, clear, "Interval");
                     patchTimer(global, set, clear, "Immediate");
                 });
-                Zone.__load_patch("requestAnimationFrame", (global) => {
+                Zone.__load_patch("requestAnimationFrame", global => {
                     patchTimer(global, "request", "cancel", "AnimationFrame");
                     patchTimer(global, "mozRequest", "mozCancel", "AnimationFrame");
                     patchTimer(global, "webkitRequest", "webkitCancel", "AnimationFrame");
@@ -3090,7 +3090,7 @@
                         );
                     }
                 });
-                Zone.__load_patch("geolocation", (global) => {
+                Zone.__load_patch("geolocation", global => {
                     /// GEO_LOCATION
                     if (global["navigator"] && global["navigator"].geolocation) {
                         patchPrototype(global["navigator"].geolocation, ["getCurrentPosition", "watchPosition"]);
@@ -3101,7 +3101,7 @@
                     function findPromiseRejectionHandler(evtName) {
                         return function (e) {
                             const eventTasks = findEventTasks(global, evtName);
-                            eventTasks.forEach((eventTask) => {
+                            eventTasks.forEach(eventTask => {
                                 // windows has added unhandledrejection event listener
                                 // trigger the event listener
                                 const PromiseRejectionEvent = global["PromiseRejectionEvent"];
@@ -3125,9 +3125,9 @@
                 /***/
             }
     },
-    /******/ (__webpack_require__) => {
+    /******/ __webpack_require__ => {
         // webpackRuntimeModules
-        /******/ var __webpack_exec__ = (moduleId) => __webpack_require__((__webpack_require__.s = moduleId));
+        /******/ var __webpack_exec__ = moduleId => __webpack_require__((__webpack_require__.s = moduleId));
         /******/ var __webpack_exports__ = __webpack_exec__(7435);
         /******/
     }

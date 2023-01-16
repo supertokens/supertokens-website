@@ -198,14 +198,14 @@
                 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__
                     .platformBrowser()
                     .bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_0__.AppModule)
-                    .catch((err) => console.error(err));
+                    .catch(err => console.error(err));
 
                 /***/
             }
     },
-    /******/ (__webpack_require__) => {
+    /******/ __webpack_require__ => {
         // webpackRuntimeModules
-        /******/ var __webpack_exec__ = (moduleId) => __webpack_require__((__webpack_require__.s = moduleId));
+        /******/ var __webpack_exec__ = moduleId => __webpack_require__((__webpack_require__.s = moduleId));
         /******/ __webpack_require__.O(0, ["vendor"], () => __webpack_exec__(4431));
         /******/ var __webpack_exports__ = __webpack_require__.O();
         /******/

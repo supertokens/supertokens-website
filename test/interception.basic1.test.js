@@ -83,7 +83,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 process.env.INSTALL_PATH,
                 process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
             ]);
-            await new Promise((r) => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000));
         });
 
         after(async function () {
@@ -113,7 +113,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            page.evaluate((BASE_URL) => (window.BASE_URL = BASE_URL), BASE_URL);
+            page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
         });
 
         afterEach(async function () {
@@ -197,7 +197,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
             await page.setRequestInterception(true);
             let getCount = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (getCount++ < 3) {
@@ -254,7 +254,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await startST(100, true, "0.002");
             await setup();
 
-            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
+            await page.evaluate(async coreSupportsMultipleSignigKeys => {
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await toTest({
@@ -860,7 +860,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
 
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/testError") {
                     req.abort();
@@ -891,7 +891,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
 
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/testError") {
                     req.abort();
@@ -1562,7 +1562,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1571,7 +1571,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log("ST_" + event.action);
                     }
                 });
@@ -1597,7 +1597,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1606,7 +1606,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1650,7 +1650,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
 
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1659,7 +1659,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1704,7 +1704,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", (message) => {
+            page.on("console", message => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1713,7 +1713,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (event) => {
+                    onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
                 });
@@ -1733,7 +1733,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
 
             let originalCookies = (await page.cookies()).filter(
-                (c) => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -1787,7 +1787,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter((c) => c.name !== "sAccessToken");
+            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -1813,7 +1813,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.setRequestInterception(true);
             let firstGet = true;
             let firstPost = true;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (firstGet) {
@@ -1885,7 +1885,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     req.respond({
@@ -1946,7 +1946,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     req.respond({
@@ -1990,7 +1990,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             }
 
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2146,7 +2146,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2271,7 +2271,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2405,7 +2405,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2529,7 +2529,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2641,7 +2641,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             }
 
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2774,7 +2774,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -2783,7 +2783,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2875,7 +2875,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -2885,7 +2885,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let userId = "testing-supertokens-website";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
 
                 await toTest({
@@ -2959,7 +2959,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    postAPIHook: async (context) => {
+                    postAPIHook: async context => {
                         assert.strictEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.statusCode === 200) {
@@ -3013,7 +3013,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    postAPIHook: async (context) => {
+                    postAPIHook: async context => {
                         assert.strictEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.statusCode === 200) {

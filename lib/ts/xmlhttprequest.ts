@@ -121,7 +121,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
             logDebugMessage(`XHRInterceptor dispatching ${ev.type} to ${handlers ? handlers.size : 0} listeners`);
             if (handlers) {
-                Array.from(handlers).forEach((handler) => handler.apply(self, [ev]));
+                Array.from(handlers).forEach(handler => handler.apply(self, [ev]));
             }
         }
 
@@ -152,7 +152,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
             setUpXHR(self, retryXhr, true);
             // this also calls the send function with the appropriate body
-            listOfFunctionCallsInProxy.forEach((i) => {
+            listOfFunctionCallsInProxy.forEach(i => {
                 i(retryXhr);
             });
             sendXHR(retryXhr, body);
@@ -177,7 +177,7 @@ export function addInterceptorsToXMLHttpRequest() {
                             .getAllResponseHeaders()
                             .trim()
                             .split("\r\n")
-                            .map((line) => line.split(": ") as [string, string])
+                            .map(line => line.split(": ") as [string, string])
                     );
 
                     const idRefreshToken = headers.get("id-refresh-token");
@@ -335,7 +335,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
-                responseProcessed.then((callself) => {
+                responseProcessed.then(callself => {
                     if (!callself) {
                         return;
                     }
@@ -352,7 +352,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     if (responseProcessed === undefined) {
                         responseProcessed = handleResponse(xhr);
                     }
-                    responseProcessed.then((callself) => {
+                    responseProcessed.then(callself => {
                         if (!callself) {
                             return;
                         }
@@ -371,7 +371,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
-                responseProcessed.then((callself) => {
+                responseProcessed.then(callself => {
                     if (!callself) {
                         return;
                     }
@@ -489,7 +489,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     self.withCredentials = true;
                 }
 
-                if (!requestHeaders.some((i) => i.name === "rid")) {
+                if (!requestHeaders.some(i => i.name === "rid")) {
                     logDebugMessage("XHRInterceptor.send: Adding rid header: anti-csrf");
                     xhr.setRequestHeader("rid", "anti-csrf");
                 } else {

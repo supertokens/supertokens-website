@@ -36,7 +36,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                     // stdio: "inherit"
                 }
             );
-            await new Promise((r) => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000));
             if (!(await checkSessionClaimsSupport())) {
                 skipped = true;
                 this.skip();
@@ -70,7 +70,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
             }
             page = await browser.newPage();
 
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const text = ev.text();
                 // console.log(text);
                 if (text.startsWith("TEST_EV$")) {
@@ -79,7 +79,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            page.evaluate((BASE_URL) => (window.BASE_URL = BASE_URL), BASE_URL);
+            page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
 
             await page.evaluate(
                 setupFunc,
@@ -182,7 +182,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                 });
 
                 assert.strictEqual(
-                    loggedEvents.find((ev) => ev.action === "API_INVALID_CLAIM"),
+                    loggedEvents.find(ev => ev.action === "API_INVALID_CLAIM"),
                     undefined
                 );
             } finally {

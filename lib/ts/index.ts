@@ -43,7 +43,7 @@ export default class AuthHttpRequest {
             .override(config.override.functions)
             .build();
         AuthHttpRequestFetch.init(config, recipeImpl);
-        AuthHttpRequest.axiosInterceptorQueue.forEach((f) => {
+        AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
             f();
         });
         AuthHttpRequest.axiosInterceptorQueue = [];

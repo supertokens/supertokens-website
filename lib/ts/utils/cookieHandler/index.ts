@@ -21,7 +21,7 @@ export default class CookieHandlerReference {
     cookieHandler: CookieHandlerInterface;
 
     constructor(cookieHandlerInput?: CookieHandlerInput) {
-        let cookieHandlerFunc: CookieHandlerInput = (original) => original;
+        let cookieHandlerFunc: CookieHandlerInput = original => original;
         if (cookieHandlerInput !== undefined) {
             cookieHandlerFunc = cookieHandlerInput;
         }

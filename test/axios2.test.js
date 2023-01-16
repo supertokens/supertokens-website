@@ -53,7 +53,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1000));
     });
 
     after(async function () {
@@ -83,7 +83,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
+            await page.evaluate(async coreSupportsMultipleSignigKeys => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
@@ -129,7 +129,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.setRequestInterception(true);
             let firstGet = true;
             let firstPost = true;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (firstGet) {
@@ -232,7 +232,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async (BASE_URL) => {
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -289,7 +289,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.setRequestInterception(true);
             // page.on("console", l => console.log(l.text()));
             let firstGet = true;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (firstGet) {
@@ -377,7 +377,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 // console.log('r', url);
                 if (url === BASE_URL + "/") {
@@ -459,7 +459,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
             refreshCalled = 0;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     req.respond({
@@ -526,9 +526,9 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("console", (l) => console.log(l.text()));
+            page.on("console", l => console.log(l.text()));
             let firstGet = true;
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 // console.log(url);
                 if (url === BASE_URL + "/") {
@@ -618,7 +618,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -746,7 +746,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -880,7 +880,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -1007,7 +1007,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -1121,7 +1121,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            page.on("request", (req) => {
+            page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -1285,7 +1285,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -1295,7 +1295,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
                 supertokens.addAxiosInterceptors(axios);
                 let userId = "testing-supertokens-website";
@@ -1366,7 +1366,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -1376,7 +1376,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
                 });
                 supertokens.addAxiosInterceptors(axios);
                 let userId = "testing-supertokens-website";
@@ -1447,7 +1447,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("com.supertokens")) {
                     logs.push(logText);
@@ -1478,7 +1478,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             const logs = [];
-            page.on("console", (ev) => {
+            page.on("console", ev => {
                 const logText = ev.text();
                 if (logText.startsWith("com.supertokens")) {
                     logs.push(logText);
