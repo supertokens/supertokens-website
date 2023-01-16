@@ -1,7 +1,7 @@
 import { LockFactory } from "./types";
 import Lock from "browser-tabs-lock";
 
-const defaultFactory = () => new Lock();
+const defaultFactory = () => Promise.resolve(new Lock());
 
 export class LockFactoryReference {
     private static instance?: LockFactoryReference;

@@ -363,7 +363,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     preRequestIdToken: IdRefreshTokenType
 ): Promise<{ result: "SESSION_EXPIRED"; error?: any } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
-    let lock = LockFactoryReference.getReferenceOrThrow().lockFactory();
+    let lock = await LockFactoryReference.getReferenceOrThrow().lockFactory();
     while (true) {
         logDebugMessage("onUnauthorisedResponse: trying to acquire lock");
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {
