@@ -33,7 +33,7 @@ let {
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     addBrowserConsole,
-    resetAuthHttpRequestFetch,
+    resetAuthHttpRequestFetch
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -55,13 +55,13 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 */
 describe("Fetch AuthHttpRequest class tests", function () {
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
 
     before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -114,20 +114,20 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
     it("testing with fetch api methods without config", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
 
         let getResponse = await fetch(`${BASE_URL}/testing`, {
-            method: "GET",
+            method: "GET"
         });
         let postResponse = await fetch(`${BASE_URL}/testing`, {
-            method: "POST",
+            method: "POST"
         });
         let deleteResponse = await fetch(`${BASE_URL}/testing`, {
-            method: "DELETE",
+            method: "DELETE"
         });
         let putResponse = await fetch(`${BASE_URL}/testing`, {
-            method: "PUT",
+            method: "PUT"
         });
         let doRequestResponse = await fetch(`${BASE_URL}/testing`, { method: "GET" });
         getResponse = await getResponse.text();
@@ -146,7 +146,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
     it("testing with fetch api methods with config", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
 
         let testing = "testing";
@@ -156,11 +156,11 @@ describe("Fetch AuthHttpRequest class tests", function () {
         let putResponse = await fetch(`${BASE_URL}/${testing}`, { method: "put", headers: { testing } });
         let doRequestResponse1 = await fetch(`${BASE_URL}/${testing}`, {
             method: "GET",
-            headers: { testing },
+            headers: { testing }
         });
         let doRequestResponse2 = await fetch(`${BASE_URL}/${testing}`, {
             method: "GET",
-            headers: { testing },
+            headers: { testing }
         });
         let getResponseHeader = getResponse.headers.get(testing);
         getResponse = await getResponse.text();
@@ -192,20 +192,20 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
     it("testing with fetch api methods that doesn't exists", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
 
         let getResponse = await fetch(`${BASE_URL}/fail`, {
-            method: "GET",
+            method: "GET"
         });
         let postResponse = await fetch(`${BASE_URL}/fail`, {
-            method: "POST",
+            method: "POST"
         });
         let deleteResponse = await fetch(`${BASE_URL}/fail`, {
-            method: "DELETE",
+            method: "DELETE"
         });
         let putResponse = await fetch(`${BASE_URL}/fail`, {
-            method: "PUT",
+            method: "PUT"
         });
         let doRequestResponse1 = await fetch(`${BASE_URL}/fail`, { method: "GET" });
         let doRequestResponse2 = await fetch(`${BASE_URL}/fail`, { method: "GET" });
@@ -228,7 +228,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test refresh session with fetch", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -237,7 +237,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -245,9 +245,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -276,7 +276,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         await startST(100, true, "0.002");
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -286,7 +286,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -294,9 +294,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -324,7 +324,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test sameSite is none if using iframe", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -334,7 +334,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    isInIframe: true,
+                    isInIframe: true
                 });
                 let userId = "testing-supertokens-website";
 
@@ -342,9 +342,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
 
@@ -358,7 +358,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test rid is there", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -367,7 +367,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -375,9 +375,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -394,7 +394,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("signout with expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -403,7 +403,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -411,9 +411,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -431,7 +431,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("signout with not expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -440,7 +440,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -448,9 +448,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -517,7 +517,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test update jwt data  with fetch", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -527,7 +527,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
 
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -536,9 +536,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -552,9 +552,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key: "łukasz 馬 / 马" }),
+                    body: JSON.stringify({ key: "łukasz 馬 / 马" })
                 });
                 let data1 = await testResponse1.json();
                 assertEqual(data1.key, "łukasz 馬 / 马");
@@ -579,9 +579,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key1: " łukasz data1" }),
+                    body: JSON.stringify({ key1: " łukasz data1" })
                 });
                 let data3 = await testResponse3.json();
                 assertEqual(data3.key1, " łukasz data1");
@@ -606,7 +606,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that custom headers are being sent", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -615,7 +615,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -624,9 +624,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
 
@@ -636,8 +636,8 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue",
-                    },
+                        testing: "testValue"
+                    }
                 });
 
                 // check that output is success
@@ -650,9 +650,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await logoutResponse.text(), "success");
@@ -662,8 +662,8 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue",
-                    },
+                        testing: "testValue"
+                    }
                 });
 
                 // check that output is success
@@ -680,7 +680,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that doesSessionExist works fine when the user is logged in", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -689,7 +689,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -698,9 +698,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
 
@@ -715,7 +715,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch session should not exist when user calls log out", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -735,7 +735,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -744,9 +744,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
 
@@ -761,9 +761,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await logoutResponse.text(), "success");
@@ -793,7 +793,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that attemptRefreshingSession is working correctly", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -802,7 +802,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -811,9 +811,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
 
@@ -839,7 +839,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
         await startST(15);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -848,7 +848,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -857,9 +857,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
@@ -901,7 +901,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that things should work correctly if anti-csrf is disabled", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -910,7 +910,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -919,9 +919,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await loginResponse.text(), userId);
                 assertEqual(await supertokens.doesSessionExist(), true);
@@ -938,9 +938,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await supertokens.doesSessionExist(), false);
@@ -955,7 +955,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that if an api throws an error it gets propagated to the user with interception", async () => {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -964,7 +964,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await fetch(`${BASE_URL}/testError`);
@@ -980,7 +980,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that if an api throws an error it gets propagated to the user without interception", async () => {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -989,11 +989,11 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await fetch(`${BASE_URL}/testError`, {
-                    method: "get",
+                    method: "get"
                 });
                 assertEqual(await val.text(), "test error message");
                 assertEqual(val.status, 500);
@@ -1007,7 +1007,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that calling SuperTokens.init more than once works", async () => {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1016,10 +1016,10 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1027,23 +1027,23 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let logoutResponse = await fetch(`${BASE_URL}/logout`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await logoutResponse.text(), "success");
@@ -1056,9 +1056,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1072,7 +1072,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1081,7 +1081,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1090,9 +1090,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1118,7 +1118,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1127,7 +1127,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1135,9 +1135,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1146,9 +1146,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await logoutResponse.text(), "success");
@@ -1170,7 +1170,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1179,7 +1179,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1188,9 +1188,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1213,7 +1213,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch interception should not happen when domain is not the one that they gave", async function () {
         await startST(5);
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
         let userId = "testing-supertokens-website";
 
@@ -1231,9 +1231,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
             method: "post",
             headers: {
                 Accept: "application/json",
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify({ userId }),
+            body: JSON.stringify({ userId })
         });
 
         assert.deepEqual(await loginResponse.text(), userId);
@@ -1249,7 +1249,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1259,7 +1259,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1268,9 +1268,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1286,7 +1286,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1296,7 +1296,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "https://google.com";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1305,9 +1305,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1323,7 +1323,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch cross domain", async () => {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1332,7 +1332,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1342,9 +1342,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1362,7 +1362,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 // send a get session request , which should do a refresh session request
                 let getSessionResponse = await fetch(`${BASE_URL}/`, {
                     method: "get",
-                    credentials: "include",
+                    credentials: "include"
                 });
 
                 // check that the getSession was successfull
@@ -1377,9 +1377,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await logoutResponse.text(), "success");
 
@@ -1395,7 +1395,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch cross domain, auto add credentials", async () => {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1404,7 +1404,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1413,9 +1413,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1432,7 +1432,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 await delay(5);
                 // send a get session request , which should do a refresh session request
                 let getSessionResponse = await fetch(`${BASE_URL}/`, {
-                    method: "get",
+                    method: "get"
                 });
 
                 // check that the getSession was successfull
@@ -1446,9 +1446,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await logoutResponse.text(), "success");
 
@@ -1464,7 +1464,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch cross domain, no auto add credentials, fail", async () => {
         await startST(5);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1474,7 +1474,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    autoAddCredentials: false,
+                    autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1483,9 +1483,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1502,7 +1502,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 await delay(5);
 
                 let resp = await fetch(`${BASE_URL}/`, {
-                    method: "get",
+                    method: "get"
                 });
                 assertEqual(resp.status, 401);
 
@@ -1513,15 +1513,15 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // send a get session request , which should do a refresh session request
                 let getSessionResponse = await fetch(`${BASE_URL}/`, {
                     method: "get",
-                    credentials: "include",
+                    credentials: "include"
                 });
 
                 // check that the getSession was successfull
@@ -1536,9 +1536,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assertEqual(await logoutResponse.text(), "success");
 
@@ -1553,7 +1553,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test with fetch that if multiple interceptors are there, they should all work", async function () {
         await startST(5);
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
         let userId = "testing-supertokens-website";
 
@@ -1564,8 +1564,8 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 headers: {
                     ...testConfig.headers,
                     interceptorHeader1: "value1",
-                    interceptorHeader2: "value2",
-                },
+                    interceptorHeader2: "value2"
+                }
             };
             let response = await fetch(url, testConfig);
             let requestValue = await response.text();
@@ -1574,11 +1574,11 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 headers: {
                     ...response.headers,
                     doInterception3: "value3",
-                    doInterception4: "value4",
+                    doInterception4: "value4"
                 },
                 body: {
-                    key: requestValue,
-                },
+                    key: requestValue
+                }
             };
             return response;
         };
@@ -1588,9 +1588,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                doMultipleInterceptors: "true",
+                doMultipleInterceptors: "true"
             },
-            body: JSON.stringify({ userId }),
+            body: JSON.stringify({ userId })
         });
         assert.deepEqual(multipleInterceptorResponse.body.key, "success");
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception3, undefined);
@@ -1600,7 +1600,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("fetch check sessionDoes exist calls refresh API just once", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1609,7 +1609,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -1636,9 +1636,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1656,7 +1656,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("fetch check clearing all frontend set cookies still works (without anti-csrf)", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1676,7 +1676,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1687,9 +1687,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1719,7 +1719,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("fetch check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1739,7 +1739,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1750,9 +1750,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1782,7 +1782,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test that unauthorised event is not fired on initial page load", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1800,7 +1800,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log("ST_" + event.action);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1808,9 +1808,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1825,7 +1825,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test that unauthorised event is fired when calling protected route without a session", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1843,7 +1843,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let response = await fetch(`${BASE_URL}/`);
                 assertEqual(response.status, 401);
@@ -1863,7 +1863,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
     it("test that setting headers works", async function () {
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1873,7 +1873,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 page.evaluate(async () => {
                     let BASE_URL = "http://localhost.org:8080";
                     supertokens.init({
-                        apiDomain: BASE_URL,
+                        apiDomain: BASE_URL
                     });
                     await fetch(new Request(`${BASE_URL}/test`, { headers: { asdf: "123" } }));
                     await fetch(`${BASE_URL}/test2`, { headers: { asdf2: "123" } });
@@ -1881,7 +1881,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 }),
                 page.waitForRequest(`${BASE_URL}/test`),
                 page.waitForRequest(`${BASE_URL}/test2`),
-                page.waitForRequest(`${BASE_URL}/test3`),
+                page.waitForRequest(`${BASE_URL}/test3`)
             ]);
 
             assert.equal(req1.headers()["rid"], "anti-csrf");
@@ -1900,7 +1900,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1918,7 +1918,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1926,9 +1926,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -1962,7 +1962,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -1980,7 +1980,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1988,9 +1988,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2030,7 +2030,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("refresh session with invalid tokens should clear all cookies", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -2039,16 +2039,16 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await fetch(`${BASE_URL}/login`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
 
@@ -2086,7 +2086,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -2101,15 +2101,15 @@ describe("Fetch AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -2117,16 +2117,16 @@ describe("Fetch AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                         firstPost = false;
                     } else {
                         req.respond({
                             status: 500,
                             body: JSON.stringify({
-                                message: "test",
-                            }),
+                                message: "test"
+                            })
                         });
                     }
                 } else {
@@ -2140,7 +2140,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -2148,9 +2148,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 let response = await fetch(`${BASE_URL}/`, { method: "GET" });
@@ -2167,7 +2167,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("no refresh call after 401 response that removes session", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -2185,15 +2185,15 @@ describe("Fetch AuthHttpRequest class tests", function () {
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
                                 "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                            ],
-                        },
+                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+                            ]
+                        }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 401,
-                        body: JSON.stringify({ message: "nope" }),
+                        body: JSON.stringify({ message: "nope" })
                     });
                 } else {
                     req.continue();
@@ -2206,21 +2206,21 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 await fetch(`${BASE_URL}/login`, {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 const resp = await fetch(`${BASE_URL}/`, {
                     method: "GET",
-                    headers: { "Cache-Control": "no-cache, private" },
+                    headers: { "Cache-Control": "no-cache, private" }
                 });
 
                 assertNotEqual(resp, undefined);
@@ -2241,7 +2241,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("original endpoint responding with 500 should not call refresh without cookies", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -2254,16 +2254,16 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "test",
-                        }),
+                            message: "test"
+                        })
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "nope",
-                        }),
+                            message: "nope"
+                        })
                     });
                 } else {
                     req.continue();
@@ -2276,7 +2276,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let response = await fetch(`${BASE_URL}/`, { method: "GET" });
@@ -2302,7 +2302,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2316,7 +2316,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2327,7 +2327,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2337,9 +2337,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2360,9 +2360,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -2378,9 +2378,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ newClaim: "newValue" }),
+                    body: JSON.stringify({ newClaim: "newValue" })
                 });
 
                 // Get access token payload
@@ -2400,9 +2400,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2434,9 +2434,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2463,7 +2463,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2477,7 +2477,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2488,7 +2488,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2498,9 +2498,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2521,9 +2521,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -2539,13 +2539,13 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         ...accessTokenPayload,
                         customClaim: undefined,
-                        newClaim: "newValue",
-                    }),
+                        newClaim: "newValue"
+                    })
                 });
 
                 // Get access token payload
@@ -2565,9 +2565,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2594,7 +2594,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2608,7 +2608,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2619,7 +2619,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2629,9 +2629,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2652,9 +2652,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -2669,11 +2669,11 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
-                    }),
+                        jwtPropertyName: "customJWTProperty"
+                    })
                 });
 
                 // Update access token payload
@@ -2681,9 +2681,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ newClaim: "newValue" }),
+                    body: JSON.stringify({ newClaim: "newValue" })
                 });
 
                 // Get access token payload
@@ -2704,9 +2704,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2733,7 +2733,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2747,7 +2747,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2758,7 +2758,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2768,9 +2768,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2791,9 +2791,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -2808,11 +2808,11 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
-                    }),
+                        jwtPropertyName: "customJWTProperty"
+                    })
                 });
 
                 let attemptRefresh = await supertokens.attemptRefreshingSession();
@@ -2835,9 +2835,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2863,7 +2863,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2877,7 +2877,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2888,7 +2888,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2898,9 +2898,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -2920,9 +2920,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -2950,9 +2950,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = await decodeResponse.json();
@@ -2983,7 +2983,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -2997,14 +2997,14 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else if (url === BASE_URL + "/jwtVerify") {
                     let data = JSON.parse(req.postData());
                     let jwt = data.jwt;
                     let jwksURL = data.jwksURL;
                     let client = jwksClient({
-                        jwksUri: jwksURL,
+                        jwksUri: jwksURL
                     });
 
                     function getKey(header, callback) {
@@ -3024,15 +3024,15 @@ describe("Fetch AuthHttpRequest class tests", function () {
                             req.respond({
                                 status: 500,
                                 body: JSON.stringify({
-                                    error: err,
-                                }),
+                                    error: err
+                                })
                             });
                             return;
                         }
 
                         req.respond({
                             status: 200,
-                            body: JSON.stringify(decoded),
+                            body: JSON.stringify(decoded)
                         });
                     });
                 } else {
@@ -3044,7 +3044,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -3054,9 +3054,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -3076,9 +3076,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = await decodeResponse.json();
@@ -3099,12 +3099,12 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         jwt,
-                        jwksURL: jwksEndpoint,
-                    }),
+                        jwksURL: jwksEndpoint
+                    })
                 });
 
                 if (verifyResponse.status !== 200) {
@@ -3126,7 +3126,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -3143,7 +3143,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3151,18 +3151,18 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
                 await fetch(`${BASE_URL}/update-jwt`, {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 1 }),
+                    body: JSON.stringify({ test: 1 })
                 });
                 console.log("TEST_EV$UPDATE1_FINISH");
                 await delay(5);
@@ -3170,8 +3170,8 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -3179,9 +3179,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 2 }),
+                    body: JSON.stringify({ test: 2 })
                 });
                 console.log("TEST_EV$UPDATE2_FINISH");
                 await delay(5);
@@ -3190,9 +3190,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 3 }),
+                    body: JSON.stringify({ test: 3 })
                 });
                 console.log("TEST_EV$UPDATE3_FINISH");
 
@@ -3200,9 +3200,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -3217,7 +3217,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 "REFRESH_SESSION",
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE3_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         } finally {
             await browser.close();
@@ -3227,7 +3227,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -3244,7 +3244,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3252,9 +3252,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
 
@@ -3262,17 +3262,17 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 2 }),
+                    body: JSON.stringify({ test: 2 })
                 });
                 console.log("TEST_EV$PAYLOAD_DB_UPDATED");
                 await fetch(`${BASE_URL}/`, {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$QUERY_NO_REFRESH");
                 await delay(5);
@@ -3281,8 +3281,8 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -3290,9 +3290,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -3303,7 +3303,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "REFRESH_SESSION",
                 "REFRESH_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         } finally {
             await browser.close();
@@ -3313,7 +3313,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
     it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -3342,7 +3342,7 @@ describe("Fetch AuthHttpRequest class tests", function () {
                             const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
                             assertEqual(idRefreshInHeader, "remove");
                         }
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3350,9 +3350,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);

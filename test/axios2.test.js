@@ -36,7 +36,7 @@ let {
     getNumberOfTimesRefreshAttempted,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
-    resetAuthHttpRequestFetch,
+    resetAuthHttpRequestFetch
 } = require("./utils");
 const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
@@ -45,13 +45,13 @@ AuthHttpRequest.addAxiosInterceptors(axios);
 
 describe("Axios AuthHttpRequest class tests", function () {
     jsdom({
-        url: "http://localhost.org",
+        url: "http://localhost.org"
     });
 
     before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -77,7 +77,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("refresh session, signing key interval change", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -87,14 +87,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
@@ -122,7 +122,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("refresh session endpoint responding with 500 rejects original request with axios error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -137,21 +137,21 @@ describe("Axios AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -159,22 +159,22 @@ describe("Axios AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                         firstPost = false;
                     } else {
                         req.respond({
                             status: 500,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                message: "test",
-                            }),
+                                message: "test"
+                            })
                         });
                     }
                 } else {
@@ -189,14 +189,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let exception;
@@ -204,7 +204,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     const res = await axios({
                         url: `${BASE_URL}/`,
                         method: "GET",
-                        headers: { "Cache-Control": "no-cache, private" },
+                        headers: { "Cache-Control": "no-cache, private" }
                     });
                 } catch (ex) {
                     exception = ex;
@@ -224,7 +224,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("API returning 401 will not call refresh after logout", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -235,22 +235,22 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.evaluate(async (BASE_URL) => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 assertEqual(await logoutResponse.data, "success");
 
@@ -261,7 +261,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     await axios({
                         url: `${BASE_URL}/`,
                         method: "GET",
-                        headers: { "Cache-Control": "no-cache, private" },
+                        headers: { "Cache-Control": "no-cache, private" }
                     });
                 } catch (ex) {
                     exception = ex;
@@ -282,7 +282,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("refresh session endpoint responding with 401 rejects original call with axios error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -297,32 +297,32 @@ describe("Axios AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     req.respond({
                         status: 401,
                         headers: {
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            message: "test",
-                        }),
+                            message: "test"
+                        })
                     });
                     firstPost = false;
                 } else {
@@ -336,14 +336,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let exception;
@@ -351,7 +351,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     await axios({
                         url: `${BASE_URL}/`,
                         method: "GET",
-                        headers: { "Cache-Control": "no-cache, private" },
+                        headers: { "Cache-Control": "no-cache, private" }
                     });
                 } catch (ex) {
                     exception = ex;
@@ -371,7 +371,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("no refresh call after 401 response that removes session", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -390,18 +390,18 @@ describe("Axios AuthHttpRequest class tests", function () {
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
                                 "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                            ],
-                        },
+                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+                            ]
+                        }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 401,
                         headers: {
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ message: "nope" }),
+                        body: JSON.stringify({ message: "nope" })
                     });
                 } else {
                     req.continue();
@@ -415,14 +415,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let exception;
@@ -430,7 +430,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     await axios({
                         url: `${BASE_URL}/`,
                         method: "GET",
-                        headers: { "Cache-Control": "no-cache, private" },
+                        headers: { "Cache-Control": "no-cache, private" }
                     });
                 } catch (ex) {
                     exception = ex;
@@ -453,7 +453,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("original endpoint responding with 500 should not call refresh without cookies", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -465,22 +465,22 @@ describe("Axios AuthHttpRequest class tests", function () {
                     req.respond({
                         status: 500,
                         headers: {
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            message: "test",
-                        }),
+                            message: "test"
+                        })
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 500,
                         headers: {
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            message: "nope",
-                        }),
+                            message: "nope"
+                        })
                     });
                 } else {
                     req.continue();
@@ -493,7 +493,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 supertokens.addAxiosInterceptors(axios);
 
@@ -521,7 +521,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("refresh throwing an error with empty body doesn't cause an error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
@@ -537,27 +537,27 @@ describe("Axios AuthHttpRequest class tests", function () {
                         req.respond({
                             status: 401,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             headers: {
-                                "Content-Type": "application/json",
+                                "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     req.respond({
                         status: 401,
-                        body: new Uint8Array(),
+                        body: new Uint8Array()
                     });
                     firstPost = false;
                 } else {
@@ -571,21 +571,21 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 let exception;
                 try {
                     await axios({
                         url: `${BASE_URL}/`,
                         method: "GET",
-                        headers: { "Cache-Control": "no-cache, private" },
+                        headers: { "Cache-Control": "no-cache, private" }
                     });
                 } catch (ex) {
                     exception = ex;
@@ -612,7 +612,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -626,7 +626,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -638,7 +638,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -647,8 +647,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
@@ -668,8 +668,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let decodedJWT = await decodeResponse.data;
@@ -686,13 +686,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                     JSON.stringify({
                         ...accessTokenPayload,
                         customClaim: undefined,
-                        newClaim: "newValue",
+                        newClaim: "newValue"
                     }),
                     {
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
+                            "Content-Type": "application/json"
+                        }
                     }
                 );
 
@@ -712,8 +712,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 decodedJWT = await decodeResponse.data;
@@ -740,7 +740,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -754,7 +754,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -766,7 +766,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -775,8 +775,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 assertEqual(loginResponse.data, userId);
@@ -796,8 +796,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let decodedJWT = await decodeResponse.data;
@@ -811,13 +811,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.post(
                     `${BASE_URL}/reinitialiseBackendConfig`,
                     JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
+                        jwtPropertyName: "customJWTProperty"
                     }),
                     {
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
+                            "Content-Type": "application/json"
+                        }
                     }
                 );
 
@@ -825,8 +825,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.post(`${BASE_URL}/update-jwt`, JSON.stringify({ newClaim: "newValue" }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 // Get access token payload
@@ -846,8 +846,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 decodedJWT = await decodeResponse.data;
@@ -874,7 +874,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -888,7 +888,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -900,7 +900,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -909,8 +909,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 assertEqual(await loginResponse.data, userId);
@@ -930,8 +930,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let decodedJWT = await decodeResponse.data;
@@ -945,13 +945,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.post(
                     `${BASE_URL}/reinitialiseBackendConfig`,
                     JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
+                        jwtPropertyName: "customJWTProperty"
                     }),
                     {
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
+                            "Content-Type": "application/json"
+                        }
                     }
                 );
 
@@ -974,8 +974,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 decodedJWT = await decodeResponse.data;
@@ -1001,7 +1001,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1015,7 +1015,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -1027,7 +1027,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -1036,8 +1036,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 assertEqual(loginResponse.data, userId);
@@ -1056,8 +1056,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let decodedJWT = decodeResponse.data;
@@ -1083,8 +1083,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 decodedJWT = decodeResponse.data;
@@ -1115,7 +1115,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
 
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1129,14 +1129,14 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else if (url === BASE_URL + "/jwtVerify") {
                     let data = JSON.parse(req.postData());
                     let jwt = data.jwt;
                     let jwksURL = data.jwksURL;
                     let client = jwksClient({
-                        jwksUri: jwksURL,
+                        jwksUri: jwksURL
                     });
 
                     function getKey(header, callback) {
@@ -1156,15 +1156,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                             req.respond({
                                 status: 500,
                                 body: JSON.stringify({
-                                    error: err,
-                                }),
+                                    error: err
+                                })
                             });
                             return;
                         }
 
                         req.respond({
                             status: 200,
-                            body: JSON.stringify(decoded),
+                            body: JSON.stringify(decoded)
                         });
                     });
                 } else {
@@ -1177,7 +1177,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -1186,8 +1186,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 assertEqual(loginResponse.data, userId);
@@ -1206,8 +1206,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let decodeResponse = await axios.post(`${BASE_URL}/jsondecode`, JSON.stringify({ jwt }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
                 let decodedJWT = decodeResponse.data;
@@ -1228,13 +1228,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                     `${BASE_URL}/jwtVerify`,
                     JSON.stringify({
                         jwt,
-                        jwksURL: jwksEndpoint,
+                        jwksURL: jwksEndpoint
                     }),
                     {
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
+                            "Content-Type": "application/json"
+                        }
                     }
                 );
 
@@ -1277,7 +1277,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1295,7 +1295,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
                 supertokens.addAxiosInterceptors(axios);
                 let userId = "testing-supertokens-website";
@@ -1303,8 +1303,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
                 await axios.post(`${BASE_URL}/update-jwt`, { test: 1 });
@@ -1313,8 +1313,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.get(`${BASE_URL}/`, {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -1331,9 +1331,9 @@ describe("Axios AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -1348,7 +1348,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 "REFRESH_SESSION",
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE3_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         } finally {
             await browser.close();
@@ -1358,7 +1358,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1376,7 +1376,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
                 supertokens.addAxiosInterceptors(axios);
                 let userId = "testing-supertokens-website";
@@ -1384,31 +1384,31 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
                 await axios.post(`${BASE_URL}/update-jwt-with-handle`, {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 1 }),
+                    body: JSON.stringify({ test: 1 })
                 });
                 console.log("TEST_EV$PAYLOAD_DB_UPDATED");
                 await axios.get(`${BASE_URL}/`, {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$QUERY_NO_REFRESH");
                 await delay(5);
                 await axios.get(`${BASE_URL}/`, {
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -1416,9 +1416,9 @@ describe("Axios AuthHttpRequest class tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -1429,7 +1429,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "REFRESH_SESSION",
                 "REFRESH_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         } finally {
             await browser.close();
@@ -1439,7 +1439,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("test no debug logs when its disabled", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1456,7 +1456,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
             });
             if (logs.length > 0) {
@@ -1470,7 +1470,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     it("test debug logs when its enabled", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -1488,7 +1488,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    enableDebugLogs: true,
+                    enableDebugLogs: true
                 });
             });
             if (logs.length <= 0) {

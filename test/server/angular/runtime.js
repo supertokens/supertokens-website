@@ -16,7 +16,7 @@
         /******/ /******/ var module = (__webpack_module_cache__[moduleId] = {
             /******/ // no module.id needed
             /******/ // no module.loaded needed
-            /******/ exports: {},
+            /******/ exports: {}
             /******/
         }); // Execute the module function
         /******/
@@ -134,7 +134,7 @@
         /******/ // undefined = chunk not loaded, null = chunk preloaded/prefetched
         /******/ // [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
         /******/ var installedChunks = {
-            /******/ runtime: 0,
+            /******/ runtime: 0
             /******/
         }; /******/ /******/ /******/ /******/ /******/ // no chunk on demand loading // no prefetching // no preloaded // no HMR // no HMR manifest
         /******/

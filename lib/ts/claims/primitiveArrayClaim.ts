@@ -43,7 +43,7 @@ export class PrimitiveArrayClaim<ValueType> {
                     if (claimVal === undefined) {
                         return {
                             isValid: false,
-                            reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal },
+                            reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
                     const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
@@ -53,18 +53,18 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "expired",
                                 ageInSeconds,
-                                maxAgeInSeconds,
-                            },
+                                maxAgeInSeconds
+                            }
                         };
                     }
                     if (!claimVal.includes(val)) {
                         return {
                             isValid: false,
-                            reason: { message: "wrong value", expectedToInclude: val, actualValue: claimVal },
+                            reason: { message: "wrong value", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
                     return { isValid: true };
-                },
+                }
             };
         },
         excludes: (
@@ -87,8 +87,8 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "value does not exist",
                                 expectedToNotInclude: val,
-                                actualValue: claimVal,
-                            },
+                                actualValue: claimVal
+                            }
                         };
                     }
                     const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
@@ -98,18 +98,18 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "expired",
                                 ageInSeconds,
-                                maxAgeInSeconds,
-                            },
+                                maxAgeInSeconds
+                            }
                         };
                     }
                     if (claimVal.includes(val)) {
                         return {
                             isValid: false,
-                            reason: { message: "wrong value", expectedToNotInclude: val, actualValue: claimVal },
+                            reason: { message: "wrong value", expectedToNotInclude: val, actualValue: claimVal }
                         };
                     }
                     return { isValid: true };
-                },
+                }
             };
         },
         includesAll: (
@@ -129,7 +129,7 @@ export class PrimitiveArrayClaim<ValueType> {
                     if (claimVal === undefined) {
                         return {
                             isValid: false,
-                            reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal },
+                            reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
                     const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
@@ -139,8 +139,8 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "expired",
                                 ageInSeconds,
-                                maxAgeInSeconds,
-                            },
+                                maxAgeInSeconds
+                            }
                         };
                     }
                     const claimSet = new Set(claimVal);
@@ -149,9 +149,9 @@ export class PrimitiveArrayClaim<ValueType> {
                         ? { isValid }
                         : {
                               isValid,
-                              reason: { message: "wrong value", expectedToInclude: val, actualValue: claimVal },
+                              reason: { message: "wrong value", expectedToInclude: val, actualValue: claimVal }
                           };
-                },
+                }
             };
         },
         excludesAll: (
@@ -174,8 +174,8 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "value does not exist",
                                 expectedToNotInclude: val,
-                                actualValue: claimVal,
-                            },
+                                actualValue: claimVal
+                            }
                         };
                     }
 
@@ -186,8 +186,8 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: {
                                 message: "expired",
                                 ageInSeconds,
-                                maxAgeInSeconds,
-                            },
+                                maxAgeInSeconds
+                            }
                         };
                     }
                     const claimSet = new Set(claimVal);
@@ -196,10 +196,10 @@ export class PrimitiveArrayClaim<ValueType> {
                         ? { isValid: isValid }
                         : {
                               isValid,
-                              reason: { message: "wrong value", expectedToNotInclude: val, actualValue: claimVal },
+                              reason: { message: "wrong value", expectedToNotInclude: val, actualValue: claimVal }
                           };
-                },
+                }
             };
-        },
+        }
     };
 }

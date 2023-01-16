@@ -54,7 +54,7 @@ const defaultLocalStorageHandler: StorageHandler = {
     },
     setItemSync: function (key: string, value: string) {
         return getWindowOrThrow().localStorage.setItem(key, value);
-    },
+    }
 };
 
 const defaultSessionStorageHandler: StorageHandler = {
@@ -88,7 +88,7 @@ const defaultSessionStorageHandler: StorageHandler = {
     },
     setItemSync: function (key: string, value: string) {
         return getWindowOrThrow().sessionStorage.setItem(key, value);
-    },
+    }
 };
 
 export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
@@ -98,7 +98,7 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
         },
         getState: function () {
             return getWindowOrThrow().history.state;
-        },
+        }
     },
     location: {
         getHref: function () {
@@ -129,11 +129,11 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
         },
         getOrigin: function () {
             return getWindowOrThrow().location.origin;
-        },
+        }
     },
     getDocument: function () {
         return getWindowOrThrow().document;
     },
     localStorage: defaultLocalStorageHandler,
-    sessionStorage: defaultSessionStorageHandler,
+    sessionStorage: defaultSessionStorageHandler
 };

@@ -27,7 +27,7 @@ let {
     BASE_URL,
     BASE_URL_FOR_ST,
     coreTagEqualToOrAfter,
-    checkIfJWTIsEnabled,
+    checkIfJWTIsEnabled
 } = require("./utils");
 const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
@@ -72,7 +72,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 setupFunc,
                 {
                     // enableDebugLogs: true,
-                    ...config,
+                    ...config
                 },
                 ...setupArgs
             );
@@ -81,7 +81,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         before(async function () {
             spawn("./test/startServer", [
                 process.env.INSTALL_PATH,
-                process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+                process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
             ]);
             await new Promise((r) => setTimeout(r, 1000));
         });
@@ -105,7 +105,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 try {
                     browser = await puppeteer.launch({
                         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                        headless: true,
+                        headless: true
                     });
                 } catch {}
             }
@@ -169,9 +169,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.statusCode, 200);
@@ -204,15 +204,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else {
@@ -226,9 +226,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.statusCode, 200);
@@ -262,9 +262,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(await loginResponse.responseText, userId);
@@ -289,7 +289,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         it("test sameSite is none if using iframe", async function () {
             await startST(3);
             await setup({
-                isInIframe: true,
+                isInIframe: true
             });
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
@@ -299,9 +299,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
 
@@ -321,9 +321,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -344,9 +344,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -370,9 +370,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -396,9 +396,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -412,9 +412,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key: "łukasz 馬 / 马" }),
+                    body: JSON.stringify({ key: "łukasz 馬 / 马" })
                 });
                 let data1 = JSON.parse(testResponse1.responseText);
                 assert.strictEqual(data1.key, "łukasz 馬 / 马");
@@ -440,9 +440,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ key1: " łukasz data1" }),
+                    body: JSON.stringify({ key1: " łukasz data1" })
                 });
                 let data3 = JSON.parse(testResponse3.responseText);
                 assert.strictEqual(data3.key1, " łukasz data1");
@@ -474,9 +474,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -487,8 +487,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue",
-                    },
+                        testing: "testValue"
+                    }
                 });
 
                 // check that output is success
@@ -502,9 +502,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -515,8 +515,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue",
-                    },
+                        testing: "testValue"
+                    }
                 });
 
                 // check that output is success
@@ -540,9 +540,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -568,7 +568,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -578,9 +578,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -596,9 +596,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -635,9 +635,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -670,9 +670,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
@@ -689,7 +689,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         toTest({
                             url: `${BASE_URL}/`,
                             method: "GET",
-                            headers: { "Cache-Control": "no-cache, private" },
+                            headers: { "Cache-Control": "no-cache, private" }
                         })
                     );
                 }
@@ -725,9 +725,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
@@ -745,9 +745,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
@@ -762,7 +762,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError` });
@@ -777,7 +777,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=400` });
@@ -792,7 +792,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=405` });
@@ -808,7 +808,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError#superTokensDoNotDoInterception`, method: "get" });
@@ -825,12 +825,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({
                     url: `${BASE_URL}/testError?code=400#superTokensDoNotDoInterception`,
-                    method: "get",
+                    method: "get"
                 });
 
                 assert.strictEqual(val.responseText, "test error message");
@@ -845,7 +845,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=405`, method: "get" });
@@ -872,7 +872,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let caught;
@@ -903,7 +903,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let caught;
@@ -923,7 +923,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
             await page.evaluate(async () => {
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -932,14 +932,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let logoutResponse = await toTest({
@@ -947,9 +947,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -963,9 +963,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -979,7 +979,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -989,9 +989,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1018,7 +1018,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1027,9 +1027,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1039,9 +1039,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -1064,7 +1064,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1074,9 +1074,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1135,7 +1135,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1145,9 +1145,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1163,7 +1163,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "https://google.com";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1173,9 +1173,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1197,9 +1197,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1223,9 +1223,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1256,9 +1256,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1280,9 +1280,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1312,9 +1312,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1331,7 +1331,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    autoAddCredentials: false,
+                    autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1341,9 +1341,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1370,9 +1370,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // send a get session request , which should do a refresh session request
@@ -1391,9 +1391,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1432,9 +1432,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1464,7 +1464,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1476,9 +1476,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1520,7 +1520,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1532,9 +1532,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 // call sessionDoesExist
@@ -1573,7 +1573,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log("ST_" + event.action);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1582,9 +1582,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1608,7 +1608,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let response = await toTest({ url: `${BASE_URL}/` });
                 assert.strictEqual(response.statusCode, 401);
@@ -1629,13 +1629,13 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 page.evaluate(async () => {
                     let BASE_URL = "http://localhost.org:8080";
                     supertokens.init({
-                        apiDomain: BASE_URL,
+                        apiDomain: BASE_URL
                     });
                     await toTest({ url: `${BASE_URL}/test2`, headers: { asdf2: "123" } });
                     await toTest({ url: `${BASE_URL}/test3` });
                 }),
                 page.waitForRequest(`${BASE_URL}/test2`),
-                page.waitForRequest(`${BASE_URL}/test3`),
+                page.waitForRequest(`${BASE_URL}/test3`)
             ]);
 
             assert.equal(req2.headers()["rid"], "anti-csrf");
@@ -1661,7 +1661,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1670,9 +1670,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1715,7 +1715,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     apiDomain: BASE_URL,
                     onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1724,9 +1724,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1771,9 +1771,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
 
@@ -1821,15 +1821,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                     } else {
                         req.respond({
                             status: 200,
                             body: JSON.stringify({
-                                success: true,
-                            }),
+                                success: true
+                            })
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -1837,16 +1837,16 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token",
-                            }),
+                                message: "try refresh token"
+                            })
                         });
                         firstPost = false;
                     } else {
                         req.respond({
                             status: 500,
                             body: JSON.stringify({
-                                message: "test",
-                            }),
+                                message: "test"
+                            })
                         });
                     }
                 } else {
@@ -1858,7 +1858,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1867,9 +1867,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 let response = await toTest({ url: `${BASE_URL}/`, method: "GET" });
@@ -1896,15 +1896,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
                                 "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                            ],
-                        },
+                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+                            ]
+                        }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 401,
-                        body: JSON.stringify({ message: "nope" }),
+                        body: JSON.stringify({ message: "nope" })
                     });
                 } else {
                     req.continue();
@@ -1918,15 +1918,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 const resp = await toTest({
                     url: `${BASE_URL}/`,
                     method: "GET",
-                    headers: { "Cache-Control": "no-cache, private" },
+                    headers: { "Cache-Control": "no-cache, private" }
                 });
 
                 assertNotEqual(resp, undefined);
@@ -1952,16 +1952,16 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "test",
-                        }),
+                            message: "test"
+                        })
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "nope",
-                        }),
+                            message: "nope"
+                        })
                     });
                 } else {
                     req.continue();
@@ -1998,7 +1998,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2007,7 +2007,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2018,9 +2018,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2042,9 +2042,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2061,9 +2061,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ newClaim: "newValue" }),
+                    body: JSON.stringify({ newClaim: "newValue" })
                 });
 
                 // Get access token payload
@@ -2084,9 +2084,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2119,9 +2119,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2154,7 +2154,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2163,7 +2163,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2174,9 +2174,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2198,9 +2198,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2217,13 +2217,13 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         ...accessTokenPayload,
                         customClaim: undefined,
-                        newClaim: "newValue",
-                    }),
+                        newClaim: "newValue"
+                    })
                 });
 
                 // Get access token payload
@@ -2244,9 +2244,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2279,7 +2279,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2288,7 +2288,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2299,9 +2299,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2323,9 +2323,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2341,11 +2341,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
-                    }),
+                        jwtPropertyName: "customJWTProperty"
+                    })
                 });
 
                 // Update access token payload
@@ -2354,9 +2354,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ newClaim: "newValue" }),
+                    body: JSON.stringify({ newClaim: "newValue" })
                 });
 
                 // Get access token payload
@@ -2378,9 +2378,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2413,7 +2413,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2422,7 +2422,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2433,9 +2433,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2457,9 +2457,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2475,11 +2475,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty",
-                    }),
+                        jwtPropertyName: "customJWTProperty"
+                    })
                 });
 
                 let attemptRefresh = await supertokens.attemptRefreshingSession();
@@ -2503,9 +2503,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2537,7 +2537,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else {
                     req.continue();
@@ -2546,7 +2546,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2557,9 +2557,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2580,9 +2580,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2611,9 +2611,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2649,14 +2649,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT),
+                        body: JSON.stringify(decodedJWT)
                     });
                 } else if (url === BASE_URL + "/jwtVerify") {
                     let data = JSON.parse(req.postData());
                     let jwt = data.jwt;
                     let jwksURL = data.jwksURL;
                     let client = jwksClient({
-                        jwksUri: jwksURL,
+                        jwksUri: jwksURL
                     });
 
                     function getKey(header, callback) {
@@ -2676,15 +2676,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             req.respond({
                                 status: 500,
                                 body: JSON.stringify({
-                                    error: err,
-                                }),
+                                    error: err
+                                })
                             });
                             return;
                         }
 
                         req.respond({
                             status: 200,
-                            body: JSON.stringify(decoded),
+                            body: JSON.stringify(decoded)
                         });
                     });
                 } else {
@@ -2701,9 +2701,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2724,9 +2724,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ jwt }),
+                    body: JSON.stringify({ jwt })
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2748,12 +2748,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         jwt,
-                        jwksURL: jwksEndpoint,
-                    }),
+                        jwksURL: jwksEndpoint
+                    })
                 });
 
                 if (verifyResponse.statusCode !== 200) {
@@ -2783,7 +2783,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2793,9 +2793,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
                 await toTest({
@@ -2803,9 +2803,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 1 }),
+                    body: JSON.stringify({ test: 1 })
                 });
                 console.log("TEST_EV$UPDATE1_FINISH");
                 await delay(5);
@@ -2814,8 +2814,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -2824,9 +2824,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 2 }),
+                    body: JSON.stringify({ test: 2 })
                 });
                 console.log("TEST_EV$UPDATE2_FINISH");
                 assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 2);
@@ -2837,9 +2837,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 3 }),
+                    body: JSON.stringify({ test: 3 })
                 });
                 assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 3);
                 console.log("TEST_EV$UPDATE3_FINISH");
@@ -2849,9 +2849,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -2866,7 +2866,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 "REFRESH_SESSION",
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE3_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         });
 
@@ -2885,7 +2885,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let userId = "testing-supertokens-website";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`)
                 });
 
                 await toTest({
@@ -2893,9 +2893,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
 
@@ -2904,9 +2904,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ test: 2 }),
+                    body: JSON.stringify({ test: 2 })
                 });
                 console.log("TEST_EV$PAYLOAD_DB_UPDATED");
                 await toTest({
@@ -2914,8 +2914,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$QUERY_NO_REFRESH");
                 await delay(5);
@@ -2925,8 +2925,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -2935,9 +2935,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
             });
             assert.deepEqual(logs, [
@@ -2948,7 +2948,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "REFRESH_SESSION",
                 "REFRESH_FINISH",
-                "SIGN_OUT",
+                "SIGN_OUT"
             ]);
         });
 
@@ -2978,7 +2978,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
                             assert.strictEqual(idRefreshInHeader, "remove");
                         }
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -2987,9 +2987,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -3032,7 +3032,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
                             assert.strictEqual(idRefreshInHeader, "remove");
                         }
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3041,9 +3041,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);

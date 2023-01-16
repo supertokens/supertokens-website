@@ -66,11 +66,11 @@ module.exports.startST = async function (
         if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
             let instance = axios.create();
             await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
-                enableAntiCsrf,
+                enableAntiCsrf
             });
 
             await instance.post(module.exports.BASE_URL + "/setEnableJWT", {
-                enableJWT,
+                enableJWT
             });
         }
     }
@@ -80,7 +80,7 @@ module.exports.startST = async function (
             accessTokenValidity,
             enableAntiCsrf,
             accessTokenSigningKeyUpdateInterval,
-            enableJWT,
+            enableJWT
         });
         return response.data;
     }

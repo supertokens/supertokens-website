@@ -26,13 +26,13 @@ describe("Window handler tests", function () {
     let consoleLogs = [];
 
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
 
     before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -58,7 +58,7 @@ describe("Window handler tests", function () {
 
     it("Test that window handler is set when calling init", function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
 
         // If window handler isnt set then this will throw
@@ -82,7 +82,7 @@ describe("Window handler tests", function () {
     it("Test that using default window handlers works fine", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -92,7 +92,7 @@ describe("Window handler tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -100,9 +100,9 @@ describe("Window handler tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -127,7 +127,7 @@ describe("Window handler tests", function () {
     it("Test that using custom window handler works as expected", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -159,10 +159,10 @@ describe("Window handler tests", function () {
                                 getHostName: function () {
                                     console.log("ST_LOGS GET_HOST_NAME");
                                     return original.location.getHostName();
-                                },
-                            },
+                                }
+                            }
                         };
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -170,9 +170,9 @@ describe("Window handler tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -189,7 +189,7 @@ describe("Window handler tests", function () {
     it("Test that making a request with only path results in getOrigin being called", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -221,10 +221,10 @@ describe("Window handler tests", function () {
                                 getHostName: function () {
                                     console.log("ST_LOGS GET_HOST_NAME");
                                     return original.location.getHostName();
-                                },
-                            },
+                                }
+                            }
                         };
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -232,9 +232,9 @@ describe("Window handler tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -250,7 +250,7 @@ describe("Window handler tests", function () {
     it("Test that errors thrown in custom handlers get propogated correctly", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -283,10 +283,10 @@ describe("Window handler tests", function () {
                                     },
                                     getHostName: function () {
                                         throw new Error("GET_HOST_NAME: Expected error in tests");
-                                    },
-                                },
+                                    }
+                                }
                             };
-                        },
+                        }
                     });
                 } catch (e) {
                     if (e.message === "GET_HOST_NAME: Expected error in tests") {
@@ -304,7 +304,7 @@ describe("Window handler tests", function () {
     it("Test that errors thrown in custom handlers get propogated correctly (getOrigin)", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -334,10 +334,10 @@ describe("Window handler tests", function () {
                                     ...original.location,
                                     getOrigin: function () {
                                         throw new Error("GET_ORIGIN: Expected error in tests");
-                                    },
-                                },
+                                    }
+                                }
                             };
-                        },
+                        }
                     });
 
                     let userId = "testing-supertokens-website";
@@ -346,9 +346,9 @@ describe("Window handler tests", function () {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
                 } catch (e) {
                     if (e.message === "GET_ORIGIN: Expected error in tests") {

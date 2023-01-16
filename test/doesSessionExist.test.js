@@ -23,7 +23,7 @@ const assert = require("assert");
 
 describe("doesSessionExist", function () {
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
 
     let browser;
@@ -31,7 +31,7 @@ describe("doesSessionExist", function () {
     before(async () => {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -54,7 +54,7 @@ describe("doesSessionExist", function () {
         await instance.post(BASE_URL + "/beforeeach");
 
         browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
     });
 
@@ -86,7 +86,7 @@ describe("doesSessionExist", function () {
         await page.evaluate(async () => {
             let BASE_URL = "http://localhost.org:8080";
             supertokens.init({
-                apiDomain: BASE_URL,
+                apiDomain: BASE_URL
             });
 
             const res = await supertokens.doesSessionExist();
@@ -106,7 +106,7 @@ describe("doesSessionExist", function () {
 
             if (url === BASE_URL + "/auth/session/refresh") {
                 return req.respond({
-                    status: 500,
+                    status: 500
                 });
             }
 
@@ -118,7 +118,7 @@ describe("doesSessionExist", function () {
         await page.evaluate(async () => {
             let BASE_URL = "http://localhost.org:8080";
             supertokens.init({
-                apiDomain: BASE_URL,
+                apiDomain: BASE_URL
             });
 
             const res = await supertokens.doesSessionExist();
@@ -148,7 +148,7 @@ describe("doesSessionExist", function () {
         await page.evaluate(async () => {
             let BASE_URL = "http://localhost.org:8080";
             supertokens.init({
-                apiDomain: BASE_URL,
+                apiDomain: BASE_URL
             });
 
             let userId = "testing-supertokens-website";
@@ -158,9 +158,9 @@ describe("doesSessionExist", function () {
                 method: "post",
                 headers: {
                     Accept: "application/json",
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
+                body: JSON.stringify({ userId })
             });
 
             await delay(3);
@@ -187,7 +187,7 @@ describe("doesSessionExist", function () {
             if (url === BASE_URL + "/auth/session/refresh") {
                 ++refreshCalled;
                 return req.respond({
-                    status: 500,
+                    status: 500
                 });
             }
 
@@ -199,7 +199,7 @@ describe("doesSessionExist", function () {
         await page.evaluate(async () => {
             let BASE_URL = "http://localhost.org:8080";
             supertokens.init({
-                apiDomain: BASE_URL,
+                apiDomain: BASE_URL
             });
 
             let userId = "testing-supertokens-website";
@@ -209,9 +209,9 @@ describe("doesSessionExist", function () {
                 method: "post",
                 headers: {
                     Accept: "application/json",
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ userId }),
+                body: JSON.stringify({ userId })
             });
 
             await delay(3);

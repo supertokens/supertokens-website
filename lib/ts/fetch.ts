@@ -56,7 +56,7 @@ export class AntiCsrfToken {
             }
             AntiCsrfToken.tokenInfo = {
                 antiCsrf,
-                associatedIdRefreshToken,
+                associatedIdRefreshToken
             };
         } else if (AntiCsrfToken.tokenInfo.associatedIdRefreshToken !== associatedIdRefreshToken) {
             // csrf token has changed.
@@ -82,7 +82,7 @@ export class AntiCsrfToken {
         await setAntiCSRF(antiCsrf);
         AntiCsrfToken.tokenInfo = {
             antiCsrf,
-            associatedIdRefreshToken,
+            associatedIdRefreshToken
         };
     }
 }
@@ -182,10 +182,10 @@ export default class AuthHttpRequest {
                 AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface
             ).addFetchInterceptorsAndReturnModifiedFetch({
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
-                userContext: {},
+                userContext: {}
             });
             (AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface).addXMLHttpRequestInterceptor({
-                userContext: {},
+                userContext: {}
             });
         }
         AuthHttpRequest.recipeImpl = AuthHttpRequest.env.__supertokensSessionRecipe;
@@ -251,7 +251,7 @@ export default class AuthHttpRequest {
                 );
                 let configWithAntiCsrf: RequestInit | undefined = {
                     ...config,
-                    headers: clonedHeaders,
+                    headers: clonedHeaders
                 };
                 if (preRequestIdToken.status === "EXISTS") {
                     const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
@@ -265,12 +265,12 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: Adding credentials include");
                     if (configWithAntiCsrf === undefined) {
                         configWithAntiCsrf = {
-                            credentials: "include",
+                            credentials: "include"
                         };
                     } else if (configWithAntiCsrf.credentials === undefined) {
                         configWithAntiCsrf = {
                             ...configWithAntiCsrf,
-                            credentials: "include",
+                            credentials: "include"
                         };
                     }
                 }
@@ -378,7 +378,7 @@ export async function onUnauthorisedResponse(
                     AuthHttpRequest.config.onHandleEvent({
                         action: "UNAUTHORISED",
                         sessionExpiredOrRevoked: false,
-                        userContext: {},
+                        userContext: {}
                     });
                     return { result: "SESSION_EXPIRED" };
                 }
@@ -401,7 +401,7 @@ export async function onUnauthorisedResponse(
                         logDebugMessage("onUnauthorisedResponse: Adding anti-csrf token to refresh API call");
                         headers = {
                             ...headers,
-                            "anti-csrf": antiCsrfToken,
+                            "anti-csrf": antiCsrfToken
                         };
                     }
                 }
@@ -409,7 +409,7 @@ export async function onUnauthorisedResponse(
                 headers = {
                     rid: AuthHttpRequest.rid, // adding for anti-csrf protection (via custom header)
                     ...headers,
-                    "fdi-version": supported_fdi.join(","),
+                    "fdi-version": supported_fdi.join(",")
                 };
                 logDebugMessage("onUnauthorisedResponse: Calling refresh pre API hook");
                 let preAPIResult = await AuthHttpRequest.config.preAPIHook({
@@ -417,10 +417,10 @@ export async function onUnauthorisedResponse(
                     requestInit: {
                         method: "post",
                         credentials: "include",
-                        headers,
+                        headers
                     },
                     url: AuthHttpRequest.refreshTokenUrl,
-                    userContext: {},
+                    userContext: {}
                 });
                 logDebugMessage("onUnauthorisedResponse: Making refresh call");
                 const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
@@ -454,7 +454,7 @@ export async function onUnauthorisedResponse(
                     fetchResponse: (response as Response).clone(),
                     requestInit: preAPIResult.requestInit,
                     url: preAPIResult.url,
-                    userContext: {},
+                    userContext: {}
                 });
 
                 if ((await getIdRefreshToken(false)).status === "NOT_EXISTS") {
@@ -483,7 +483,7 @@ export async function onUnauthorisedResponse(
                 }
                 AuthHttpRequest.config.onHandleEvent({
                     action: "REFRESH_SESSION",
-                    userContext: {},
+                    userContext: {}
                 });
                 logDebugMessage("onUnauthorisedResponse: Sending RETRY signal");
                 return { result: "RETRY" };
@@ -544,7 +544,7 @@ export function onTokenUpdate() {
     logDebugMessage("onTokenUpdate: firing ACCESS_TOKEN_PAYLOAD_UPDATED event");
     AuthHttpRequest.config.onHandleEvent({
         action: "ACCESS_TOKEN_PAYLOAD_UPDATED",
-        userContext: {},
+        userContext: {}
     });
 }
 
@@ -552,7 +552,7 @@ export async function onInvalidClaimResponse(response: ResponseWithBody) {
     try {
         const claimValidationErrors = await AuthHttpRequest.recipeImpl.getInvalidClaimsFromResponse({
             response,
-            userContext: {},
+            userContext: {}
         });
         // This shouldn't be undefined normally, but since we can't be certain about the shape of the response object so we check it like this.
         // It could still be something else, but chance of that happening by accident is really low.
@@ -560,7 +560,7 @@ export async function onInvalidClaimResponse(response: ResponseWithBody) {
             AuthHttpRequest.config.onHandleEvent({
                 action: "API_INVALID_CLAIM",
                 claimValidationErrors: claimValidationErrors,
-                userContext: {},
+                userContext: {}
             });
         }
     } catch {
@@ -608,14 +608,14 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     if (token === "remove") {
         logDebugMessage("getIdRefreshToken: is removed");
         return {
-            status: "NOT_EXISTS",
+            status: "NOT_EXISTS"
         };
     }
 
     if (token === undefined) {
         logDebugMessage("getIdRefreshToken: is undefined");
         let response: IdRefreshTokenType = {
-            status: "MAY_EXIST",
+            status: "MAY_EXIST"
         };
         if (tryRefresh) {
             logDebugMessage("getIdRefreshToken: trying to refresg");
@@ -626,7 +626,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
                 logDebugMessage("getIdRefreshToken: false NOT_EXISTS in case error from backend");
                 // in case the backend is not working, we treat it as the session not existing...
                 return {
-                    status: "NOT_EXISTS",
+                    status: "NOT_EXISTS"
                 };
             }
             logDebugMessage("getIdRefreshToken: Retrying post refresh");
@@ -640,7 +640,7 @@ export async function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshT
     logDebugMessage("getIdRefreshToken: returning EXISTS: " + token);
     return {
         status: "EXISTS",
-        token,
+        token
     };
 }
 
@@ -703,13 +703,13 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
             AuthHttpRequest.config.onHandleEvent({
                 action: "UNAUTHORISED",
                 sessionExpiredOrRevoked: true,
-                userContext: {},
+                userContext: {}
             });
         } else {
             logDebugMessage("setIdRefreshToken: firing SIGN_OUT event");
             AuthHttpRequest.config.onHandleEvent({
                 action: "SIGN_OUT",
-                userContext: {},
+                userContext: {}
             });
         }
     }
@@ -718,7 +718,7 @@ export async function setIdRefreshToken(idRefreshToken: string | "remove", statu
         logDebugMessage("setIdRefreshToken: firing SESSION_CREATED event");
         AuthHttpRequest.config.onHandleEvent({
             action: "SESSION_CREATED",
-            userContext: {},
+            userContext: {}
         });
     }
 }

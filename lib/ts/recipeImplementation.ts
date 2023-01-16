@@ -5,7 +5,7 @@ import {
     RecipePostAPIHookFunction,
     SessionClaimValidator,
     ClaimValidationError,
-    ResponseWithBody,
+    ResponseWithBody
 } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken, onUnauthorisedResponse } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
@@ -34,7 +34,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
                         return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
-                            ...config,
+                            ...config
                         });
                     },
                     config,
@@ -87,7 +87,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
                     return await this.getAccessTokenPayloadSecurely({
-                        userContext: input.userContext,
+                        userContext: input.userContext
                     });
                 } else {
                     throw new Error("Could not refresh session");
@@ -124,7 +124,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 logDebugMessage("signOut: firing SIGN_OUT event");
                 recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT",
-                    userContext: input.userContext,
+                    userContext: input.userContext
                 });
                 return;
             }
@@ -136,11 +136,11 @@ export default function RecipeImplementation(recipeImplInput: {
                     method: "post",
                     headers: {
                         "fdi-version": supported_fdi.join(","),
-                        rid: AuthHttpRequest.rid,
-                    },
+                        rid: AuthHttpRequest.rid
+                    }
                 },
                 url: AuthHttpRequest.signOutUrl,
-                userContext: input.userContext,
+                userContext: input.userContext
             });
 
             logDebugMessage("signOut: Calling API");
@@ -162,7 +162,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 requestInit: preAPIResult.requestInit,
                 url: preAPIResult.url,
                 fetchResponse: resp.clone(),
-                userContext: input.userContext,
+                userContext: input.userContext
             });
 
             let responseJson = await resp.clone().json();
@@ -231,12 +231,12 @@ export default function RecipeImplementation(recipeImplInput: {
                 if (!validationRes.isValid) {
                     errors.push({
                         validatorId: validator.id,
-                        reason: validationRes.reason,
+                        reason: validationRes.reason
                     });
                 }
             }
 
             return errors;
-        },
+        }
     };
 }

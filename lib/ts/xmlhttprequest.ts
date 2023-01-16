@@ -21,7 +21,7 @@ import AuthHttpRequestFetch, {
     FrontToken,
     onUnauthorisedResponse,
     IdRefreshTokenType,
-    onInvalidClaimResponse,
+    onInvalidClaimResponse
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -40,7 +40,7 @@ const XHR_EVENTS = [
     "loadend",
     "loadstart",
     "progress",
-    "timeout",
+    "timeout"
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
@@ -191,7 +191,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     } else {
                         if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                             await onInvalidClaimResponse({
-                                data: JSON.parse(xhr.responseText),
+                                data: JSON.parse(xhr.responseText)
                             });
                         }
                         let antiCsrfToken = headers.get("anti-csrf");
@@ -434,7 +434,7 @@ export function addInterceptorsToXMLHttpRequest() {
                                 });
                             }
                             return xhr[prop].apply(xhr, args);
-                        },
+                        }
                     });
                 } else {
                     // define our own property that just gets or sets the same prop on the actual
@@ -454,7 +454,7 @@ export function addInterceptorsToXMLHttpRequest() {
                             }
                             logDebugMessage(`XHRInterceptor.set[${prop}] = ${val}`);
                             xhr[prop] = val;
-                        },
+                        }
                     });
                 }
             }
@@ -534,6 +534,6 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(response: Respon
         responseText: data,
         statusText: response.statusText,
         responseType,
-        headers: response.headers,
+        headers: response.headers
     };
 }

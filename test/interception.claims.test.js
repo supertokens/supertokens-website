@@ -64,7 +64,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                 try {
                     browser = await puppeteer.launch({
                         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                        headless: true,
+                        headless: true
                     });
                 } catch {}
             }
@@ -110,9 +110,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
 
                     assertEqual(loginResponse.responseText, userId);
@@ -121,14 +121,14 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
                     assertEqual(resp.statusCode, 403);
 
                     const parsed = await supertokens.getInvalidClaimsFromResponse({
-                        response: { data: resp.responseText },
+                        response: { data: resp.responseText }
                     });
                     assertEqual(parsed.length, 1);
                     assertEqual(parsed[0].id, "test-claim-failing");
@@ -142,9 +142,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                     {
                         id: "test-claim-failing",
                         reason: {
-                            message: "testReason",
-                        },
-                    },
+                            message: "testReason"
+                        }
+                    }
                 ]);
             } finally {
                 await browser.close();
@@ -163,9 +163,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
 
                     assertEqual(loginResponse.responseText, userId);
@@ -174,9 +174,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
                     assertEqual(resp.statusCode, 403);
                 });

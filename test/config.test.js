@@ -20,7 +20,7 @@ let {
     normaliseSessionScopeOrThrowError,
     normaliseURLPathOrThrowError,
     normaliseURLDomainOrThrowError,
-    shouldDoInterceptionBasedOnUrl,
+    shouldDoInterceptionBasedOnUrl
 } = require("../lib/build/utils");
 let assert = require("assert");
 const { resetAuthHttpRequestFetch } = require("./utils.js");
@@ -28,7 +28,7 @@ let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 
 describe("Config tests", function () {
     jsdom({
-        url: "http://localhost.org",
+        url: "http://localhost.org"
     });
 
     beforeEach(async function () {
@@ -293,7 +293,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                apiBasePath: "/",
+                apiBasePath: "/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://example.com");
@@ -302,7 +302,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "https://api.example.com",
-                apiBasePath: "/some/path/",
+                apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://api.example.com/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://api.example.com");
@@ -311,7 +311,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "localhost",
-                apiBasePath: "/some/path/",
+                apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost");
@@ -320,7 +320,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "localhost:9000",
-                apiBasePath: "/some/path/",
+                apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost:9000/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost:9000");
@@ -329,7 +329,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "https://localhost:9000",
-                apiBasePath: "/some/path/",
+                apiBasePath: "/some/path/"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://localhost:9000/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://localhost:9000");
@@ -339,7 +339,7 @@ describe("Config tests", function () {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
                 apiBasePath: "/some/path/",
-                sessionExpiredStatusCode: 402,
+                sessionExpiredStatusCode: 402
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionExpiredStatusCode === 402);
@@ -347,7 +347,7 @@ describe("Config tests", function () {
 
         {
             AuthHttpRequest.init({
-                apiDomain: "example.com",
+                apiDomain: "example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
@@ -356,7 +356,7 @@ describe("Config tests", function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                sessionScope: "a.b.example.com",
+                sessionScope: "a.b.example.com"
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");

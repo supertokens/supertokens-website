@@ -366,7 +366,7 @@
                         onScheduleTask: (delegate, _, target, task) => delegate.scheduleTask(target, task),
                         onInvokeTask: (delegate, _, target, task, applyThis, applyArgs) =>
                             delegate.invokeTask(target, task, applyThis, applyArgs),
-                        onCancelTask: (delegate, _, target, task) => delegate.cancelTask(target, task),
+                        onCancelTask: (delegate, _, target, task) => delegate.cancelTask(target, task)
                     };
                     class _ZoneDelegate {
                         constructor(zone, parentDelegate, zoneSpec) {
@@ -567,7 +567,7 @@
                                     microTask: counts["microTask"] > 0,
                                     macroTask: counts["macroTask"] > 0,
                                     eventTask: counts["eventTask"] > 0,
-                                    change: type,
+                                    change: type
                                 };
                                 this.hasTask(this.zone, isEmpty);
                             }
@@ -657,7 +657,7 @@
                                 state: this.state,
                                 source: this.source,
                                 zone: this.zone.name,
-                                runCount: this.runCount,
+                                runCount: this.runCount
                             };
                         }
                     }
@@ -760,7 +760,7 @@
                         attachOriginToPatched: () => noop,
                         _redefineProperty: () => noop,
                         patchCallbacks: () => noop,
-                        nativeScheduleMicroTask: nativeScheduleMicroTask,
+                        nativeScheduleMicroTask: nativeScheduleMicroTask
                     };
                     let _currentZoneFrame = { parent: null, zone: new Zone(null, null) };
                     let _currentTask = null;
@@ -1080,7 +1080,7 @@
                                     },
                                     get: function () {
                                         return this[originalInstanceKey][prop];
-                                    },
+                                    }
                                 });
                             }
                         })(prop);
@@ -1356,7 +1356,7 @@
                                             configurable: true,
                                             enumerable: false,
                                             writable: true,
-                                            value: trace,
+                                            value: trace
                                         });
                                     }
                                 }
@@ -1540,7 +1540,7 @@
                             const P = this && this.prototype instanceof ZoneAwarePromise ? this : ZoneAwarePromise;
                             return P.allWithCallback(values, {
                                 thenCallback: (value) => ({ status: "fulfilled", value }),
-                                errorCallback: (err) => ({ status: "rejected", reason: err }),
+                                errorCallback: (err) => ({ status: "rejected", reason: err })
                             });
                         }
                         static allWithCallback(values, callback) {
@@ -1780,7 +1780,7 @@
                         const options = Object.defineProperty({}, "passive", {
                             get: function () {
                                 passiveSupported = true;
-                            },
+                            }
                         });
                         // Note: We pass the `options` object as the event handler too. This is not compatible with the
                         // signature of `addEventListener` or `removeEventListener` but enables us to remove the handler
@@ -1793,7 +1793,7 @@
                 }
                 // an identifier to tell ZoneTask do not create a new invoke closure
                 const OPTIMIZED_ZONE_EVENT_TASK_DATA = {
-                    useG: true,
+                    useG: true
                 };
                 const zoneSymbolEventNames = {};
                 const globalSources = {};
@@ -2541,7 +2541,7 @@
                             "HTMLFrameElement",
                             "HTMLIFrameElement",
                             "HTMLMarqueeElement",
-                            "Worker",
+                            "Worker"
                         ]);
                         const ignoreErrorProperties = isIE()
                             ? [{ target: internalWindow, ignoreProperties: ["error"] }]
@@ -2564,7 +2564,7 @@
                         "IDBDatabase",
                         "IDBTransaction",
                         "IDBCursor",
-                        "WebSocket",
+                        "WebSocket"
                     ]);
                     for (let i = 0; i < patchTargets.length; i++) {
                         const target = _global[patchTargets[i]];
@@ -2632,7 +2632,7 @@
                         FALSE_STR,
                         ZONE_SYMBOL_PREFIX,
                         ADD_EVENT_LISTENER_STR,
-                        REMOVE_EVENT_LISTENER_STR,
+                        REMOVE_EVENT_LISTENER_STR
                     });
                 });
 
@@ -2673,7 +2673,7 @@
                                             nameSuffix === "Timeout" || nameSuffix === "Interval"
                                                 ? args[1] || 0
                                                 : undefined,
-                                        args: args,
+                                        args: args
                                     };
                                     const callback = args[0];
                                     args[0] = function timer() {
@@ -2798,7 +2798,7 @@
                         "connectedCallback",
                         "disconnectedCallback",
                         "adoptedCallback",
-                        "attributeChangedCallback",
+                        "attributeChangedCallback"
                     ];
                     api.patchCallbacks(api, _global.customElements, "customElements", "define", callbacks);
                 }
@@ -3041,7 +3041,7 @@
                                             url: self[XHR_URL],
                                             isPeriodic: false,
                                             args: args,
-                                            aborted: false,
+                                            aborted: false
                                         };
                                         const task = scheduleMacroTaskWithCurrentZone(
                                             XMLHTTPREQUEST_SOURCE,
@@ -3108,7 +3108,7 @@
                                 if (PromiseRejectionEvent) {
                                     const evt = new PromiseRejectionEvent(evtName, {
                                         promise: e.promise,
-                                        reason: e.rejection,
+                                        reason: e.rejection
                                     });
                                     eventTask.invoke(evt);
                                 }
@@ -3123,13 +3123,13 @@
                 });
 
                 /***/
-            },
+            }
     },
     /******/ (__webpack_require__) => {
         // webpackRuntimeModules
         /******/ var __webpack_exec__ = (moduleId) => __webpack_require__((__webpack_require__.s = moduleId));
         /******/ var __webpack_exports__ = __webpack_exec__(7435);
         /******/
-    },
+    }
 ]);
 //# sourceMappingURL=polyfills.js.map

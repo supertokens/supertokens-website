@@ -42,7 +42,7 @@ function enhanceAxiosError(
             stack: this.stack,
             // Axios
             config: this.config,
-            code: this.code,
+            code: this.code
         };
     };
     return error;
@@ -51,7 +51,7 @@ function enhanceAxiosError(
 export async function createAxiosErrorFromFetchResp(response: Response): Promise<AxiosError> {
     const config = {
         url: response.url,
-        headers: response.headers,
+        headers: response.headers
     };
     const contentType = response.headers.get("content-type");
 
@@ -76,7 +76,7 @@ export async function createAxiosErrorFromFetchResp(response: Response): Promise
         statusText: response.statusText,
         headers: response.headers,
         config: config,
-        request: undefined,
+        request: undefined
     };
     return enhanceAxiosError(
         new Error("Request failed with status code " + response.status),

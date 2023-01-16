@@ -23,20 +23,20 @@ const passingValidator = {
     shouldRefresh: () => false,
     id: "test-validator-pass",
     refresh: () => {},
-    validate: () => ({ isValid: true }),
+    validate: () => ({ isValid: true })
 };
 
 const failingValidator = {
     shouldRefresh: () => false,
     id: "test-validator-fail",
     refresh: () => {},
-    validate: () => ({ isValid: false, reason: { message: "testReason" } }),
+    validate: () => ({ isValid: false, reason: { message: "testReason" } })
 };
 
 describe("AuthHttpRequest claim handling", function () {
     let accessTokenStub;
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
     beforeEach(async function () {
         sinon.restore();
@@ -49,9 +49,9 @@ describe("AuthHttpRequest claim handling", function () {
             override: {
                 functions: (oI) => ({
                     ...oI,
-                    getAccessTokenPayloadSecurely: accessTokenStub,
-                }),
-            },
+                    getAccessTokenPayloadSecurely: accessTokenStub
+                })
+            }
         });
     });
 
@@ -91,9 +91,9 @@ describe("AuthHttpRequest claim handling", function () {
                     {
                         validatorId: failingValidator.id,
                         reason: {
-                            message: "testReason",
-                        },
-                    },
+                            message: "testReason"
+                        }
+                    }
                 ]);
             });
         });
@@ -118,9 +118,9 @@ describe("AuthHttpRequest claim handling", function () {
                     {
                         validatorId: failingValidator.id,
                         reason: {
-                            message: "testReason",
-                        },
-                    },
+                            message: "testReason"
+                        }
+                    }
                 ]);
             });
 
@@ -133,34 +133,34 @@ describe("AuthHttpRequest claim handling", function () {
                             shouldRefresh: () => false,
                             id: "test-validator-fail2",
                             refresh: () => {},
-                            validate: () => ({ isValid: false, reason: { message: "testReason" } }),
+                            validate: () => ({ isValid: false, reason: { message: "testReason" } })
                         },
                         {
                             shouldRefresh: () => false,
                             id: "test-validator-fail3",
                             refresh: () => {},
-                            validate: () => ({ isValid: false, reason: { message: "testReason" } }),
-                        },
+                            validate: () => ({ isValid: false, reason: { message: "testReason" } })
+                        }
                     ]),
                     [
                         {
                             validatorId: failingValidator.id,
                             reason: {
-                                message: "testReason",
-                            },
+                                message: "testReason"
+                            }
                         },
                         {
                             validatorId: "test-validator-fail2",
                             reason: {
-                                message: "testReason",
-                            },
+                                message: "testReason"
+                            }
                         },
                         {
                             validatorId: "test-validator-fail3",
                             reason: {
-                                message: "testReason",
-                            },
-                        },
+                                message: "testReason"
+                            }
+                        }
                     ]
                 );
             });
@@ -185,14 +185,14 @@ describe("AuthHttpRequest claim handling", function () {
                             id: "no-refresh",
                             shouldRefresh: () => false,
                             refresh,
-                            validate: () => ({ isValid: true }),
+                            validate: () => ({ isValid: true })
                         },
                         {
                             id: "no-refresh",
                             shouldRefresh: () => false,
                             notCalled: notCalledRefresh,
-                            validate: () => ({ isValid: true }),
-                        },
+                            validate: () => ({ isValid: true })
+                        }
                     ]),
                     []
                 );
@@ -205,14 +205,14 @@ describe("AuthHttpRequest claim handling", function () {
                     id: "test1",
                     shouldRefresh: sinon.stub().returns(true),
                     refresh: sinon.spy(),
-                    validate: sinon.stub().returns({ isValid: true }),
+                    validate: sinon.stub().returns({ isValid: true })
                 };
 
                 const validator2 = {
                     id: "test2",
                     shouldRefresh: sinon.stub().returns(true),
                     refresh: sinon.spy(),
-                    validate: sinon.stub().returns({ isValid: true }),
+                    validate: sinon.stub().returns({ isValid: true })
                 };
 
                 assert.deepEqual(await AuthHttpRequest.validateClaims(() => [validator1, validator2]), []);

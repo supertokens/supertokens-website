@@ -30,5 +30,5 @@ export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
     },
     setCookie: async function (cookieString: string) {
         getWindowOrThrow().document.cookie = cookieString;
-    },
+    }
 };

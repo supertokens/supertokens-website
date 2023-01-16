@@ -23,13 +23,13 @@ let puppeteer = require("puppeteer");
 
 describe("General Error Tests", function () {
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
 
     before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -55,7 +55,7 @@ describe("General Error Tests", function () {
     it("Test that signOut throws general error correctly", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -70,8 +70,8 @@ describe("General Error Tests", function () {
                         status: 200,
                         body: JSON.stringify({
                             status: "GENERAL_ERROR",
-                            message: "general error from signout API",
-                        }),
+                            message: "general error from signout API"
+                        })
                     });
                 }
 
@@ -83,7 +83,7 @@ describe("General Error Tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
 
                 let userId = "testing-supertokens-website";
@@ -93,9 +93,9 @@ describe("General Error Tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);

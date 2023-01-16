@@ -37,7 +37,7 @@ export default class AuthHttpRequest {
                 onHandleEvent: config.onHandleEvent,
                 preAPIHook: config.preAPIHook,
                 postAPIHook: config.postAPIHook,
-                sessionExpiredStatusCode: config.sessionExpiredStatusCode,
+                sessionExpiredStatusCode: config.sessionExpiredStatusCode
             })
         )
             .override(config.override.functions)
@@ -51,13 +51,13 @@ export default class AuthHttpRequest {
 
     static getUserId(input?: { userContext?: any }): Promise<string> {
         return AuthHttpRequestFetch.recipeImpl.getUserId({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     }
 
     static async getAccessTokenPayloadSecurely(input?: { userContext?: any }): Promise<any> {
         return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     }
 
@@ -67,7 +67,7 @@ export default class AuthHttpRequest {
 
     static doesSessionExist = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.doesSessionExist({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
 
@@ -82,20 +82,20 @@ export default class AuthHttpRequest {
             AuthHttpRequest.axiosInterceptorQueue.push(() => {
                 AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                     axiosInstance,
-                    userContext: getNormalisedUserContext(userContext),
+                    userContext: getNormalisedUserContext(userContext)
                 });
             });
         } else {
             AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                 axiosInstance,
-                userContext: getNormalisedUserContext(userContext),
+                userContext: getNormalisedUserContext(userContext)
             });
         }
     };
 
     static signOut = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.signOut({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
         });
     };
 
@@ -105,7 +105,7 @@ export default class AuthHttpRequest {
     }): Promise<ClaimValidationError[]> {
         return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
             response: input.response,
-            userContext: getNormalisedUserContext(input.userContext),
+            userContext: getNormalisedUserContext(input.userContext)
         });
     };
 
@@ -130,7 +130,7 @@ export default class AuthHttpRequest {
         const claimValidatorsAddedByOtherRecipes = SessionClaimValidatorStore.getClaimValidatorsAddedByOtherRecipes();
         const globalClaimValidators = AuthHttpRequestFetch.recipeImpl.getGlobalClaimValidators({
             claimValidatorsAddedByOtherRecipes,
-            userContext: normalisedUserContext,
+            userContext: normalisedUserContext
         });
         const claimValidators =
             overrideGlobalClaimValidators !== undefined
@@ -143,7 +143,7 @@ export default class AuthHttpRequest {
 
         return AuthHttpRequestFetch.recipeImpl.validateClaims({
             claimValidators,
-            userContext: getNormalisedUserContext(userContext),
+            userContext: getNormalisedUserContext(userContext)
         });
     };
 }

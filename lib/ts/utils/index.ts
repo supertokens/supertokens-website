@@ -21,7 +21,7 @@ import {
     NormalisedInputType,
     RecipeInterface,
     RecipePostAPIHookFunction,
-    RecipePreAPIHookFunction,
+    RecipePreAPIHookFunction
 } from "../types";
 import WindowHandlerReference from "../utils/windowHandler";
 import { enableLogging, logDebugMessage } from "../logger";
@@ -143,7 +143,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     } = {
         functions: (oI) => oI,
-        ...options.override,
+        ...options.override
     };
 
     if (options.enableDebugLogs !== undefined && options.enableDebugLogs) {
@@ -162,7 +162,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         preAPIHook,
         postAPIHook,
         onHandleEvent,
-        override,
+        override
     };
 }
 

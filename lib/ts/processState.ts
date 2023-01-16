@@ -17,7 +17,7 @@ export enum PROCESS_STATE {
     //CALLING_INTERCEPTION_REQUEST : Process state for the request interceptor.
     //CALLING_INTERCEPTION_RESOPONSE : Process state for the response interceptor.
     CALLING_INTERCEPTION_REQUEST,
-    CALLING_INTERCEPTION_RESPONSE,
+    CALLING_INTERCEPTION_RESPONSE
 }
 
 export class ProcessState {

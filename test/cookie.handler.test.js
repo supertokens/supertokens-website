@@ -27,13 +27,13 @@ describe("Cookie Handler Tests", function () {
     let consoleLogs = [];
 
     jsdom({
-        url: "http://localhost",
+        url: "http://localhost"
     });
 
     before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
+            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
         ]);
         await new Promise((r) => setTimeout(r, 1000));
     });
@@ -59,7 +59,7 @@ describe("Cookie Handler Tests", function () {
 
     it("Test that cookie handler is set when calling init", function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL,
+            apiDomain: BASE_URL
         });
 
         // If cookie handler isnt set then this will throw
@@ -83,7 +83,7 @@ describe("Cookie Handler Tests", function () {
     it("Test that using default cookie handlers works fine", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -93,7 +93,7 @@ describe("Cookie Handler Tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -101,9 +101,9 @@ describe("Cookie Handler Tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -128,7 +128,7 @@ describe("Cookie Handler Tests", function () {
     it("Test that using a custom cookie handler works as expected", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -162,9 +162,9 @@ describe("Cookie Handler Tests", function () {
                             getCookie: async function () {
                                 console.log("ST_LOGS GET_COOKIE");
                                 return await original.getCookie();
-                            },
+                            }
                         };
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
 
@@ -172,9 +172,9 @@ describe("Cookie Handler Tests", function () {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userId }),
+                    body: JSON.stringify({ userId })
                 });
 
                 assertEqual(await loginResponse.text(), userId);
@@ -197,7 +197,7 @@ describe("Cookie Handler Tests", function () {
     it("Test that throwing an error in cookie handling gets propogated properly", async function () {
         await startST();
         const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 
         try {
@@ -220,9 +220,9 @@ describe("Cookie Handler Tests", function () {
                             ...original,
                             getCookie: async function () {
                                 throw new Error("Expected error in tests");
-                            },
+                            }
                         };
-                    },
+                    }
                 });
                 let userId = "testing-supertokens-website";
                 let testFailed = true;
@@ -232,9 +232,9 @@ describe("Cookie Handler Tests", function () {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json",
+                            "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ userId }),
+                        body: JSON.stringify({ userId })
                     });
                 } catch (e) {
                     if (e.message === "Expected error in tests") {

@@ -43,7 +43,7 @@ export class PrimitiveClaim<ValueType> {
                     if (claimVal === undefined) {
                         return {
                             isValid: false,
-                            reason: { message: "value does not exist", expectedValue: val, actualValue: claimVal },
+                            reason: { message: "value does not exist", expectedValue: val, actualValue: claimVal }
                         };
                     }
 
@@ -54,20 +54,20 @@ export class PrimitiveClaim<ValueType> {
                             reason: {
                                 message: "expired",
                                 ageInSeconds,
-                                maxAgeInSeconds,
-                            },
+                                maxAgeInSeconds
+                            }
                         };
                     }
 
                     if (claimVal !== val) {
                         return {
                             isValid: false,
-                            reason: { message: "wrong value", expectedValue: val, actualValue: claimVal },
+                            reason: { message: "wrong value", expectedValue: val, actualValue: claimVal }
                         };
                     }
                     return { isValid: true };
-                },
+                }
             };
-        },
+        }
     };
 }
