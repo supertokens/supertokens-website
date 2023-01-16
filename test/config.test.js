@@ -20,23 +20,23 @@ let {
     normaliseSessionScopeOrThrowError,
     normaliseURLPathOrThrowError,
     normaliseURLDomainOrThrowError,
-    shouldDoInterceptionBasedOnUrl
+    shouldDoInterceptionBasedOnUrl,
 } = require("../lib/build/utils");
 let assert = require("assert");
 const { resetAuthHttpRequestFetch } = require("./utils.js");
 let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 
-describe("Config tests", function() {
+describe("Config tests", function () {
     jsdom({
-        url: "http://localhost.org"
+        url: "http://localhost.org",
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
     });
 
-    it("testing shouldDoInterceptionBasedOnUrl", async function() {
+    it("testing shouldDoInterceptionBasedOnUrl", async function () {
         // true cases without cookieDomain
         assert(shouldDoInterceptionBasedOnUrl("api.example.com", "https://api.example.com", undefined));
         assert(shouldDoInterceptionBasedOnUrl("http://api.example.com", "http://api.example.com", undefined));
@@ -134,7 +134,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing sessionScope normalisation", async function() {
+    it("testing sessionScope normalisation", async function () {
         assert(normaliseSessionScopeOrThrowError("api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("http://api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("https://api.example.com") === "api.example.com");
@@ -172,7 +172,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing URL path normalisation", async function() {
+    it("testing URL path normalisation", async function () {
         assert.strictEqual(normaliseURLPathOrThrowError("exists?email=john.doe%40gmail.com"), "/exists");
         assert.strictEqual(
             normaliseURLPathOrThrowError("/auth/email/exists?email=john.doe%40gmail.com"),
@@ -240,7 +240,7 @@ describe("Config tests", function() {
         assert.strictEqual(normaliseURLPathOrThrowError("/app.example.com"), "/app.example.com");
     });
 
-    it("testing URL domain normalisation", async function() {
+    it("testing URL domain normalisation", async function () {
         assert(normaliseURLDomainOrThrowError("http://api.example.com") === "http://api.example.com");
         assert(normaliseURLDomainOrThrowError("https://api.example.com") === "https://api.example.com");
         assert(normaliseURLDomainOrThrowError("http://api.example.com?hello=1") === "http://api.example.com");
@@ -289,11 +289,11 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing various input configs", async function() {
+    it("testing various input configs", async function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                apiBasePath: "/"
+                apiBasePath: "/",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://example.com");
@@ -302,7 +302,7 @@ describe("Config tests", function() {
         {
             AuthHttpRequest.init({
                 apiDomain: "https://api.example.com",
-                apiBasePath: "/some/path/"
+                apiBasePath: "/some/path/",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://api.example.com/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://api.example.com");
@@ -311,7 +311,7 @@ describe("Config tests", function() {
         {
             AuthHttpRequest.init({
                 apiDomain: "localhost",
-                apiBasePath: "/some/path/"
+                apiBasePath: "/some/path/",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost");
@@ -320,7 +320,7 @@ describe("Config tests", function() {
         {
             AuthHttpRequest.init({
                 apiDomain: "localhost:9000",
-                apiBasePath: "/some/path/"
+                apiBasePath: "/some/path/",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "http://localhost:9000/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "http://localhost:9000");
@@ -329,7 +329,7 @@ describe("Config tests", function() {
         {
             AuthHttpRequest.init({
                 apiDomain: "https://localhost:9000",
-                apiBasePath: "/some/path/"
+                apiBasePath: "/some/path/",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://localhost:9000/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.apiDomain === "https://localhost:9000");
@@ -339,7 +339,7 @@ describe("Config tests", function() {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
                 apiBasePath: "/some/path/",
-                sessionExpiredStatusCode: 402
+                sessionExpiredStatusCode: 402,
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/some/path/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionExpiredStatusCode === 402);
@@ -347,7 +347,7 @@ describe("Config tests", function() {
 
         {
             AuthHttpRequest.init({
-                apiDomain: "example.com"
+                apiDomain: "example.com",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "localhost.org");
@@ -356,7 +356,7 @@ describe("Config tests", function() {
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",
-                sessionScope: "a.b.example.com"
+                sessionScope: "a.b.example.com",
             });
             assert(AuthHttpRequestFetch.refreshTokenUrl === "https://example.com/auth/session/refresh");
             assert(AuthHttpRequestFetch.config.sessionScope === "a.b.example.com");

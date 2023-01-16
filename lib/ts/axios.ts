@@ -21,7 +21,7 @@ import AuthHttpRequestFetch, {
     setIdRefreshToken,
     FrontToken,
     onUnauthorisedResponse,
-    onInvalidClaimResponse
+    onInvalidClaimResponse,
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
@@ -90,12 +90,12 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                 headers:
                     configWithAntiCsrf === undefined
                         ? {
-                              "anti-csrf": antiCsrfToken
+                              "anti-csrf": antiCsrfToken,
                           }
                         : {
                               ...configWithAntiCsrf.headers,
-                              "anti-csrf": antiCsrfToken
-                          }
+                              "anti-csrf": antiCsrfToken,
+                          },
             };
         }
     }
@@ -104,7 +104,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         logDebugMessage("interceptorFunctionRequestFulfilled: Adding credentials include");
         configWithAntiCsrf = {
             ...configWithAntiCsrf,
-            withCredentials: true
+            withCredentials: true,
         };
     }
 
@@ -117,12 +117,12 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
         headers:
             configWithAntiCsrf === undefined
                 ? {
-                      rid: "anti-csrf"
+                      rid: "anti-csrf",
                   }
                 : {
                       rid: "anti-csrf",
-                      ...configWithAntiCsrf.headers
-                  }
+                      ...configWithAntiCsrf.headers,
+                  },
     };
 
     logDebugMessage("interceptorFunctionRequestFulfilled: returning modified config");
@@ -352,12 +352,12 @@ export default class AuthHttpRequest {
                             headers:
                                 configWithAntiCsrf === undefined
                                     ? {
-                                          "anti-csrf": antiCsrfToken
+                                          "anti-csrf": antiCsrfToken,
                                       }
                                     : {
                                           ...configWithAntiCsrf.headers,
-                                          "anti-csrf": antiCsrfToken
-                                      }
+                                          "anti-csrf": antiCsrfToken,
+                                      },
                         };
                     }
                 }
@@ -369,7 +369,7 @@ export default class AuthHttpRequest {
                     logDebugMessage("doRequest: Adding credentials include");
                     configWithAntiCsrf = {
                         ...configWithAntiCsrf,
-                        withCredentials: true
+                        withCredentials: true,
                     };
                 }
 
@@ -380,12 +380,12 @@ export default class AuthHttpRequest {
                     headers:
                         configWithAntiCsrf === undefined
                             ? {
-                                  rid: "anti-csrf"
+                                  rid: "anti-csrf",
                               }
                             : {
                                   rid: "anti-csrf",
-                                  ...configWithAntiCsrf.headers
-                              }
+                                  ...configWithAntiCsrf.headers,
+                              },
                 };
                 try {
                     // the first time it comes here and if

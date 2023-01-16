@@ -21,7 +21,7 @@ import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from 
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
-import { LockFactoryReference } from './utils/lockFactory'
+import { LockFactoryReference } from "./utils/lockFactory";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -29,7 +29,7 @@ export default class AuthHttpRequest {
     static init(options: InputType) {
         CookieHandlerReference.init(options.cookieHandler);
         WindowHandlerReference.init(options.windowHandler);
-        LockFactoryReference.init(options.lockFactory)
+        LockFactoryReference.init(options.lockFactory);
 
         let config = validateAndNormaliseInputOrThrowError(options);
         const recipeImpl = new OverrideableBuilder(
@@ -37,13 +37,13 @@ export default class AuthHttpRequest {
                 onHandleEvent: config.onHandleEvent,
                 preAPIHook: config.preAPIHook,
                 postAPIHook: config.postAPIHook,
-                sessionExpiredStatusCode: config.sessionExpiredStatusCode
+                sessionExpiredStatusCode: config.sessionExpiredStatusCode,
             })
         )
             .override(config.override.functions)
             .build();
         AuthHttpRequestFetch.init(config, recipeImpl);
-        AuthHttpRequest.axiosInterceptorQueue.forEach(f => {
+        AuthHttpRequest.axiosInterceptorQueue.forEach((f) => {
             f();
         });
         AuthHttpRequest.axiosInterceptorQueue = [];
@@ -51,13 +51,13 @@ export default class AuthHttpRequest {
 
     static getUserId(input?: { userContext?: any }): Promise<string> {
         return AuthHttpRequestFetch.recipeImpl.getUserId({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
         });
     }
 
     static async getAccessTokenPayloadSecurely(input?: { userContext?: any }): Promise<any> {
         return AuthHttpRequestFetch.recipeImpl.getAccessTokenPayloadSecurely({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
         });
     }
 
@@ -67,7 +67,7 @@ export default class AuthHttpRequest {
 
     static doesSessionExist = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.doesSessionExist({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
         });
     };
 
@@ -82,34 +82,34 @@ export default class AuthHttpRequest {
             AuthHttpRequest.axiosInterceptorQueue.push(() => {
                 AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                     axiosInstance,
-                    userContext: getNormalisedUserContext(userContext)
+                    userContext: getNormalisedUserContext(userContext),
                 });
             });
         } else {
             AuthHttpRequestFetch.recipeImpl.addAxiosInterceptors({
                 axiosInstance,
-                userContext: getNormalisedUserContext(userContext)
+                userContext: getNormalisedUserContext(userContext),
             });
         }
     };
 
     static signOut = (input?: { userContext?: any }) => {
         return AuthHttpRequestFetch.recipeImpl.signOut({
-            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext),
         });
     };
 
-    static getInvalidClaimsFromResponse = async function(input: {
+    static getInvalidClaimsFromResponse = async function (input: {
         response: { data: any } | Response;
         userContext?: any;
     }): Promise<ClaimValidationError[]> {
         return AuthHttpRequestFetch.recipeImpl.getInvalidClaimsFromResponse({
             response: input.response,
-            userContext: getNormalisedUserContext(input.userContext)
+            userContext: getNormalisedUserContext(input.userContext),
         });
     };
 
-    static getClaimValue = async function<T>(input: {
+    static getClaimValue = async function <T>(input: {
         claim: SessionClaim<T>;
         userContext?: any;
     }): Promise<T | undefined> {
@@ -130,7 +130,7 @@ export default class AuthHttpRequest {
         const claimValidatorsAddedByOtherRecipes = SessionClaimValidatorStore.getClaimValidatorsAddedByOtherRecipes();
         const globalClaimValidators = AuthHttpRequestFetch.recipeImpl.getGlobalClaimValidators({
             claimValidatorsAddedByOtherRecipes,
-            userContext: normalisedUserContext
+            userContext: normalisedUserContext,
         });
         const claimValidators =
             overrideGlobalClaimValidators !== undefined
@@ -143,7 +143,7 @@ export default class AuthHttpRequest {
 
         return AuthHttpRequestFetch.recipeImpl.validateClaims({
             claimValidators,
-            userContext: getNormalisedUserContext(userContext)
+            userContext: getNormalisedUserContext(userContext),
         });
     };
 }

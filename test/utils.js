@@ -19,11 +19,11 @@ module.exports.BASE_URL = "http://localhost.org:8080";
 module.exports.BASE_URL_FOR_ST =
     process.env.NODE_PORT === undefined ? "http://localhost.org:8080" : "http://localhost.org:" + process.env.NODE_PORT;
 
-module.exports.delay = function(sec) {
-    return new Promise(res => setTimeout(res, sec * 1000));
+module.exports.delay = function (sec) {
+    return new Promise((res) => setTimeout(res, sec * 1000));
 };
 
-module.exports.checkIfIdRefreshIsCleared = function() {
+module.exports.checkIfIdRefreshIsCleared = function () {
     const ID_COOKIE_NAME = "sIdRefreshToken";
     let value = "; " + document.cookie;
     let parts = value.split("; " + ID_COOKIE_NAME + "=");
@@ -44,19 +44,19 @@ module.exports.checkIfIdRefreshIsCleared = function() {
     }
 };
 
-module.exports.getNumberOfTimesRefreshCalled = async function(BASE = module.exports.BASE_URL) {
+module.exports.getNumberOfTimesRefreshCalled = async function (BASE = module.exports.BASE_URL) {
     let instance = axios.create();
     let response = await instance.get(BASE + "/refreshCalledTime");
     return response.data;
 };
 
-module.exports.getNumberOfTimesRefreshAttempted = async function(BASE = module.exports.BASE_URL) {
+module.exports.getNumberOfTimesRefreshAttempted = async function (BASE = module.exports.BASE_URL) {
     let instance = axios.create();
     let response = await instance.get(BASE + "/refreshAttemptedTime");
     return response.data;
 };
 
-module.exports.startST = async function(
+module.exports.startST = async function (
     accessTokenValidity = 1,
     enableAntiCsrf = true,
     accessTokenSigningKeyUpdateInterval = undefined,
@@ -66,11 +66,11 @@ module.exports.startST = async function(
         if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
             let instance = axios.create();
             await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
-                enableAntiCsrf
+                enableAntiCsrf,
             });
 
             await instance.post(module.exports.BASE_URL + "/setEnableJWT", {
-                enableJWT
+                enableJWT,
             });
         }
     }
@@ -80,31 +80,24 @@ module.exports.startST = async function(
             accessTokenValidity,
             enableAntiCsrf,
             accessTokenSigningKeyUpdateInterval,
-            enableJWT
+            enableJWT,
         });
         return response.data;
     }
 };
 
-module.exports.startSTWithJWTEnabled = async function(accessTokenValidity = 1) {
+module.exports.startSTWithJWTEnabled = async function (accessTokenValidity = 1) {
     return await module.exports.startST(accessTokenValidity, true, undefined, true);
 };
 
-module.exports.addBrowserConsole = function(page) {
-    page.on("console", message =>
-        console.log(
-            `${message
-                .type()
-                .substr(0, 3)
-                .toUpperCase()} ${message.text()}`
-        )
-    )
+module.exports.addBrowserConsole = function (page) {
+    page.on("console", (message) => console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
         .on("pageerror", ({ message }) => console.log(message))
-        .on("response", response => console.log(`${response.status()} ${response.url()}`))
-        .on("requestfailed", request => console.log(`${request.failure().errorText} ${request.url()}`));
+        .on("response", (response) => console.log(`${response.status()} ${response.url()}`))
+        .on("requestfailed", (request) => console.log(`${request.failure().errorText} ${request.url()}`));
 };
 
-module.exports.coreTagEqualToOrAfter = function(targetTag) {
+module.exports.coreTagEqualToOrAfter = function (targetTag) {
     const currTag = process.env.SUPERTOKENS_CORE_TAG;
     if (currTag === undefined || currTag === targetTag) return true;
 
@@ -123,32 +116,35 @@ module.exports.coreTagEqualToOrAfter = function(targetTag) {
     return true;
 };
 
-module.exports.getFeatureFlags = async function() {
+module.exports.getFeatureFlags = async function () {
     try {
         let instance = axios.create();
-        return await (await instance.get(module.exports.BASE_URL + "/featureFlags")).data;
+        return await (
+            await instance.get(module.exports.BASE_URL + "/featureFlags")
+        ).data;
     } catch (e) {
         return undefined;
     }
 };
 
-module.exports.checkIfJWTIsEnabled = async function() {
+module.exports.checkIfJWTIsEnabled = async function () {
     let featureFlags = await module.exports.getFeatureFlags();
 
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
 };
 
-module.exports.checkSessionClaimsSupport = async function() {
+module.exports.checkSessionClaimsSupport = async function () {
     let featureFlags = await module.exports.getFeatureFlags();
 
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionClaims === true;
 };
 
-module.exports.resetSessionClaimValidatorStore = function() {
-    require("../lib/build/utils/sessionClaimValidatorStore").SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes = [];
+module.exports.resetSessionClaimValidatorStore = function () {
+    require("../lib/build/utils/sessionClaimValidatorStore").SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes =
+        [];
 };
 
-module.exports.resetAuthHttpRequestFetch = function() {
+module.exports.resetAuthHttpRequestFetch = function () {
     AuthHttpRequestFetch.initCalled = false;
     if (AuthHttpRequestFetch.env !== undefined && AuthHttpRequestFetch.env.__supertokensOriginalFetch !== undefined) {
         AuthHttpRequestFetch.env.fetch = AuthHttpRequestFetch.env.__supertokensOriginalFetch;

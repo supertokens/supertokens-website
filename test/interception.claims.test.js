@@ -21,14 +21,14 @@ const assert = require("assert");
 const { addGenericTestCases } = require("./interception.testgen");
 
 addGenericTestCases((name, setupFunc, setupArgs = []) => {
-    describe(`${name}: Session claims error handling`, function() {
+    describe(`${name}: Session claims error handling`, function () {
         let browser;
         let page;
 
         let skipped = false;
         let loggedEvents = [];
 
-        before(async function() {
+        before(async function () {
             spawn(
                 "./test/startServer",
                 [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -36,14 +36,14 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                     // stdio: "inherit"
                 }
             );
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise((r) => setTimeout(r, 1000));
             if (!(await checkSessionClaimsSupport())) {
                 skipped = true;
                 this.skip();
             }
         });
 
-        after(async function() {
+        after(async function () {
             let instance = axios.create();
             if (!skipped) {
                 await instance.post(BASE_URL_FOR_ST + "/after");
@@ -53,7 +53,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
             } catch (err) {}
         });
 
-        beforeEach(async function() {
+        beforeEach(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/beforeeach");
             await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -64,13 +64,13 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                 try {
                     browser = await puppeteer.launch({
                         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                        headless: true
+                        headless: true,
                     });
                 } catch {}
             }
             page = await browser.newPage();
 
-            page.on("console", ev => {
+            page.on("console", (ev) => {
                 const text = ev.text();
                 // console.log(text);
                 if (text.startsWith("TEST_EV$")) {
@@ -79,7 +79,7 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+            page.evaluate((BASE_URL) => (window.BASE_URL = BASE_URL), BASE_URL);
 
             await page.evaluate(
                 setupFunc,
@@ -91,14 +91,14 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
             loggedEvents = [];
         });
 
-        afterEach(async function() {
+        afterEach(async function () {
             if (browser) {
                 await browser.close();
                 browser = undefined;
             }
         });
 
-        it("should return a parseable body and fire an event", async function() {
+        it("should return a parseable body and fire an event", async function () {
             await startST();
             try {
                 await page.evaluate(async () => {
@@ -110,9 +110,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ userId })
+                        body: JSON.stringify({ userId }),
                     });
 
                     assertEqual(loginResponse.responseText, userId);
@@ -121,14 +121,14 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ userId })
+                        body: JSON.stringify({ userId }),
                     });
                     assertEqual(resp.statusCode, 403);
 
                     const parsed = await supertokens.getInvalidClaimsFromResponse({
-                        response: { data: resp.responseText }
+                        response: { data: resp.responseText },
                     });
                     assertEqual(parsed.length, 1);
                     assertEqual(parsed[0].id, "test-claim-failing");
@@ -142,16 +142,16 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                     {
                         id: "test-claim-failing",
                         reason: {
-                            message: "testReason"
-                        }
-                    }
+                            message: "testReason",
+                        },
+                    },
                 ]);
             } finally {
                 await browser.close();
             }
         });
 
-        it("should work with 403 responses without a body", async function() {
+        it("should work with 403 responses without a body", async function () {
             await startST();
             try {
                 await page.evaluate(async () => {
@@ -163,9 +163,9 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ userId })
+                        body: JSON.stringify({ userId }),
                     });
 
                     assertEqual(loginResponse.responseText, userId);
@@ -174,14 +174,17 @@ addGenericTestCases((name, setupFunc, setupArgs = []) => {
                         method: "post",
                         headers: {
                             Accept: "application/json",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ userId })
+                        body: JSON.stringify({ userId }),
                     });
                     assertEqual(resp.statusCode, 403);
                 });
 
-                assert.strictEqual(loggedEvents.find(ev => ev.action === "API_INVALID_CLAIM"), undefined);
+                assert.strictEqual(
+                    loggedEvents.find((ev) => ev.action === "API_INVALID_CLAIM"),
+                    undefined
+                );
             } finally {
                 await browser.close();
             }

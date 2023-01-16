@@ -15,7 +15,7 @@
 const { exec } = require("child_process");
 let fs = require("fs");
 
-module.exports.executeCommand = async function(cmd) {
+module.exports.executeCommand = async function (cmd) {
     return new Promise((resolve, reject) => {
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
@@ -27,7 +27,7 @@ module.exports.executeCommand = async function(cmd) {
     });
 };
 
-module.exports.setupST = async function() {
+module.exports.setupST = async function () {
     let installationPath = process.env.INSTALL_PATH;
     try {
         await module.exports.executeCommand("cd " + installationPath + " && cp temp/licenseKey ./licenseKey");
@@ -35,10 +35,10 @@ module.exports.setupST = async function() {
     await module.exports.executeCommand("cd " + installationPath + " && cp temp/config.yaml ./config.yaml");
 };
 
-module.exports.setKeyValueInConfig = async function(key, value) {
+module.exports.setKeyValueInConfig = async function (key, value) {
     return new Promise((resolve, reject) => {
         let installationPath = process.env.INSTALL_PATH;
-        fs.readFile(installationPath + "/config.yaml", "utf8", function(err, data) {
+        fs.readFile(installationPath + "/config.yaml", "utf8", function (err, data) {
             if (err) {
                 reject(err);
                 return;
@@ -46,7 +46,7 @@ module.exports.setKeyValueInConfig = async function(key, value) {
             let oldStr = new RegExp("((#\\s)?)" + key + "(:|((:\\s).+))\n");
             let newStr = key + ": " + value + "\n";
             let result = data.replace(oldStr, newStr);
-            fs.writeFile(installationPath + "/config.yaml", result, "utf8", function(err) {
+            fs.writeFile(installationPath + "/config.yaml", result, "utf8", function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -57,7 +57,7 @@ module.exports.setKeyValueInConfig = async function(key, value) {
     });
 };
 
-module.exports.cleanST = async function() {
+module.exports.cleanST = async function () {
     let installationPath = process.env.INSTALL_PATH;
     try {
         await module.exports.executeCommand("cd " + installationPath + " && rm licenseKey");
@@ -67,7 +67,7 @@ module.exports.cleanST = async function() {
     await module.exports.executeCommand("cd " + installationPath + " && rm -rf .started");
 };
 
-module.exports.stopST = async function(pid) {
+module.exports.stopST = async function (pid) {
     let pidsBefore = await getListOfPids();
     if (pidsBefore.length === 0) {
         return;
@@ -77,7 +77,7 @@ module.exports.stopST = async function(pid) {
     while (Date.now() - startTime < 10000) {
         let pidsAfter = await getListOfPids();
         if (pidsAfter.includes(pid)) {
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise((r) => setTimeout(r, 100));
             continue;
         } else {
             return;
@@ -86,14 +86,14 @@ module.exports.stopST = async function(pid) {
     throw new Error("error while stopping ST with PID: " + pid);
 };
 
-module.exports.killAllST = async function() {
+module.exports.killAllST = async function () {
     let pids = await getListOfPids();
     for (let i = 0; i < pids.length; i++) {
         await module.exports.stopST(pids[i]);
     }
 };
 
-module.exports.startST = async function(host = "localhost", port = 9000) {
+module.exports.startST = async function (host = "localhost", port = 9000) {
     return new Promise(async (resolve, reject) => {
         let installationPath = process.env.INSTALL_PATH;
         let pidsBefore = await getListOfPids();
@@ -108,7 +108,7 @@ module.exports.startST = async function(host = "localhost", port = 9000) {
                     port +
                     " test_mode"
             )
-            .catch(err => {
+            .catch((err) => {
                 if (!returned) {
                     returned = true;
                     reject(err);
@@ -118,10 +118,10 @@ module.exports.startST = async function(host = "localhost", port = 9000) {
         while (Date.now() - startTime < 10000) {
             let pidsAfter = await getListOfPids();
             if (pidsAfter.length <= pidsBefore.length) {
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise((r) => setTimeout(r, 100));
                 continue;
             }
-            let nonIntersection = pidsAfter.filter(x => !pidsBefore.includes(x));
+            let nonIntersection = pidsAfter.filter((x) => !pidsBefore.includes(x));
             if (nonIntersection.length !== 1) {
                 if (!returned) {
                     returned = true;
@@ -165,7 +165,7 @@ async function getListOfPids() {
     return result;
 }
 
-module.exports.maxVersion = function(version1, version2) {
+module.exports.maxVersion = function (version1, version2) {
     let splittedv1 = version1.split(".");
     let splittedv2 = version2.split(".");
     let minLength = Math.min(splittedv1.length, splittedv2.length);

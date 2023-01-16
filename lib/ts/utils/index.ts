@@ -21,7 +21,7 @@ import {
     NormalisedInputType,
     RecipeInterface,
     RecipePostAPIHookFunction,
-    RecipePreAPIHookFunction
+    RecipePreAPIHookFunction,
 } from "../types";
 import WindowHandlerReference from "../utils/windowHandler";
 import { enableLogging, logDebugMessage } from "../logger";
@@ -120,7 +120,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         cookieDomain = normaliseSessionScopeOrThrowError(options.cookieDomain);
     }
 
-    let preAPIHook: RecipePreAPIHookFunction = async context => {
+    let preAPIHook: RecipePreAPIHookFunction = async (context) => {
         return { url: context.url, requestInit: context.requestInit };
     };
 
@@ -142,8 +142,8 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     let override: {
         functions: (originalImplementation: RecipeInterface) => RecipeInterface;
     } = {
-        functions: oI => oI,
-        ...options.override
+        functions: (oI) => oI,
+        ...options.override,
     };
 
     if (options.enableDebugLogs !== undefined && options.enableDebugLogs) {
@@ -162,7 +162,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         preAPIHook,
         postAPIHook,
         onHandleEvent,
-        override
+        override,
     };
 }
 

@@ -5,7 +5,7 @@ import {
     RecipePostAPIHookFunction,
     SessionClaimValidator,
     ClaimValidationError,
-    ResponseWithBody
+    ResponseWithBody,
 } from "./types";
 import AuthHttpRequest, { FrontToken, getIdRefreshToken, onUnauthorisedResponse } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
@@ -21,20 +21,20 @@ export default function RecipeImplementation(recipeImplInput: {
     sessionExpiredStatusCode: number;
 }): RecipeInterface {
     return {
-        addXMLHttpRequestInterceptor: function(_): void {
+        addXMLHttpRequestInterceptor: function (_): void {
             logDebugMessage("addXMLHttpRequestInterceptorAndReturnModified: called");
             addInterceptorsToXMLHttpRequest();
         },
-        addFetchInterceptorsAndReturnModifiedFetch: function(input: {
+        addFetchInterceptorsAndReturnModifiedFetch: function (input: {
             originalFetch: any;
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function(url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
+            return async function (url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
                         return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
-                            ...config
+                            ...config,
                         });
                     },
                     config,
@@ -42,7 +42,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 );
             };
         },
-        addAxiosInterceptors: function(input: { axiosInstance: any; userContext: any }): void {
+        addAxiosInterceptors: function (input: { axiosInstance: any; userContext: any }): void {
             logDebugMessage("addAxiosInterceptors: called");
             // we first check if this axiosInstance already has our interceptors.
             let requestInterceptors = input.axiosInstance.interceptors.request;
@@ -53,11 +53,12 @@ export default function RecipeImplementation(recipeImplInput: {
                 }
             }
             // Add a request interceptor
-            input.axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(
-                error: any
-            ) {
-                throw error;
-            });
+            input.axiosInstance.interceptors.request.use(
+                interceptorFunctionRequestFulfilled,
+                async function (error: any) {
+                    throw error;
+                }
+            );
 
             // Add a response interceptor
             input.axiosInstance.interceptors.response.use(
@@ -65,7 +66,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 responseErrorInterceptor(input.axiosInstance)
             );
         },
-        getUserId: async function(_: { userContext: any }): Promise<string> {
+        getUserId: async function (_: { userContext: any }): Promise<string> {
             logDebugMessage("getUserId: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
@@ -74,7 +75,7 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("getUserId: returning: " + tokenInfo.uid);
             return tokenInfo.uid;
         },
-        getAccessTokenPayloadSecurely: async function(input: { userContext: any }): Promise<any> {
+        getAccessTokenPayloadSecurely: async function (input: { userContext: any }): Promise<any> {
             logDebugMessage("getAccessTokenPayloadSecurely: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
@@ -86,7 +87,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
                     return await this.getAccessTokenPayloadSecurely({
-                        userContext: input.userContext
+                        userContext: input.userContext,
                     });
                 } else {
                     throw new Error("Could not refresh session");
@@ -95,7 +96,7 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("getAccessTokenPayloadSecurely: returning: " + JSON.stringify(tokenInfo.up));
             return tokenInfo.up;
         },
-        doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
+        doesSessionExist: async function (_: { userContext: any }): Promise<boolean> {
             logDebugMessage("doesSessionExist: called");
 
             const tokenInfo = await FrontToken.getTokenInfo();
@@ -116,14 +117,14 @@ export default function RecipeImplementation(recipeImplInput: {
 
             return true;
         },
-        signOut: async function(input: { userContext: any }): Promise<void> {
+        signOut: async function (input: { userContext: any }): Promise<void> {
             logDebugMessage("signOut: called");
             if (!(await this.doesSessionExist(input))) {
                 logDebugMessage("signOut: existing early because session does not exist");
                 logDebugMessage("signOut: firing SIGN_OUT event");
                 recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT",
-                    userContext: input.userContext
+                    userContext: input.userContext,
                 });
                 return;
             }
@@ -135,11 +136,11 @@ export default function RecipeImplementation(recipeImplInput: {
                     method: "post",
                     headers: {
                         "fdi-version": supported_fdi.join(","),
-                        rid: AuthHttpRequest.rid
-                    }
+                        rid: AuthHttpRequest.rid,
+                    },
                 },
                 url: AuthHttpRequest.signOutUrl,
-                userContext: input.userContext
+                userContext: input.userContext,
             });
 
             logDebugMessage("signOut: Calling API");
@@ -161,7 +162,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 requestInit: preAPIResult.requestInit,
                 url: preAPIResult.url,
                 fetchResponse: resp.clone(),
-                userContext: input.userContext
+                userContext: input.userContext,
             });
 
             let responseJson = await resp.clone().json();
@@ -175,7 +176,7 @@ export default function RecipeImplementation(recipeImplInput: {
             // we do not send an event here since it's triggered in setIdRefreshToken area.
         },
 
-        getInvalidClaimsFromResponse: async function(input: {
+        getInvalidClaimsFromResponse: async function (input: {
             response: ResponseWithBody;
             userContext: any;
         }): Promise<ClaimValidationError[]> {
@@ -193,14 +194,14 @@ export default function RecipeImplementation(recipeImplInput: {
             return body.claimValidationErrors;
         },
 
-        getGlobalClaimValidators: function(input: {
+        getGlobalClaimValidators: function (input: {
             claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
             userContext: any;
         }) {
             return input.claimValidatorsAddedByOtherRecipes;
         },
 
-        validateClaims: async function(input: {
+        validateClaims: async function (input: {
             claimValidators: SessionClaimValidator[];
             userContext: any;
         }): Promise<ClaimValidationError[]> {
@@ -230,12 +231,12 @@ export default function RecipeImplementation(recipeImplInput: {
                 if (!validationRes.isValid) {
                     errors.push({
                         validatorId: validator.id,
-                        reason: validationRes.reason
+                        reason: validationRes.reason,
                     });
                 }
             }
 
             return errors;
-        }
+        },
     };
 }

@@ -1,11 +1,11 @@
-module.exports.addGenericTestCases = function(getTestCases) {
-    getTestCases("fetch", config => {
+module.exports.addGenericTestCases = function (getTestCases) {
+    getTestCases("fetch", (config) => {
         supertokens.init({
-            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
         });
-        window.toTest = async config => {
+        window.toTest = async (config) => {
             const resp = await fetch(config.url, config);
             const responseText = await resp.text();
 
@@ -13,18 +13,18 @@ module.exports.addGenericTestCases = function(getTestCases) {
                 url: resp.url,
                 statusCode: resp.status,
                 headers: resp.headers,
-                responseText
+                responseText,
             };
         };
     });
 
-    getTestCases("XHR", config => {
+    getTestCases("XHR", (config) => {
         supertokens.init({
-            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
         });
-        window.toTest = async config => {
+        window.toTest = async (config) => {
             const request = new XMLHttpRequest();
             request.open(config.method || "GET", config.url);
             config.headers = config.headers || {};
@@ -47,7 +47,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
                     .getAllResponseHeaders()
                     .trim()
                     .split("\r\n")
-                    .map(line => line.split(": "))
+                    .map((line) => line.split(": "))
             );
             const responseText = request.responseText;
 
@@ -55,19 +55,19 @@ module.exports.addGenericTestCases = function(getTestCases) {
                 url: request.responseURL,
                 statusCode: request.status,
                 headers,
-                responseText
+                responseText,
             };
         };
     });
 
-    getTestCases("axios with axios interceptor", config => {
+    getTestCases("axios with axios interceptor", (config) => {
         supertokens.addAxiosInterceptors(axios);
         supertokens.init({
-            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
         });
-        window.toTest = async config => {
+        window.toTest = async (config) => {
             let resp;
             try {
                 resp = await axios({
@@ -76,7 +76,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
                     url: config.url,
                     headers: config.headers,
                     withCredentials: config.credentials === "include",
-                    responseType: "text"
+                    responseType: "text",
                 });
             } catch (err) {
                 resp = err.response;
@@ -85,18 +85,18 @@ module.exports.addGenericTestCases = function(getTestCases) {
                 url: resp.config.url,
                 statusCode: resp.status,
                 headers: new Headers(Object.entries(resp.headers)),
-                responseText: resp.data
+                responseText: resp.data,
             };
         };
     });
 
-    getTestCases("axios", config => {
+    getTestCases("axios", (config) => {
         supertokens.init({
-            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
         });
-        window.toTest = async config => {
+        window.toTest = async (config) => {
             let resp;
             try {
                 resp = await axios({
@@ -105,7 +105,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
                     url: config.url,
                     headers: config.headers,
                     withCredentials: config.credentials === "include",
-                    responseType: "text"
+                    responseType: "text",
                 });
             } catch (err) {
                 resp = err.response;
@@ -114,21 +114,21 @@ module.exports.addGenericTestCases = function(getTestCases) {
                 url: resp.config.url,
                 statusCode: resp.status,
                 headers: new Headers(Object.entries(resp.headers)),
-                responseText: resp.data
+                responseText: resp.data,
             };
         };
     });
 
-    getTestCases("angular HTTPClient", async config => {
+    getTestCases("angular HTTPClient", async (config) => {
         await loadAngular();
 
         supertokens.init({
-            onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
+            onHandleEvent: (ev) => console.log(`TEST_EV$${JSON.stringify(ev)}`),
             ...config,
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
         });
 
-        window.toTest = async config => {
+        window.toTest = async (config) => {
             let resp;
             try {
                 resp = await angularHttpClient
@@ -137,7 +137,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
                         body: config.body,
                         withCredentials: config.credentials === "include",
                         responseType: "text",
-                        observe: "response"
+                        observe: "response",
                     })
                     .toPromise();
             } catch (error) {
@@ -154,7 +154,7 @@ module.exports.addGenericTestCases = function(getTestCases) {
                 url: resp.url,
                 statusCode: resp.status,
                 headers: resp.headers,
-                responseText: resp.error || resp.body
+                responseText: resp.error || resp.body,
             };
         };
     });

@@ -10,7 +10,7 @@
             /***/ (__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
                 __webpack_require__.r(__webpack_exports__);
                 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-                    /* harmony export */ AppComponent: () => /* binding */ AppComponent
+                    /* harmony export */ AppComponent: () => /* binding */ AppComponent,
                     /* harmony export */
                 });
                 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(
@@ -46,7 +46,7 @@
                             _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
                         }
                     },
-                    encapsulation: 2
+                    encapsulation: 2,
                 });
 
                 /***/
@@ -59,7 +59,7 @@
             /***/ (__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
                 __webpack_require__.r(__webpack_exports__);
                 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-                    /* harmony export */ AppModule: () => /* binding */ AppModule
+                    /* harmony export */ AppModule: () => /* binding */ AppModule,
                     /* harmony export */
                 });
                 /* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(
@@ -81,25 +81,25 @@
                 };
                 AppModule.ɵmod = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineNgModule"]({
                     type: AppModule,
-                    bootstrap: [_app_component__WEBPACK_IMPORTED_MODULE_0__.AppComponent]
+                    bootstrap: [_app_component__WEBPACK_IMPORTED_MODULE_0__.AppComponent],
                 });
                 AppModule.ɵinj = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector"]({
                     providers: [],
                     imports: [
                         [
                             _angular_platform_browser__WEBPACK_IMPORTED_MODULE_2__.BrowserModule,
-                            _angular_common_http__WEBPACK_IMPORTED_MODULE_3__.HttpClientModule
-                        ]
-                    ]
+                            _angular_common_http__WEBPACK_IMPORTED_MODULE_3__.HttpClientModule,
+                        ],
+                    ],
                 });
-                (function() {
+                (function () {
                     (typeof ngJitMode === "undefined" || ngJitMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsetNgModuleScope"](AppModule, {
                             declarations: [_app_component__WEBPACK_IMPORTED_MODULE_0__.AppComponent],
                             imports: [
                                 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_2__.BrowserModule,
-                                _angular_common_http__WEBPACK_IMPORTED_MODULE_3__.HttpClientModule
-                            ]
+                                _angular_common_http__WEBPACK_IMPORTED_MODULE_3__.HttpClientModule,
+                            ],
                         });
                 })();
 
@@ -113,7 +113,7 @@
             /***/ (__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
                 __webpack_require__.r(__webpack_exports__);
                 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-                    /* harmony export */ HttpService: () => /* binding */ HttpService
+                    /* harmony export */ HttpService: () => /* binding */ HttpService,
                     /* harmony export */
                 });
                 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(
@@ -139,7 +139,7 @@
                 HttpService.ɵprov = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineInjectable"]({
                     token: HttpService,
                     factory: HttpService.ɵfac,
-                    providedIn: "root"
+                    providedIn: "root",
                 });
 
                 /***/
@@ -152,14 +152,14 @@
             /***/ (__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
                 __webpack_require__.r(__webpack_exports__);
                 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-                    /* harmony export */ environment: () => /* binding */ environment
+                    /* harmony export */ environment: () => /* binding */ environment,
                     /* harmony export */
                 });
                 // This file can be replaced during build by using the `fileReplacements` array.
                 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
                 // The list of file replacements can be found in `angular.json`.
                 const environment = {
-                    production: false
+                    production: false,
                 };
                 /*
                  * For easier debugging in development mode, you can import the following file
@@ -198,17 +198,17 @@
                 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__
                     .platformBrowser()
                     .bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_0__.AppModule)
-                    .catch(err => console.error(err));
+                    .catch((err) => console.error(err));
 
                 /***/
-            }
+            },
     },
-    /******/ __webpack_require__ => {
+    /******/ (__webpack_require__) => {
         // webpackRuntimeModules
-        /******/ var __webpack_exec__ = moduleId => __webpack_require__((__webpack_require__.s = moduleId));
+        /******/ var __webpack_exec__ = (moduleId) => __webpack_require__((__webpack_require__.s = moduleId));
         /******/ __webpack_require__.O(0, ["vendor"], () => __webpack_exec__(4431));
         /******/ var __webpack_exports__ = __webpack_require__.O();
         /******/
-    }
+    },
 ]);
 //# sourceMappingURL=main.js.map

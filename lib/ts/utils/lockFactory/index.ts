@@ -1,7 +1,7 @@
 import { LockFactory } from "./types";
-import Lock from 'browser-tabs-lock'
+import Lock from "browser-tabs-lock";
 
-const defaultFactory = () => new Lock()
+const defaultFactory = () => new Lock();
 
 export class LockFactoryReference {
     private static instance?: LockFactoryReference;
@@ -11,9 +11,9 @@ export class LockFactoryReference {
     static init(lockFactory?: LockFactory) {
         // This is copied from the other XXXReference clasess
         if (this.instance !== undefined) {
-            return
+            return;
         }
-        this.instance = new LockFactoryReference(lockFactory ?? defaultFactory)
+        this.instance = new LockFactoryReference(lockFactory ?? defaultFactory);
     }
 
     static getReferenceOrThrow() {

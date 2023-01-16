@@ -21,7 +21,7 @@ import AuthHttpRequestFetch, {
     FrontToken,
     onUnauthorisedResponse,
     IdRefreshTokenType,
-    onInvalidClaimResponse
+    onInvalidClaimResponse,
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -40,7 +40,7 @@ const XHR_EVENTS = [
     "loadend",
     "loadstart",
     "progress",
-    "timeout"
+    "timeout",
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
@@ -53,7 +53,7 @@ export function addInterceptorsToXMLHttpRequest() {
     // create XMLHttpRequest proxy object
 
     // define constructor for my proxy object
-    XMLHttpRequest = function(this: XMLHttpRequestType) {
+    XMLHttpRequest = function (this: XMLHttpRequestType) {
         const actual: XMLHttpRequestType = new oldXMLHttpRequest();
         const delayActualCalls = !firstEventLoopDone;
         function delayIfNecessary(cb: () => void) {
@@ -121,7 +121,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
             logDebugMessage(`XHRInterceptor dispatching ${ev.type} to ${handlers ? handlers.size : 0} listeners`);
             if (handlers) {
-                Array.from(handlers).forEach(handler => handler.apply(self, [ev]));
+                Array.from(handlers).forEach((handler) => handler.apply(self, [ev]));
             }
         }
 
@@ -152,7 +152,7 @@ export function addInterceptorsToXMLHttpRequest() {
 
             setUpXHR(self, retryXhr, true);
             // this also calls the send function with the appropriate body
-            listOfFunctionCallsInProxy.forEach(i => {
+            listOfFunctionCallsInProxy.forEach((i) => {
                 i(retryXhr);
             });
             sendXHR(retryXhr, body);
@@ -177,7 +177,7 @@ export function addInterceptorsToXMLHttpRequest() {
                             .getAllResponseHeaders()
                             .trim()
                             .split("\r\n")
-                            .map(line => line.split(": ") as [string, string])
+                            .map((line) => line.split(": ") as [string, string])
                     );
 
                     const idRefreshToken = headers.get("id-refresh-token");
@@ -191,7 +191,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     } else {
                         if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
                             await onInvalidClaimResponse({
-                                data: JSON.parse(xhr.responseText)
+                                data: JSON.parse(xhr.responseText),
                             });
                         }
                         let antiCsrfToken = headers.get("anti-csrf");
@@ -248,7 +248,7 @@ export function addInterceptorsToXMLHttpRequest() {
             }
         }
 
-        self.open = function(_: string, u: string | URL) {
+        self.open = function (_: string, u: string | URL) {
             logDebugMessage(`XHRInterceptor.open called`);
             let args: any = arguments;
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
@@ -289,12 +289,12 @@ export function addInterceptorsToXMLHttpRequest() {
             delayIfNecessary(() => actual.open.apply(actual, args));
         };
 
-        self.send = function(inputBody) {
+        self.send = function (inputBody) {
             body = inputBody;
             sendXHR(actual, body);
         };
 
-        self.setRequestHeader = function(name: string, value: string) {
+        self.setRequestHeader = function (name: string, value: string) {
             if (doNotDoInterception) {
                 delayIfNecessary(() => actual.setRequestHeader(name, value));
                 return;
@@ -331,11 +331,11 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             }
 
-            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+            xhr.onload = function (this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
-                responseProcessed.then(callself => {
+                responseProcessed.then((callself) => {
                     if (!callself) {
                         return;
                     }
@@ -346,13 +346,13 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             };
 
-            xhr.onreadystatechange = function(ev: Event) {
+            xhr.onreadystatechange = function (ev: Event) {
                 // In local files, status is 0 upon success in Mozilla Firefox
                 if (xhr.readyState === oldXMLHttpRequest.DONE) {
                     if (responseProcessed === undefined) {
                         responseProcessed = handleResponse(xhr);
                     }
-                    responseProcessed.then(callself => {
+                    responseProcessed.then((callself) => {
                         if (!callself) {
                             return;
                         }
@@ -367,11 +367,11 @@ export function addInterceptorsToXMLHttpRequest() {
                 }
             };
 
-            xhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
+            xhr.onloadend = function (ev: ProgressEvent<EventTarget>) {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
-                responseProcessed.then(callself => {
+                responseProcessed.then((callself) => {
                     if (!callself) {
                         return;
                     }
@@ -382,7 +382,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             };
 
-            self.getAllResponseHeaders = function() {
+            self.getAllResponseHeaders = function () {
                 let headersString: string;
                 if (customResponseHeaders) {
                     headersString = "";
@@ -395,7 +395,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 return headersString + "x-supertokens-xhr-intercepted: true\r\n";
             };
 
-            self.getResponseHeader = function(name: string) {
+            self.getResponseHeader = function (name: string) {
                 if (name === "x-supertokens-xhr-intercepted") {
                     return "true";
                 }
@@ -426,7 +426,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     // define our own property that calls the same method on the actual
                     Object.defineProperty(self, prop, {
                         configurable: true,
-                        value: function() {
+                        value: function () {
                             let args = arguments;
                             if (!isRetry) {
                                 listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
@@ -434,19 +434,19 @@ export function addInterceptorsToXMLHttpRequest() {
                                 });
                             }
                             return xhr[prop].apply(xhr, args);
-                        }
+                        },
                     });
                 } else {
                     // define our own property that just gets or sets the same prop on the actual
                     Object.defineProperty(self, prop, {
                         configurable: true,
-                        get: function() {
+                        get: function () {
                             if (customGetterValues[prop] !== undefined) {
                                 return customGetterValues[prop];
                             }
                             return xhr[prop];
                         },
-                        set: function(val) {
+                        set: function (val) {
                             if (!isRetry) {
                                 listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
                                     xhr[prop] = val;
@@ -454,7 +454,7 @@ export function addInterceptorsToXMLHttpRequest() {
                             }
                             logDebugMessage(`XHRInterceptor.set[${prop}] = ${val}`);
                             xhr[prop] = val;
-                        }
+                        },
                     });
                 }
             }
@@ -489,7 +489,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     self.withCredentials = true;
                 }
 
-                if (!requestHeaders.some(i => i.name === "rid")) {
+                if (!requestHeaders.some((i) => i.name === "rid")) {
                     logDebugMessage("XHRInterceptor.send: Adding rid header: anti-csrf");
                     xhr.setRequestHeader("rid", "anti-csrf");
                 } else {
@@ -505,9 +505,7 @@ export function addInterceptorsToXMLHttpRequest() {
     (XMLHttpRequest as any).__original = oldXMLHttpRequest;
 }
 
-async function getXMLHttpStatusAndResponseTextFromFetchResponse(
-    response: Response
-): Promise<{
+async function getXMLHttpStatusAndResponseTextFromFetchResponse(response: Response): Promise<{
     status: number;
     responseText: string;
     statusText: string;
@@ -536,6 +534,6 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(
         responseText: data,
         statusText: response.statusText,
         responseType,
-        headers: response.headers
+        headers: response.headers,
     };
 }

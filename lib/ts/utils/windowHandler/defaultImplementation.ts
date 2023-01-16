@@ -25,98 +25,98 @@ function getWindowOrThrow(): Window {
 }
 
 const defaultLocalStorageHandler: StorageHandler = {
-    key: async function(index: number) {
+    key: async function (index: number) {
         return getWindowOrThrow().localStorage.key(index);
     },
-    clear: async function() {
+    clear: async function () {
         return getWindowOrThrow().localStorage.clear();
     },
-    getItem: async function(key: string) {
+    getItem: async function (key: string) {
         return getWindowOrThrow().localStorage.getItem(key);
     },
-    removeItem: async function(key: string) {
+    removeItem: async function (key: string) {
         return getWindowOrThrow().localStorage.removeItem(key);
     },
-    setItem: async function(key: string, value: string) {
+    setItem: async function (key: string, value: string) {
         return getWindowOrThrow().localStorage.setItem(key, value);
     },
-    keySync: function(index: number) {
+    keySync: function (index: number) {
         return getWindowOrThrow().localStorage.key(index);
     },
-    clearSync: function() {
+    clearSync: function () {
         return getWindowOrThrow().localStorage.clear();
     },
-    getItemSync: function(key: string) {
+    getItemSync: function (key: string) {
         return getWindowOrThrow().localStorage.getItem(key);
     },
-    removeItemSync: function(key: string) {
+    removeItemSync: function (key: string) {
         return getWindowOrThrow().localStorage.removeItem(key);
     },
-    setItemSync: function(key: string, value: string) {
+    setItemSync: function (key: string, value: string) {
         return getWindowOrThrow().localStorage.setItem(key, value);
-    }
+    },
 };
 
 const defaultSessionStorageHandler: StorageHandler = {
-    key: async function(index: number) {
+    key: async function (index: number) {
         return getWindowOrThrow().sessionStorage.key(index);
     },
-    clear: async function() {
+    clear: async function () {
         return getWindowOrThrow().sessionStorage.clear();
     },
-    getItem: async function(key: string) {
+    getItem: async function (key: string) {
         return getWindowOrThrow().sessionStorage.getItem(key);
     },
-    removeItem: async function(key: string) {
+    removeItem: async function (key: string) {
         return getWindowOrThrow().sessionStorage.removeItem(key);
     },
-    setItem: async function(key: string, value: string) {
+    setItem: async function (key: string, value: string) {
         return getWindowOrThrow().sessionStorage.setItem(key, value);
     },
 
-    keySync: function(index: number) {
+    keySync: function (index: number) {
         return getWindowOrThrow().sessionStorage.key(index);
     },
-    clearSync: function() {
+    clearSync: function () {
         return getWindowOrThrow().sessionStorage.clear();
     },
-    getItemSync: function(key: string) {
+    getItemSync: function (key: string) {
         return getWindowOrThrow().sessionStorage.getItem(key);
     },
-    removeItemSync: function(key: string) {
+    removeItemSync: function (key: string) {
         return getWindowOrThrow().sessionStorage.removeItem(key);
     },
-    setItemSync: function(key: string, value: string) {
+    setItemSync: function (key: string, value: string) {
         return getWindowOrThrow().sessionStorage.setItem(key, value);
-    }
+    },
 };
 
 export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
     history: {
-        replaceState: function(data, unused, url) {
+        replaceState: function (data, unused, url) {
             return getWindowOrThrow().history.replaceState(data, unused, url);
         },
-        getState: function() {
+        getState: function () {
             return getWindowOrThrow().history.state;
-        }
+        },
     },
     location: {
-        getHref: function() {
+        getHref: function () {
             return getWindowOrThrow().location.href;
         },
-        setHref: function(href) {
+        setHref: function (href) {
             getWindowOrThrow().location.href = href;
         },
-        getSearch: function() {
+        getSearch: function () {
             return getWindowOrThrow().location.search;
         },
-        getHash: function() {
+        getHash: function () {
             return getWindowOrThrow().location.hash;
         },
-        getPathName: function() {
+        getPathName: function () {
             return getWindowOrThrow().location.pathname;
         },
-        assign: function(url) {
+        assign: function (url) {
             /**
              * The type for assign accepts URL | string but when building
              * it complains about only accepting a string. To prevent this
@@ -124,16 +124,16 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
              */
             getWindowOrThrow().location.assign(url as any);
         },
-        getHostName: function() {
+        getHostName: function () {
             return getWindowOrThrow().location.hostname;
         },
-        getOrigin: function() {
+        getOrigin: function () {
             return getWindowOrThrow().location.origin;
-        }
+        },
     },
-    getDocument: function() {
+    getDocument: function () {
         return getWindowOrThrow().document;
     },
     localStorage: defaultLocalStorageHandler,
-    sessionStorage: defaultSessionStorageHandler
+    sessionStorage: defaultSessionStorageHandler,
 };

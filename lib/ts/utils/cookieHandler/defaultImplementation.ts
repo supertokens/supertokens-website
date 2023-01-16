@@ -25,10 +25,10 @@ function getWindowOrThrow(): Window {
 }
 
 export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
-    getCookie: async function() {
+    getCookie: async function () {
         return getWindowOrThrow().document.cookie;
     },
-    setCookie: async function(cookieString: string) {
+    setCookie: async function (cookieString: string) {
         getWindowOrThrow().document.cookie = cookieString;
-    }
+    },
 };

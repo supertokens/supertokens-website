@@ -47,47 +47,47 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
             appInfo: {
                 appName: "SuperTokens",
                 apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
-                websiteDomain: "http://localhost.org:8080"
+                websiteDomain: "http://localhost.org:8080",
             },
             supertokens: {
-                connectionURI: "http://localhost:9000"
+                connectionURI: "http://localhost:9000",
             },
             recipeList: [
                 Session.init({
                     jwt: {
                         enable: true,
-                        propertyNameInAccessTokenPayload: jwtPropertyName
+                        propertyNameInAccessTokenPayload: jwtPropertyName,
                     },
                     errorHandlers: {
                         onUnauthorised: (err, req, res) => {
                             res.setStatusCode(401);
                             res.sendJSONResponse({});
-                        }
+                        },
                     },
                     antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
                     override: {
-                        apis: oI => {
+                        apis: (oI) => {
                             return {
                                 ...oI,
-                                refreshPOST: undefined
+                                refreshPOST: undefined,
                             };
                         },
-                        functions: function(oI) {
+                        functions: function (oI) {
                             return {
                                 ...oI,
-                                createNewSession: async function({ res, userId, accessTokenPayload, sessionData }) {
+                                createNewSession: async function ({ res, userId, accessTokenPayload, sessionData }) {
                                     accessTokenPayload = {
                                         ...accessTokenPayload,
-                                        customClaim: "customValue"
+                                        customClaim: "customValue",
                                     };
 
                                     return await oI.createNewSession({ res, userId, accessTokenPayload, sessionData });
-                                }
+                                },
                             };
-                        }
-                    }
-                })
-            ]
+                        },
+                    },
+                }),
+            ],
         };
     }
 
@@ -95,10 +95,10 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
         appInfo: {
             appName: "SuperTokens",
             apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
-            websiteDomain: "http://localhost.org:8080"
+            websiteDomain: "http://localhost.org:8080",
         },
         supertokens: {
-            connectionURI: "http://localhost:9000"
+            connectionURI: "http://localhost:9000",
         },
         recipeList: [
             Session.init({
@@ -106,19 +106,19 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                     onUnauthorised: (err, req, res) => {
                         res.setStatusCode(401);
                         res.sendJSONResponse({});
-                    }
+                    },
                 },
                 antiCsrf: enableAntiCsrf ? "VIA_TOKEN" : "NONE",
                 override: {
-                    apis: oI => {
+                    apis: (oI) => {
                         return {
                             ...oI,
-                            refreshPOST: undefined
+                            refreshPOST: undefined,
                         };
-                    }
-                }
-            })
-        ]
+                    },
+                },
+            }),
+        ],
     };
 }
 
@@ -129,7 +129,7 @@ app.use(
         origin: "http://localhost.org:8080",
         allowedHeaders: ["content-type", ...SuperTokens.getAllCORSHeaders()],
         methods: ["GET", "PUT", "POST", "DELETE"],
-        credentials: true
+        credentials: true,
     })
 );
 
@@ -171,7 +171,7 @@ app.get("/featureFlags", async (req, res) => {
     res.status(200).json({
         sessionJwt:
             maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true,
-        sessionClaims: maxVersion(supertokens_node_version, "12.0") === supertokens_node_version
+        sessionClaims: maxVersion(supertokens_node_version, "12.0") === supertokens_node_version,
     });
 });
 
@@ -284,9 +284,9 @@ app.post(
                 {
                     id: "test-claim-failing",
                     shouldRefetch: () => false,
-                    validate: () => ({ isValid: false, reason: { message: "testReason" } })
-                }
-            ]
+                    validate: () => ({ isValid: false, reason: { message: "testReason" } }),
+                },
+            ],
         })(req, res, next),
     async (req, res) => {
         res.json({});
@@ -326,7 +326,7 @@ app.post(
 
 app.post("/auth/session/refresh", async (req, res, next) => {
     noOfTimesRefreshAttemptedDuringTest += 1;
-    verifySession()(req, res, err => {
+    verifySession()(req, res, (err) => {
         if (err) {
             next(err);
         } else {
@@ -367,7 +367,7 @@ app.get("/testHeader", async (req, res) => {
         success = false;
     }
     let data = {
-        success
+        success,
     };
     res.send(JSON.stringify(data));
 });

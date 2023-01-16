@@ -27,7 +27,7 @@ let {
     BASE_URL,
     BASE_URL_FOR_ST,
     coreTagEqualToOrAfter,
-    checkIfJWTIsEnabled
+    checkIfJWTIsEnabled,
 } = require("./utils");
 const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
@@ -62,7 +62,7 @@ const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 */
 
 addTestCases((name, setupFunc, setupArgs = []) => {
-    describe(`${name}: interception basic tests 1`, function() {
+    describe(`${name}: interception basic tests 1`, function () {
         let browser;
         let page;
 
@@ -72,21 +72,21 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 setupFunc,
                 {
                     // enableDebugLogs: true,
-                    ...config
+                    ...config,
                 },
                 ...setupArgs
             );
         }
 
-        before(async function() {
+        before(async function () {
             spawn("./test/startServer", [
                 process.env.INSTALL_PATH,
-                process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
+                process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT,
             ]);
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise((r) => setTimeout(r, 1000));
         });
 
-        after(async function() {
+        after(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/after");
             try {
@@ -94,7 +94,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             } catch (err) {}
         });
 
-        beforeEach(async function() {
+        beforeEach(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/beforeeach");
             await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -105,7 +105,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 try {
                     browser = await puppeteer.launch({
                         args: ["--no-sandbox", "--disable-setuid-sandbox"],
-                        headless: true
+                        headless: true,
                     });
                 } catch {}
             }
@@ -113,17 +113,17 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+            page.evaluate((BASE_URL) => (window.BASE_URL = BASE_URL), BASE_URL);
         });
 
-        afterEach(async function() {
+        afterEach(async function () {
             if (browser) {
                 await browser.close();
                 browser = undefined;
             }
         });
 
-        it("testing api methods without config", async function() {
+        it("testing api methods without config", async function () {
             await setup();
 
             await page.evaluate(async () => {
@@ -135,7 +135,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("testing api methods with config", async function() {
+        it("testing api methods with config", async function () {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -148,7 +148,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("testing api methods that doesn't exists", async function() {
+        it("testing api methods that doesn't exists", async function () {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -159,7 +159,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test refresh session", async function() {
+        it("test refresh session", async function () {
             await startST(3);
             await setup();
             await page.evaluate(async () => {
@@ -169,9 +169,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.statusCode, 200);
@@ -192,27 +192,27 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test refresh session with multiple 401s", async function() {
+        it("test refresh session with multiple 401s", async function () {
             await startST(3);
             await setup();
             await page.setRequestInterception(true);
             let getCount = 0;
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (getCount++ < 3) {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token"
-                            })
+                                message: "try refresh token",
+                            }),
                         });
                     } else {
                         req.respond({
                             status: 200,
                             body: JSON.stringify({
-                                success: true
-                            })
+                                success: true,
+                            }),
                         });
                     }
                 } else {
@@ -226,9 +226,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.statusCode, 200);
@@ -249,12 +249,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.setRequestInterception(false);
         });
 
-        it("test session after signing key change", async function() {
+        it("test session after signing key change", async function () {
             // We can have access tokens valid for longer than the signing key update interval
             await startST(100, true, "0.002");
             await setup();
 
-            await page.evaluate(async coreSupportsMultipleSignigKeys => {
+            await page.evaluate(async (coreSupportsMultipleSignigKeys) => {
                 let userId = "testing-supertokens-website";
 
                 let loginResponse = await toTest({
@@ -262,9 +262,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(await loginResponse.responseText, userId);
@@ -286,10 +286,10 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             }, coreTagEqualToOrAfter("3.6.0"));
         });
 
-        it("test sameSite is none if using iframe", async function() {
+        it("test sameSite is none if using iframe", async function () {
             await startST(3);
             await setup({
-                isInIframe: true
+                isInIframe: true,
             });
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
@@ -299,9 +299,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
             });
 
@@ -309,7 +309,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(cookies.length, 0);
         });
 
-        it("test rid is there", async function() {
+        it("test rid is there", async function () {
             await startST(3);
             await setup();
 
@@ -321,9 +321,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -332,7 +332,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("signout with expired access token", async function() {
+        it("signout with expired access token", async function () {
             await startST();
             await setup();
 
@@ -344,9 +344,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -358,7 +358,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("signout with not expired access token", async function() {
+        it("signout with not expired access token", async function () {
             await startST();
             await setup();
 
@@ -370,9 +370,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -383,7 +383,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test update jwt data ", async function() {
+        it("test update jwt data ", async function () {
             await startST(3);
             await setup();
 
@@ -396,9 +396,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -412,9 +412,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ key: "łukasz 馬 / 马" })
+                    body: JSON.stringify({ key: "łukasz 馬 / 马" }),
                 });
                 let data1 = JSON.parse(testResponse1.responseText);
                 assert.strictEqual(data1.key, "łukasz 馬 / 马");
@@ -440,9 +440,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ key1: " łukasz data1" })
+                    body: JSON.stringify({ key1: " łukasz data1" }),
                 });
                 let data3 = JSON.parse(testResponse3.responseText);
                 assert.strictEqual(data3.key1, " łukasz data1");
@@ -461,7 +461,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         //test custom headers are being sent when logged in and when not*****
-        it("test that custom headers are being sent", async function() {
+        it("test that custom headers are being sent", async function () {
             await startST();
             await setup();
 
@@ -474,9 +474,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -487,8 +487,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue"
-                    }
+                        testing: "testValue",
+                    },
                 });
 
                 // check that output is success
@@ -502,9 +502,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -515,8 +515,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json",
-                        testing: "testValue"
-                    }
+                        testing: "testValue",
+                    },
                 });
 
                 // check that output is success
@@ -527,7 +527,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         //testing doesSessionExist works fine when user is logged in******
-        it("test that doesSessionExist works fine when the user is logged in", async function() {
+        it("test that doesSessionExist works fine when the user is logged in", async function () {
             await startST();
             await setup();
 
@@ -540,9 +540,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -551,7 +551,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
-        it("test session should not exist when user calls log out", async function() {
+        it("test session should not exist when user calls log out", async function () {
             await startST();
             await setup();
             await page.evaluate(async () => {
@@ -568,7 +568,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -578,9 +578,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -596,9 +596,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -622,7 +622,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         // testing attemptRefreshingSession works fine******
-        it("test that attemptRefreshingSession is working correctly", async function() {
+        it("test that attemptRefreshingSession is working correctly", async function () {
             await startST(5);
             await setup();
 
@@ -635,9 +635,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
 
@@ -657,7 +657,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
+        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
             await startST(15);
             await setup();
 
@@ -670,9 +670,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
@@ -689,7 +689,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         toTest({
                             url: `${BASE_URL}/`,
                             method: "GET",
-                            headers: { "Cache-Control": "no-cache, private" }
+                            headers: { "Cache-Control": "no-cache, private" },
                         })
                     );
                 }
@@ -712,7 +712,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         // - Things should work if anti-csrf is disabled.******
-        it("test that things should work correctly if anti-csrf is disabled", async function() {
+        it("test that things should work correctly if anti-csrf is disabled", async function () {
             await startST(3, false);
             await setup();
 
@@ -725,9 +725,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(loginResponse.responseText, userId);
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
@@ -745,9 +745,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
@@ -762,7 +762,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError` });
@@ -777,7 +777,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=400` });
@@ -792,7 +792,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=405` });
@@ -808,7 +808,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError#superTokensDoNotDoInterception`, method: "get" });
@@ -825,12 +825,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({
                     url: `${BASE_URL}/testError?code=400#superTokensDoNotDoInterception`,
-                    method: "get"
+                    method: "get",
                 });
 
                 assert.strictEqual(val.responseText, "test error message");
@@ -845,7 +845,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let val = await toTest({ url: `${BASE_URL}/testError?code=405`, method: "get" });
@@ -860,7 +860,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
 
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/testError") {
                     req.abort();
@@ -872,7 +872,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let caught;
@@ -891,7 +891,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
 
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/testError") {
                     req.abort();
@@ -903,7 +903,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let caught;
@@ -923,7 +923,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await setup();
             await page.evaluate(async () => {
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -932,14 +932,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let logoutResponse = await toTest({
@@ -947,9 +947,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -963,9 +963,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -979,7 +979,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -989,9 +989,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1011,14 +1011,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
-        it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
+        it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
             await startST(5);
             await setup();
 
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1027,9 +1027,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1039,9 +1039,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(logoutResponse.responseText, "success");
@@ -1057,14 +1057,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         });
 
         //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
-        it("test that via interception initially an endpoint is just hit once in case of valid access token", async function() {
+        it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
             await startST(5);
             await setup();
 
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1074,9 +1074,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1128,14 +1128,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
         //   assert.notDeepEqual(verifyRequestState, undefined);
         // });
 
-        it("test interception should happen if api domain and website domain are the same and relative path is used", async function() {
+        it("test interception should happen if api domain and website domain are the same and relative path is used", async function () {
             await startST(5);
             await setup();
 
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1145,9 +1145,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1156,14 +1156,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test interception should not happen if api domain and website domain are different and relative path is used", async function() {
+        it("test interception should not happen if api domain and website domain are different and relative path is used", async function () {
             await startST(5);
             await setup();
 
             await page.evaluate(async () => {
                 let BASE_URL = "https://google.com";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1173,9 +1173,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1184,7 +1184,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("should not intercept if url contains superTokensDoNoDoInterception", async function() {
+        it("should not intercept if url contains superTokensDoNoDoInterception", async function () {
             await startST(5);
             await setup();
 
@@ -1197,9 +1197,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1223,9 +1223,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1256,9 +1256,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1280,9 +1280,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1312,9 +1312,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1331,7 +1331,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    autoAddCredentials: false
+                    autoAddCredentials: false,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1341,9 +1341,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
@@ -1370,9 +1370,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 // send a get session request , which should do a refresh session request
@@ -1391,9 +1391,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 assert.strictEqual(logoutResponse.responseText, "success");
 
@@ -1402,7 +1402,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check sessionDoes exist calls refresh API just once", async function() {
+        it("check sessionDoes exist calls refresh API just once", async function () {
             await startST();
             await setup();
 
@@ -1432,9 +1432,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 // call sessionDoesExist
@@ -1446,7 +1446,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+        it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
             await startST(3, false);
 
             await setup();
@@ -1464,7 +1464,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1476,9 +1476,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 // call sessionDoesExist
@@ -1502,7 +1502,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+        it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
             await startST();
 
             await setup();
@@ -1520,7 +1520,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1532,9 +1532,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 // call sessionDoesExist
@@ -1558,11 +1558,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test that unauthorised event is not fired on initial page load", async function() {
+        it("test that unauthorised event is not fired on initial page load", async function () {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", message => {
+            page.on("console", (message) => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1571,9 +1571,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: event => {
+                    onHandleEvent: (event) => {
                         console.log("ST_" + event.action);
-                    }
+                    },
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1582,9 +1582,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1593,11 +1593,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(consoleLogs[0], "ST_SESSION_CREATED");
         });
 
-        it("test that unauthorised event is fired when calling protected route without a session", async function() {
+        it("test that unauthorised event is fired when calling protected route without a session", async function () {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", message => {
+            page.on("console", (message) => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1606,9 +1606,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: event => {
+                    onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    }
+                    },
                 });
                 let response = await toTest({ url: `${BASE_URL}/` });
                 assert.strictEqual(response.statusCode, 401);
@@ -1623,19 +1623,19 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(parsedEvent.sessionExpiredOrRevoked, false);
         });
 
-        it("test that setting headers works", async function() {
+        it("test that setting headers works", async function () {
             await setup();
             const [_, req2, req3] = await Promise.all([
                 page.evaluate(async () => {
                     let BASE_URL = "http://localhost.org:8080";
                     supertokens.init({
-                        apiDomain: BASE_URL
+                        apiDomain: BASE_URL,
                     });
                     await toTest({ url: `${BASE_URL}/test2`, headers: { asdf2: "123" } });
                     await toTest({ url: `${BASE_URL}/test3` });
                 }),
                 page.waitForRequest(`${BASE_URL}/test2`),
-                page.waitForRequest(`${BASE_URL}/test3`)
+                page.waitForRequest(`${BASE_URL}/test3`),
             ]);
 
             assert.equal(req2.headers()["rid"], "anti-csrf");
@@ -1645,12 +1645,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.equal(req3.headers()["asdf"], undefined);
         });
 
-        it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
+        it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
             await startST();
             await setup();
 
             let consoleLogs = [];
-            page.on("console", message => {
+            page.on("console", (message) => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1659,9 +1659,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: event => {
+                    onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    }
+                    },
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1670,9 +1670,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -1700,11 +1700,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(parsedEvent.sessionExpiredOrRevoked, false);
         });
 
-        it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+        it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
             await startST();
             await setup();
             let consoleLogs = [];
-            page.on("console", message => {
+            page.on("console", (message) => {
                 if (message.text().startsWith("ST_")) {
                     consoleLogs.push(message.text());
                 }
@@ -1713,9 +1713,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: event => {
+                    onHandleEvent: (event) => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    }
+                    },
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1724,16 +1724,16 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
             });
 
             let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
+                (c) => c.name === "sFrontToken" || c.name === "sIRTFrontend" || c.name === "sAntiCsrf"
             );
 
             const client = await page.target().createCDPSession();
@@ -1760,7 +1760,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strict(parsedEvent.sessionExpiredOrRevoked);
         });
 
-        it("refresh session with invalid tokens should clear all cookies", async function() {
+        it("refresh session with invalid tokens should clear all cookies", async function () {
             await startST();
             await setup();
 
@@ -1771,9 +1771,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
             });
 
@@ -1787,7 +1787,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
 
             // we set the old cookies without the access token
-            originalCookies = originalCookies.filter(c => c.name !== "sAccessToken");
+            originalCookies = originalCookies.filter((c) => c.name !== "sAccessToken");
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
@@ -1806,14 +1806,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(newCookies[0].value, "remove");
         });
 
-        it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function() {
+        it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function () {
             await startST(100, true, "0.002");
             await setup();
 
             await page.setRequestInterception(true);
             let firstGet = true;
             let firstPost = true;
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     if (firstGet) {
@@ -1821,15 +1821,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token"
-                            })
+                                message: "try refresh token",
+                            }),
                         });
                     } else {
                         req.respond({
                             status: 200,
                             body: JSON.stringify({
-                                success: true
-                            })
+                                success: true,
+                            }),
                         });
                     }
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -1837,16 +1837,16 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                         req.respond({
                             status: 401,
                             body: JSON.stringify({
-                                message: "try refresh token"
-                            })
+                                message: "try refresh token",
+                            }),
                         });
                         firstPost = false;
                     } else {
                         req.respond({
                             status: 500,
                             body: JSON.stringify({
-                                message: "test"
-                            })
+                                message: "test",
+                            }),
                         });
                     }
                 } else {
@@ -1858,7 +1858,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1867,9 +1867,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 let response = await toTest({ url: `${BASE_URL}/`, method: "GET" });
@@ -1880,12 +1880,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("no refresh call after 401 response that removes session", async function() {
+        it("no refresh call after 401 response that removes session", async function () {
             await startST(100, true, "0.002");
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     req.respond({
@@ -1896,15 +1896,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             "Set-Cookie": [
                                 "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
                                 "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
-                            ]
-                        }
+                                "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                            ],
+                        },
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 401,
-                        body: JSON.stringify({ message: "nope" })
+                        body: JSON.stringify({ message: "nope" }),
                     });
                 } else {
                     req.continue();
@@ -1918,15 +1918,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 const resp = await toTest({
                     url: `${BASE_URL}/`,
                     method: "GET",
-                    headers: { "Cache-Control": "no-cache, private" }
+                    headers: { "Cache-Control": "no-cache, private" },
                 });
 
                 assertNotEqual(resp, undefined);
@@ -1941,27 +1941,27 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.equal(refreshCalled, 1);
         });
 
-        it("original endpoint responding with 500 should not call refresh without cookies", async function() {
+        it("original endpoint responding with 500 should not call refresh without cookies", async function () {
             await startST(100, true, "0.002");
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "test"
-                        })
+                            message: "test",
+                        }),
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
                     ++refreshCalled;
                     req.respond({
                         status: 500,
                         body: JSON.stringify({
-                            message: "nope"
-                        })
+                            message: "nope",
+                        }),
                     });
                 } else {
                     req.continue();
@@ -1979,7 +1979,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             assert.strictEqual(refreshCalled, name === "axios with axios interceptor" ? 2 : 1);
         });
 
-        it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
+        it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function () {
             await startSTWithJWTEnabled();
             await setup();
 
@@ -1990,7 +1990,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             }
 
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -1998,7 +1998,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else {
                     req.continue();
@@ -2007,7 +2007,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2018,9 +2018,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2042,9 +2042,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2061,9 +2061,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ newClaim: "newValue" })
+                    body: JSON.stringify({ newClaim: "newValue" }),
                 });
 
                 // Get access token payload
@@ -2084,9 +2084,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2119,9 +2119,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2135,7 +2135,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+        it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2146,7 +2146,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2154,7 +2154,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else {
                     req.continue();
@@ -2163,7 +2163,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2174,9 +2174,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2198,9 +2198,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2217,13 +2217,13 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
                         ...accessTokenPayload,
                         customClaim: undefined,
-                        newClaim: "newValue"
-                    })
+                        newClaim: "newValue",
+                    }),
                 });
 
                 // Get access token payload
@@ -2244,9 +2244,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2260,7 +2260,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function() {
+        it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2271,7 +2271,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2279,7 +2279,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else {
                     req.continue();
@@ -2288,7 +2288,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2299,9 +2299,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2323,9 +2323,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2341,11 +2341,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty"
-                    })
+                        jwtPropertyName: "customJWTProperty",
+                    }),
                 });
 
                 // Update access token payload
@@ -2354,9 +2354,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ newClaim: "newValue" })
+                    body: JSON.stringify({ newClaim: "newValue" }),
                 });
 
                 // Get access token payload
@@ -2378,9 +2378,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2394,7 +2394,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function() {
+        it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2405,7 +2405,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2413,7 +2413,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else {
                     req.continue();
@@ -2422,7 +2422,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2433,9 +2433,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2457,9 +2457,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2475,11 +2475,11 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        jwtPropertyName: "customJWTProperty"
-                    })
+                        jwtPropertyName: "customJWTProperty",
+                    }),
                 });
 
                 let attemptRefresh = await supertokens.attemptRefreshingSession();
@@ -2503,9 +2503,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2518,7 +2518,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and jwt are valid after the session has expired", async function() {
+        it("Test that access token payload and jwt are valid after the session has expired", async function () {
             await startSTWithJWTEnabled(3);
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2529,7 +2529,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
             await setup();
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2537,7 +2537,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else {
                     req.continue();
@@ -2546,7 +2546,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2557,9 +2557,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2580,9 +2580,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2611,9 +2611,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2631,7 +2631,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test full JWT flow with open id discovery", async function() {
+        it("Test full JWT flow with open id discovery", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2641,7 +2641,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             }
 
             await page.setRequestInterception(true);
-            page.on("request", req => {
+            page.on("request", (req) => {
                 const url = req.url();
                 if (url === BASE_URL + "/jsondecode") {
                     let jwt = JSON.parse(req.postData()).jwt;
@@ -2649,18 +2649,18 @@ addTestCases((name, setupFunc, setupArgs = []) => {
 
                     req.respond({
                         status: 200,
-                        body: JSON.stringify(decodedJWT)
+                        body: JSON.stringify(decodedJWT),
                     });
                 } else if (url === BASE_URL + "/jwtVerify") {
                     let data = JSON.parse(req.postData());
                     let jwt = data.jwt;
                     let jwksURL = data.jwksURL;
                     let client = jwksClient({
-                        jwksUri: jwksURL
+                        jwksUri: jwksURL,
                     });
 
                     function getKey(header, callback) {
-                        client.getSigningKey(header.kid, function(err, key) {
+                        client.getSigningKey(header.kid, function (err, key) {
                             if (err) {
                                 callback(err, null);
                                 return;
@@ -2676,15 +2676,15 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             req.respond({
                                 status: 500,
                                 body: JSON.stringify({
-                                    error: err
-                                })
+                                    error: err,
+                                }),
                             });
                             return;
                         }
 
                         req.respond({
                             status: 200,
-                            body: JSON.stringify(decoded)
+                            body: JSON.stringify(decoded),
                         });
                     });
                 } else {
@@ -2701,9 +2701,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -2724,9 +2724,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ jwt })
+                    body: JSON.stringify({ jwt }),
                 });
 
                 let decodedJWT = JSON.parse(decodeResponse.responseText);
@@ -2748,12 +2748,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
                         jwt,
-                        jwksURL: jwksEndpoint
-                    })
+                        jwksURL: jwksEndpoint,
+                    }),
                 });
 
                 if (verifyResponse.statusCode !== 200) {
@@ -2769,12 +2769,12 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+        it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
             await startST(3);
 
             await setup();
             const logs = [];
-            page.on("console", ev => {
+            page.on("console", (ev) => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -2783,7 +2783,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
                 });
 
                 let userId = "testing-supertokens-website";
@@ -2793,9 +2793,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
                 await toTest({
@@ -2803,9 +2803,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ test: 1 })
+                    body: JSON.stringify({ test: 1 }),
                 });
                 console.log("TEST_EV$UPDATE1_FINISH");
                 await delay(5);
@@ -2814,8 +2814,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -2824,9 +2824,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ test: 2 })
+                    body: JSON.stringify({ test: 2 }),
                 });
                 console.log("TEST_EV$UPDATE2_FINISH");
                 assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 2);
@@ -2837,9 +2837,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ test: 3 })
+                    body: JSON.stringify({ test: 3 }),
                 });
                 assertEqual((await supertokens.getAccessTokenPayloadSecurely()).test, 3);
                 console.log("TEST_EV$UPDATE3_FINISH");
@@ -2849,9 +2849,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
             });
             assert.deepEqual(logs, [
@@ -2866,16 +2866,16 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 "REFRESH_SESSION",
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "UPDATE3_FINISH",
-                "SIGN_OUT"
+                "SIGN_OUT",
             ]);
         });
 
-        it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
+        it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
             await startST(3);
 
             await setup();
             const logs = [];
-            page.on("console", ev => {
+            page.on("console", (ev) => {
                 const logText = ev.text();
                 if (logText.startsWith("TEST_EV$")) {
                     logs.push(logText.split("$")[1]);
@@ -2885,7 +2885,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 let userId = "testing-supertokens-website";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    onHandleEvent: ev => console.log(`TEST_EV$${ev.action}`)
+                    onHandleEvent: (ev) => console.log(`TEST_EV$${ev.action}`),
                 });
 
                 await toTest({
@@ -2893,9 +2893,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
                 console.log("TEST_EV$LOGIN_FINISH");
 
@@ -2904,9 +2904,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ test: 2 })
+                    body: JSON.stringify({ test: 2 }),
                 });
                 console.log("TEST_EV$PAYLOAD_DB_UPDATED");
                 await toTest({
@@ -2914,8 +2914,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 });
                 console.log("TEST_EV$QUERY_NO_REFRESH");
                 await delay(5);
@@ -2925,8 +2925,8 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "GET",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 });
                 console.log("TEST_EV$REFRESH_FINISH");
 
@@ -2935,9 +2935,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
             });
             assert.deepEqual(logs, [
@@ -2948,18 +2948,18 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                 "ACCESS_TOKEN_PAYLOAD_UPDATED",
                 "REFRESH_SESSION",
                 "REFRESH_FINISH",
-                "SIGN_OUT"
+                "SIGN_OUT",
             ]);
         });
 
-        it("Test that everything works if the user reads the body and headers in the post API hook", async function() {
+        it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
             await startST();
 
             await setup();
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    postAPIHook: async context => {
+                    postAPIHook: async (context) => {
                         assert.strictEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.statusCode === 200) {
@@ -2978,7 +2978,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
                             assert.strictEqual(idRefreshInHeader, "remove");
                         }
-                    }
+                    },
                 });
                 let userId = "testing-supertokens-website";
 
@@ -2987,9 +2987,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
@@ -3006,14 +3006,14 @@ addTestCases((name, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test disabled interception", async function() {
+        it("test disabled interception", async function () {
             await startST();
 
             await setup();
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    postAPIHook: async context => {
+                    postAPIHook: async (context) => {
                         assert.strictEqual(context.action === "REFRESH_SESSION" || context.action === "SIGN_OUT", true);
 
                         if (context.action === "REFRESH_SESSION" && context.fetchResponse.statusCode === 200) {
@@ -3032,7 +3032,7 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                             const idRefreshInHeader = context.fetchResponse.headers.get("id-refresh-token");
                             assert.strictEqual(idRefreshInHeader, "remove");
                         }
-                    }
+                    },
                 });
                 let userId = "testing-supertokens-website";
 
@@ -3041,9 +3041,9 @@ addTestCases((name, setupFunc, setupArgs = []) => {
                     method: "post",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ userId })
+                    body: JSON.stringify({ userId }),
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
