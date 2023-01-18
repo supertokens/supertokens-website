@@ -3,7 +3,7 @@ import Lock from "browser-tabs-lock";
 
 const defaultFactory = () => Promise.resolve(new Lock());
 
-export class LockFactoryReference {
+export default class LockFactoryReference {
     private static instance?: LockFactoryReference;
 
     constructor(public lockFactory: LockFactory) {}
@@ -24,3 +24,5 @@ export class LockFactoryReference {
         return LockFactoryReference.instance;
     }
 }
+
+export { LockFactoryReference };

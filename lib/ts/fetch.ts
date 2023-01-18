@@ -18,8 +18,8 @@ import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
-import { LockFactoryReference } from "./utils/lockFactory";
 
 function getWindowOrThrow(): Window {
     if (typeof window === "undefined") {

@@ -20,8 +20,8 @@ import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import LockFactoryReference from "./utils/lockFactory";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
-import { LockFactoryReference } from "./utils/lockFactory";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];

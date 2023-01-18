@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Add ability to specify a lockFactory to override the default browser-tabs-lock
+
 ## [14.0.3] - 2022-11-24
 
 ### Fixes
