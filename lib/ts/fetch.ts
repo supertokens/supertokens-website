@@ -14,11 +14,11 @@
  */
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
-import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
 
 function getWindowOrThrow(): Window {
@@ -178,8 +178,9 @@ export default class AuthHttpRequest {
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.env.__supertokensSessionRecipe = recipeImpl;
-            AuthHttpRequest.env.fetch = (AuthHttpRequest.env
-                .__supertokensSessionRecipe as RecipeInterface).addFetchInterceptorsAndReturnModifiedFetch({
+            AuthHttpRequest.env.fetch = (
+                AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface
+            ).addFetchInterceptorsAndReturnModifiedFetch({
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
                 userContext: {}
             });
@@ -211,7 +212,7 @@ export default class AuthHttpRequest {
                         AuthHttpRequest.config.cookieDomain
                     )) ||
                 (url !== undefined &&
-                typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
+                    typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
                     !shouldDoInterceptionBasedOnUrl(
                         url.url,
                         AuthHttpRequest.config.apiDomain,
@@ -362,7 +363,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     preRequestIdToken: IdRefreshTokenType
 ): Promise<{ result: "SESSION_EXPIRED"; error?: any } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
-    let lock = new Lock();
+    let lock = await LockFactoryReference.getReferenceOrThrow().lockFactory();
     while (true) {
         logDebugMessage("onUnauthorisedResponse: trying to acquire lock");
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {

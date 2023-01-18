@@ -21,12 +21,12 @@ let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 
-describe("General Error Tests", function() {
+describe("General Error Tests", function () {
     jsdom({
         url: "http://localhost"
     });
 
-    before(async function() {
+    before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
@@ -34,7 +34,7 @@ describe("General Error Tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -42,7 +42,7 @@ describe("General Error Tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
@@ -52,7 +52,7 @@ describe("General Error Tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("Test that signOut throws general error correctly", async function() {
+    it("Test that signOut throws general error correctly", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]

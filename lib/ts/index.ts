@@ -20,6 +20,7 @@ import OverrideableBuilder from "supertokens-js-override";
 import { getNormalisedUserContext, validateAndNormaliseInputOrThrowError } from "./utils";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import LockFactoryReference from "./utils/lockFactory";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
 
 export default class AuthHttpRequest {
@@ -28,6 +29,8 @@ export default class AuthHttpRequest {
     static init(options: InputType) {
         CookieHandlerReference.init(options.cookieHandler);
         WindowHandlerReference.init(options.windowHandler);
+        LockFactoryReference.init(options.lockFactory);
+
         let config = validateAndNormaliseInputOrThrowError(options);
         const recipeImpl = new OverrideableBuilder(
             RecipeImplementation({
@@ -96,7 +99,7 @@ export default class AuthHttpRequest {
         });
     };
 
-    static getInvalidClaimsFromResponse = async function(input: {
+    static getInvalidClaimsFromResponse = async function (input: {
         response: { data: any } | Response;
         userContext?: any;
     }): Promise<ClaimValidationError[]> {
@@ -106,7 +109,7 @@ export default class AuthHttpRequest {
         });
     };
 
-    static getClaimValue = async function<T>(input: {
+    static getClaimValue = async function <T>(input: {
         claim: SessionClaim<T>;
         userContext?: any;
     }): Promise<T | undefined> {

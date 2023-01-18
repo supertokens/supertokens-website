@@ -16,6 +16,7 @@
 import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
+import { LockFactory } from "./utils/lockFactory/types";
 
 export type Event =
     | {
@@ -39,6 +40,12 @@ export type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
+    /**
+     * This allows for a Lock factory to be configured, which defaults to browser-tabs-lock.
+     * This can be used, for example, by a WebExtension that needs to update cookies for
+     * a domain that may or may not have an associated tab open.
+     */
+    lockFactory?: LockFactory;
     sessionScope?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;

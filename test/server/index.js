@@ -72,10 +72,10 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                                 refreshPOST: undefined
                             };
                         },
-                        functions: function(oI) {
+                        functions: function (oI) {
                             return {
                                 ...oI,
-                                createNewSession: async function({ res, userId, accessTokenPayload, sessionData }) {
+                                createNewSession: async function ({ res, userId, accessTokenPayload, sessionData }) {
                                     accessTokenPayload = {
                                         ...accessTokenPayload,
                                         customClaim: "customValue"

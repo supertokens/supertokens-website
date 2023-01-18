@@ -1,4 +1,4 @@
-module.exports.addGenericTestCases = function(getTestCases) {
+module.exports.addGenericTestCases = function (getTestCases) {
     getTestCases("fetch", config => {
         supertokens.init({
             onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),

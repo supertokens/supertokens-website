@@ -137,7 +137,11 @@
                         promiseCtor = getPromiseCtor(promiseCtor);
                         return new promiseCtor((resolve, reject) => {
                             let value;
-                            this.subscribe(x => (value = x), err => reject(err), () => resolve(value));
+                            this.subscribe(
+                                x => (value = x),
+                                err => reject(err),
+                                () => resolve(value)
+                            );
                         });
                     }
                 }
@@ -188,9 +192,8 @@
                 /* harmony import */ var _Subscription__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(
                     /*! ./Subscription */ 6078
                 );
-                /* harmony import */ var _util_ObjectUnsubscribedError__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(
-                    /*! ./util/ObjectUnsubscribedError */ 9872
-                );
+                /* harmony import */ var _util_ObjectUnsubscribedError__WEBPACK_IMPORTED_MODULE_1__ =
+                    __webpack_require__(/*! ./util/ObjectUnsubscribedError */ 9872);
                 /* harmony import */ var _util_arrRemove__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(
                     /*! ./util/arrRemove */ 9663
                 );
@@ -815,9 +818,8 @@
                 /* harmony import */ var _util_isAsyncIterable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(
                     /*! ../util/isAsyncIterable */ 470
                 );
-                /* harmony import */ var _util_throwUnobservableError__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(
-                    /*! ../util/throwUnobservableError */ 7785
-                );
+                /* harmony import */ var _util_throwUnobservableError__WEBPACK_IMPORTED_MODULE_7__ =
+                    __webpack_require__(/*! ../util/throwUnobservableError */ 7785);
                 /* harmony import */ var _util_isIterable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(
                     /*! ../util/isIterable */ 3433
                 );
@@ -934,7 +936,7 @@
 
                     var e_1, _a;
 
-                    return (0, tslib__WEBPACK_IMPORTED_MODULE_11__.__awaiter)(this, void 0, void 0, function*() {
+                    return (0, tslib__WEBPACK_IMPORTED_MODULE_11__.__awaiter)(this, void 0, void 0, function* () {
                         try {
                             for (
                                 asyncIterable_1 = (0, tslib__WEBPACK_IMPORTED_MODULE_11__.__asyncValues)(asyncIterable);
@@ -1053,7 +1055,7 @@
                         this.onFinalize = onFinalize;
                         this.shouldUnsubscribe = shouldUnsubscribe;
                         this._next = onNext
-                            ? function(value) {
+                            ? function (value) {
                                   try {
                                       onNext(value);
                                   } catch (err) {
@@ -1062,7 +1064,7 @@
                               }
                             : super._next;
                         this._error = onError
-                            ? function(err) {
+                            ? function (err) {
                                   try {
                                       onError(err);
                                   } catch (err) {
@@ -1073,7 +1075,7 @@
                               }
                             : super._error;
                         this._complete = onComplete
-                            ? function() {
+                            ? function () {
                                   try {
                                       onComplete();
                                   } catch (err) {
@@ -1575,7 +1577,7 @@
                 function scheduleArray(input, scheduler) {
                     return new _Observable__WEBPACK_IMPORTED_MODULE_0__.Observable(subscriber => {
                         let i = 0;
-                        return scheduler.schedule(function() {
+                        return scheduler.schedule(function () {
                             if (i === input.length) {
                                 subscriber.complete();
                             } else {
@@ -1835,15 +1837,13 @@
                 /* harmony import */ var _util_isAsyncIterable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(
                     /*! ../util/isAsyncIterable */ 470
                 );
-                /* harmony import */ var _util_throwUnobservableError__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(
-                    /*! ../util/throwUnobservableError */ 7785
-                );
+                /* harmony import */ var _util_throwUnobservableError__WEBPACK_IMPORTED_MODULE_12__ =
+                    __webpack_require__(/*! ../util/throwUnobservableError */ 7785);
                 /* harmony import */ var _util_isReadableStreamLike__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(
                     /*! ../util/isReadableStreamLike */ 181
                 );
-                /* harmony import */ var _scheduleReadableStreamLike__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(
-                    /*! ./scheduleReadableStreamLike */ 316
-                );
+                /* harmony import */ var _scheduleReadableStreamLike__WEBPACK_IMPORTED_MODULE_11__ =
+                    __webpack_require__(/*! ./scheduleReadableStreamLike */ 316);
 
                 function scheduled(input, scheduler) {
                     if (input != null) {
@@ -1906,8 +1906,9 @@
                     },
                     clearTimeout(handle) {
                         const { delegate } = timeoutProvider;
-                        return ((delegate === null || delegate === void 0 ? void 0 : delegate.clearTimeout) ||
-                            clearTimeout)(handle);
+                        return (
+                            (delegate === null || delegate === void 0 ? void 0 : delegate.clearTimeout) || clearTimeout
+                        )(handle);
                     },
                     delegate: undefined
                 };
@@ -2146,7 +2147,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
                     /* harmony export */
                 });
                 function executeSchedule(parentSubscription, scheduler, work, delay = 0, repeat = false) {
-                    const scheduleSubscription = scheduler.schedule(function() {
+                    const scheduleSubscription = scheduler.schedule(function () {
                         work();
                         if (repeat) {
                             parentSubscription.add(this.schedule(null, delay));
@@ -2410,7 +2411,7 @@ ${errors.map((err, i) => `${i + 1}) ${err.toString()}`).join("\n  ")}`
                 function operate(init) {
                     return source => {
                         if (hasLift(source)) {
-                            return source.lift(function(liftedSource) {
+                            return source.lift(function (liftedSource) {
                                 try {
                                     return init(liftedSource, this);
                                 } catch (err) {
@@ -2576,14 +2577,14 @@ PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
                 /* global Reflect, Promise */
 
-                var extendStatics = function(d, b) {
+                var extendStatics = function (d, b) {
                     extendStatics =
                         Object.setPrototypeOf ||
                         ({ __proto__: [] } instanceof Array &&
-                            function(d, b) {
+                            function (d, b) {
                                 d.__proto__ = b;
                             }) ||
-                        function(d, b) {
+                        function (d, b) {
                             for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
                         };
                     return extendStatics(d, b);
@@ -2599,7 +2600,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     d.prototype = b === null ? Object.create(b) : ((__.prototype = b.prototype), new __());
                 }
 
-                var __assign = function() {
+                var __assign = function () {
                     __assign =
                         Object.assign ||
                         function __assign(t) {
@@ -2642,7 +2643,7 @@ PERFORMANCE OF THIS SOFTWARE.
                 }
 
                 function __param(paramIndex, decorator) {
-                    return function(target, key) {
+                    return function (target, key) {
                         decorator(target, key, paramIndex);
                     };
                 }
@@ -2656,11 +2657,11 @@ PERFORMANCE OF THIS SOFTWARE.
                     function adopt(value) {
                         return value instanceof P
                             ? value
-                            : new P(function(resolve) {
+                            : new P(function (resolve) {
                                   resolve(value);
                               });
                     }
-                    return new (P || (P = Promise))(function(resolve, reject) {
+                    return new (P || (P = Promise))(function (resolve, reject) {
                         function fulfilled(value) {
                             try {
                                 step(generator.next(value));
@@ -2685,7 +2686,7 @@ PERFORMANCE OF THIS SOFTWARE.
                 function __generator(thisArg, body) {
                     var _ = {
                             label: 0,
-                            sent: function() {
+                            sent: function () {
                                 if (t[0] & 1) throw t[1];
                                 return t[1];
                             },
@@ -2699,13 +2700,13 @@ PERFORMANCE OF THIS SOFTWARE.
                     return (
                         (g = { next: verb(0), throw: verb(1), return: verb(2) }),
                         typeof Symbol === "function" &&
-                            (g[Symbol.iterator] = function() {
+                            (g[Symbol.iterator] = function () {
                                 return this;
                             }),
                         g
                     );
                     function verb(n) {
-                        return function(v) {
+                        return function (v) {
                             return step([n, v]);
                         };
                     }
@@ -2782,20 +2783,20 @@ PERFORMANCE OF THIS SOFTWARE.
                 }
 
                 var __createBinding = Object.create
-                    ? function(o, m, k, k2) {
+                    ? function (o, m, k, k2) {
                           if (k2 === undefined) k2 = k;
                           var desc = Object.getOwnPropertyDescriptor(m, k);
                           if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
                               desc = {
                                   enumerable: true,
-                                  get: function() {
+                                  get: function () {
                                       return m[k];
                                   }
                               };
                           }
                           Object.defineProperty(o, k2, desc);
                       }
-                    : function(o, m, k, k2) {
+                    : function (o, m, k, k2) {
                           if (k2 === undefined) k2 = k;
                           o[k2] = m[k];
                       };
@@ -2812,7 +2813,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     if (m) return m.call(o);
                     if (o && typeof o.length === "number")
                         return {
-                            next: function() {
+                            next: function () {
                                 if (o && i >= o.length) o = void 0;
                                 return { value: o && o[i++], done: !o };
                             }
@@ -2880,15 +2881,15 @@ PERFORMANCE OF THIS SOFTWARE.
                         verb("next"),
                         verb("throw"),
                         verb("return"),
-                        (i[Symbol.asyncIterator] = function() {
+                        (i[Symbol.asyncIterator] = function () {
                             return this;
                         }),
                         i
                     );
                     function verb(n) {
                         if (g[n])
-                            i[n] = function(v) {
-                                return new Promise(function(a, b) {
+                            i[n] = function (v) {
+                                return new Promise(function (a, b) {
                                     q.push([n, v, a, b]) > 1 || resume(n, v);
                                 });
                             };
@@ -2921,18 +2922,18 @@ PERFORMANCE OF THIS SOFTWARE.
                     return (
                         (i = {}),
                         verb("next"),
-                        verb("throw", function(e) {
+                        verb("throw", function (e) {
                             throw e;
                         }),
                         verb("return"),
-                        (i[Symbol.iterator] = function() {
+                        (i[Symbol.iterator] = function () {
                             return this;
                         }),
                         i
                     );
                     function verb(n, f) {
                         i[n] = o[n]
-                            ? function(v) {
+                            ? function (v) {
                                   return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v;
                               }
                             : f;
@@ -2950,21 +2951,21 @@ PERFORMANCE OF THIS SOFTWARE.
                           verb("next"),
                           verb("throw"),
                           verb("return"),
-                          (i[Symbol.asyncIterator] = function() {
+                          (i[Symbol.asyncIterator] = function () {
                               return this;
                           }),
                           i);
                     function verb(n) {
                         i[n] =
                             o[n] &&
-                            function(v) {
-                                return new Promise(function(resolve, reject) {
+                            function (v) {
+                                return new Promise(function (resolve, reject) {
                                     (v = o[n](v)), settle(resolve, reject, v.done, v.value);
                                 });
                             };
                     }
                     function settle(resolve, reject, d, v) {
-                        Promise.resolve(v).then(function(v) {
+                        Promise.resolve(v).then(function (v) {
                             resolve({ value: v, done: d });
                         }, reject);
                     }
@@ -2980,10 +2981,10 @@ PERFORMANCE OF THIS SOFTWARE.
                 }
 
                 var __setModuleDefault = Object.create
-                    ? function(o, v) {
+                    ? function (o, v) {
                           Object.defineProperty(o, "default", { enumerable: true, value: v });
                       }
-                    : function(o, v) {
+                    : function (o, v) {
                           o["default"] = v;
                       };
 
@@ -3231,13 +3232,13 @@ PERFORMANCE OF THIS SOFTWARE.
                     "ɵɵdefineInjectable"
                 ]({
                     token: PlatformLocation,
-                    factory: function() {
+                    factory: function () {
                         return useBrowserPlatformLocation();
                     },
                     providedIn: "platform"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             PlatformLocation,
@@ -3383,13 +3384,13 @@ PERFORMANCE OF THIS SOFTWARE.
                     "ɵɵdefineInjectable"
                 ]({
                     token: BrowserPlatformLocation,
-                    factory: function() {
+                    factory: function () {
                         return createBrowserPlatformLocation();
                     },
                     providedIn: "platform"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             BrowserPlatformLocation,
@@ -3405,7 +3406,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -3553,13 +3554,13 @@ PERFORMANCE OF THIS SOFTWARE.
                     "ɵɵdefineInjectable"
                 ]({
                     token: LocationStrategy,
-                    factory: function() {
+                    factory: function () {
                         return provideLocationStrategy();
                     },
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             LocationStrategy,
@@ -3735,7 +3736,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: PathLocationStrategy.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             PathLocationStrategy,
@@ -3744,7 +3745,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: PlatformLocation
@@ -3887,7 +3888,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: HashLocationStrategy.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             HashLocationStrategy,
@@ -3896,7 +3897,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: PlatformLocation
@@ -4195,13 +4196,13 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 Location.ɵprov = /* @__PURE__ */ _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineInjectable"]({
                     token: Location,
-                    factory: function() {
+                    factory: function () {
                         return createLocation();
                     },
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             Location,
@@ -4217,7 +4218,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: LocationStrategy
@@ -4423,7 +4424,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var NumberFormatStyle;
 
-                (function(NumberFormatStyle) {
+                (function (NumberFormatStyle) {
                     NumberFormatStyle[(NumberFormatStyle["Decimal"] = 0)] = "Decimal";
                     NumberFormatStyle[(NumberFormatStyle["Percent"] = 1)] = "Percent";
                     NumberFormatStyle[(NumberFormatStyle["Currency"] = 2)] = "Currency";
@@ -4441,7 +4442,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var Plural;
 
-                (function(Plural) {
+                (function (Plural) {
                     Plural[(Plural["Zero"] = 0)] = "Zero";
                     Plural[(Plural["One"] = 1)] = "One";
                     Plural[(Plural["Two"] = 2)] = "Two";
@@ -4461,7 +4462,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var FormStyle;
 
-                (function(FormStyle) {
+                (function (FormStyle) {
                     FormStyle[(FormStyle["Format"] = 0)] = "Format";
                     FormStyle[(FormStyle["Standalone"] = 1)] = "Standalone";
                 })(FormStyle || (FormStyle = {}));
@@ -4475,7 +4476,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var TranslationWidth;
 
-                (function(TranslationWidth) {
+                (function (TranslationWidth) {
                     /** 1 character for `en-US`. For example: 'S' */
                     TranslationWidth[(TranslationWidth["Narrow"] = 0)] = "Narrow";
                     /** 3 characters for `en-US`. For example: 'Sun' */
@@ -4502,7 +4503,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var FormatWidth;
 
-                (function(FormatWidth) {
+                (function (FormatWidth) {
                     /**
                      * For `en-US`, 'M/d/yy, h:mm a'`
                      * (Example: `6/15/15, 9:03 AM`)
@@ -4539,7 +4540,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var NumberSymbol;
 
-                (function(NumberSymbol) {
+                (function (NumberSymbol) {
                     /**
                      * Decimal separator.
                      * For `en-US`, the dot character.
@@ -4634,7 +4635,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var WeekDay;
 
-                (function(WeekDay) {
+                (function (WeekDay) {
                     WeekDay[(WeekDay["Sunday"] = 0)] = "Sunday";
                     WeekDay[(WeekDay["Monday"] = 1)] = "Monday";
                     WeekDay[(WeekDay["Tuesday"] = 2)] = "Tuesday";
@@ -5143,13 +5144,15 @@ PERFORMANCE OF THIS SOFTWARE.
                  * found in the LICENSE file at https://angular.io/license
                  */
 
-                const ISO8601_DATE_REGEX = /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d+))?)?)?(Z|([+-])(\d\d):?(\d\d))?)?$/; //    1        2       3         4          5          6          7          8  9     10      11
+                const ISO8601_DATE_REGEX =
+                    /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d+))?)?)?(Z|([+-])(\d\d):?(\d\d))?)?$/; //    1        2       3         4          5          6          7          8  9     10      11
 
                 const NAMED_FORMATS = {};
-                const DATE_FORMATS_SPLIT = /((?:[^BEGHLMOSWYZabcdhmswyz']+)|(?:'(?:[^']|'')*')|(?:G{1,5}|y{1,4}|Y{1,4}|M{1,5}|L{1,5}|w{1,2}|W{1}|d{1,2}|E{1,6}|c{1,6}|a{1,5}|b{1,5}|B{1,5}|h{1,2}|H{1,2}|m{1,2}|s{1,2}|S{1,3}|z{1,4}|Z{1,5}|O{1,4}))([\s\S]*)/;
+                const DATE_FORMATS_SPLIT =
+                    /((?:[^BEGHLMOSWYZabcdhmswyz']+)|(?:'(?:[^']|'')*')|(?:G{1,5}|y{1,4}|Y{1,4}|M{1,5}|L{1,5}|w{1,2}|W{1}|d{1,2}|E{1,6}|c{1,6}|a{1,5}|b{1,5}|B{1,5}|h{1,2}|H{1,2}|m{1,2}|s{1,2}|S{1,3}|z{1,4}|Z{1,5}|O{1,4}))([\s\S]*)/;
                 var ZoneWidth;
 
-                (function(ZoneWidth) {
+                (function (ZoneWidth) {
                     ZoneWidth[(ZoneWidth["Short"] = 0)] = "Short";
                     ZoneWidth[(ZoneWidth["ShortGMT"] = 1)] = "ShortGMT";
                     ZoneWidth[(ZoneWidth["Long"] = 2)] = "Long";
@@ -5158,7 +5161,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var DateType;
 
-                (function(DateType) {
+                (function (DateType) {
                     DateType[(DateType["FullYear"] = 0)] = "FullYear";
                     DateType[(DateType["Month"] = 1)] = "Month";
                     DateType[(DateType["Date"] = 2)] = "Date";
@@ -5171,7 +5174,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var TranslationType;
 
-                (function(TranslationType) {
+                (function (TranslationType) {
                     TranslationType[(TranslationType["DayPeriods"] = 0)] = "DayPeriods";
                     TranslationType[(TranslationType["Days"] = 1)] = "Days";
                     TranslationType[(TranslationType["Months"] = 2)] = "Months";
@@ -5361,7 +5364,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 function formatDateTime(str, opt_values) {
                     if (opt_values) {
-                        str = str.replace(/\{([^}]+)}/g, function(match, key) {
+                        str = str.replace(/\{([^}]+)}/g, function (match, key) {
                             return opt_values != null && key in opt_values ? opt_values[key] : match;
                         });
                     }
@@ -5403,7 +5406,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
 
                 function dateGetter(name, size, offset = 0, trim = false, negWrap = false) {
-                    return function(date, locale) {
+                    return function (date, locale) {
                         let part = getDatePart(name, date);
 
                         if (offset > 0 || part > -offset) {
@@ -5458,7 +5461,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
 
                 function dateStrGetter(name, width, form = FormStyle.Format, extended = false) {
-                    return function(date, locale) {
+                    return function (date, locale) {
                         return getDateTranslation(date, locale, name, width, form, extended);
                     };
                 }
@@ -5542,7 +5545,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
 
                 function timeZoneGetter(width) {
-                    return function(date, locale, offset) {
+                    return function (date, locale, offset) {
                         const zone = -1 * offset;
                         const minusSign = getLocaleNumberSymbol(locale, NumberSymbol.MinusSign);
                         const hours = zone > 0 ? Math.floor(zone / 60) : Math.ceil(zone / 60);
@@ -5606,7 +5609,7 @@ PERFORMANCE OF THIS SOFTWARE.
                 }
 
                 function weekGetter(size, monthBased = false) {
-                    return function(date, locale) {
+                    return function (date, locale) {
                         let result;
 
                         if (monthBased) {
@@ -5631,7 +5634,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
 
                 function weekNumberingYearGetter(size, trim = false) {
-                    return function(date, locale) {
+                    return function (date, locale) {
                         const thisThurs = getThursdayThisWeek(date);
                         const weekNumberingYear = thisThurs.getFullYear();
                         return padNumber(
@@ -6555,7 +6558,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                     const minLen = minFrac + parsedNumber.integerLen; // Do any carrying, e.g. a digit was rounded up to 10
 
-                    const carry = digits.reduceRight(function(carry, d, i, digits) {
+                    const carry = digits.reduceRight(function (carry, d, i, digits) {
                         d = d + carry;
                         digits[i] = d < 10 ? d : d - 10; // d % 10
 
@@ -6626,7 +6629,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 );
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgLocalization,
@@ -6723,7 +6726,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: NgLocaleLocalization.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgLocaleLocalization,
@@ -6732,7 +6735,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -6990,7 +6993,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgClass,
@@ -7004,7 +7007,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.IterableDiffers
@@ -7174,7 +7177,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     features: [_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵNgOnChangesFeature"]]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgComponentOutlet,
@@ -7188,7 +7191,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -7532,7 +7535,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgForOf,
@@ -7546,7 +7549,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -7838,7 +7841,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgIf,
@@ -7852,7 +7855,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -8074,7 +8077,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgSwitch,
@@ -8174,7 +8177,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgSwitchCase,
@@ -8188,7 +8191,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -8260,7 +8263,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     selectors: [["", "ngSwitchDefault", ""]]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgSwitchDefault,
@@ -8274,7 +8277,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -8400,7 +8403,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgPlural,
@@ -8414,7 +8417,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: NgLocalization
@@ -8477,7 +8480,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     selectors: [["", "ngPluralCase", ""]]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgPluralCase,
@@ -8491,7 +8494,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -8633,7 +8636,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgStyle,
@@ -8647,7 +8650,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ElementRef
@@ -8767,7 +8770,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 );
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             NgTemplateOutlet,
@@ -8781,7 +8784,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ViewContainerRef
@@ -9004,7 +9007,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: false
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             AsyncPipe,
@@ -9019,7 +9022,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.ChangeDetectorRef
@@ -9075,7 +9078,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             LowerCasePipe,
@@ -9101,7 +9104,8 @@ PERFORMANCE OF THIS SOFTWARE.
                 // https://mothereff.in/regexpu#input=var+regex+%3D+%2F%5B0-9%5Cp%7BL%7D%5D%5CS*%2Fgu%3B%0A%0A&unicodePropertyEscape=1
                 //
 
-                const unicodeWordMatch = /(?:[0-9A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD50-\uDD52\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E]|\uD838[\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF38\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A])\S*/g;
+                const unicodeWordMatch =
+                    /(?:[0-9A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD50-\uDD52\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E]|\uD838[\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF38\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A])\S*/g;
                 /**
                  * Transforms text to title case.
                  * Capitalizes the first letter of each word and transforms the
@@ -9145,7 +9149,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             TitleCasePipe,
@@ -9194,7 +9198,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             UpperCasePipe,
@@ -9431,7 +9435,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             DatePipe,
@@ -9446,7 +9450,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -9534,7 +9538,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             I18nPluralPipe,
@@ -9549,7 +9553,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: NgLocalization
@@ -9620,7 +9624,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             I18nSelectPipe,
@@ -9682,7 +9686,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: false
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             JsonPipe,
@@ -9787,7 +9791,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: false
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             KeyValuePipe,
@@ -9802,7 +9806,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__.KeyValueDiffers
@@ -9953,7 +9957,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             DecimalPipe,
@@ -9967,7 +9971,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -10053,7 +10057,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             PercentPipe,
@@ -10067,7 +10071,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -10219,7 +10223,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: true
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             CurrencyPipe,
@@ -10233,7 +10237,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -10348,7 +10352,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     pure: false
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             SlicePipe,
@@ -10429,7 +10433,7 @@ PERFORMANCE OF THIS SOFTWARE.
                 });
                 CommonModule.ɵinj = /* @__PURE__ */ _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineInjector"]({});
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](
                             CommonModule,
@@ -11239,9 +11243,9 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 const STANDARD_ENCODING_REGEX = /%(\d[a-f0-9])/gi;
                 const STANDARD_ENCODING_REPLACEMENTS = {
-                    "40": "@",
+                    40: "@",
                     "3A": ":",
-                    "24": "$",
+                    24: "$",
                     "2C": ",",
                     "3B": ";",
                     "2B": "+",
@@ -11922,7 +11926,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
                 var HttpEventType;
 
-                (function(HttpEventType) {
+                (function (HttpEventType) {
                     /**
                      * The request was sent out over the wire.
                      */
@@ -12437,7 +12441,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: HttpClient.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpClient,
@@ -12446,7 +12450,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: HttpHandler
@@ -12508,7 +12512,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: NoopInterceptor.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             NoopInterceptor,
@@ -12738,7 +12742,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: JsonpClientBackend.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             JsonpClientBackend,
@@ -12747,7 +12751,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: JsonpCallbackContext
@@ -12809,7 +12813,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: JsonpInterceptor.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             JsonpInterceptor,
@@ -12818,7 +12822,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: JsonpClientBackend
@@ -12954,10 +12958,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                 } // Normalize another potential bug (this one comes from CORS).
 
                                 if (status === 0) {
-                                    status = !!body
-                                        ? 200
-                                        : /* Ok */
-                                          0;
+                                    status = !!body ? 200 : /* Ok */ 0;
                                 } // ok determines whether the response will be transmitted on the event or
                                 // error channel. Unsuccessful status codes (not 2xx) will always be errors,
                                 // but a successful status code can still result in an error if the user
@@ -13142,7 +13143,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     }
                 );
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpXhrBackend,
@@ -13151,7 +13152,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: _angular_common__WEBPACK_IMPORTED_MODULE_6__.XhrFactory
@@ -13239,7 +13240,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: HttpXsrfCookieExtractor.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpXsrfCookieExtractor,
@@ -13248,7 +13249,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -13333,7 +13334,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: HttpXsrfInterceptor.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpXsrfInterceptor,
@@ -13342,7 +13343,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: HttpXsrfTokenExtractor
@@ -13415,7 +13416,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     factory: HttpInterceptingHandler.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpInterceptingHandler,
@@ -13424,7 +13425,7 @@ PERFORMANCE OF THIS SOFTWARE.
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_4__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: HttpBackend
@@ -13564,7 +13565,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpClientXsrfModule,
@@ -13643,7 +13644,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpClientModule,
@@ -13726,7 +13727,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵsetClassMetadata"](
                             HttpClientJsonpModule,
@@ -14259,7 +14260,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
                 function forwardRef(forwardRefFn) {
                     forwardRefFn.__forward_ref__ = forwardRef;
-                    forwardRefFn.toString = function() {
+                    forwardRefFn.toString = function () {
                         return stringify(this());
                     };
                     return forwardRefFn;
@@ -14664,7 +14665,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * @publicApi
                  */
                 var InjectFlags;
-                (function(InjectFlags) {
+                (function (InjectFlags) {
                     // TODO(alxhub): make this 'const' (and remove `InternalInjectFlags` enum) when ngc no longer
                     // writes exports of it into ngfactory files.
                     /** Check self and check parent injector if needed */
@@ -14776,7 +14777,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * @publicApi
                  */
                 var ChangeDetectionStrategy;
-                (function(ChangeDetectionStrategy) {
+                (function (ChangeDetectionStrategy) {
                     /**
                      * Use the `CheckOnce` strategy, meaning that automatic change detection is deactivated
                      * until reactivated by setting the strategy to `Default` (`CheckAlways`).
@@ -14795,7 +14796,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * @see `ChangeDetectorRef`
                  */
                 var ChangeDetectorStatus;
-                (function(ChangeDetectorStatus) {
+                (function (ChangeDetectorStatus) {
                     /**
                      * A state in which, after calling `detectChanges()`, the change detector
                      * state becomes `Checked`, and must be explicitly invoked or reactivated.
@@ -14861,7 +14862,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * @publicApi
                  */
                 var ViewEncapsulation$1;
-                (function(ViewEncapsulation) {
+                (function (ViewEncapsulation) {
                     // TODO: consider making `ViewEncapsulation` a `const enum` instead. See
                     // https://github.com/angular/angular/issues/44119 for additional information.
                     /**
@@ -15764,7 +15765,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  *  execution context
                  * @returns
                  */
-                const profiler = function(event, instance, hookOrListener) {
+                const profiler = function (event, instance, hookOrListener) {
                     if (profilerCallback != null /* both `null` and `undefined` */) {
                         profilerCallback(event, instance, hookOrListener);
                     }
@@ -15853,7 +15854,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  */
                 // TODO: cleanup once the code is merged in angular/angular
                 var RendererStyleFlags3;
-                (function(RendererStyleFlags3) {
+                (function (RendererStyleFlags3) {
                     RendererStyleFlags3[(RendererStyleFlags3["Important"] = 1)] = "Important";
                     RendererStyleFlags3[(RendererStyleFlags3["DashCase"] = 2)] = "DashCase";
                 })(RendererStyleFlags3 || (RendererStyleFlags3 = {}));
@@ -18311,7 +18312,7 @@ PERFORMANCE OF THIS SOFTWARE.
                  * found in the LICENSE file at https://angular.io/license
                  */
                 var FactoryTarget;
-                (function(FactoryTarget) {
+                (function (FactoryTarget) {
                     FactoryTarget[(FactoryTarget["Directive"] = 0)] = "Directive";
                     FactoryTarget[(FactoryTarget["Component"] = 1)] = "Component";
                     FactoryTarget[(FactoryTarget["Injectable"] = 2)] = "Injectable";
@@ -18319,7 +18320,7 @@ PERFORMANCE OF THIS SOFTWARE.
                     FactoryTarget[(FactoryTarget["NgModule"] = 4)] = "NgModule";
                 })(FactoryTarget || (FactoryTarget = {}));
                 var ViewEncapsulation;
-                (function(ViewEncapsulation) {
+                (function (ViewEncapsulation) {
                     ViewEncapsulation[(ViewEncapsulation["Emulated"] = 0)] = "Emulated";
                     // Historically the 1 value was for `Native` encapsulation which has been removed as of v11.
                     ViewEncapsulation[(ViewEncapsulation["None"] = 2)] = "None";
@@ -18740,19 +18741,22 @@ PERFORMANCE OF THIS SOFTWARE.
                  *
                  * More details can be found in: https://github.com/angular/angular/issues/38453.
                  */
-                const ES5_DELEGATE_CTOR = /^function\s+\S+\(\)\s*{[\s\S]+\.apply\(this,\s*(arguments|(?:[^()]+\(\[\],)?[^()]+\(arguments\).*)\)/;
+                const ES5_DELEGATE_CTOR =
+                    /^function\s+\S+\(\)\s*{[\s\S]+\.apply\(this,\s*(arguments|(?:[^()]+\(\[\],)?[^()]+\(arguments\).*)\)/;
                 /** Regular expression that detects ES2015 classes which extend from other classes. */
                 const ES2015_INHERITED_CLASS = /^class\s+[A-Za-z\d$_]*\s*extends\s+[^{]+{/;
                 /**
                  * Regular expression that detects ES2015 classes which extend from other classes and
                  * have an explicit constructor defined.
                  */
-                const ES2015_INHERITED_CLASS_WITH_CTOR = /^class\s+[A-Za-z\d$_]*\s*extends\s+[^{]+{[\s\S]*constructor\s*\(/;
+                const ES2015_INHERITED_CLASS_WITH_CTOR =
+                    /^class\s+[A-Za-z\d$_]*\s*extends\s+[^{]+{[\s\S]*constructor\s*\(/;
                 /**
                  * Regular expression that detects ES2015 classes which extend from other classes
                  * and inherit a constructor.
                  */
-                const ES2015_INHERITED_CLASS_WITH_DELEGATE_CTOR = /^class\s+[A-Za-z\d$_]*\s*extends\s+[^{]+{[\s\S]*constructor\s*\(\)\s*{[^}]*super\(\.\.\.arguments\)/;
+                const ES2015_INHERITED_CLASS_WITH_DELEGATE_CTOR =
+                    /^class\s+[A-Za-z\d$_]*\s*extends\s+[^{]+{[\s\S]*constructor\s*\(\)\s*{[^}]*super\(\.\.\.arguments\)/;
                 /**
                  * Determine whether a stringified type is a class which delegates its constructor
                  * to its parent.
@@ -19912,7 +19916,8 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 /* A pattern that matches safe srcset values */
                 const SAFE_SRCSET_PATTERN = /^(?:(?:https?|file):|[^&:/?#]*(?:[/?#]|$))/gi;
                 /** A pattern that matches safe data URLs. Only matches image, video and audio types. */
-                const DATA_URL_PATTERN = /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,[a-z0-9+\/]+=*$/i;
+                const DATA_URL_PATTERN =
+                    /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,[a-z0-9+\/]+=*$/i;
                 function _sanitizeUrl(url) {
                     url = String(url);
                     if (url.match(SAFE_URL_PATTERN) || url.match(DATA_URL_PATTERN)) return url;
@@ -20133,12 +20138,12 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 function encodeEntities(value) {
                     return value
                         .replace(/&/g, "&amp;")
-                        .replace(SURROGATE_PAIR_REGEXP, function(match) {
+                        .replace(SURROGATE_PAIR_REGEXP, function (match) {
                             const hi = match.charCodeAt(0);
                             const low = match.charCodeAt(1);
                             return "&#" + ((hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000) + ";";
                         })
-                        .replace(NON_ALPHANUMERIC_REGEXP, function(match) {
+                        .replace(NON_ALPHANUMERIC_REGEXP, function (match) {
                             return "&#" + match.charCodeAt(0) + ";";
                         })
                         .replace(/</g, "&lt;")
@@ -20215,7 +20220,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @publicApi
                  */
                 var SecurityContext;
-                (function(SecurityContext) {
+                (function (SecurityContext) {
                     SecurityContext[(SecurityContext["NONE"] = 0)] = "NONE";
                     SecurityContext[(SecurityContext["HTML"] = 1)] = "HTML";
                     SecurityContext[(SecurityContext["STYLE"] = 2)] = "STYLE";
@@ -21114,7 +21119,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @publicApi
                  */
                 var RendererStyleFlags2;
-                (function(RendererStyleFlags2) {
+                (function (RendererStyleFlags2) {
                     // TODO(misko): This needs to be refactored into a separate file so that it can be imported from
                     // `node_manipulation.ts` Currently doing the import cause resolution order to change and fails
                     // the tests. The work around is to have hard coded value in `node_manipulation.ts` for now.
@@ -23646,7 +23651,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 }
                 function getOrCreateTNode(tView, index, type, name, attrs) {
                     ngDevMode &&
-                    index !== 0 && // 0 are bogus nodes and they are OK. See `createContainerRef` in
+                        index !== 0 && // 0 are bogus nodes and they are OK. See `createContainerRef` in
                         // `view_engine_compatibility` for additional context.
                         assertGreaterThanOrEqual(index, HEADER_OFFSET, "TNodes can't be in the LView header.");
                     // Keep this function short, so that the VM will inline it.
@@ -24207,7 +24212,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 }
                 function createTNode(tView, tParent, type, index, value, attrs) {
                     ngDevMode &&
-                    index !== 0 && // 0 are bogus nodes and they are OK. See `createContainerRef` in
+                        index !== 0 && // 0 are bogus nodes and they are OK. See `createContainerRef` in
                         // `view_engine_compatibility` for additional context.
                         assertGreaterThanOrEqual(index, HEADER_OFFSET, "TNodes can't be in the LView header.");
                     ngDevMode && assertNotSame(attrs, undefined, "'undefined' is not valid value for 'attrs'");
@@ -28407,7 +28412,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * ```
                  */
                 function noProviderError(injector, key) {
-                    return injectionError(injector, key, function(keys) {
+                    return injectionError(injector, key, function (keys) {
                         const first = stringify(keys[0].token);
                         return `No provider for ${first}!${constructResolvingPath(keys)}`;
                     });
@@ -28430,7 +28435,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * Retrieving `A` or `B` throws a `CyclicDependencyError` as the graph above cannot be constructed.
                  */
                 function cyclicDependencyError(injector, key) {
-                    return injectionError(injector, key, function(keys) {
+                    return injectionError(injector, key, function (keys) {
                         return `Cannot instantiate cyclic dependency!${constructResolvingPath(keys)}`;
                     });
                 }
@@ -28465,7 +28470,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     return injectionError(
                         injector,
                         key,
-                        function(keys) {
+                        function (keys) {
                             const first = stringify(keys[0].token);
                             return `${
                                 originalException.message
@@ -31437,8 +31442,8 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     while (
                         startIndex < endIndex &&
                         ((ch = text.charCodeAt(startIndex)) === 45 /* DASH */ ||
-                        ch === 95 /* UNDERSCORE */ ||
-                        ((ch & -33) /* UPPER_CASE */ >= 65 /* A */ && (ch & -33) /* UPPER_CASE */ <= 90) /* Z */ ||
+                            ch === 95 /* UNDERSCORE */ ||
+                            ((ch & -33) /* UPPER_CASE */ >= 65 /* A */ && (ch & -33) /* UPPER_CASE */ <= 90) /* Z */ ||
                             (ch >= 48 /* ZERO */ && ch <= 57)) /* NINE */
                     ) {
                         startIndex++;
@@ -34083,7 +34088,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     // when optimizing code and the whole if statement will be dropped.
                     // Make sure to refer to ngI18nClosureMode as ['ngI18nClosureMode'] for closure.
                     // NOTE: we need to have it in IIFE so that the tree-shaker is happy.
-                    (function() {
+                    (function () {
                         // tslint:disable-next-line:no-toplevel-property-access
                         _global["ngI18nClosureMode"] =
                             // TODO(FW-1250): validate that this actually, you know, works.
@@ -34138,7 +34143,11 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         ]
                     ],
                     u,
-                    [["B", "A"], ["BC", "AD"], ["Before Christ", "Anno Domini"]],
+                    [
+                        ["B", "A"],
+                        ["BC", "AD"],
+                        ["Before Christ", "Anno Domini"]
+                    ],
                     0,
                     [6, 0],
                     ["M/d/yy", "MMM d, y", "MMMM d, y", "EEEE, MMMM d, y"],
@@ -34256,7 +34265,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * Index of each type of locale data from the locale data array
                  */
                 var LocaleDataIndex;
-                (function(LocaleDataIndex) {
+                (function (LocaleDataIndex) {
                     LocaleDataIndex[(LocaleDataIndex["LocaleId"] = 0)] = "LocaleId";
                     LocaleDataIndex[(LocaleDataIndex["DayPeriodsFormat"] = 1)] = "DayPeriodsFormat";
                     LocaleDataIndex[(LocaleDataIndex["DayPeriodsStandalone"] = 2)] = "DayPeriodsStandalone";
@@ -34340,7 +34349,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * See `I18nCreateOpCodes`
                  */
                 var I18nCreateOpCode;
-                (function(I18nCreateOpCode) {
+                (function (I18nCreateOpCode) {
                     /**
                      * Number of bits to shift index so that it can be combined with the `APPEND_EAGERLY` and
                      * `COMMENT`.
@@ -35869,7 +35878,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     const values = [];
                     let icuType = 1; /* plural */
                     let mainBinding = 0;
-                    pattern = pattern.replace(ICU_BLOCK_REGEXP, function(str, binding, type) {
+                    pattern = pattern.replace(ICU_BLOCK_REGEXP, function (str, binding, type) {
                         if (type === "select") {
                             icuType = 0 /* select */;
                         } else {
@@ -36999,10 +37008,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                         this.full = full;
                         this.major = full.split(".")[0];
                         this.minor = full.split(".")[1];
-                        this.patch = full
-                            .split(".")
-                            .slice(2)
-                            .join(".");
+                        this.patch = full.split(".").slice(2).join(".");
                     }
                 }
                 /**
@@ -40796,8 +40802,12 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  *
                  * @publicApi
                  */
-                const Directive = makeDecorator("Directive", (dir = {}) => dir, undefined, undefined, (type, meta) =>
-                    compileDirective(type, meta)
+                const Directive = makeDecorator(
+                    "Directive",
+                    (dir = {}) => dir,
+                    undefined,
+                    undefined,
+                    (type, meta) => compileDirective(type, meta)
                 );
                 /**
                  * Component decorator and metadata.
@@ -41099,7 +41109,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: ApplicationInitStatus.ɵfac,
                     providedIn: "root"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             ApplicationInitStatus,
@@ -41109,7 +41119,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     args: [{ providedIn: "root" }]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -41223,7 +41233,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: Console.ɵfac,
                     providedIn: "platform"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             Console,
@@ -41414,7 +41424,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                  * @publicApi
                  */
                 var MissingTranslationStrategy;
-                (function(MissingTranslationStrategy) {
+                (function (MissingTranslationStrategy) {
                     MissingTranslationStrategy[(MissingTranslationStrategy["Error"] = 0)] = "Error";
                     MissingTranslationStrategy[(MissingTranslationStrategy["Warning"] = 1)] = "Warning";
                     MissingTranslationStrategy[(MissingTranslationStrategy["Ignore"] = 2)] = "Ignore";
@@ -41518,7 +41528,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: Compiler.ɵfac,
                     providedIn: "root"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             Compiler,
@@ -42160,7 +42170,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     return new (t || Testability)(ɵɵinject(NgZone));
                 };
                 Testability.ɵprov = /*@__PURE__*/ ɵɵdefineInjectable({ token: Testability, factory: Testability.ɵfac });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             Testability,
@@ -42169,7 +42179,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [{ type: NgZone }];
                             },
                             null
@@ -42243,7 +42253,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: TestabilityRegistry.ɵfac,
                     providedIn: "platform"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             TestabilityRegistry,
@@ -42253,7 +42263,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     args: [{ providedIn: "platform" }]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [];
                             },
                             null
@@ -42620,7 +42630,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: PlatformRef.ɵfac,
                     providedIn: "platform"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             PlatformRef,
@@ -42630,7 +42640,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     args: [{ providedIn: "platform" }]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [{ type: Injector }];
                             },
                             null
@@ -43021,7 +43031,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: ApplicationRef.ɵfac,
                     providedIn: "root"
                 });
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             ApplicationRef,
@@ -43031,7 +43041,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     args: [{ providedIn: "root" }]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     { type: NgZone },
                                     { type: Injector },
@@ -45061,7 +45071,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                 };
                 ApplicationModule.ɵmod = /*@__PURE__*/ ɵɵdefineNgModule({ type: ApplicationModule });
                 ApplicationModule.ɵinj = /*@__PURE__*/ ɵɵdefineInjector({});
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         setClassMetadata(
                             ApplicationModule,
@@ -45070,7 +45080,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: NgModule
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [{ type: ApplicationRef }];
                             },
                             null
@@ -45248,7 +45258,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     // tslint:disable-next-line: no-toplevel-property-access
                     _global.$localize =
                         _global.$localize ||
-                        function() {
+                        function () {
                             throw new Error(
                                 "It looks like your application or one of its dependencies is using i18n.\n" +
                                     "Angular 9 introduced a global `$localize()` function that needs to be loaded.\n" +
@@ -45563,13 +45573,12 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             callback
                             /** TODO #9100 */
                         ) => {
-                            const testabilities = _angular_core__WEBPACK_IMPORTED_MODULE_1__[
-                                "ɵglobal"
-                            ].getAllAngularTestabilities();
+                            const testabilities =
+                                _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵglobal"].getAllAngularTestabilities();
                             let count = testabilities.length;
                             let didWork = false;
 
-                            const decrement = function(
+                            const decrement = function (
                                 didWork_
                                 /** TODO #9100 */
                             ) {
@@ -45581,7 +45590,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                 }
                             };
 
-                            testabilities.forEach(function(
+                            testabilities.forEach(function (
                                 testability
                                 /** TODO #9100 */
                             ) {
@@ -45635,7 +45644,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: BrowserXhr.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             BrowserXhr,
@@ -45759,7 +45768,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: EventManager.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             EventManager,
@@ -45768,7 +45777,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -45851,7 +45860,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: SharedStylesHost.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             SharedStylesHost,
@@ -45928,7 +45937,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: DomSharedStylesHost.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             DomSharedStylesHost,
@@ -45937,7 +45946,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -46116,7 +46125,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: DomRendererFactory2.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             DomRendererFactory2,
@@ -46125,7 +46134,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: EventManager
@@ -46428,7 +46437,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: DomEventsPlugin.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             DomEventsPlugin,
@@ -46437,7 +46446,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -46667,7 +46676,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: KeyEventsPlugin.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             KeyEventsPlugin,
@@ -46676,7 +46685,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -46892,7 +46901,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             BrowserModule,
@@ -46910,7 +46919,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: BrowserModule,
@@ -47144,7 +47153,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             Meta,
@@ -47160,7 +47169,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -47258,7 +47267,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             Title,
@@ -47274,7 +47283,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -47584,7 +47593,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: TransferState.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             TransferState,
@@ -47648,7 +47657,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             BrowserTransferStateModule,
@@ -47878,7 +47887,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: HammerGestureConfig.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             HammerGestureConfig,
@@ -47984,8 +47993,8 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                             // Creating the manager bind events, must be done outside of angular
                             const mc = this._config.buildHammer(element);
 
-                            const callback = function(eventObj) {
-                                zone.runGuarded(function() {
+                            const callback = function (eventObj) {
+                                zone.runGuarded(function () {
                                     handler(eventObj);
                                 });
                             };
@@ -48026,7 +48035,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     factory: HammerGesturesPlugin.ɵfac
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             HammerGesturesPlugin,
@@ -48035,7 +48044,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     type: _angular_core__WEBPACK_IMPORTED_MODULE_1__.Injectable
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
@@ -48117,7 +48126,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     ]
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             HammerModule,
@@ -48217,7 +48226,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             DomSanitizer,
@@ -48387,7 +48396,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                     providedIn: "root"
                 });
 
-                (function() {
+                (function () {
                     (typeof ngDevMode === "undefined" || ngDevMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](
                             DomSanitizerImpl,
@@ -48403,7 +48412,7 @@ Please check that 1) the type for the parameter at index ${index} is correct and
                                     ]
                                 }
                             ],
-                            function() {
+                            function () {
                                 return [
                                     {
                                         type: undefined,
