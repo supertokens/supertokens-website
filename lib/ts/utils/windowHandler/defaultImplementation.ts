@@ -134,6 +134,9 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
     getDocument: function () {
         return getWindowOrThrow().document;
     },
+    getWindowUnsafe: function () {
+        return getWindowOrThrow().window;
+    },
     localStorage: defaultLocalStorageHandler,
     sessionStorage: defaultSessionStorageHandler
 };
