@@ -21,16 +21,6 @@ import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
 
-function getWindowOrThrow(): Window {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
-}
-
 export class AntiCsrfToken {
     private static tokenInfo:
         | undefined
@@ -163,7 +153,8 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input sessionExpiredStatusCode: " + config.sessionExpiredStatusCode);
         logDebugMessage("init: Input sessionScope: " + config.sessionScope);
 
-        AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
+        const fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
+        AuthHttpRequest.env = fetchedWindow === undefined || fetchedWindow.fetch === undefined ? global : fetchedWindow;
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
