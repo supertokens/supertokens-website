@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [15.0.0] - 2022-12-09
+
+### Changed
+
+- Added `getWindowUnsafe` to the WindowHandlerInterface. This function should return the raw window object.
+
 ## [14.0.3] - 2022-11-24
 
 ### Fixes
