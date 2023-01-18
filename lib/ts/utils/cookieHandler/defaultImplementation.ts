@@ -13,22 +13,13 @@
  * under the License.
  */
 import { CookieHandlerInterface } from "./types";
-
-function getWindowOrThrow(): Window {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
-}
+import WindowHandlerReference from "../windowHandler";
 
 export const defaultCookieHandlerImplementation: CookieHandlerInterface = {
-    getCookie: async function() {
-        return getWindowOrThrow().document.cookie;
+    getCookie: async function () {
+        return WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe().document.cookie;
     },
-    setCookie: async function(cookieString: string) {
-        getWindowOrThrow().document.cookie = cookieString;
+    setCookie: async function (cookieString: string) {
+        WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe().document.cookie = cookieString;
     }
 };

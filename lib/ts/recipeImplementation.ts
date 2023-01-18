@@ -21,16 +21,16 @@ export default function RecipeImplementation(recipeImplInput: {
     sessionExpiredStatusCode: number;
 }): RecipeInterface {
     return {
-        addXMLHttpRequestInterceptor: function(_): void {
-            logDebugMessage("addXMLHttpRequestInterceptor: called");
+        addXMLHttpRequestInterceptor: function (_): void {
+            logDebugMessage("addXMLHttpRequestInterceptorAndReturnModified: called");
             addInterceptorsToXMLHttpRequest();
         },
-        addFetchInterceptorsAndReturnModifiedFetch: function(input: {
+        addFetchInterceptorsAndReturnModifiedFetch: function (input: {
             originalFetch: any;
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function(url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
+            return async function (url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
                         return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
@@ -42,7 +42,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 );
             };
         },
-        addAxiosInterceptors: function(input: { axiosInstance: any; userContext: any }): void {
+        addAxiosInterceptors: function (input: { axiosInstance: any; userContext: any }): void {
             logDebugMessage("addAxiosInterceptors: called");
 
             if ((XMLHttpRequest as any).__interceptedBySuperTokens) {
@@ -69,11 +69,12 @@ export default function RecipeImplementation(recipeImplInput: {
                 }
             }
             // Add a request interceptor
-            input.axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(
-                error: any
-            ) {
-                throw error;
-            });
+            input.axiosInstance.interceptors.request.use(
+                interceptorFunctionRequestFulfilled,
+                async function (error: any) {
+                    throw error;
+                }
+            );
 
             // Add a response interceptor
             input.axiosInstance.interceptors.response.use(
@@ -81,7 +82,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 responseErrorInterceptor(input.axiosInstance)
             );
         },
-        getUserId: async function(_: { userContext: any }): Promise<string> {
+        getUserId: async function (_: { userContext: any }): Promise<string> {
             logDebugMessage("getUserId: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
@@ -90,7 +91,7 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("getUserId: returning: " + tokenInfo.uid);
             return tokenInfo.uid;
         },
-        getAccessTokenPayloadSecurely: async function(input: { userContext: any }): Promise<any> {
+        getAccessTokenPayloadSecurely: async function (input: { userContext: any }): Promise<any> {
             logDebugMessage("getAccessTokenPayloadSecurely: called");
             let tokenInfo = await FrontToken.getTokenInfo();
             if (tokenInfo === undefined) {
@@ -111,7 +112,7 @@ export default function RecipeImplementation(recipeImplInput: {
             logDebugMessage("getAccessTokenPayloadSecurely: returning: " + JSON.stringify(tokenInfo.up));
             return tokenInfo.up;
         },
-        doesSessionExist: async function(_: { userContext: any }): Promise<boolean> {
+        doesSessionExist: async function (_: { userContext: any }): Promise<boolean> {
             logDebugMessage("doesSessionExist: called");
 
             const tokenInfo = await FrontToken.getTokenInfo();
@@ -132,7 +133,7 @@ export default function RecipeImplementation(recipeImplInput: {
 
             return true;
         },
-        signOut: async function(input: { userContext: any }): Promise<void> {
+        signOut: async function (input: { userContext: any }): Promise<void> {
             logDebugMessage("signOut: called");
             if (!(await this.doesSessionExist(input))) {
                 logDebugMessage("signOut: exiting early because session does not exist");
@@ -191,7 +192,7 @@ export default function RecipeImplementation(recipeImplInput: {
             // we do not send an event here since it's triggered during the response handler
         },
 
-        getInvalidClaimsFromResponse: async function(input: {
+        getInvalidClaimsFromResponse: async function (input: {
             response: ResponseWithBody;
             userContext: any;
         }): Promise<ClaimValidationError[]> {
@@ -209,14 +210,14 @@ export default function RecipeImplementation(recipeImplInput: {
             return body.claimValidationErrors;
         },
 
-        getGlobalClaimValidators: function(input: {
+        getGlobalClaimValidators: function (input: {
             claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
             userContext: any;
         }) {
             return input.claimValidatorsAddedByOtherRecipes;
         },
 
-        validateClaims: async function(input: {
+        validateClaims: async function (input: {
             claimValidators: SessionClaimValidator[];
             userContext: any;
         }): Promise<ClaimValidationError[]> {

@@ -49,12 +49,12 @@ AuthHttpRequest.addAxiosInterceptors(axios);
     - Refresh API custom headers are working
     - allow-credentials should not be sent by our SDK by default.
 */
-describe("Axios AuthHttpRequest class tests", function() {
+describe("Axios AuthHttpRequest class tests", function () {
     jsdom({
         url: "http://localhost.org"
     });
 
-    before(async function() {
+    before(async function () {
         spawn(
             "./test/startServer",
             [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -65,7 +65,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -73,7 +73,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
@@ -83,7 +83,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("testing for init check in doRequest", async function() {
+    it("testing for init check in doRequest", async function () {
         let failed = false;
         try {
             await AuthHttpRequestAxios.doRequest(async () => {});
@@ -99,7 +99,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("testing for init check in attemptRefreshingSession", async function() {
+    it("testing for init check in attemptRefreshingSession", async function () {
         let failed = false;
         try {
             await AuthHttpRequest.attemptRefreshingSession();
@@ -111,7 +111,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("testing getDomain", async function() {
+    it("testing getDomain", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -135,7 +135,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponse, expectedResponse);
     });
 
-    it("testing api methods with config", async function() {
+    it("testing api methods with config", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -185,7 +185,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponseHeader2, testing);
     });
 
-    it("testing api methods that doesn't exists", async function() {
+    it("testing api methods that doesn't exists", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -252,7 +252,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session", async function() {
+    it("refresh session", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -289,7 +289,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that unauthorised event is not fired on initial page load", async function() {
+    it("test that unauthorised event is not fired on initial page load", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -331,7 +331,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that unauthorised event is fired when calling protected route without a session", async function() {
+    it("test that unauthorised event is fired when calling protected route without a session", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -374,7 +374,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
+    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -437,7 +437,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -509,7 +509,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test sameSite is none if using iframe axios", async function() {
+    it("test sameSite is none if using iframe axios", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -541,7 +541,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test rid is there", async function() {
+    it("test rid is there", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -575,7 +575,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("signout with expired access token", async function() {
+    it("signout with expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -611,7 +611,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("signout with not expired access token", async function() {
+    it("signout with not expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -689,7 +689,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     //     }
     // });
 
-    it("update jwt data", async function() {
+    it("update jwt data", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -751,7 +751,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //test custom headers are being sent when logged in and when not*****
-    it("test that custom headers are being sent when logged in", async function() {
+    it("test that custom headers are being sent when logged in", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -816,7 +816,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //testing doesSessionExist works fine when user is logged in******
-    it("test doesSessionExist works fine when user is logged in", async function() {
+    it("test doesSessionExist works fine when user is logged in", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -851,7 +851,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
-    it("test session should not exist when user calls log out", async function() {
+    it("test session should not exist when user calls log out", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -926,7 +926,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     // testing attemptRefreshingSession works fine******
-    it("test that attemptRefreshingSession is working correctly", async function() {
+    it("test that attemptRefreshingSession is working correctly", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -971,7 +971,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-    it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
+    it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
         await startST(15, true);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1031,7 +1031,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     // - Things should work if anti-csrf is disabled.******
-    it("axios test that things should work correctly if anti-csrf is disabled", async function() {
+    it("axios test that things should work correctly if anti-csrf is disabled", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1342,7 +1342,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //    - Interception should not happen when domain is not the one that they gave*******
-    it.skip("test interception should not happen when domain is not the one that they gave", async function() {
+    it("test interception should not happen when domain is not the one that they gave", async function () {
         await startST(5);
         AuthHttpRequest.init({
             apiDomain: BASE_URL
@@ -1384,7 +1384,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.notStrictEqual(verifyResponseState, undefined);
     });
 
-    it("test with axios interception should happen if api domain and website domain are the same and relative path is used", async function() {
+    it("test with axios interception should happen if api domain and website domain are the same and relative path is used", async function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
@@ -1419,7 +1419,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test with axios interception should not happen if api domain and website domain are different and relative path is used", async function() {
+    it("test with axios interception should not happen if api domain and website domain are different and relative path is used", async function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
@@ -1454,7 +1454,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
-    it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
+    it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1503,7 +1503,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
-    it("test that via interception initially an endpoint is just hit once in case of valid access token", async function() {
+    it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1544,7 +1544,7 @@ describe("Axios AuthHttpRequest class tests", function() {
     });
 
     //- if multiple interceptors are there, they should all work*****
-    it("test that if multiple interceptors are there, they should all work", async function() {
+    it("test that if multiple interceptors are there, they should all work", async function () {
         await startST();
         let testAxios = axios.create();
         addAxiosInterceptorsTest(testAxios);
@@ -1845,7 +1845,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session with baseURL", async function() {
+    it("refresh session with baseURL", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1885,7 +1885,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("check sessionDoes exist calls refresh API just once", async function() {
+    it("check sessionDoes exist calls refresh API just once", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1941,7 +1941,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+    it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1994,7 +1994,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+    it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2047,7 +2047,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session with invalid tokens should clear all cookies", async function() {
+    it("refresh session with invalid tokens should clear all cookies", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2111,23 +2111,23 @@ describe("Axios AuthHttpRequest class tests", function() {
 
 function addAxiosInterceptorsTest(axiosInstance) {
     // test request interceptor1
-    axiosInstance.interceptors.request.use(testRequestInterceptor, async function(error) {
+    axiosInstance.interceptors.request.use(testRequestInterceptor, async function (error) {
         throw error;
     });
 
     // Add a request interceptor
-    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function(error) {
+    axiosInstance.interceptors.request.use(interceptorFunctionRequestFulfilled, async function (error) {
         throw error;
     });
 
     // test request interceptor2
-    axiosInstance.interceptors.request.use(testRequestInterceptor, async function(error) {
+    axiosInstance.interceptors.request.use(testRequestInterceptor, async function (error) {
         throw error;
     });
 
     // test response interceptor3
     axiosInstance.interceptors.response.use(
-        async function(response) {
+        async function (response) {
             response = {
                 ...response,
                 headers: {
@@ -2137,7 +2137,7 @@ function addAxiosInterceptorsTest(axiosInstance) {
             };
             return response;
         },
-        async function(error) {
+        async function (error) {
             throw error;
         }
     );
@@ -2146,7 +2146,7 @@ function addAxiosInterceptorsTest(axiosInstance) {
     axiosInstance.interceptors.response.use(responseInterceptor(axiosInstance));
     // test response interceptor4
     axiosInstance.interceptors.response.use(
-        async function(response) {
+        async function (response) {
             response = {
                 ...response,
                 headers: {
@@ -2156,7 +2156,7 @@ function addAxiosInterceptorsTest(axiosInstance) {
             };
             return response;
         },
-        async function(error) {
+        async function (error) {
             throw error;
         }
     );

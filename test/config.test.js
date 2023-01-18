@@ -26,17 +26,17 @@ let assert = require("assert");
 const { resetAuthHttpRequestFetch } = require("./utils.js");
 let AuthHttpRequestFetch = require("../lib/build/fetch").default;
 
-describe("Config tests", function() {
+describe("Config tests", function () {
     jsdom({
         url: "http://localhost.org"
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
     });
 
-    it("testing shouldDoInterceptionBasedOnUrl", async function() {
+    it("testing shouldDoInterceptionBasedOnUrl", async function () {
         // true cases without cookieDomain
         assert(shouldDoInterceptionBasedOnUrl("api.example.com", "https://api.example.com", undefined));
         assert(shouldDoInterceptionBasedOnUrl("http://api.example.com", "http://api.example.com", undefined));
@@ -134,7 +134,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing sessionTokenFrontendDomain normalisation", async function() {
+    it("testing sessionTokenFrontendDomain normalisation", async function () {
         assert(normaliseSessionScopeOrThrowError("api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("http://api.example.com") === "api.example.com");
         assert(normaliseSessionScopeOrThrowError("https://api.example.com") === "api.example.com");
@@ -172,7 +172,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing URL path normalisation", async function() {
+    it("testing URL path normalisation", async function () {
         assert.strictEqual(normaliseURLPathOrThrowError("exists?email=john.doe%40gmail.com"), "/exists");
         assert.strictEqual(
             normaliseURLPathOrThrowError("/auth/email/exists?email=john.doe%40gmail.com"),
@@ -240,7 +240,7 @@ describe("Config tests", function() {
         assert.strictEqual(normaliseURLPathOrThrowError("/app.example.com"), "/app.example.com");
     });
 
-    it("testing URL domain normalisation", async function() {
+    it("testing URL domain normalisation", async function () {
         assert(normaliseURLDomainOrThrowError("http://api.example.com") === "http://api.example.com");
         assert(normaliseURLDomainOrThrowError("https://api.example.com") === "https://api.example.com");
         assert(normaliseURLDomainOrThrowError("http://api.example.com?hello=1") === "http://api.example.com");
@@ -289,7 +289,7 @@ describe("Config tests", function() {
         }
     });
 
-    it("testing various input configs", async function() {
+    it("testing various input configs", async function () {
         {
             AuthHttpRequest.init({
                 apiDomain: "example.com",

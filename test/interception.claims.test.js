@@ -21,14 +21,14 @@ const assert = require("assert");
 const { addGenericTestCases } = require("./interception.testgen");
 
 addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
-    describe(`${name}: Session claims error handling`, function() {
+    describe(`${name}: Session claims error handling`, function () {
         let browser;
         let page;
 
         let skipped = false;
         let loggedEvents = [];
 
-        before(async function() {
+        before(async function () {
             spawn(
                 "./test/startServer",
                 [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -43,7 +43,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        after(async function() {
+        after(async function () {
             let instance = axios.create();
             if (!skipped) {
                 await instance.post(BASE_URL_FOR_ST + "/after");
@@ -53,7 +53,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             } catch (err) {}
         });
 
-        beforeEach(async function() {
+        beforeEach(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/beforeeach");
             await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -91,14 +91,14 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             loggedEvents = [];
         });
 
-        afterEach(async function() {
+        afterEach(async function () {
             if (browser) {
                 await browser.close();
                 browser = undefined;
             }
         });
 
-        it("should return a parseable body and fire an event", async function() {
+        it("should return a parseable body and fire an event", async function () {
             await startST();
             try {
                 await page.evaluate(async () => {
@@ -151,7 +151,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should work with 403 responses without a body", async function() {
+        it("should work with 403 responses without a body", async function () {
             await startST();
             try {
                 await page.evaluate(async () => {
@@ -181,7 +181,10 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     assertEqual(resp.statusCode, 403);
                 });
 
-                assert.strictEqual(loggedEvents.find(ev => ev.action === "API_INVALID_CLAIM"), undefined);
+                assert.strictEqual(
+                    loggedEvents.find(ev => ev.action === "API_INVALID_CLAIM"),
+                    undefined
+                );
             } finally {
                 await browser.close();
             }

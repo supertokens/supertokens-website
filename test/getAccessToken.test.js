@@ -19,9 +19,9 @@ const { BASE_URL_FOR_ST, BASE_URL, startST, getNumberOfTimesRefreshAttempted } =
 const puppeteer = require("puppeteer");
 const { assert } = require("console");
 
-describe("getAccessToken", function() {
+describe("getAccessToken", function () {
     let browser;
-    before(async function() {
+    before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
@@ -29,7 +29,7 @@ describe("getAccessToken", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         const instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -37,7 +37,7 @@ describe("getAccessToken", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         const instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/beforeeach");
         await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -48,7 +48,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    afterEach(async function() {
+    afterEach(async function () {
         try {
             if (browser) {
                 await browser.close();
@@ -56,7 +56,7 @@ describe("getAccessToken", function() {
         } catch {}
     });
 
-    it("should return undefined without an active session", async function() {
+    it("should return undefined without an active session", async function () {
         await startST();
         const page = await browser.newPage();
 
@@ -75,7 +75,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    it("should return a token with an active header-based session", async function() {
+    it("should return a token with an active header-based session", async function () {
         await startST();
         const page = await browser.newPage();
 
@@ -108,7 +108,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    it("should not return a token with an active cookie-based session", async function() {
+    it("should not return a token with an active cookie-based session", async function () {
         await startST();
         const page = await browser.newPage();
 
@@ -141,7 +141,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    it("should not return a token after signout", async function() {
+    it("should not return a token after signout", async function () {
         await startST();
         const page = await browser.newPage();
 
@@ -176,7 +176,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    it("should return refreshed token if called with an expired session", async function() {
+    it("should return refreshed token if called with an expired session", async function () {
         await startST();
         const page = await browser.newPage();
 
@@ -214,7 +214,7 @@ describe("getAccessToken", function() {
         });
     });
 
-    it("should return undefined if refresh fails", async function() {
+    it("should return undefined if refresh fails", async function () {
         await startST();
         const page = await browser.newPage();
 

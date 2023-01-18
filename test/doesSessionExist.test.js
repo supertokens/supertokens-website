@@ -21,7 +21,7 @@ let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
 
-describe("doesSessionExist", function() {
+describe("doesSessionExist", function () {
     jsdom({
         url: "http://localhost"
     });

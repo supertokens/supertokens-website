@@ -53,12 +53,12 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
     - allow-credentials should not be sent by our SDK by default.
     - User passed config should be sent as well
 */
-describe("Fetch AuthHttpRequest class tests", function() {
+describe("Fetch AuthHttpRequest class tests", function () {
     jsdom({
         url: "http://localhost"
     });
 
-    before(async function() {
+    before(async function () {
         spawn(
             "./test/startServer",
             [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -69,7 +69,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -77,7 +77,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
@@ -87,7 +87,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("testing with fetch for init check in doRequest", async function() {
+    it("testing with fetch for init check in doRequest", async function () {
         let failed = false;
         try {
             await AuthHttpRequestFetch.doRequest(async () => {});
@@ -103,7 +103,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("testing with fetch for init check in attemptRefreshingSession", async function() {
+    it("testing with fetch for init check in attemptRefreshingSession", async function () {
         let failed = false;
         try {
             await AuthHttpRequest.attemptRefreshingSession();
@@ -115,7 +115,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("testing with fetch api methods without config", async function() {
+    it("testing with fetch api methods without config", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -147,7 +147,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponse, expectedResponse);
     });
 
-    it("testing with fetch api methods with config", async function() {
+    it("testing with fetch api methods with config", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -193,7 +193,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponseHeader2, testing);
     });
 
-    it("testing with fetch api methods that doesn't exists", async function() {
+    it("testing with fetch api methods that doesn't exists", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -228,7 +228,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.strictEqual(doRequestResponseCode2, expectedStatusCode);
     });
 
-    it("test refresh session with fetch", async function() {
+    it("test refresh session with fetch", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -274,7 +274,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test session after signing key change", async function() {
+    it("test session after signing key change", async function () {
         // We can have access tokens valid for longer than the signing key update interval
         await startST(100, true, "0.002");
 
@@ -324,7 +324,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test sameSite is none if using iframe", async function() {
+    it("test sameSite is none if using iframe", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -358,7 +358,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test rid is there", async function() {
+    it("test rid is there", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -394,7 +394,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("signout with expired access token", async function() {
+    it("signout with expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -431,7 +431,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("signout with not expired access token", async function() {
+    it("signout with not expired access token", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -517,7 +517,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     //     }
     // });
 
-    it("test update jwt data  with fetch", async function() {
+    it("test update jwt data  with fetch", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -606,7 +606,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //test custom headers are being sent when logged in and when not*****
-    it("test with fetch that custom headers are being sent", async function() {
+    it("test with fetch that custom headers are being sent", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -680,7 +680,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //testing doesSessionExist works fine when user is logged in******
-    it("test with fetch that doesSessionExist works fine when the user is logged in", async function() {
+    it("test with fetch that doesSessionExist works fine when the user is logged in", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -715,7 +715,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
-    it("test with fetch session should not exist when user calls log out", async function() {
+    it("test with fetch session should not exist when user calls log out", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -793,7 +793,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     // testing attemptRefreshingSession works fine******
-    it("test with fetch that attemptRefreshingSession is working correctly", async function() {
+    it("test with fetch that attemptRefreshingSession is working correctly", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -839,7 +839,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-    it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
+    it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
         await startST(15);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -901,7 +901,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     // - Things should work if anti-csrf is disabled.******
-    it("test with fetch that things should work correctly if anti-csrf is disabled", async function() {
+    it("test with fetch that things should work correctly if anti-csrf is disabled", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1118,7 +1118,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
-    it("test with fetch that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
+    it("test with fetch that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1170,7 +1170,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
-    it("test that via interception initially an endpoint is just hit once in case of valid access token", async function() {
+    it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
         await startST(5);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1213,7 +1213,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
     });
 
     //    - Interception should not happen when domain is not the one that they gave*******
-    it("test with fetch interception should not happen when domain is not the one that they gave", async function() {
+    it("test with fetch interception should not happen when domain is not the one that they gave", async function () {
         await startST(5);
         AuthHttpRequest.init({
             apiDomain: BASE_URL
@@ -1248,7 +1248,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.notDeepEqual(verifyRequestState, undefined);
     });
 
-    it("test with fetch interception should happen if api domain and website domain are the same and relative path is used", async function() {
+    it("test with fetch interception should happen if api domain and website domain are the same and relative path is used", async function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
@@ -1285,7 +1285,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test with fetch interception should not happen if api domain and website domain are different and relative path is used", async function() {
+    it("test with fetch interception should not happen if api domain and website domain are different and relative path is used", async function () {
         await startST(5);
 
         const browser = await puppeteer.launch({
@@ -1553,7 +1553,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test with fetch that if multiple interceptors are there, they should all work", async function() {
+    it("test with fetch that if multiple interceptors are there, they should all work", async function () {
         await startST(5);
         AuthHttpRequest.init({
             apiDomain: BASE_URL
@@ -1600,7 +1600,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         assert.notDeepEqual(multipleInterceptorResponse.headers.doInterception4, undefined);
     });
 
-    it("fetch check sessionDoes exist calls refresh API just once", async function() {
+    it("fetch check sessionDoes exist calls refresh API just once", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1656,7 +1656,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("fetch check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+    it("fetch check clearing all frontend set cookies still works (without anti-csrf)", async function () {
         await startST(3, false);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1708,7 +1708,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("fetch check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+    it("fetch check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1760,7 +1760,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that unauthorised event is not fired on initial page load", async function() {
+    it("test that unauthorised event is not fired on initial page load", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1803,7 +1803,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that unauthorised event is fired when calling protected route without a session", async function() {
+    it("test that unauthorised event is fired when calling protected route without a session", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1842,7 +1842,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that setting headers works", async function() {
+    it("test that setting headers works", async function () {
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1878,7 +1878,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
+    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1940,7 +1940,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2009,7 +2009,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session with invalid tokens should clear all cookies", async function() {
+    it("refresh session with invalid tokens should clear all cookies", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2067,7 +2067,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function() {
+    it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2148,7 +2148,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("no refresh call after 401 response that removes session", async function() {
+    it("no refresh call after 401 response that removes session", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2221,7 +2221,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("original endpoint responding with 500 should not call refresh without cookies", async function() {
+    it("original endpoint responding with 500 should not call refresh without cookies", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -2275,7 +2275,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
+    it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2436,7 +2436,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+    it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2567,7 +2567,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function() {
+    it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2706,7 +2706,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function() {
+    it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2836,7 +2836,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and jwt are valid after the session has expired", async function() {
+    it("Test that access token payload and jwt are valid after the session has expired", async function () {
         await startSTWithJWTEnabled(3);
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2956,7 +2956,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test full JWT flow with open id discovery", async function() {
+    it("Test full JWT flow with open id discovery", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2991,7 +2991,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
                     });
 
                     function getKey(header, callback) {
-                        client.getSigningKey(header.kid, function(err, key) {
+                        client.getSigningKey(header.kid, function (err, key) {
                             if (err) {
                                 callback(err, null);
                                 return;
@@ -3106,7 +3106,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -3207,7 +3207,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
+    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -3293,7 +3293,7 @@ describe("Fetch AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that everything works if the user reads the body and headers in the post API hook", async function() {
+    it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]

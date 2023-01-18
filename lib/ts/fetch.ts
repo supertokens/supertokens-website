@@ -14,22 +14,12 @@
  */
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
-import Lock from "browser-tabs-lock";
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
+import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
-
-function getWindowOrThrow(): Window {
-    if (typeof window === "undefined") {
-        throw Error(
-            "If you are using this package with server-side rendering, please make sure that you are checking if the window object is defined."
-        );
-    }
-
-    return window;
-}
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -181,7 +171,8 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.sessionTokenFrontendDomain);
         logDebugMessage("init: Input tokenTransferMethod: " + config.tokenTransferMethod);
 
-        AuthHttpRequest.env = getWindowOrThrow().fetch === undefined ? global : getWindowOrThrow();
+        const fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
+        AuthHttpRequest.env = fetchedWindow === undefined || fetchedWindow.fetch === undefined ? global : fetchedWindow;
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
         AuthHttpRequest.signOutUrl = config.apiDomain + config.apiBasePath + "/signout";
@@ -196,8 +187,9 @@ export default class AuthHttpRequest {
             // things will not get created multiple times.
             AuthHttpRequest.env.__supertokensOriginalFetch = AuthHttpRequest.env.fetch.bind(AuthHttpRequest.env);
             AuthHttpRequest.env.__supertokensSessionRecipe = recipeImpl;
-            AuthHttpRequest.env.fetch = (AuthHttpRequest.env
-                .__supertokensSessionRecipe as RecipeInterface).addFetchInterceptorsAndReturnModifiedFetch({
+            AuthHttpRequest.env.fetch = (
+                AuthHttpRequest.env.__supertokensSessionRecipe as RecipeInterface
+            ).addFetchInterceptorsAndReturnModifiedFetch({
                 originalFetch: AuthHttpRequest.env.__supertokensOriginalFetch,
                 userContext: {}
             });
@@ -229,7 +221,7 @@ export default class AuthHttpRequest {
                         AuthHttpRequest.config.sessionTokenBackendDomain
                     )) ||
                 (url !== undefined &&
-                typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
+                    typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
                     !shouldDoInterceptionBasedOnUrl(
                         url.url,
                         AuthHttpRequest.config.apiDomain,
@@ -395,7 +387,7 @@ const FRONT_TOKEN_NAME = "sFrontToken";
 export async function onUnauthorisedResponse(
     preRequestLSS: LocalSessionState
 ): Promise<{ result: "SESSION_EXPIRED"; error?: any } | { result: "API_ERROR"; error: any } | { result: "RETRY" }> {
-    let lock = new Lock();
+    let lock = await LockFactoryReference.getReferenceOrThrow().lockFactory();
     while (true) {
         logDebugMessage("onUnauthorisedResponse: trying to acquire lock");
         if (await lock.acquireLock("REFRESH_TOKEN_USE", 1000)) {

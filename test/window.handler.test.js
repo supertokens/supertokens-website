@@ -22,14 +22,14 @@ let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
 
-describe("Window handler tests", function() {
+describe("Window handler tests", function () {
     let consoleLogs = [];
 
     jsdom({
         url: "http://localhost"
     });
 
-    before(async function() {
+    before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
@@ -37,7 +37,7 @@ describe("Window handler tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -45,7 +45,7 @@ describe("Window handler tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         consoleLogs = [];
         WindowHandlerReference.instance = undefined;
         resetAuthHttpRequestFetch();
@@ -56,7 +56,7 @@ describe("Window handler tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("Test that window handler is set when calling init", function() {
+    it("Test that window handler is set when calling init", function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -65,7 +65,7 @@ describe("Window handler tests", function() {
         WindowHandlerReference.getReferenceOrThrow();
     });
 
-    it("Test that using window handler without calling init fails", function() {
+    it("Test that using window handler without calling init fails", function () {
         let testFailed = true;
 
         try {
@@ -79,7 +79,7 @@ describe("Window handler tests", function() {
         assert(testFailed !== true, "Getting window handler reference should have failed but didnt");
     });
 
-    it("Test that using default window handlers works fine", async function() {
+    it("Test that using default window handlers works fine", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -124,7 +124,7 @@ describe("Window handler tests", function() {
         }
     });
 
-    it("Test that using custom window handler works as expected", async function() {
+    it("Test that using custom window handler works as expected", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -147,16 +147,16 @@ describe("Window handler tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    windowHandler: function(original) {
+                    windowHandler: function (original) {
                         return {
                             ...original,
                             location: {
                                 ...original.location,
-                                getOrigin: function() {
+                                getOrigin: function () {
                                     console.log("ST_LOGS GET_ORIGIN");
                                     return original.location.getOrigin();
                                 },
-                                getHostName: function() {
+                                getHostName: function () {
                                     console.log("ST_LOGS GET_HOST_NAME");
                                     return original.location.getHostName();
                                 }
@@ -186,7 +186,7 @@ describe("Window handler tests", function() {
         }
     });
 
-    it("Test that making a request with only path results in getOrigin being called", async function() {
+    it("Test that making a request with only path results in getOrigin being called", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -209,16 +209,16 @@ describe("Window handler tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    windowHandler: function(original) {
+                    windowHandler: function (original) {
                         return {
                             ...original,
                             location: {
                                 ...original.location,
-                                getOrigin: function() {
+                                getOrigin: function () {
                                     console.log("ST_LOGS GET_ORIGIN");
                                     return original.location.getOrigin();
                                 },
-                                getHostName: function() {
+                                getHostName: function () {
                                     console.log("ST_LOGS GET_HOST_NAME");
                                     return original.location.getHostName();
                                 }
@@ -247,7 +247,7 @@ describe("Window handler tests", function() {
         }
     });
 
-    it("Test that errors thrown in custom handlers get propogated correctly", async function() {
+    it("Test that errors thrown in custom handlers get propogated correctly", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -273,15 +273,15 @@ describe("Window handler tests", function() {
                 try {
                     supertokens.init({
                         apiDomain: BASE_URL,
-                        windowHandler: function(original) {
+                        windowHandler: function (original) {
                             return {
                                 ...original,
                                 location: {
                                     ...original.location,
-                                    getOrigin: function() {
+                                    getOrigin: function () {
                                         throw new Error("GET_ORIGIN: Expected error in tests");
                                     },
-                                    getHostName: function() {
+                                    getHostName: function () {
                                         throw new Error("GET_HOST_NAME: Expected error in tests");
                                     }
                                 }
@@ -301,7 +301,7 @@ describe("Window handler tests", function() {
         }
     });
 
-    it("Test that errors thrown in custom handlers get propogated correctly (getOrigin)", async function() {
+    it("Test that errors thrown in custom handlers get propogated correctly (getOrigin)", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -327,12 +327,12 @@ describe("Window handler tests", function() {
                 try {
                     supertokens.init({
                         apiDomain: BASE_URL,
-                        windowHandler: function(original) {
+                        windowHandler: function (original) {
                             return {
                                 ...original,
                                 location: {
                                     ...original.location,
-                                    getOrigin: function() {
+                                    getOrigin: function () {
                                         throw new Error("GET_ORIGIN: Expected error in tests");
                                     }
                                 }

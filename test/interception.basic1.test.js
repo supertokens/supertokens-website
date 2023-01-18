@@ -62,7 +62,7 @@ const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 */
 
 addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
-    describe(`${name}: interception basic tests 1`, function() {
+    describe(`${name}: interception basic tests 1`, function () {
         let browser;
         let page;
 
@@ -78,7 +78,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             );
         }
 
-        before(async function() {
+        before(async function () {
             spawn(
                 "./test/startServer",
                 [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -93,7 +93,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await new Promise(r => setTimeout(r, 1000));
         });
 
-        after(async function() {
+        after(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/after");
             try {
@@ -101,7 +101,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             } catch (err) {}
         });
 
-        beforeEach(async function() {
+        beforeEach(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/beforeeach");
             await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -123,14 +123,14 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
         });
 
-        afterEach(async function() {
+        afterEach(async function () {
             if (browser) {
                 await browser.close();
                 browser = undefined;
             }
         });
 
-        it("testing api methods without config", async function() {
+        it("testing api methods without config", async function () {
             await setup();
 
             await page.evaluate(async () => {
@@ -142,7 +142,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("testing api methods with config", async function() {
+        it("testing api methods with config", async function () {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -155,7 +155,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("testing api methods that doesn't exists", async function() {
+        it("testing api methods that doesn't exists", async function () {
             await setup();
             await page.evaluate(async () => {
                 const testing = "testing";
@@ -166,7 +166,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test refresh session", async function() {
+        it("test refresh session", async function () {
             await startST(3);
             await setup();
             await page.evaluate(async () => {
@@ -199,7 +199,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test refresh session with multiple 401s", async function() {
+        it("test refresh session with multiple 401s", async function () {
             await startST(3);
             await setup();
             await page.setRequestInterception(true);
@@ -256,7 +256,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await page.setRequestInterception(false);
         });
 
-        it("test session after signing key change", async function() {
+        it("test session after signing key change", async function () {
             // We can have access tokens valid for longer than the signing key update interval
             await startST(100, true, "0.002");
             await setup();
@@ -293,7 +293,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }, coreTagEqualToOrAfter("3.6.0"));
         });
 
-        it("test sameSite is none if using iframe", async function() {
+        it("test sameSite is none if using iframe", async function () {
             await startST(3);
             await setup({
                 isInIframe: true
@@ -316,7 +316,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(cookies.length, 0);
         });
 
-        it("test rid is there", async function() {
+        it("test rid is there", async function () {
             await startST(3);
             await setup();
 
@@ -339,7 +339,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("signout with expired access token", async function() {
+        it("signout with expired access token", async function () {
             await startST();
             await setup();
 
@@ -365,7 +365,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("signout with not expired access token", async function() {
+        it("signout with not expired access token", async function () {
             await startST();
             await setup();
 
@@ -397,7 +397,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test update jwt data ", async function() {
+        it("test update jwt data ", async function () {
             await startST(3);
             await setup();
 
@@ -475,7 +475,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         //test custom headers are being sent when logged in and when not*****
-        it("test that custom headers are being sent", async function() {
+        it("test that custom headers are being sent", async function () {
             await startST();
             await setup();
 
@@ -541,7 +541,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         //testing doesSessionExist works fine when user is logged in******
-        it("test that doesSessionExist works fine when the user is logged in", async function() {
+        it("test that doesSessionExist works fine when the user is logged in", async function () {
             await startST();
             await setup();
 
@@ -565,7 +565,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
-        it("test session should not exist when user calls log out", async function() {
+        it("test session should not exist when user calls log out", async function () {
             await startST();
             await setup();
             await page.evaluate(async () => {
@@ -636,7 +636,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         // testing attemptRefreshingSession works fine******
-        it("test that attemptRefreshingSession is working correctly", async function() {
+        it("test that attemptRefreshingSession is working correctly", async function () {
             await startST(5);
             await setup();
 
@@ -671,7 +671,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
-        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function() {
+        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
             await startST(15);
             await setup();
 
@@ -726,7 +726,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         // - Things should work if anti-csrf is disabled.******
-        it("test that things should work correctly if anti-csrf is disabled", async function() {
+        it("test that things should work correctly if anti-csrf is disabled", async function () {
             await startST(3, false);
             await setup();
 
@@ -1025,7 +1025,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
-        it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function() {
+        it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
             await startST(5);
             await setup();
 
@@ -1071,7 +1071,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
-        it("test that via interception initially an endpoint is just hit once in case of valid access token", async function() {
+        it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
             await startST(5);
             await setup();
 
@@ -1142,7 +1142,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         //   assert.notDeepEqual(verifyRequestState, undefined);
         // });
 
-        it("test interception should happen if api domain and website domain are the same and relative path is used", async function() {
+        it("test interception should happen if api domain and website domain are the same and relative path is used", async function () {
             await startST(5);
             await setup();
 
@@ -1170,7 +1170,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test interception should not happen if api domain and website domain are different and relative path is used", async function() {
+        it("test interception should not happen if api domain and website domain are different and relative path is used", async function () {
             await startST(5);
             await setup();
 
@@ -1198,7 +1198,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("should not intercept if url contains superTokensDoNotDoInterception", async function() {
+        it("should not intercept if url contains superTokensDoNotDoInterception", async function () {
             await startST(5);
             await setup();
 
@@ -1416,7 +1416,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check sessionDoes exist calls refresh API just once", async function() {
+        it("check sessionDoes exist calls refresh API just once", async function () {
             await startST();
             await setup();
 
@@ -1460,7 +1460,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check clearing all frontend set cookies still works (without anti-csrf)", async function() {
+        it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
             await startST(3, false);
 
             await setup();
@@ -1516,7 +1516,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function() {
+        it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
             await startST();
 
             await setup();
@@ -1572,7 +1572,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test that unauthorised event is not fired on initial page load", async function() {
+        it("test that unauthorised event is not fired on initial page load", async function () {
             await startST();
             await setup();
             let consoleLogs = [];
@@ -1607,7 +1607,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(consoleLogs[0], "ST_SESSION_CREATED");
         });
 
-        it("test that unauthorised event is fired when calling protected route without a session", async function() {
+        it("test that unauthorised event is fired when calling protected route without a session", async function () {
             await startST();
             await setup();
             let consoleLogs = [];
@@ -1637,7 +1637,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(parsedEvent.sessionExpiredOrRevoked, false);
         });
 
-        it("test that setting headers works", async function() {
+        it("test that setting headers works", async function () {
             await setup();
             const [_, req2, req3] = await Promise.all([
                 page.evaluate(async () => {
@@ -1659,7 +1659,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.equal(req3.headers()["asdf"], undefined);
         });
 
-        it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function() {
+        it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
             await startST();
             await setup();
 
@@ -1714,7 +1714,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(parsedEvent.sessionExpiredOrRevoked, false);
         });
 
-        it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function() {
+        it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
             if (transferMethod === "header") {
                 // We skip this in header mode: it should work the same without httpOnly cookies
                 this.skip();
@@ -1776,7 +1776,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strict(parsedEvent.sessionExpiredOrRevoked);
         });
 
-        it("refresh session with invalid tokens should clear all cookies", async function() {
+        it("refresh session with invalid tokens should clear all cookies", async function () {
             await startST();
             await setup();
 
@@ -1823,7 +1823,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(newCookies[0].name, "st-last-access-token-update");
         });
 
-        it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function() {
+        it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function () {
             await startST(100, true, "0.002");
             await setup();
 
@@ -1897,7 +1897,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("no refresh call after 401 response that removes session", async function() {
+        it("no refresh call after 401 response that removes session", async function () {
             await startST(100, true, "0.002");
             await setup();
             await page.setRequestInterception(true);
@@ -1955,7 +1955,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.equal(refreshCalled, 1);
         });
 
-        it("original endpoint responding with 500 should not call refresh without cookies", async function() {
+        it("original endpoint responding with 500 should not call refresh without cookies", async function () {
             await startST(100, true, "0.002");
             await setup();
             await page.setRequestInterception(true);
@@ -1993,7 +1993,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(refreshCalled, 1);
         });
 
-        it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function() {
+        it("Test that the access token payload and the JWT have all valid claims after creating, refreshing and updating the payload", async function () {
             await startSTWithJWTEnabled();
             await setup();
 
@@ -2149,7 +2149,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+        it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2274,7 +2274,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function() {
+        it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2408,7 +2408,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function() {
+        it("Test that access token payload and JWT are valid after the property name changes and session is refreshed", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2532,7 +2532,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test that access token payload and jwt are valid after the session has expired", async function() {
+        it("Test that access token payload and jwt are valid after the session has expired", async function () {
             await startSTWithJWTEnabled(3);
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2645,7 +2645,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("Test full JWT flow with open id discovery", async function() {
+        it("Test full JWT flow with open id discovery", async function () {
             await startSTWithJWTEnabled();
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -2674,7 +2674,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     });
 
                     function getKey(header, callback) {
-                        client.getSigningKey(header.kid, function(err, key) {
+                        client.getSigningKey(header.kid, function (err, key) {
                             if (err) {
                                 callback(err, null);
                                 return;
@@ -2783,7 +2783,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+        it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
             await startST(3);
 
             await setup();
@@ -2884,7 +2884,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             ]);
         });
 
-        it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
+        it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
             await startST(3);
 
             await setup();
@@ -2966,7 +2966,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             ]);
         });
 
-        it("Test that everything works if the user reads the body and headers in the post API hook", async function() {
+        it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
             await startST();
 
             await setup();
@@ -3020,7 +3020,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("test disabled interception", async function() {
+        it("test disabled interception", async function () {
             await startST();
 
             await setup();
@@ -3074,7 +3074,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        it("should work after refresh migrating old cookie based sessions", async function() {
+        it("should work after refresh migrating old cookie based sessions", async function () {
             if (transferMethod === "header") {
                 // We skip this in header mode, they can't have legacy sessions
                 this.skip();
@@ -3100,7 +3100,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
             let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
-            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+            assert.notStrictEqual(
+                originalCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
 
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
@@ -3109,10 +3112,13 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
-            assert.strictEqual(newCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+            assert.strictEqual(
+                newCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
         });
 
-        it("should work after refresh migrating old cookie based sessions with expired access tokens", async function() {
+        it("should work after refresh migrating old cookie based sessions with expired access tokens", async function () {
             if (transferMethod === "header") {
                 // We skip this in header mode, they can't have legacy sessions
                 this.skip();
@@ -3140,7 +3146,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
             let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
-            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+            assert.notStrictEqual(
+                originalCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
 
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
@@ -3149,8 +3158,14 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
-            assert.notStrictEqual(originalCookies.find(cookie => cookie.name === "sAccessToken"), undefined);
-            assert.strictEqual(newCookies.find(cookie => cookie.name === "sIdRefreshToken"), undefined);
+            assert.notStrictEqual(
+                originalCookies.find(cookie => cookie.name === "sAccessToken"),
+                undefined
+            );
+            assert.strictEqual(
+                newCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
         });
     });
 });

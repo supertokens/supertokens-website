@@ -43,12 +43,12 @@ let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 
 AuthHttpRequest.addAxiosInterceptors(axios);
 
-describe("Axios AuthHttpRequest class tests", function() {
+describe("Axios AuthHttpRequest class tests", function () {
     jsdom({
         url: "http://localhost.org"
     });
 
-    before(async function() {
+    before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
@@ -56,7 +56,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -64,7 +64,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         resetAuthHttpRequestFetch();
         global.document = {};
         ProcessState.getInstance().reset();
@@ -74,7 +74,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("refresh session, signing key interval change", async function() {
+    it("refresh session, signing key interval change", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -119,7 +119,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session endpoint responding with 500 rejects original request with axios error", async function() {
+    it("refresh session endpoint responding with 500 rejects original request with axios error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -221,7 +221,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("API returning 401 will not call refresh after logout", async function() {
+    it("API returning 401 will not call refresh after logout", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -279,7 +279,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh session endpoint responding with 401 rejects original call with axios error", async function() {
+    it("refresh session endpoint responding with 401 rejects original call with axios error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -368,7 +368,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("no refresh call after 401 response that removes session", async function() {
+    it("no refresh call after 401 response that removes session", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -449,7 +449,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("original endpoint responding with 500 should not call refresh without cookies", async function() {
+    it("original endpoint responding with 500 should not call refresh without cookies", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -519,7 +519,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("refresh throwing an error with empty body doesn't cause an error", async function() {
+    it("refresh throwing an error with empty body doesn't cause an error", async function () {
         await startST(100, true, "0.002");
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -603,7 +603,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function() {
+    it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -731,7 +731,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and JWT are valid after the property name changes and payload is updated after the session is created", async function() {
+    it("Test that access token payload and JWT are valid after the property name changes and payload is updated after the session is created", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -865,7 +865,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and JWT are valid after the property name changes and session is refreshed after the session is created", async function() {
+    it("Test that access token payload and JWT are valid after the property name changes and session is refreshed after the session is created", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -992,7 +992,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that access token payload and jwt are valid after the session has expired", async function() {
+    it("Test that access token payload and jwt are valid after the session has expired", async function () {
         await startSTWithJWTEnabled(3);
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -1106,7 +1106,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test full JWT flow with open id discovery", async function() {
+    it("Test full JWT flow with open id discovery", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -1141,7 +1141,7 @@ describe("Axios AuthHttpRequest class tests", function() {
                     });
 
                     function getKey(header, callback) {
-                        client.getSigningKey(header.kid, function(err, key) {
+                        client.getSigningKey(header.kid, function (err, key) {
                             if (err) {
                                 callback(err, null);
                                 return;
@@ -1255,7 +1255,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("Test that openid discovery and get jwks APIs have no cors origin restrictions", async function() {
+    it("Test that openid discovery and get jwks APIs have no cors origin restrictions", async function () {
         await startSTWithJWTEnabled();
 
         let isJwtEnabled = await checkIfJWTIsEnabled();
@@ -1275,7 +1275,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         assert.equal(getJWKSResponse.headers["access-control-allow-origin"], "*");
     });
 
-    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function() {
+    it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1356,7 +1356,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function() {
+    it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1437,7 +1437,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test no debug logs when its disabled", async function() {
+    it("test no debug logs when its disabled", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1468,7 +1468,7 @@ describe("Axios AuthHttpRequest class tests", function() {
         }
     });
 
-    it("test debug logs when its enabled", async function() {
+    it("test debug logs when its enabled", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]

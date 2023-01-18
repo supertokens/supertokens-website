@@ -55,7 +55,7 @@ export function addInterceptorsToXMLHttpRequest() {
     // create XMLHttpRequest proxy object
 
     // define constructor for my proxy object
-    XMLHttpRequest = function(this: XMLHttpRequestType) {
+    XMLHttpRequest = function (this: XMLHttpRequestType) {
         const actual: XMLHttpRequestType = new oldXMLHttpRequest();
         const delayActualCalls = !firstEventLoopDone;
         function delayIfNecessary(cb: () => void) {
@@ -233,7 +233,7 @@ export function addInterceptorsToXMLHttpRequest() {
             }
         }
 
-        self.open = function(_: string, u: string | URL) {
+        self.open = function (_: string, u: string | URL) {
             logDebugMessage(`XHRInterceptor.open called`);
             let args: any = arguments;
             listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
@@ -274,12 +274,12 @@ export function addInterceptorsToXMLHttpRequest() {
             delayIfNecessary(() => actual.open.apply(actual, args));
         };
 
-        self.send = function(inputBody) {
+        self.send = function (inputBody) {
             body = inputBody;
             sendXHR(actual, body);
         };
 
-        self.setRequestHeader = function(name: string, value: string) {
+        self.setRequestHeader = function (name: string, value: string) {
             if (doNotDoInterception) {
                 delayIfNecessary(() => actual.setRequestHeader(name, value));
                 return;
@@ -333,7 +333,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             }
 
-            xhr.onload = function(this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
+            xhr.onload = function (this: XMLHttpRequestType, ev: ProgressEvent<EventTarget>) {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
@@ -348,7 +348,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             };
 
-            xhr.onreadystatechange = function(ev: Event) {
+            xhr.onreadystatechange = function (ev: Event) {
                 // In local files, status is 0 upon success in Mozilla Firefox
                 if (xhr.readyState === oldXMLHttpRequest.DONE) {
                     if (responseProcessed === undefined) {
@@ -369,7 +369,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 }
             };
 
-            xhr.onloadend = function(ev: ProgressEvent<EventTarget>) {
+            xhr.onloadend = function (ev: ProgressEvent<EventTarget>) {
                 if (responseProcessed === undefined) {
                     responseProcessed = handleResponse(xhr);
                 }
@@ -384,7 +384,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
             };
 
-            self.getAllResponseHeaders = function() {
+            self.getAllResponseHeaders = function () {
                 let headersString: string;
                 if (customResponseHeaders) {
                     headersString = "";
@@ -397,7 +397,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 return headersString + "x-supertokens-xhr-intercepted: true\r\n";
             };
 
-            self.getResponseHeader = function(name: string) {
+            self.getResponseHeader = function (name: string) {
                 if (name === "x-supertokens-xhr-intercepted") {
                     return "true";
                 }
@@ -428,7 +428,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     // define our own property that calls the same method on the actual
                     Object.defineProperty(self, prop, {
                         configurable: true,
-                        value: function() {
+                        value: function () {
                             let args = arguments;
                             if (!isRetry) {
                                 listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
@@ -442,13 +442,13 @@ export function addInterceptorsToXMLHttpRequest() {
                     // define our own property that just gets or sets the same prop on the actual
                     Object.defineProperty(self, prop, {
                         configurable: true,
-                        get: function() {
+                        get: function () {
                             if (customGetterValues[prop] !== undefined) {
                                 return customGetterValues[prop];
                             }
                             return xhr[prop];
                         },
-                        set: function(val) {
+                        set: function (val) {
                             if (!isRetry) {
                                 listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
                                     xhr[prop] = val;
@@ -519,9 +519,7 @@ export function addInterceptorsToXMLHttpRequest() {
     (XMLHttpRequest as any).__original = oldXMLHttpRequest;
 }
 
-async function getXMLHttpStatusAndResponseTextFromFetchResponse(
-    response: Response
-): Promise<{
+async function getXMLHttpStatusAndResponseTextFromFetchResponse(response: Response): Promise<{
     status: number;
     responseText: string;
     statusText: string;

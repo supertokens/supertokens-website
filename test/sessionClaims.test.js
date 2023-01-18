@@ -33,12 +33,12 @@ const failingValidator = {
     validate: () => ({ isValid: false, reason: { message: "testReason" } })
 };
 
-describe("AuthHttpRequest claim handling", function() {
+describe("AuthHttpRequest claim handling", function () {
     let accessTokenStub;
     jsdom({
         url: "http://localhost"
     });
-    beforeEach(async function() {
+    beforeEach(async function () {
         sinon.restore();
         global.document = {};
         resetSessionClaimValidatorStore();
@@ -59,10 +59,7 @@ describe("AuthHttpRequest claim handling", function() {
         describe("SessionClaimValidatorStore interactions", () => {
             it("should call override with empty list if nothing is added", async () => {
                 const ctx = { test: Date.now() };
-                const cb = sinon.expectation
-                    .create("overrideGlobalClaimValidators")
-                    .once()
-                    .withExactArgs([], ctx);
+                const cb = sinon.expectation.create("overrideGlobalClaimValidators").once().withExactArgs([], ctx);
                 cb.returns([]);
                 await AuthHttpRequest.validateClaims(cb, ctx);
                 sinon.verify();

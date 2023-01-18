@@ -73,10 +73,10 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                                 refreshPOST: undefined
                             };
                         },
-                        functions: function(oI) {
+                        functions: function (oI) {
                             return {
                                 ...oI,
-                                createNewSession: async function({
+                                createNewSession: async function ({
                                     req,
                                     res,
                                     userId,

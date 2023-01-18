@@ -28,13 +28,13 @@ const assert = require("assert");
 const { addGenericTestCases } = require("./interception.testgen");
 
 addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
-    describe(`${name} (manually added Authorization header)`, function() {
+    describe(`${name} (manually added Authorization header)`, function () {
         let browser;
         let page;
 
         let loggedEvents = [];
 
-        before(async function() {
+        before(async function () {
             spawn(
                 "./test/startServer",
                 [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
@@ -45,7 +45,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await new Promise(r => setTimeout(r, 1000));
         });
 
-        after(async function() {
+        after(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/after");
             try {
@@ -53,7 +53,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             } catch (err) {}
         });
 
-        beforeEach(async function() {
+        beforeEach(async function () {
             let instance = axios.create();
             await instance.post(BASE_URL_FOR_ST + "/beforeeach");
             await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
@@ -91,7 +91,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             loggedEvents = [];
         });
 
-        afterEach(async function() {
+        afterEach(async function () {
             if (browser) {
                 await browser.close();
                 browser = undefined;
@@ -99,7 +99,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         if (transferMethod === "header") {
-            it("should ignore the auth header if it matches the current session", async function() {
+            it("should ignore the auth header if it matches the current session", async function () {
                 await startST();
                 await page.evaluate(async () => {
                     const userId = "testing-supertokens-website";
@@ -134,7 +134,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            it("should ignore the auth header if it matches the current session even if the casing is different", async function() {
+            it("should ignore the auth header if it matches the current session even if the casing is different", async function () {
                 await startST();
                 await page.evaluate(async () => {
                     const userId = "testing-supertokens-website";
@@ -169,7 +169,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            it("should ignore the auth header if it matches the current (revoked) session", async function() {
+            it("should ignore the auth header if it matches the current (revoked) session", async function () {
                 await startST();
                 await page.evaluate(async () => {
                     const userId = "testing-supertokens-website";
@@ -210,7 +210,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            it("should not ignore the auth header if it doesn't match the current session", async function() {
+            it("should not ignore the auth header if it doesn't match the current session", async function () {
                 await startST();
 
                 let calledWithCustomHeader = false;
@@ -270,7 +270,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(calledWithCustomHeader, true);
             });
 
-            it("should not ignore the auth header if we are not doing interception", async function() {
+            it("should not ignore the auth header if we are not doing interception", async function () {
                 await startST();
 
                 let calledWithAccessToken = false;
@@ -360,7 +360,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(calledWithAccessToken, true);
             });
         } else {
-            it("should not ignore the auth header", async function() {
+            it("should not ignore the auth header", async function () {
                 await startST();
 
                 let calledWithCustomHeader = false;

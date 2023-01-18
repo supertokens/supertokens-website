@@ -50,6 +50,7 @@ export type WindowHandlerInterface = {
     getDocument: () => Document;
     localStorage: StorageHandler;
     sessionStorage: StorageHandler;
+    getWindowUnsafe: () => typeof window;
 };
 
 export type WindowHandlerInput = (original: WindowHandlerInterface) => WindowHandlerInterface;

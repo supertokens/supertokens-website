@@ -92,7 +92,7 @@
                         ]
                     ]
                 });
-                (function() {
+                (function () {
                     (typeof ngJitMode === "undefined" || ngJitMode) &&
                         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsetNgModuleScope"](AppModule, {
                             declarations: [_app_component__WEBPACK_IMPORTED_MODULE_0__.AppComponent],

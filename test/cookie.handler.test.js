@@ -23,14 +23,14 @@ let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
 
-describe("Cookie Handler Tests", function() {
+describe("Cookie Handler Tests", function () {
     let consoleLogs = [];
 
     jsdom({
         url: "http://localhost"
     });
 
-    before(async function() {
+    before(async function () {
         spawn("./test/startServer", [
             process.env.INSTALL_PATH,
             process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
@@ -38,7 +38,7 @@ describe("Cookie Handler Tests", function() {
         await new Promise(r => setTimeout(r, 1000));
     });
 
-    after(async function() {
+    after(async function () {
         let instance = axios.create();
         await instance.post(BASE_URL_FOR_ST + "/after");
         try {
@@ -46,7 +46,7 @@ describe("Cookie Handler Tests", function() {
         } catch (err) {}
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         consoleLogs = [];
         CookieHandlerReference.instance = undefined;
         resetAuthHttpRequestFetch();
@@ -57,7 +57,7 @@ describe("Cookie Handler Tests", function() {
         await instance.post(BASE_URL + "/beforeeach");
     });
 
-    it("Test that cookie handler is set when calling init", function() {
+    it("Test that cookie handler is set when calling init", function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
         });
@@ -66,7 +66,7 @@ describe("Cookie Handler Tests", function() {
         CookieHandlerReference.getReferenceOrThrow();
     });
 
-    it("Test that using cookie handler without calling init fails", function() {
+    it("Test that using cookie handler without calling init fails", function () {
         let testFailed = true;
 
         try {
@@ -80,7 +80,7 @@ describe("Cookie Handler Tests", function() {
         assert(testFailed !== true, "Getting cookie handler reference should have failed but didnt");
     });
 
-    it("Test that using default cookie handlers works fine", async function() {
+    it("Test that using default cookie handlers works fine", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -125,7 +125,7 @@ describe("Cookie Handler Tests", function() {
         }
     });
 
-    it("Test that using a custom cookie handler works as expected", async function() {
+    it("Test that using a custom cookie handler works as expected", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -153,13 +153,13 @@ describe("Cookie Handler Tests", function() {
 
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    cookieHandler: function(original) {
+                    cookieHandler: function (original) {
                         return {
-                            setCookie: async function(cookie) {
+                            setCookie: async function (cookie) {
                                 console.log("ST_LOGS SET_COOKIE", getCookieNameFromString(cookie));
                                 return await original.setCookie(cookie);
                             },
-                            getCookie: async function() {
+                            getCookie: async function () {
                                 console.log("ST_LOGS GET_COOKIE");
                                 return await original.getCookie();
                             }
@@ -194,7 +194,7 @@ describe("Cookie Handler Tests", function() {
         }
     });
 
-    it("Test that throwing an error in cookie handling gets propogated properly", async function() {
+    it("Test that throwing an error in cookie handling gets propogated properly", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -215,10 +215,10 @@ describe("Cookie Handler Tests", function() {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    cookieHandler: function(original) {
+                    cookieHandler: function (original) {
                         return {
                             ...original,
-                            getCookie: async function() {
+                            getCookie: async function () {
                                 throw new Error("Expected error in tests");
                             }
                         };

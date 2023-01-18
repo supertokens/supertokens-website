@@ -1,4 +1,4 @@
-module.exports.addGenericTestCases = function(getTestCases) {
+module.exports.addGenericTestCases = function (getTestCases) {
     for (const tokenTransferMethod of ["header", "cookie"]) {
         getTestCases(
             "fetch using " + tokenTransferMethod,
