@@ -15,6 +15,7 @@ export declare class PrimitiveArrayClaim<ValueType> {
         includes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string) => SessionClaimValidator;
         excludes: (val: ValueType, maxAgeInSeconds?: number | undefined, id?: string) => SessionClaimValidator;
         includesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string) => SessionClaimValidator;
+        includesAny: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string) => SessionClaimValidator;
         excludesAll: (val: ValueType[], maxAgeInSeconds?: number | undefined, id?: string) => SessionClaimValidator;
     };
 }
