@@ -46,6 +46,7 @@ export type WindowHandlerInterface = {
         assign: (url: string | URL) => void;
         getOrigin: () => string;
         getHostName: () => string;
+        getHost: () => string;
     };
     getDocument: () => Document;
     localStorage: StorageHandler;

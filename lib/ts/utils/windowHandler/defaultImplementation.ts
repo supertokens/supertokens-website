@@ -127,6 +127,9 @@ export const defaultWindowHandlerImplementation: WindowHandlerInterface = {
         getHostName: function () {
             return getWindowOrThrow().location.hostname;
         },
+        getHost: function () {
+            return getWindowOrThrow().location.host;
+        },
         getOrigin: function () {
             return getWindowOrThrow().location.origin;
         }
