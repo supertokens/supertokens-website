@@ -3167,5 +3167,112 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 undefined
             );
         });
+
+        /**
+         * - Create a session with cookies and add sIdRefreshToken manually to simulate old cookies
+         * - Change the token method to headers
+         * - Get session information and make sure the API succeeds, refresh is called and sIdRefreshToken is removed
+         * - Make sure getAccessToken returns undefined because the backend should have used cookies
+         * - Sign out
+         * - Login again and make sure access token is present because backend should now use headers
+         */
+        it("should still work fine work fine if header based auth is enabled after a cookie based session", async function () {
+            if (transferMethod === "header") {
+                // We skip this in header mode, they can't have legacy sessions
+                this.skip();
+            }
+
+            await startST();
+            await setup();
+
+            await page.evaluate(async () => {
+                window.userId = "testing-supertokens";
+                window.BASE_URL = "http://localhost.org:8080";
+
+                // send api request to login
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                // make sure there is no access token
+                let accessToken = await supertokens.getAccessToken();
+                assert.strictEqual(accessToken, undefined);
+
+                let getSessionResponse = await toTest({
+                    url: `${BASE_URL}/`,
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                });
+
+                assert.strictEqual(getSessionResponse.statusCode, 200);
+                assert.strictEqual(getSessionResponse.responseText, userId);
+            });
+
+            // This would work even without sIdRefreshToken since we don't actually check the body of the response, just call refresh on all 401s
+            await page.setCookie({ name: "sIdRefreshToken", value: "asdf" });
+
+            const originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.notStrictEqual(
+                originalCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
+
+            await page.evaluate(async () => {
+                // Switch to header based auth
+                // Re-initialization doesn't work for everything (i.e., overrides), but it's fine for this
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
+                });
+
+                let getResponse = await toTest({ url: `${BASE_URL}/`, method: "GET" });
+
+                //check that the response to getSession was success
+                assert.strictEqual(getResponse.responseText, userId);
+
+                //check that the number of time the refreshAPI was called is 1
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+
+            const refreshedCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert.strictEqual(
+                refreshedCookies.find(cookie => cookie.name === "sIdRefreshToken"),
+                undefined
+            );
+
+            await page.evaluate(async () => {
+                // Make sure this is still undefined because the backend should continue using cookies
+                accessToken = await supertokens.getAccessToken();
+                assert.strictEqual(accessToken, undefined);
+
+                await supertokens.signOut();
+
+                // send api request to login
+                loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                // Make sure now access token is present because it should use header based auth
+                accessToken = await supertokens.getAccessToken();
+                assert.notStrictEqual(accessToken, undefined);
+            });
+        });
     });
 });
