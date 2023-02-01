@@ -97,6 +97,9 @@ supertokens.init({
                 getHostName: function () {
                     return "";
                 },
+                getHost: function() {
+                    return "";
+                },
                 getHref: function () {
                     return "";
                 },
