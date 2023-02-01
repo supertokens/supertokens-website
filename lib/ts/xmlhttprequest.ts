@@ -16,12 +16,14 @@
 import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
-    getIdRefreshToken,
-    setIdRefreshToken,
     FrontToken,
     onUnauthorisedResponse,
-    IdRefreshTokenType,
-    onInvalidClaimResponse
+    onInvalidClaimResponse,
+    setToken,
+    getTokenForHeaderAuth,
+    getLocalSessionState,
+    LocalSessionState,
+    fireSessionUpdateEventsIfNecessary
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -79,7 +81,7 @@ export function addInterceptorsToXMLHttpRequest() {
         // let method: string = "";
         let url: string | URL = "";
         let doNotDoInterception = false;
-        let preRequestIdToken: IdRefreshTokenType | undefined = undefined;
+        let preRequestLSS: LocalSessionState | undefined = undefined;
         let body: Document | XMLHttpRequestBodyInit | null | undefined;
 
         // we do not provide onerror cause that is fired only on
@@ -126,11 +128,11 @@ export function addInterceptorsToXMLHttpRequest() {
         }
 
         async function handleRetryPostRefreshing(): Promise<boolean> {
-            if (preRequestIdToken === undefined) {
+            if (preRequestLSS === undefined) {
                 throw new Error("Should never come here..");
             }
-            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestIdToken " + preRequestIdToken.status);
-            const refreshResult = await onUnauthorisedResponse(preRequestIdToken);
+            logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestLSS " + preRequestLSS.status);
+            const refreshResult = await onUnauthorisedResponse(preRequestLSS);
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage(
                     "XHRInterceptor.handleRetryPostRefreshing: Not retrying original request " + !!refreshResult.error
@@ -172,19 +174,15 @@ export function addInterceptorsToXMLHttpRequest() {
                     ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
                     const status = xhr.status;
-                    const headers = new Headers(
-                        xhr
-                            .getAllResponseHeaders()
-                            .trim()
-                            .split("\r\n")
-                            .map(line => line.split(": ") as [string, string])
-                    );
+                    const headers = getResponseHeadersFromXHR(xhr);
 
-                    const idRefreshToken = headers.get("id-refresh-token");
-                    if (idRefreshToken) {
-                        logDebugMessage("XHRInterceptor.handleResponse: Setting sIRTFrontend: " + idRefreshToken);
-                        await setIdRefreshToken(idRefreshToken, status);
-                    }
+                    await saveTokensFromHeaders(headers);
+
+                    fireSessionUpdateEventsIfNecessary(
+                        preRequestLSS!.status === "EXISTS",
+                        status,
+                        headers.get("front-token")
+                    );
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
@@ -194,26 +192,13 @@ export function addInterceptorsToXMLHttpRequest() {
                                 data: JSON.parse(xhr.responseText)
                             });
                         }
-                        let antiCsrfToken = headers.get("anti-csrf");
-                        if (antiCsrfToken) {
-                            let tok = await getIdRefreshToken(true);
-                            if (tok.status === "EXISTS") {
-                                logDebugMessage("XHRInterceptor.handleResponse: Setting anti-csrf token");
-                                await AntiCsrfToken.setItem(tok.token, antiCsrfToken);
-                            }
-                        }
-                        let frontToken = headers.get("front-token");
-                        if (frontToken) {
-                            logDebugMessage("XHRInterceptor.handleResponse: Setting sFrontToken: " + frontToken);
-                            await FrontToken.setItem(frontToken);
-                        }
                     }
                     return true;
                 } finally {
                     logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
-                    if (!((await getIdRefreshToken(false)).status === "EXISTS")) {
+                    if (!((await getLocalSessionState(false)).status === "EXISTS")) {
                         logDebugMessage(
-                            "XHRInterceptor.handleResponse: sIRTFrontend doesn't exist, so removing anti-csrf and sFrontToken"
+                            "XHRInterceptor.handleResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
                         );
                         await AntiCsrfToken.removeToken();
                         await FrontToken.removeToken();
@@ -262,13 +247,13 @@ export function addInterceptorsToXMLHttpRequest() {
                         !shouldDoInterceptionBasedOnUrl(
                             url,
                             AuthHttpRequestFetch.config.apiDomain,
-                            AuthHttpRequestFetch.config.cookieDomain
+                            AuthHttpRequestFetch.config.sessionTokenBackendDomain
                         )) ||
                     (typeof url !== "string" &&
                         !shouldDoInterceptionBasedOnUrl(
                             url.toString(),
                             AuthHttpRequestFetch.config.apiDomain,
-                            AuthHttpRequestFetch.config.cookieDomain
+                            AuthHttpRequestFetch.config.sessionTokenBackendDomain
                         ));
             } catch (err) {
                 if ((err as any).message === "Please provide a valid domain name") {
@@ -277,7 +262,7 @@ export function addInterceptorsToXMLHttpRequest() {
                     doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
-                        AuthHttpRequestFetch.config.cookieDomain
+                        AuthHttpRequestFetch.config.sessionTokenBackendDomain
                     );
                 } else {
                     throw err;
@@ -304,12 +289,29 @@ export function addInterceptorsToXMLHttpRequest() {
             if (name === "anti-csrf") {
                 return;
             }
-            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                xhr.setRequestHeader(name, value);
+            void (async () => {
+                if (name.toLowerCase() === "authorization") {
+                    const accessToken = await getTokenForHeaderAuth("access");
+                    if (value === `Bearer ${accessToken}`) {
+                        // We are ignoring the Authorization header set by the user in this case, because it would cause issues
+                        // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
+                        // This causes an infinite refresh loop.
+                        logDebugMessage(
+                            "XHRInterceptor.setRequestHeader: skipping Authorization from user provided headers because it contains our access token"
+                        );
+                        return;
+                    }
+                }
+                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                    xhr.setRequestHeader(name, value);
+                });
+                // The original version "combines" headers according to MDN.
+                requestHeaders.push({ name, value });
+                delayIfNecessary(() => actual.setRequestHeader(name, value));
+            })().catch(err => {
+                // This should basically never happen: it'd mean that getCookie threw an error
+                console.error("An error occured during setRequestHeader: ", err);
             });
-            // The original version "combines" headers according to MDN.
-            requestHeaders.push({ name, value });
-            delayIfNecessary(() => actual.setRequestHeader(name, value));
         };
 
         let copiedProps: string[] | undefined = undefined;
@@ -474,10 +476,10 @@ export function addInterceptorsToXMLHttpRequest() {
             ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
 
             delayIfNecessary(async () => {
-                preRequestIdToken = await getIdRefreshToken(true);
+                preRequestLSS = await getLocalSessionState(true);
 
-                if (preRequestIdToken.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestIdToken.token);
+                if (preRequestLSS.status === "EXISTS") {
+                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
                     if (antiCsrfToken !== undefined) {
                         logDebugMessage("XHRInterceptor.send: Adding anti-csrf token to request");
                         xhr.setRequestHeader("anti-csrf", antiCsrfToken);
@@ -496,12 +498,24 @@ export function addInterceptorsToXMLHttpRequest() {
                     logDebugMessage("XHRInterceptor.send: rid header was already there in request");
                 }
 
+                const transferMethod = AuthHttpRequestFetch.config.tokenTransferMethod;
+                if (!requestHeaders.some(i => i.name === "st-auth-mode")) {
+                    logDebugMessage("XHRInterceptor.send: Adding st-auth-mode header: " + transferMethod);
+                    xhr.setRequestHeader("st-auth-mode", transferMethod);
+                } else {
+                    logDebugMessage("XHRInterceptor.send: st-auth-mode header was already there in request");
+                }
+
+                await setAuthorizationHeaderIfRequired(xhr, requestHeaders);
+
                 logDebugMessage("XHRInterceptor.send: Making user's http call");
                 return xhr.send(body);
             });
         }
     } as any;
 
+    // This can be used by other interceptors (axios) to detect if this interceptor has been added or not
+    (XMLHttpRequest as any).__interceptedBySuperTokens = true;
     (XMLHttpRequest as any).__original = oldXMLHttpRequest;
 }
 
@@ -536,4 +550,76 @@ async function getXMLHttpStatusAndResponseTextFromFetchResponse(response: Respon
         responseType,
         headers: response.headers
     };
+}
+
+async function setAuthorizationHeaderIfRequired(
+    xhr: XMLHttpRequestType,
+    requestHeaders: { name: string; value: string }[]
+) {
+    logDebugMessage("setAuthorizationHeaderIfRequired: adding existing tokens as header");
+
+    // We set the Authorization header even if the tokenTransferMethod preference set in the config is cookies
+    // since the active session may be using cookies. By default, we want to allow users to continue these sessions.
+    // The new session preference should be applied at the start of the next session, if the backend allows it.
+
+    const accessToken = await getTokenForHeaderAuth("access");
+    const refreshToken = await getTokenForHeaderAuth("refresh");
+
+    // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+    // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
+    // access token to the frontend while using cookie based auth - so that users can get the access token to use
+    if (accessToken !== undefined && refreshToken !== undefined) {
+        if (requestHeaders.some(({ name }) => name.toLowerCase() === "authorization")) {
+            logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");
+        } else {
+            if (accessToken !== undefined) {
+                logDebugMessage("setAuthorizationHeaderIfRequired: added authorization header");
+                xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+            }
+            // We don't add the refresh token because that's only required by the refresh call which is done with fetch
+        }
+    } else {
+        logDebugMessage("setAuthorizationHeaderIfRequired: token for header based auth not found");
+    }
+}
+
+async function saveTokensFromHeaders(headers: Headers) {
+    logDebugMessage("saveTokensFromHeaders: Saving updated tokens from the response");
+
+    const refreshToken = headers.get("st-refresh-token");
+    if (refreshToken !== null) {
+        logDebugMessage("saveTokensFromHeaders: saving new refresh token");
+        await setToken("refresh", refreshToken);
+    }
+
+    const accessToken = headers.get("st-access-token");
+    if (accessToken !== null) {
+        logDebugMessage("saveTokensFromHeaders: saving new access token");
+        await setToken("access", accessToken);
+    }
+
+    const frontToken = headers.get("front-token");
+    if (frontToken !== null) {
+        logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
+        await FrontToken.setItem(frontToken);
+    }
+
+    const antiCsrfToken = headers.get("anti-csrf");
+    if (antiCsrfToken !== null) {
+        const tok = await getLocalSessionState(true);
+        if (tok.status === "EXISTS") {
+            logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
+            await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
+        }
+    }
+}
+
+function getResponseHeadersFromXHR(xhr: XMLHttpRequestType) {
+    return new Headers(
+        xhr
+            .getAllResponseHeaders()
+            .trim()
+            .split("\r\n")
+            .map(line => line.split(": ") as [string, string])
+    );
 }

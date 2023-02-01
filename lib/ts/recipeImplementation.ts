@@ -7,7 +7,7 @@ import {
     ClaimValidationError,
     ResponseWithBody
 } from "./types";
-import AuthHttpRequest, { FrontToken, getIdRefreshToken, onUnauthorisedResponse } from "./fetch";
+import AuthHttpRequest, { FrontToken, getLocalSessionState, onUnauthorisedResponse } from "./fetch";
 import { interceptorFunctionRequestFulfilled, responseInterceptor, responseErrorInterceptor } from "./axios";
 import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
@@ -44,6 +44,22 @@ export default function RecipeImplementation(recipeImplInput: {
         },
         addAxiosInterceptors: function (input: { axiosInstance: any; userContext: any }): void {
             logDebugMessage("addAxiosInterceptors: called");
+
+            if ((XMLHttpRequest as any).__interceptedBySuperTokens) {
+                console.warn(
+                    "Not adding axios interceptor since XMLHttpRequest is already added. This is just a warning."
+                );
+                console.warn("Our axios and XMLHttpRequest interceptors cannot be used at the same time.");
+                console.warn(
+                    "Since XMLHttpRequest is added automatically and supports axios by default, you can just remove addAxiosInterceptors from your code."
+                );
+                console.warn(
+                    "If you want to continue using our axios interceptor, you can override addXMLHttpRequestInterceptor with an empty function."
+                );
+
+                logDebugMessage("addAxiosInterceptors: not adding, because XHR interceptors are already in place");
+                return;
+            }
             // we first check if this axiosInstance already has our interceptors.
             let requestInterceptors = input.axiosInstance.interceptors.request;
             for (let i = 0; i < requestInterceptors.handlers.length; i++) {
@@ -101,7 +117,7 @@ export default function RecipeImplementation(recipeImplInput: {
 
             const tokenInfo = await FrontToken.getTokenInfo();
 
-            // The above includes getIdRefreshToken(true), which would call refresh if the FE cookies were cleared for some reason
+            // The above includes getLocalSessionState(true), which would call refresh if the FE cookies were cleared for some reason
             if (tokenInfo === undefined) {
                 logDebugMessage("doesSessionExist: access token does not exist locally");
                 return false;
@@ -110,8 +126,8 @@ export default function RecipeImplementation(recipeImplInput: {
             if (tokenInfo.ate < Date.now()) {
                 logDebugMessage("doesSessionExist: access token expired. Refreshing session");
 
-                const preRequestIdToken = await getIdRefreshToken(false);
-                const refresh = await onUnauthorisedResponse(preRequestIdToken);
+                const preRequestLSS = await getLocalSessionState(false);
+                const refresh = await onUnauthorisedResponse(preRequestLSS);
                 return refresh.result === "RETRY";
             }
 
@@ -120,7 +136,7 @@ export default function RecipeImplementation(recipeImplInput: {
         signOut: async function (input: { userContext: any }): Promise<void> {
             logDebugMessage("signOut: called");
             if (!(await this.doesSessionExist(input))) {
-                logDebugMessage("signOut: existing early because session does not exist");
+                logDebugMessage("signOut: exiting early because session does not exist");
                 logDebugMessage("signOut: firing SIGN_OUT event");
                 recipeImplInput.onHandleEvent({
                     action: "SIGN_OUT",
@@ -173,7 +189,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 throw new STGeneralError(message);
             }
 
-            // we do not send an event here since it's triggered in setIdRefreshToken area.
+            // we do not send an event here since it's triggered during the response handler
         },
 
         getInvalidClaimsFromResponse: async function (input: {
