@@ -1106,42 +1106,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
-        // //    - Interception should not happen when domain is not the one that they gave*******
-        // it("test interception should not happen when domain is not the one that they gave", async function() {
-        //   await startST(5);
-        //   AuthHttpRequest.init({
-        //     apiDomain: BASE_URL,
-        //   });
-        //   let userId = "testing-supertokens-website";
-
-        //   // this is technically not doing interception, but it is equavalent to doing it since the inteceptor just calls the function below.
-        //   await  toTest({ url: `https://www.google.com` });
-
-        //   let verifyRequestState = await ProcessState.getInstance().waitForEvent(
-        //     PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-        //     100,
-        //   );
-
-        //   assert.deepEqual(verifyRequestState, undefined);
-
-        //   let loginResponse = await toTest({ url: `${BASE_URL}/login`,
-        //     method: "post",
-        //     headers: {
-        //       Accept: "application/json",
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({ userId }),
-        //   });
-
-        //   assert.deepEqual(loginResponse.responseText, userId);
-
-        //   verifyRequestState = await ProcessState.getInstance().waitForEvent(
-        //     PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-        //     5000,
-        //   );
-        //   assert.notDeepEqual(verifyRequestState, undefined);
-        // });
-
         it("test interception should happen if api domain and website domain are the same and relative path is used", async function () {
             await startST(5);
             await setup();
@@ -1194,7 +1158,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(loginResponse.responseText, userId);
 
-                assert.strictEqual(document.cookie, "");
+                assert.strictEqual(await supertokens.doesSessionExist(), false);
             });
         });
 
@@ -1218,7 +1182,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(loginResponse.responseText, userId);
 
-                assert.strictEqual(document.cookie, "");
+                assert.strictEqual(await supertokens.doesSessionExist(), false);
             });
         });
 

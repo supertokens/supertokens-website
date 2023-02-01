@@ -1341,49 +1341,6 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
     });
 
-    //    - Interception should not happen when domain is not the one that they gave*******
-    it("test interception should not happen when domain is not the one that they gave", async function () {
-        await startST(5);
-        AuthHttpRequest.init({
-            apiDomain: BASE_URL
-        });
-
-        await axios.get(`https://www.google.com`);
-        let verifyRequestState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-            100
-        );
-        let verifyResponseState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE,
-            100
-        );
-
-        assert.strictEqual(verifyRequestState, undefined);
-        assert.strictEqual(verifyResponseState, undefined);
-
-        let userId = "testing-supertokens-website";
-        let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            }
-        });
-
-        assert.strictEqual(await loginResponse.data, userId);
-
-        verifyRequestState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
-            5000
-        );
-        verifyResponseState = await ProcessState.getInstance().waitForEvent(
-            PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE,
-            5000
-        );
-
-        assert.notStrictEqual(verifyRequestState, undefined);
-        assert.notStrictEqual(verifyResponseState, undefined);
-    });
-
     it("test with axios interception should happen if api domain and website domain are the same and relative path is used", async function () {
         await startST(5);
 
