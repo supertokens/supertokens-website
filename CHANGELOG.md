@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking change
 - Added `getHost` function to the `WindowHandlerInterface`.
 
+## [16.0.1] - 2023-02-02
+
+### Fixes
+
+-   Fixed a rare case where the XHR interceptor didn't handle empty response headers correctly
+
 ## [16.0.0] - 2023-02-01
 
 ### Breaking changes

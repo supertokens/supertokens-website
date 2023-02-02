@@ -3238,5 +3238,90 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.notStrictEqual(accessToken, undefined);
             });
         });
+
+        it("should work fine if the last header is empty", async () => {
+            await startST();
+            await setup();
+            await page.setRequestInterception(true);
+
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/login") {
+                    req.respond({
+                        statusCode: 200,
+                        headers: {
+                            "front-token":
+                                "eyJ1aWQiOiIwMGUwOTE1MS0xZDZiLTQwY2MtODYzMS1jZTc4YTE1MDg4YWEiLCJhdGUiOjE2NzUzNTE2MzIwNzUsInVwIjp7InN0LWV2Ijp7InYiOnRydWUsInQiOjE2NzUzNDgwMzIwNjZ9fX0=",
+                            "test-header": ""
+                        },
+                        body: "testing-supertokens-website"
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.evaluate(async () => {
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                assert.strictEqual(await supertokens.doesSessionExist(), true);
+            });
+            await page.setRequestInterception(false);
+        });
+
+        it("should log out work fine if the last header is an empty access-token", async () => {
+            await startST();
+            await setup();
+            await page.setRequestInterception(true);
+
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/auth/signout") {
+                    req.respond({
+                        statusCode: 200,
+                        headers: {
+                            "front-token": "remove",
+                            "access-token": ""
+                        },
+                        body: JSON.stringify({ status: "OK" })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.evaluate(async () => {
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                assert.strictEqual(await supertokens.doesSessionExist(), true);
+
+                await supertokens.signOut();
+                assert.strictEqual(await supertokens.doesSessionExist(), false);
+            });
+            await page.setRequestInterception(false);
+        });
     });
 });
