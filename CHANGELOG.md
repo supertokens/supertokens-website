@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [16.0.0] - 2023-02-01
 
+### Fixes
+
+-   Fixed a rare case where the XHR interceptor didn't handle empty response headers correctly
+
 ### Breaking changes
 
 -   Only supporting FDI 1.16

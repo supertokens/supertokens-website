@@ -618,8 +618,14 @@ function getResponseHeadersFromXHR(xhr: XMLHttpRequestType) {
     return new Headers(
         xhr
             .getAllResponseHeaders()
-            .trim()
             .split("\r\n")
-            .map(line => line.split(": ") as [string, string])
+            .map(line => {
+                const sep = line.indexOf(": ");
+                if (sep === -1) {
+                    [];
+                }
+                return [line.slice(0, sep), line.slice(sep + 2)] as [string, string];
+            })
+            .filter(e => e.length === 2)
     );
 }

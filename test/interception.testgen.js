@@ -56,9 +56,15 @@ module.exports.addGenericTestCases = function (getTestCases) {
                     const headers = new Headers(
                         request
                             .getAllResponseHeaders()
-                            .trim()
                             .split("\r\n")
-                            .map(line => line.split(": "))
+                            .map(line => {
+                                const sep = line.indexOf(": ");
+                                if (sep === -1) {
+                                    [];
+                                }
+                                return [line.slice(0, sep), line.slice(sep + 2)];
+                            })
+                            .filter(e => e.length === 2)
                     );
                     const responseText = request.responseText;
 
