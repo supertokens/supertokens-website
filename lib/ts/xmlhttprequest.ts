@@ -622,10 +622,10 @@ function getResponseHeadersFromXHR(xhr: XMLHttpRequestType) {
             .map(line => {
                 const sep = line.indexOf(": ");
                 if (sep === -1) {
-                    [];
+                    return ["", ""] as [string, string];
                 }
                 return [line.slice(0, sep), line.slice(sep + 2)] as [string, string];
             })
-            .filter(e => e.length === 2)
+            .filter(e => e[0].length !== 0)
     );
 }
