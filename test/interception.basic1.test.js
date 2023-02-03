@@ -3262,6 +3262,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
+                assert.strictEqual(document.cookie, "");
                 const loginResponse = await toTest({
                     url: `${BASE_URL}/login`,
                     method: "post",
@@ -3275,12 +3276,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(loginResponse.statusCode, 200);
                 assert.strictEqual(loginResponse.responseText, userId);
 
-                assert.strictEqual(await supertokens.doesSessionExist(), true);
+                assert.notStrictEqual(document.cookie, "");
             });
             await page.setRequestInterception(false);
         });
 
-        it("should log out work fine if the last header is an empty access-token", async () => {
+        it("should log out fine if the last header is an empty access-token", async () => {
             await startST();
             await setup();
             await page.setRequestInterception(true);
