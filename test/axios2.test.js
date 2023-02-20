@@ -386,12 +386,11 @@ describe("Axios AuthHttpRequest class tests", function () {
                         body: JSON.stringify({ message: "test" }),
                         headers: {
                             "Content-Type": "application/json",
-                            "id-refresh-token": "remove",
                             "Set-Cookie": [
-                                "sIdRefreshToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
-                                "sAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax",
+                                "sAccessToken=remove; Path=/; Expires=Fri, 31 Dec 9999 23:59:59 GMT; HttpOnly; SameSite=Lax",
                                 "sRefreshToken=; Path=/auth/session/refresh; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
-                            ]
+                            ],
+                            "front-token": "remove"
                         }
                     });
                 } else if (url === BASE_URL + "/auth/session/refresh") {
@@ -455,10 +454,12 @@ describe("Axios AuthHttpRequest class tests", function () {
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
+
+        let refreshCalled = 0;
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            refreshCalled = 0;
+
             page.on("request", req => {
                 const url = req.url();
                 if (url === BASE_URL + "/") {
@@ -512,7 +513,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
             // This will make the call twice - once by the axios interceptor and once by the xhr interceptor
             // But neither after the request was sent
-            assert.equal(refreshCalled, 2);
+            assert.equal(refreshCalled, 1);
         } finally {
             await browser.close();
         }

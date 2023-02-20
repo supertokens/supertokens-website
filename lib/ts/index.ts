@@ -13,7 +13,7 @@
  * under the License.
  */
 
-import AuthHttpRequestFetch from "./fetch";
+import AuthHttpRequestFetch, { getTokenForHeaderAuth } from "./fetch";
 import { ClaimValidationError, InputType, RecipeInterface, SessionClaim, SessionClaimValidator } from "./types";
 import RecipeImplementation from "./recipeImplementation";
 import OverrideableBuilder from "supertokens-js-override";
@@ -146,11 +146,24 @@ export default class AuthHttpRequest {
             userContext: getNormalisedUserContext(userContext)
         });
     };
+
+    static getAccessToken = async (input?: { userContext?: any }): Promise<string | undefined> => {
+        // This takes care of refreshing the access token if necessary.
+        if (
+            await AuthHttpRequestFetch.recipeImpl.doesSessionExist({
+                userContext: getNormalisedUserContext(input === undefined ? undefined : input.userContext)
+            })
+        ) {
+            return getTokenForHeaderAuth("access");
+        }
+        return undefined;
+    };
 }
 
 export let init = AuthHttpRequest.init;
 export let getUserId = AuthHttpRequest.getUserId;
 export let getAccessTokenPayloadSecurely = AuthHttpRequest.getAccessTokenPayloadSecurely;
+export let getAccessToken = AuthHttpRequest.getAccessToken;
 export let attemptRefreshingSession = AuthHttpRequest.attemptRefreshingSession;
 export let doesSessionExist = AuthHttpRequest.doesSessionExist;
 

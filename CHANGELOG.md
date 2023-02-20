@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
+- Added `includesAny` validator to Primitive Array claims.
+
+### Breaking change
+- Added `getHost` function to the `WindowHandlerInterface`.
+
+## [16.0.1] - 2023-02-02
+
+### Fixes
+
+-   Fixed a rare case where the XHR interceptor didn't handle empty response headers correctly
+
+## [16.0.0] - 2023-02-01
+
+### Breaking changes
+
+-   Only supporting FDI 1.16
+-   The backend SDK should be updated to a version supporting the header-based sessions!
+    -   supertokens-node: >= 13.0.0
+    -   supertokens-python: >= 0.12.0
+    -   supertokens-golang: >= 0.10.0
+-   Renamed configuration options:
+    -   `sessionScope` renamed to `sessionTokenFrontendDomain`
+    -   `cookieDomain` renamed to `sessionTokenBackendDomain`
+
+### Added
+
+-   Added support for authorizing requests using the `Authorization` header instead of cookies
+    -   Added `tokenTransferMethod` config option
+    -   Check out https://supertokens.com/docs/thirdpartyemailpassword/common-customizations/sessions/token-transfer-method for more information
 
 ## [15.0.0] - 2022-12-09
 

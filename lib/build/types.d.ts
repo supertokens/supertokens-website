@@ -15,22 +15,24 @@ export declare type Event = {
     userContext: any;
 };
 export declare type EventHandler = (event: Event) => void;
+export declare type TokenType = "access" | "refresh";
 export declare type InputType = {
     enableDebugLogs?: boolean;
     apiDomain: string;
     apiBasePath?: string;
+    sessionTokenFrontendDomain?: string;
     /**
      * This allows for a Lock factory to be configured, which defaults to browser-tabs-lock.
      * This can be used, for example, by a WebExtension that needs to update cookies for
      * a domain that may or may not have an associated tab open.
      */
     lockFactory?: LockFactory;
-    sessionScope?: string;
     sessionExpiredStatusCode?: number;
     invalidClaimStatusCode?: number;
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
-    cookieDomain?: string;
+    tokenTransferMethod?: "cookie" | "header";
+    sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
     preAPIHook?: RecipePreAPIHookFunction;
@@ -43,12 +45,13 @@ export declare type InputType = {
 export declare type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionScope: string;
+    sessionTokenFrontendDomain: string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
-    cookieDomain: string | undefined;
+    tokenTransferMethod: "cookie" | "header";
+    sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;

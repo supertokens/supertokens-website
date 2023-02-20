@@ -1,10 +1,10 @@
-import { RecipeInterface, NormalisedInputType, ResponseWithBody } from "./types";
+import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 export declare class AntiCsrfToken {
     private static tokenInfo;
     private constructor();
-    static getToken(associatedIdRefreshToken: string | undefined): Promise<string | undefined>;
+    static getToken(associatedAccessTokenUpdate: string | undefined): Promise<string | undefined>;
     static removeToken(): Promise<void>;
-    static setItem(associatedIdRefreshToken: string | undefined, antiCsrf: string): Promise<void>;
+    static setItem(associatedAccessTokenUpdate: string | undefined, antiCsrf: string): Promise<void>;
 }
 export declare class FrontToken {
     private static waiters;
@@ -16,6 +16,7 @@ export declare class FrontToken {
     } | undefined>;
     static removeToken(): Promise<void>;
     static setItem(frontToken: string): Promise<void>;
+    static doesTokenExists(): Promise<boolean>;
 }
 /**
  * @class AuthHttpRequest
@@ -37,7 +38,7 @@ export default class AuthHttpRequest {
  * @description attempts to call the refresh token API each time we are sure the session has expired, or it throws an error or,
  * or the ID_COOKIE_NAME has changed value -> which may mean that we have a new set of tokens.
  */
-export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshTokenType): Promise<{
+export declare function onUnauthorisedResponse(preRequestLSS: LocalSessionState): Promise<{
     result: "SESSION_EXPIRED";
     error?: any;
 } | {
@@ -48,14 +49,18 @@ export declare function onUnauthorisedResponse(preRequestIdToken: IdRefreshToken
 }>;
 export declare function onTokenUpdate(): void;
 export declare function onInvalidClaimResponse(response: ResponseWithBody): Promise<void>;
-export declare type IdRefreshTokenType = {
+export declare type LocalSessionState = {
     status: "NOT_EXISTS" | "MAY_EXIST";
 } | {
     status: "EXISTS";
-    token: string;
+    lastAccessTokenUpdate: string;
 };
-export declare function getIdRefreshToken(tryRefresh: boolean): Promise<IdRefreshTokenType>;
-export declare function setIdRefreshToken(idRefreshToken: string | "remove", statusCode: number): Promise<void>;
+export declare function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState>;
+export declare function getStorageNameForToken(tokenType: TokenType): "st-refresh-token" | "st-access-token";
+export declare function setToken(tokenType: TokenType, value: string): Promise<void>;
+export declare function getTokenForHeaderAuth(tokenType: TokenType): Promise<string | undefined>;
+export declare function saveLastAccessTokenUpdate(): Promise<void>;
 export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<void>;
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
+export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeaderFromResponse: string | null | undefined): void;

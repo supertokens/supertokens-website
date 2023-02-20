@@ -20,7 +20,7 @@ let puppeteer = require("puppeteer");
 const assert = require("assert");
 const { addGenericTestCases } = require("./interception.testgen");
 
-addGenericTestCases((name, setupFunc, setupArgs = []) => {
+addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
     describe(`${name}: Session claims error handling`, function () {
         let browser;
         let page;

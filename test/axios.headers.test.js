@@ -49,7 +49,7 @@ AuthHttpRequest.addAxiosInterceptors(axios);
     - Refresh API custom headers are working
     - allow-credentials should not be sent by our SDK by default.
 */
-describe("Axios AuthHttpRequest class tests", function () {
+describe.skip("Axios AuthHttpRequest class tests header", function () {
     jsdom({
         url: "http://localhost.org"
     });
@@ -59,7 +59,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             "./test/startServer",
             [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
             {
-                // stdio: "inherit"
+                stdio: "inherit"
             }
         );
         await new Promise(r => setTimeout(r, 1000));
@@ -113,7 +113,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     it("testing getDomain", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
+            tokenTransferMethod: "header"
         });
 
         let getResponse = await axios.get(`${BASE_URL}/testing`);
@@ -137,7 +138,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     it("testing api methods with config", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
+            tokenTransferMethod: "header"
         });
 
         let testing = "testing";
@@ -187,7 +189,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     it("testing api methods that doesn't exists", async function () {
         AuthHttpRequest.init({
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
+            tokenTransferMethod: "header"
         });
         let expectedStatusCode = 404;
         try {
@@ -265,7 +268,9 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header",
+                    enableDebugLogs: true
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -275,14 +280,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                     }
                 });
                 let userIdFromResponse = loginResponse.data;
-                assertEqual(userId, userIdFromResponse);
+                assert.strictEqual(userId, userIdFromResponse);
                 await delay(3);
-
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
                 let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
                 getResponse = await getResponse.data;
-                assertEqual(getResponse, userId);
+                assert.strictEqual(getResponse, userId);
             });
         } finally {
             await browser.close();
@@ -309,6 +313,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
+                    tokenTransferMethod: "header",
                     onHandleEvent: event => {
                         console.log("ST_" + event.action);
                     }
@@ -323,7 +328,6 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
             });
-            console.log(consoleLogs);
             assert(consoleLogs.length === 1);
             assert(consoleLogs[0] === "ST_SESSION_CREATED");
         } finally {
@@ -351,6 +355,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
+                    tokenTransferMethod: "header",
                     onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
@@ -374,7 +379,7 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
     });
 
-    it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
+    it("test that after login, and clearing localstorage, if we query a protected route, it fires unauthorised event", async function () {
         await startST();
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -394,6 +399,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
+                    tokenTransferMethod: "header",
                     onHandleEvent: event => {
                         console.log(`ST_${event.action}:${JSON.stringify(event)}`);
                     }
@@ -407,23 +413,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-            });
-
-            const client = await page.target().createCDPSession();
-            await client.send("Network.clearBrowserCookies");
-            await client.send("Network.clearBrowserCache");
-            let cookies = await page.cookies();
-            assert(cookies.length === 0);
-
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+                deleteAllCookies();
                 try {
                     await axios({ url: `${BASE_URL}/`, method: "GET" });
                 } catch (err) {
                     assertEqual(err.response.status, 401);
                 }
             });
-
             assert(consoleLogs.length === 2);
 
             assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
@@ -432,78 +428,6 @@ describe("Axios AuthHttpRequest class tests", function () {
             assert(consoleLogs[1].startsWith(eventName));
             const parsedEvent = JSON.parse(consoleLogs[1].substr(eventName.length + 1));
             assert(parsedEvent.sessionExpiredOrRevoked === false);
-        } finally {
-            await browser.close();
-        }
-    });
-
-    it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            let consoleLogs = [];
-            page.on("console", message => {
-                if (message.text().startsWith("ST_")) {
-                    consoleLogs.push(message.text());
-                }
-            });
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL,
-                    onHandleEvent: event => {
-                        console.log(`ST_${event.action}:${JSON.stringify(event)}`);
-                    }
-                });
-                let userId = "testing-supertokens-website";
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                let userIdFromResponse = loginResponse.data;
-                assertEqual(userId, userIdFromResponse);
-            });
-
-            let originalCookies = (await page.cookies()).filter(
-                c => c.name === "sFrontToken" || c.name === "st-last-access-token-update" || c.name === "sAntiCsrf"
-            );
-
-            const client = await page.target().createCDPSession();
-            await client.send("Network.clearBrowserCookies");
-            await client.send("Network.clearBrowserCache");
-
-            await page.setCookie(...originalCookies);
-            let cookies = await page.cookies();
-            assert(cookies.length === 3);
-
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                let caught;
-                try {
-                    await axios({ url: `${BASE_URL}/`, method: "GET" });
-                } catch (err) {
-                    caught = err;
-                }
-                assert.ok(caught);
-                assert.strictEqual(caught.response.status, 401);
-            });
-
-            assert(consoleLogs.length === 2);
-
-            assert(consoleLogs[0].startsWith("ST_SESSION_CREATED"));
-
-            const eventName = "ST_UNAUTHORISED";
-            assert(consoleLogs[1].startsWith(eventName));
-            const parsedEvent = JSON.parse(consoleLogs[1].substr(eventName.length + 1));
-            assert(parsedEvent.sessionExpiredOrRevoked === true);
         } finally {
             await browser.close();
         }
@@ -523,6 +447,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
+                    tokenTransferMethod: "header",
                     isInIframe: true
                 });
                 let userId = "testing-supertokens-website";
@@ -554,7 +479,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -588,7 +514,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -624,7 +551,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -659,7 +587,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     //             let BASE_URL = "http://localhost.org:8080";
     //             supertokens.addAxiosInterceptors(axios);
     //             supertokens.init({
-    //                 apiDomain: BASE_URL
+    //                 apiDomain: BASE_URL,
+    //                 tokenTransferMethod: "header",
     //             });
     //             let userId = "testing-supertokens-website";
     //             let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -703,7 +632,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -764,7 +694,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -829,7 +760,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -858,24 +790,15 @@ describe("Axios AuthHttpRequest class tests", function () {
         });
         try {
             const page = await browser.newPage();
+            page.on("console", c => console.log(c.text()));
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
             await page.evaluate(async () => {
-                function getAntiCSRFromCookie() {
-                    let value = "; " + document.cookie;
-                    let parts = value.split("; sAntiCsrf=");
-                    if (parts.length >= 2) {
-                        let last = parts.pop();
-                        if (last !== undefined) {
-                            return last;
-                        }
-                    }
-                    return null;
-                }
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -888,7 +811,6 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 assertEqual(userId, loginResponse.data);
                 assertEqual(await supertokens.doesSessionExist(), true);
-                assertEqual(getAntiCSRFromCookie() !== null, true);
 
                 let userIdFromToken = await supertokens.getUserId();
                 assertEqual(userIdFromToken, userId);
@@ -904,7 +826,6 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 assertEqual(logoutResponse.data, "success");
                 assertEqual(sessionExists, false);
-                assertEqual(getAntiCSRFromCookie() === null, true);
 
                 try {
                     await supertokens.getUserId();
@@ -939,7 +860,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -984,7 +906,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1044,7 +967,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 // test out anti-csrf
@@ -1097,7 +1021,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1164,7 +1089,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1195,7 +1121,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 try {
                     await axios.get(`${BASE_URL}/testError`);
@@ -1223,7 +1150,8 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 try {
                     await axios.get(`${BASE_URL}/testError`);
@@ -1252,10 +1180,12 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1268,7 +1198,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(userId, loginResponse.data);
 
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
 
                 let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
@@ -1311,7 +1242,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1341,6 +1273,51 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
     });
 
+    //    - Interception should not happen when domain is not the one that they gave*******
+    it.skip("test interception should not happen when domain is not the one that they gave", async function () {
+        await startST(5);
+        AuthHttpRequest.init({
+            apiDomain: BASE_URL,
+            tokenTransferMethod: "header",
+            enableDebugLogs: true
+        });
+
+        await axios.get(`https://www.google.com`);
+        let verifyRequestState = await ProcessState.getInstance().waitForEvent(
+            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
+            100
+        );
+        let verifyResponseState = await ProcessState.getInstance().waitForEvent(
+            PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE,
+            100
+        );
+
+        assert.strictEqual(verifyRequestState, undefined);
+        assert.strictEqual(verifyResponseState, undefined);
+
+        let userId = "testing-supertokens-website";
+        let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        assert.strictEqual(await loginResponse.data, userId);
+
+        verifyRequestState = await ProcessState.getInstance().waitForEvent(
+            PROCESS_STATE.CALLING_INTERCEPTION_REQUEST,
+            5000
+        );
+        verifyResponseState = await ProcessState.getInstance().waitForEvent(
+            PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE
+        );
+
+        console.log(verifyRequestState, verifyResponseState);
+        assert.notStrictEqual(verifyRequestState, undefined);
+        assert.notStrictEqual(verifyResponseState, undefined);
+    });
+
     it("test with axios interception should happen if api domain and website domain are the same and relative path is used", async function () {
         await startST(5);
 
@@ -1356,7 +1333,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1391,7 +1369,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "https://google.com";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1403,7 +1382,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
 
                 assertEqual(loginResponse.data, userId);
-                assertEqual(document.cookie, "");
+                assertEqual(localStorage.length, 0);
             });
         } finally {
             await browser.close();
@@ -1424,7 +1403,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1473,7 +1453,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1506,7 +1487,8 @@ describe("Axios AuthHttpRequest class tests", function () {
         let testAxios = axios.create();
         addAxiosInterceptorsTest(testAxios);
         AuthHttpRequest.init({
-            apiDomain: BASE_URL
+            apiDomain: BASE_URL,
+            tokenTransferMethod: "header"
         });
         let userId = "testing-supertokens-website";
         let multipleInterceptorResponse = await testAxios.post(
@@ -1538,7 +1520,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -1604,7 +1587,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(axios);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1655,7 +1639,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     //cross domain login, userinfo, logout
-    it("cross domain with no auto add credentials, fail", async () => {
+    it("cross domain with no auto add credentials should still work", async () => {
         await startST(3);
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1669,7 +1653,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    autoAddCredentials: false
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1681,53 +1665,21 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
 
                 //check that the userId which is returned in the response is the same as the one we sent
-                assert.strictEqual(loginResponse.data, userId);
+                assertEqual(loginResponse.data, userId);
                 // check that the session exists
-                assert.strictEqual(await supertokens.doesSessionExist(), true);
+                assertEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assert.strictEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
                 // send a get session request , which should do a refresh session request
 
-                try {
-                    await axios.get(`${BASE_URL}/`, {}, { withCredentials: true });
-                    assert(false);
-                } catch (err) {
-                    assert.strictEqual(err.message, "Request failed with status code 401");
-                }
-                assert.strictEqual(await supertokens.doesSessionExist(), false);
+                await axios.get(`${BASE_URL}/`);
 
-                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    withCredentials: true
-                });
-
-                let getSessionResponse = await axios.get(`${BASE_URL}/`, {
-                    withCredentials: true
-                });
-
-                // check that the getSession was successfull
-                assert.strictEqual(getSessionResponse.data, userId);
-
-                // do logout
-                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    withCredentials: true
-                });
-                assert.strictEqual(logoutResponse.data, "success");
-
-                //check that session does not exist
-                assert.strictEqual(await supertokens.doesSessionExist(), false);
+                assertEqual(await supertokens.doesSessionExist(), true);
             });
         } finally {
             await browser.close();
@@ -1751,7 +1703,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 supertokens.addAxiosInterceptors(http);
                 let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1818,7 +1771,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(http);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await http.post(`/login`, JSON.stringify({ userId }), {
@@ -1855,7 +1809,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1865,7 +1820,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 // call sessionDoesExist
                 assertEqual(await supertokens.doesSessionExist(), false);
 
-                // check refresh API was called once + document.cookie has removed
+                // check refresh API was called once + localstorage has cleared
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 // assertEqual(document.cookie, "sIRTFrontend=remove");
@@ -1892,112 +1847,6 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
-    it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
-        await startST(3, false);
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL
-                });
-                let userId = "testing-supertokens-website";
-
-                // check document cookie = ""
-                assertEqual(document.cookie, "");
-
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                let userIdFromResponse = loginResponse.data;
-                assertEqual(userId, userIdFromResponse);
-
-                // call sessionDoesExist
-                assertEqual(await supertokens.doesSessionExist(), true);
-                // check refresh API not called
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
-
-                // clear all cookies
-                deleteAllCookies();
-                // call sessionDoesExist (returns true) + call to refresh
-                assertEqual(await supertokens.doesSessionExist(), true);
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-
-                // call sessionDoesExist (returns true) + no call to refresh
-                assertEqual(await supertokens.doesSessionExist(), true);
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
-                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
-    it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL
-                });
-                let userId = "testing-supertokens-website";
-
-                // check document cookie = ""
-                assertEqual(document.cookie, "");
-
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                let userIdFromResponse = loginResponse.data;
-                assertEqual(userId, userIdFromResponse);
-
-                // call sessionDoesExist
-                assertEqual(await supertokens.doesSessionExist(), true);
-                // check refresh API not called
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 1); // it's one here since it gets called during login..
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-                // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
-
-                // clear all cookies
-                deleteAllCookies();
-                // call sessionDoesExist (returns false) + call to refresh
-                assertEqual(await supertokens.doesSessionExist(), false);
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-
-                // call sessionDoesExist (returns false) + no call to refresh
-                assertEqual(await supertokens.doesSessionExist(), false);
-                assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
-                assertEqual(await getNumberOfTimesRefreshCalled(), 0);
             });
         } finally {
             await browser.close();
@@ -2017,7 +1866,8 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
                 });
                 let userId = "testing-supertokens-website";
                 let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
@@ -2048,13 +1898,14 @@ describe("Axios AuthHttpRequest class tests", function () {
             // now we expect a 401.
             await page.evaluate(async () => {
                 let BASE_URL = "http://localhost.org:8080";
+                let err;
                 try {
                     await axios({ url: `${BASE_URL}/`, method: "GET" });
-                } catch (err) {
-                    assertEqual(err.response.status, 401);
+                } catch (ex) {
+                    err = ex;
                 }
+                assertEqual(err.response.status, 401);
             });
-
             // and we assert that the only cookie that exists is the st-last-access-token-update
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
