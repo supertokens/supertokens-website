@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 - Added `includesAny` validator to Primitive Array claims.
+- Exposed getGlobalClaimValidators function via utils.
 
 ### Breaking change
 - Added `getHost` function to the `WindowHandlerInterface`.
