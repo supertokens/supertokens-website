@@ -6,11 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
-- Added `includesAny` validator to Primitive Array claims.
-- Exposed getGlobalClaimValidators function via utils.
 
-### Breaking change
-- Added `getHost` function to the `WindowHandlerInterface`.
+## [16.0.2] - 2023-03-07
+- Exposed getGlobalClaimValidators function via utils.
 
 ## [16.0.1] - 2023-02-02
 
@@ -30,12 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Renamed configuration options:
     -   `sessionScope` renamed to `sessionTokenFrontendDomain`
     -   `cookieDomain` renamed to `sessionTokenBackendDomain`
+- Added `getHost` function to the `WindowHandlerInterface`.
 
 ### Added
 
 -   Added support for authorizing requests using the `Authorization` header instead of cookies
     -   Added `tokenTransferMethod` config option
     -   Check out https://supertokens.com/docs/thirdpartyemailpassword/common-customizations/sessions/token-transfer-method for more information
+- Added `includesAny` validator to Primitive Array claims.
 
 ## [15.0.0] - 2022-12-09
 
