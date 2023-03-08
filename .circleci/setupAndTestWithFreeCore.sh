@@ -48,12 +48,15 @@ cd ../project/test/server/
 npm i -d --force
 npm i git+https://github.com:supertokens/supertokens-node.git#$2
 cd ../../test/server/
+echo "Kill servers using port 8082."
+lsof -i tcp:8082 | grep -m 1 node | awk '{printf $2}' | cut -c 1- | xargs -I {} kill -9 {} > /dev/null 2>&1
+echo "Start new test server."
 TEST_MODE=testing INSTALL_PATH=../../../supertokens-root NODE_PORT=8082 node . &
 pid=$!
 cd ../../
 
 if ! [[ -z "${CIRCLE_NODE_TOTAL}" ]]; then
-    SUPERTOKENS_CORE_TAG=$coreTag INSTALL_PATH=../supertokens-root multi="spec=- mocha-junit-reporter=/dev/null" mocha --reporter mocha-multi --no-config --require isomorphic-fetch --timeout 500000 $(npx mocha-split-tests -r ./runtime.log -t $CIRCLE_NODE_TOTAL -g $CIRCLE_NODE_INDEX -f 'test/*.test.js')
+    SUPERTOKENS_CORE_TAG=$coreTag INSTALL_PATH=../supertokens-root multi="spec=- mocha-junit-reporter=/dev/null" npx mocha --reporter mocha-multi --no-config --require isomorphic-fetch --timeout 500000 $(npx mocha-split-tests -r ./runtime.log -t $CIRCLE_NODE_TOTAL -g $CIRCLE_NODE_INDEX -f 'test/*.test.js')
 else
     SUPERTOKENS_CORE_TAG=$coreTag INSTALL_PATH=../supertokens-root npm test
 fi
