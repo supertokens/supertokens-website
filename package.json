@@ -11,6 +11,7 @@
     "@babel/core": "^7.15.5",
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.6",
+    "@peakon/mocha-split-tests": "^1.4.0",
     "@size-limit/preset-small-lib": "^6.0.3",
     "axios": "*",
     "estimo": "^2.2.9",
@@ -19,6 +20,8 @@
     "jwks-rsa": "^2.0.5",
     "mocha": "6.1.4",
     "mocha-jsdom": "2.0.0",
+    "mocha-junit-reporter": "^2.0.2",
+    "mocha-multi": "^1.1.6",
     "mysql": "2.17.1",
     "prettier": "^2.8.3",
     "puppeteer": "^11.0.0",
@@ -29,10 +32,12 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3"
-  },
+  },            
+
   "scripts": {
     "check-circular-dependencies": "npx madge --circular --extensions js ./lib/build/",
-    "test": "TEST_MODE=testing npx mocha --timeout 500000 --retries 3",
+    "test": "TEST_MODE=testing npx mocha --timeout 500000",
+    "test-ci": "multi=\"spec=- mocha-junit-reporter=/dev/null\" mocha --reporter mocha-multi --no-config --require isomorphic-fetch --timeout 500000 $(npx mocha-split-tests -r ./runtime.log -t 4 -g 0 -f 'test/*.test.js')",
     "build-check": "cd lib && npx tsc -p tsconfig.json --noEmit && cd ../test/ && npx tsc -p tsconfig.json --noEmit",
     "build": "cd lib && rm -rf build && npx tsc -p tsconfig.json && cd ../ && npm run pack && cd test && npx tsc -p tsconfig.json",
     "pretty": "cd lib && npx prettier --write --config .prettierrc \"ts/**/*.ts\" \"build/**/*.js\" \"../test/**/*.js\"",
