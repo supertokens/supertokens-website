@@ -520,6 +520,7 @@ export async function onUnauthorisedResponse(
                     // in the first place.
                     return { result: "SESSION_EXPIRED", error };
                 }
+
                 logDebugMessage("onUnauthorisedResponse: sending API_ERROR");
                 return { result: "API_ERROR", error };
             } finally {
@@ -722,9 +723,11 @@ async function setAuthorizationHeaderIfRequired(clonedHeaders: Headers, addRefre
     const refreshToken = await getTokenForHeaderAuth("refresh");
 
     // We don't always need the refresh token because that's only required by the refresh call
-    // Still, we only add the Authorization header if both are present, because we are planning to add an option to expose the
-    // access token to the frontend while using cookie based auth - so that users can get the access token to use
-    if (accessToken !== undefined && refreshToken !== undefined) {
+    // Still, we only add the access token to Authorization header if both are present, because we are planning to add an option to expose the
+    // access token to the frontend while using cookie based auth - so that users can get the access token without using header based auth
+    // We can add the refresh token even if only that one is present, to make manual testing easier - you can then
+    // force a refresh by just deleting the access token.
+    if ((addRefreshToken || accessToken !== undefined) && refreshToken !== undefined) {
         // the Headers class normalizes header names so we don't have to worry about casing
         if (clonedHeaders.has("Authorization")) {
             logDebugMessage("setAuthorizationHeaderIfRequired: Authorization header defined by the user, not adding");

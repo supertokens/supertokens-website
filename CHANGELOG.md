@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Changes
+
+- Adding refresh tokens to refresh calls even if access token isn't present to make manual testing easier.
+
 ## [16.0.2] - 2023-03-07
 - Exposed getGlobalClaimValidators function via utils.
 
