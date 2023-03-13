@@ -805,6 +805,58 @@ describe("Fetch AuthHttpRequest class tests with headers", function () {
         }
     });
 
+    it("test with fetch that attemptRefreshingSession is working correctly after removing st-access-token", async function () {
+        await startST(5);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "header"
+                });
+                let userId = "testing-supertokens-website";
+                console.log("0");
+
+                // send api request to login
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                assertEqual(await loginResponse.text(), userId);
+
+                document.cookie = "st-access-token=;expires=Thu, 01 Jan 1970 00:00:01 GMT";
+
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, true);
+
+                //check that the number of times the refresh API was called is 1
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+
+                let getSessionResponse = await fetch(`${BASE_URL}/`);
+                assertEqual(await getSessionResponse.text(), userId);
+
+                //check that the number of times the refresh API was called is still 1
+                assertEqual(await getNumberOfTimesRefreshCalled(), 1);
+            });
+
+            const originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
+            assert(originalCookies.find(c => c.name === "st-access-token"));
+        } finally {
+            await browser.close();
+        }
+    });
+
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
     it("test with fetch that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
         await startST(15);
