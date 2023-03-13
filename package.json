@@ -1,6 +1,6 @@
 {
   "name": "supertokens-website",
-  "version": "16.0.2",
+  "version": "16.0.3",
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
@@ -32,8 +32,7 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3"
-  },            
-
+  },
   "scripts": {
     "check-circular-dependencies": "npx madge --circular --extensions js ./lib/build/",
     "test": "TEST_MODE=testing npx mocha --timeout 500000",
