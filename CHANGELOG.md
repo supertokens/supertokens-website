@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [16.0.4] - 2023-03-29
+
+### Changes
+
+-   Switched dependency away from the removed/unpublished `mocha-split-tests` package
+
 ## [16.0.3] - 2023-03-13
 ### Changes
 
