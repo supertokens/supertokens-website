@@ -674,7 +674,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
             await startST(15);
             await setup();
-
             await page.evaluate(async () => {
                 let userId = "testing-supertokens-website";
 
@@ -699,6 +698,63 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // create an array of 100 get session promises
                 for (let i = 0; i < n; i++) {
+                    promises.push(
+                        toTest({
+                            url: `${BASE_URL}/`,
+                            method: "GET",
+                            headers: { "Cache-Control": "no-cache, private" }
+                        })
+                    );
+                }
+
+                // send 100 get session requests
+                let multipleGetSessionResponse = await Promise.all(promises);
+
+                //check that reponse of all requests are success
+                let noOfResponeSuccesses = 0;
+                for (let i = 0; i < multipleGetSessionResponse.length; i++) {
+                    assert.strictEqual(await multipleGetSessionResponse[i].responseText, userId);
+                    noOfResponeSuccesses += 1;
+                }
+
+                //check that the number of times refresh is called is 1
+
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
+                assert.strictEqual(noOfResponeSuccesses, n);
+            });
+        });
+
+        // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
+        it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called - with delayed calls", async function () {
+            await startST(15);
+            await setup();
+            await page.evaluate(async () => {
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                assert.strictEqual(loginResponse.responseText, userId);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                // wait for 7 seconds so that the accesstoken expires
+                await delay(17);
+
+                let promises = [];
+                let n = 100;
+
+                // create an array of 100 get session promises
+                for (let i = 0; i < n; i++) {
+                    // this will make it so that there are calls to the / API during the refresh call.
+                    // these calls should not cause another refresh, cause the tokens would have changed.
+                    await new Promise(r => setTimeout(r, 3 * Math.random()));
                     promises.push(
                         toTest({
                             url: `${BASE_URL}/`,
