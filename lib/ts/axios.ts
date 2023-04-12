@@ -532,6 +532,7 @@ async function setAuthorizationHeaderIfRequired(requestConfig: AxiosRequestConfi
                 ...requestConfig.headers,
                 Authorization: `Bearer ${accessToken}`
             };
+            (requestConfig as any).__supertokensAddedAuthHeader = true;
         }
     } else {
         logDebugMessage("setAuthorizationHeaderIfRequired: token for header based auth not found");
@@ -573,7 +574,7 @@ async function removeAuthHeaderIfMatchesLocalToken(config: AxiosRequestConfig<an
     const authHeader = config.headers!.Authorization || config.headers!.authorization;
 
     if (accessToken !== undefined) {
-        if (authHeader === `Bearer ${accessToken}`) {
+        if (authHeader === `Bearer ${accessToken}` || "__supertokensAddedAuthHeader" in config) {
             // We are ignoring the Authorization header set by the user in this case, because it would cause issues
             // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
             // This causes an infinite refresh loop.

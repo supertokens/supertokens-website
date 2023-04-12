@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixes
+
+-   Fixed an issue that could cause an infinite refresh loop in the legacy axios interceptor (explicitly disabling the XHR interceptor) if the access token changed during the request
+
 ## [16.0.4] - 2023-03-29
 
 ### Changes
