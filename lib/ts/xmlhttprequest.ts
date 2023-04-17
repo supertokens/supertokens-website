@@ -287,6 +287,9 @@ export function addInterceptorsToXMLHttpRequest() {
             }
             delayIfNecessary(async () => {
                 if (name.toLowerCase() === "authorization") {
+                    logDebugMessage(
+                        "XHRInterceptor.setRequestHeader: checking if user provided auth header matches local token"
+                    );
                     const accessToken = await getTokenForHeaderAuth("access");
                     if (value === `Bearer ${accessToken}`) {
                         // We are ignoring the Authorization header set by the user in this case, because it would cause issues
