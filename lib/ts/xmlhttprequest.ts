@@ -46,8 +46,7 @@ const XHR_EVENTS = [
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
-    let firstEventLoopDone = false;
-    setTimeout(() => (firstEventLoopDone = true), 0);
+    const firstEventLoopDone = new Promise(res => setTimeout(res, 0));
 
     const oldXMLHttpRequest = XMLHttpRequest;
     logDebugMessage("addInterceptorsToXMLHttpRequest called");
@@ -57,15 +56,9 @@ export function addInterceptorsToXMLHttpRequest() {
     // define constructor for my proxy object
     XMLHttpRequest = function (this: XMLHttpRequestType) {
         const actual: XMLHttpRequestType = new oldXMLHttpRequest();
-        const delayActualCalls = !firstEventLoopDone;
-        function delayIfNecessary(cb: () => void) {
-            if (delayActualCalls) {
-                setTimeout(() => {
-                    cb();
-                }, 0);
-            } else {
-                cb();
-            }
+        let delayedQueue = firstEventLoopDone;
+        function delayIfNecessary(cb: () => void | Promise<void>) {
+            delayedQueue = delayedQueue.finally(() => cb()?.catch(console.error));
         }
 
         const self = this;
@@ -236,9 +229,6 @@ export function addInterceptorsToXMLHttpRequest() {
         self.open = function (_: string, u: string | URL) {
             logDebugMessage(`XHRInterceptor.open called`);
             let args: any = arguments;
-            listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
-                xhr.open.apply(xhr, args);
-            });
             // method = m;
             url = u;
             try {
@@ -268,10 +258,15 @@ export function addInterceptorsToXMLHttpRequest() {
                     throw err;
                 }
             }
+            delayIfNecessary(() => {
+                listOfFunctionCallsInProxy.push((xhr: XMLHttpRequestType) => {
+                    xhr.open.apply(xhr, args);
+                });
 
-            // here we use the apply syntax cause there are other optional args that
-            // can be passed by the user.
-            delayIfNecessary(() => actual.open.apply(actual, args));
+                // here we use the apply syntax cause there are other optional args that
+                // can be passed by the user.
+                actual.open.apply(actual, args);
+            });
         };
 
         self.send = function (inputBody) {
@@ -280,6 +275,7 @@ export function addInterceptorsToXMLHttpRequest() {
         };
 
         self.setRequestHeader = function (name: string, value: string) {
+            logDebugMessage(`XHRInterceptor.setRequestHeader: Called with ${name}`);
             if (doNotDoInterception) {
                 delayIfNecessary(() => actual.setRequestHeader(name, value));
                 return;
@@ -289,8 +285,11 @@ export function addInterceptorsToXMLHttpRequest() {
             if (name === "anti-csrf") {
                 return;
             }
-            void (async () => {
+            delayIfNecessary(async () => {
                 if (name.toLowerCase() === "authorization") {
+                    logDebugMessage(
+                        "XHRInterceptor.setRequestHeader: checking if user provided auth header matches local token"
+                    );
                     const accessToken = await getTokenForHeaderAuth("access");
                     if (value === `Bearer ${accessToken}`) {
                         // We are ignoring the Authorization header set by the user in this case, because it would cause issues
@@ -307,10 +306,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 });
                 // The original version "combines" headers according to MDN.
                 requestHeaders.push({ name, value });
-                delayIfNecessary(() => actual.setRequestHeader(name, value));
-            })().catch(err => {
-                // This should basically never happen: it'd mean that getCookie threw an error
-                console.error("An error occured during setRequestHeader: ", err);
+                actual.setRequestHeader(name, value);
             });
         };
 

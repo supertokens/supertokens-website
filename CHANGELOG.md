@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixes
+
+-   Refactored XMLHttpRequest interceptor to fix a possible issue timing issue
+
 ## [16.0.5] - 2023-04-13
 
 ### Fixes
