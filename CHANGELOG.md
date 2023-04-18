@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [16.0.6] - 2023-04-18
 ### Fixes
 
--   Refactored XMLHttpRequest interceptor to fix a possible issue timing issue
+-   Refactored XMLHttpRequest interceptor to fix a possible issue timing issue: https://github.com/supertokens/supertokens-website/issues/208
 
 ## [16.0.5] - 2023-04-13
 
