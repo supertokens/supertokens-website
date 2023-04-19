@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [16.0.7] - 2023-04-19
+- Relaxes test constraint related to legacy axios interceptor.
+
 ## [16.0.6] - 2023-04-18
 ### Fixes
 
