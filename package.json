@@ -4,7 +4,7 @@
   "description": "frontend sdk for website to be used for auth solution.",
   "main": "index.js",
   "dependencies": {
-    "browser-tabs-lock": "github:supertokens/browser-tabs-lock#storage-handler",
+    "browser-tabs-lock": "^1.3.0",
     "supertokens-js-override": "^0.0.4"
   },
   "devDependencies": {
