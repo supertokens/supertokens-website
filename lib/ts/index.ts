@@ -29,7 +29,10 @@ export default class AuthHttpRequest {
     static init(options: InputType) {
         CookieHandlerReference.init(options.cookieHandler);
         WindowHandlerReference.init(options.windowHandler);
-        LockFactoryReference.init(options.lockFactory);
+        LockFactoryReference.init(
+            options.lockFactory,
+            WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage
+        );
 
         let config = validateAndNormaliseInputOrThrowError(options);
         const recipeImpl = new OverrideableBuilder(

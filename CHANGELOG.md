@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [16.0.8] - 2023-04-25
+- Passes windowHandler's localstorage to browser-tabs-lock as well.
+
 ## [16.0.7] - 2023-04-19
 - Relaxes test constraint related to legacy axios interceptor.
 
