@@ -57,7 +57,7 @@ module.exports.getNumberOfTimesRefreshAttempted = async function (BASE = module.
 };
 
 module.exports.startST = async function (
-    accessTokenValidity = 1,
+    accessTokenValidity = 3,
     enableAntiCsrf = true,
     accessTokenSigningKeyUpdateInterval = undefined,
     enableJWT = undefined
