@@ -292,7 +292,7 @@ app.get("/featureFlags", async (req, res) => {
         sessionJwt:
             maxVersion(supertokens_node_version, "8.3") === supertokens_node_version && currentEnableJWT === true,
         sessionClaims: maxVersion(supertokens_node_version, "12.0") === supertokens_node_version,
-        v3AccessToken: true || maxVersion(supertokens_node_version, "14.0") === supertokens_node_version
+        v3AccessToken: maxVersion(supertokens_node_version, "14.0") === supertokens_node_version
     });
 });
 

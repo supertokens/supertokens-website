@@ -2717,7 +2717,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("Test full JWT flow with open id discovery", async function () {
-            await startSTWithJWTEnabled();
+            await startSTWithJWTEnabled(20);
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
 
@@ -2947,23 +2947,40 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     body: JSON.stringify({ userId })
                 });
             });
-            assert.deepEqual(logs, [
-                "SESSION_CREATED",
-                "LOGIN_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
-                "UPDATE1_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // The refresh endpoint updates the access token
-                "REFRESH_SESSION",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh (i.e.: during retry) also updates it
-                "REFRESH_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
-                "UPDATE2_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // This is from refresh updating the token
-                "REFRESH_SESSION",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the (retried) endpoint changing the payload
-                "UPDATE3_FINISH",
-                "SIGN_OUT"
-            ]);
+            if (v3AccessTokenSupported) {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE1_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The refresh endpoint updates the access token
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh (i.e.: during retry) also updates it
+                    "REFRESH_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE2_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // This is from refresh updating the token
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the (retried) endpoint changing the payload
+                    "UPDATE3_FINISH",
+                    "SIGN_OUT"
+                ]);
+            } else {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE1_FINISH",
+                    "REFRESH_SESSION",
+                    "REFRESH_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE2_FINISH",
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the (retried) endpoint changing the payload
+                    "UPDATE3_FINISH",
+                    "SIGN_OUT"
+                ]);
+            }
         });
 
         it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
@@ -3036,17 +3053,30 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     body: JSON.stringify({ userId })
                 });
             });
-            assert.deepEqual(logs, [
-                "SESSION_CREATED",
-                "LOGIN_FINISH",
-                "PAYLOAD_DB_UPDATED",
-                "QUERY_NO_REFRESH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED",
-                "REFRESH_SESSION",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh also triggers the update
-                "REFRESH_FINISH",
-                "SIGN_OUT"
-            ]);
+            if (v3AccessTokenSupported) {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "PAYLOAD_DB_UPDATED",
+                    "QUERY_NO_REFRESH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh also triggers the update
+                    "REFRESH_FINISH",
+                    "SIGN_OUT"
+                ]);
+            } else {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "PAYLOAD_DB_UPDATED",
+                    "QUERY_NO_REFRESH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                    "REFRESH_SESSION",
+                    "REFRESH_FINISH",
+                    "SIGN_OUT"
+                ]);
+            }
         });
 
         it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
