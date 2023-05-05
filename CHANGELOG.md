@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated tests/test server to match new backend version supporting v3 access tokens
 
+### Fixes
+
+- Fixes fetch interceptor calling clone on URL instances
+
 ## [16.0.8] - 2023-04-25
 - Passes windowHandler's localstorage to browser-tabs-lock as well.
 
