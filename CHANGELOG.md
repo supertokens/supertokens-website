@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [16.0.9] - 2023-05-05
+
+### Changes
+
+- Updated tests/test server to match new backend version supporting v3 access tokens
+
 ## [16.0.8] - 2023-04-25
 - Passes windowHandler's localstorage to browser-tabs-lock as well.
 
