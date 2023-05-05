@@ -183,3 +183,15 @@ module.exports.maxVersion = function (version1, version2) {
     }
     return version2;
 };
+
+module.exports.isProtectedPropName = function (name) {
+    return [
+        "sub",
+        "iat",
+        "exp",
+        "sessionHandle",
+        "parentRefreshTokenHash1",
+        "refreshTokenHash1",
+        "antiCsrfToken"
+    ].includes(name);
+};

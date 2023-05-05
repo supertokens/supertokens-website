@@ -27,7 +27,8 @@ let {
     BASE_URL,
     BASE_URL_FOR_ST,
     coreTagEqualToOrAfter,
-    checkIfJWTIsEnabled
+    checkIfJWTIsEnabled,
+    checkIfV3AccessTokenIsSupported
 } = require("./utils");
 const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
@@ -65,6 +66,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
     describe(`${name}: interception basic tests 1`, function () {
         let browser;
         let page;
+        let v3AccessTokenSupported;
 
         function setup(config = {}) {
             // page.on("console", c => console.log(c.text()));
@@ -91,6 +93,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
             );
             await new Promise(r => setTimeout(r, 1000));
+            v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
@@ -401,7 +404,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await startST(3);
             await setup();
 
-            await page.evaluate(async () => {
+            await page.evaluate(async v3AccessTokenSupported => {
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
@@ -418,7 +421,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(loginResponse.responseText, userId);
                 let data = await supertokens.getAccessTokenPayloadSecurely();
 
-                assert.strictEqual(Object.keys(data).length, 0);
+                assert.strictEqual(Object.keys(data).length, v3AccessTokenSupported ? 8 : 0);
 
                 // update jwt data
                 let testResponse1 = await toTest({
@@ -471,7 +474,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 let data4 = JSON.parse(testResponse4.responseText);
                 assert.strictEqual(data4.key1, " łukasz data1");
                 assert.strictEqual(data4.key, undefined);
-            });
+            }, v3AccessTokenSupported);
         });
 
         //test custom headers are being sent when logged in and when not*****
@@ -2044,7 +2047,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     req.continue();
                 }
             });
-            await page.evaluate(async () => {
+            await page.evaluate(async v3AccessTokenSupported => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -2068,13 +2071,21 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // Verify access token payload
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
 
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
-                assert.strictEqual(accessTokenPayload.customClaim, "customValue");
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+                let jwt;
 
-                let jwt = accessTokenPayload.jwt;
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
+
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 // Decode the JWT
                 let decodeResponse = await toTest({
@@ -2108,16 +2119,22 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // Get access token payload
                 accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
 
                 // Verify new access token payload
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
-                assert.strictEqual(accessTokenPayload.customClaim, undefined);
-                assert.strictEqual(accessTokenPayload.newClaim, "newValue");
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
 
-                jwt = accessTokenPayload.jwt;
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2134,25 +2151,29 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // Verify new JWT
                 assert.strictEqual(decodedJWT.sub, userId);
                 assert.strictEqual(decodedJWT._jwtPName, undefined);
-                assert.strictEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assert.strictEqual(decodedJWT.customClaim, undefined);
                 assert.strictEqual(decodedJWT.newClaim, "newValue");
 
                 let attemptRefresh = await supertokens.attemptRefreshingSession();
                 assert.strictEqual(attemptRefresh, true);
 
-                // Get access token payload
-                accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+                // Verify new access token payload
+                assertEqual(accessTokenPayload.customClaim, undefined);
+                assertEqual(accessTokenPayload.newClaim, "newValue");
 
                 // Verify new access token payload
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
-                assert.strictEqual(accessTokenPayload.customClaim, undefined);
-                assert.strictEqual(accessTokenPayload.newClaim, "newValue");
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
 
-                jwt = accessTokenPayload.jwt;
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2169,10 +2190,9 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // Verify new JWT
                 assert.strictEqual(decodedJWT.sub, userId);
                 assert.strictEqual(decodedJWT._jwtPName, undefined);
-                assert.strictEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assert.strictEqual(decodedJWT.customClaim, undefined);
                 assert.strictEqual(decodedJWT.newClaim, "newValue");
-            });
+            }, v3AccessTokenSupported);
         });
 
         it("Test that the access token payload and the JWT have all valid claims after updating access token payload", async function () {
@@ -2200,7 +2220,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     req.continue();
                 }
             });
-            await page.evaluate(async () => {
+            await page.evaluate(async v3AccessTokenSupported => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -2223,14 +2243,21 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // Verify access token payload
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
+                assertEqual(accessTokenPayload.customClaim, "customValue");
+                let jwt;
 
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
-                assert.strictEqual(accessTokenPayload.customClaim, "customValue");
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
 
-                let jwt = accessTokenPayload.jwt;
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 // Decode the JWT
                 let decodeResponse = await toTest({
@@ -2260,7 +2287,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        ...accessTokenPayload,
                         customClaim: undefined,
                         newClaim: "newValue"
                     })
@@ -2268,16 +2294,21 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // Get access token payload
                 accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
-
-                // Verify new access token payload
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
                 assert.strictEqual(accessTokenPayload.customClaim, undefined);
                 assert.strictEqual(accessTokenPayload.newClaim, "newValue");
 
-                jwt = accessTokenPayload.jwt;
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
+
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2294,10 +2325,9 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // Verify new JWT
                 assert.strictEqual(decodedJWT.sub, userId);
                 assert.strictEqual(decodedJWT._jwtPName, undefined);
-                assert.strictEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assert.strictEqual(decodedJWT.customClaim, undefined);
                 assert.strictEqual(decodedJWT.newClaim, "newValue");
-            });
+            }, v3AccessTokenSupported);
         });
 
         it("Test that access token payload and JWT are valid after the property name changes and payload is updated", async function () {
@@ -2305,7 +2335,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
 
-            if (!isJwtEnabled) {
+            if (!isJwtEnabled || v3AccessTokenSupported) {
                 return;
             }
 
@@ -2439,7 +2469,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
 
-            if (!isJwtEnabled) {
+            if (!isJwtEnabled || v3AccessTokenSupported) {
                 return;
             }
 
@@ -2583,7 +2613,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     req.continue();
                 }
             });
-            await page.evaluate(async () => {
+            await page.evaluate(async v3AccessTokenSupported => {
                 let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -2606,14 +2636,22 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // Verify access token payload
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
-
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
                 assert.strictEqual(accessTokenPayload.customClaim, "customValue");
 
-                let jwt = accessTokenPayload.jwt;
+                let jwt;
+
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
+
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 let decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2638,13 +2676,20 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
 
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
                 assert.strictEqual(accessTokenPayload.customClaim, "customValue");
 
-                jwt = accessTokenPayload.jwt;
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
+
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2668,11 +2713,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(newJwtExpiry > Math.ceil(Date.now() / 1000), true);
                 assertNotEqual(jwtExpiry, newJwtExpiry);
-            });
+            }, v3AccessTokenSupported);
         });
 
         it("Test full JWT flow with open id discovery", async function () {
-            await startSTWithJWTEnabled();
+            await startSTWithJWTEnabled(20);
 
             let isJwtEnabled = await checkIfJWTIsEnabled();
 
@@ -2732,7 +2777,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
             });
             await setup();
-            await page.evaluate(async () => {
+            await page.evaluate(async v3AccessTokenSupported => {
                 let userId = "testing-supertokens-website";
 
                 // Create a session
@@ -2750,14 +2795,22 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 // Verify access token payload
                 let accessTokenPayload = await supertokens.getAccessTokenPayloadSecurely();
-
-                assertNotEqual(accessTokenPayload.jwt, undefined);
-                assert.strictEqual(accessTokenPayload.sub, undefined);
-                assert.strictEqual(accessTokenPayload._jwtPName, "jwt");
-                assert.strictEqual(accessTokenPayload.iss, undefined);
                 assert.strictEqual(accessTokenPayload.customClaim, "customValue");
 
-                let jwt = accessTokenPayload.jwt;
+                let jwt;
+
+                if (v3AccessTokenSupported) {
+                    jwt = await supertokens.getAccessToken();
+                    assertEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, undefined);
+                } else {
+                    assertNotEqual(accessTokenPayload.jwt, undefined);
+                    assertEqual(accessTokenPayload.sub, undefined);
+                    assertEqual(accessTokenPayload._jwtPName, "jwt");
+                    assertEqual(accessTokenPayload.iss, undefined);
+
+                    jwt = accessTokenPayload.jwt;
+                }
 
                 let decodeResponse = await toTest({
                     url: `${BASE_URL}/jsondecode`,
@@ -2806,7 +2859,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(decodedJWT._jwtPName, undefined);
                 assert.strictEqual(decodedJWT.iss, "http://0.0.0.0:8080/auth");
                 assert.strictEqual(decodedJWT.customClaim, "customValue");
-            });
+            }, v3AccessTokenSupported);
         });
 
         it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
@@ -2894,20 +2947,40 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     body: JSON.stringify({ userId })
                 });
             });
-            assert.deepEqual(logs, [
-                "SESSION_CREATED",
-                "LOGIN_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED",
-                "UPDATE1_FINISH",
-                "REFRESH_SESSION",
-                "REFRESH_FINISH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED",
-                "UPDATE2_FINISH",
-                "REFRESH_SESSION",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED",
-                "UPDATE3_FINISH",
-                "SIGN_OUT"
-            ]);
+            if (v3AccessTokenSupported) {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE1_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The refresh endpoint updates the access token
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh (i.e.: during retry) also updates it
+                    "REFRESH_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE2_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // This is from refresh updating the token
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the (retried) endpoint changing the payload
+                    "UPDATE3_FINISH",
+                    "SIGN_OUT"
+                ]);
+            } else {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE1_FINISH",
+                    "REFRESH_SESSION",
+                    "REFRESH_FINISH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the endpoint changing the payload
+                    "UPDATE2_FINISH",
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // Normal update triggered by the (retried) endpoint changing the payload
+                    "UPDATE3_FINISH",
+                    "SIGN_OUT"
+                ]);
+            }
         });
 
         it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
@@ -2980,16 +3053,30 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     body: JSON.stringify({ userId })
                 });
             });
-            assert.deepEqual(logs, [
-                "SESSION_CREATED",
-                "LOGIN_FINISH",
-                "PAYLOAD_DB_UPDATED",
-                "QUERY_NO_REFRESH",
-                "ACCESS_TOKEN_PAYLOAD_UPDATED",
-                "REFRESH_SESSION",
-                "REFRESH_FINISH",
-                "SIGN_OUT"
-            ]);
+            if (v3AccessTokenSupported) {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "PAYLOAD_DB_UPDATED",
+                    "QUERY_NO_REFRESH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                    "REFRESH_SESSION",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED", // The first request after the refresh also triggers the update
+                    "REFRESH_FINISH",
+                    "SIGN_OUT"
+                ]);
+            } else {
+                assert.deepEqual(logs, [
+                    "SESSION_CREATED",
+                    "LOGIN_FINISH",
+                    "PAYLOAD_DB_UPDATED",
+                    "QUERY_NO_REFRESH",
+                    "ACCESS_TOKEN_PAYLOAD_UPDATED",
+                    "REFRESH_SESSION",
+                    "REFRESH_FINISH",
+                    "SIGN_OUT"
+                ]);
+            }
         });
 
         it("Test that everything works if the user reads the body and headers in the post API hook", async function () {

@@ -622,68 +622,6 @@ describe.skip("Axios AuthHttpRequest class tests header", function () {
     //     }
     // });
 
-    it("update jwt data", async function () {
-        await startST();
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL,
-                    tokenTransferMethod: "header"
-                });
-                let userId = "testing-supertokens-website";
-
-                // send api request to login
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-                assertEqual(userId, loginResponse.data);
-
-                let data = await supertokens.getAccessTokenPayloadSecurely();
-
-                assertEqual(Object.keys(data).length, 0);
-
-                // update jwt data
-                let testResponse1 = await axios.post(`${BASE_URL}/update-jwt`, { key: "data" });
-                assertEqual(testResponse1.data.key, "data");
-
-                data = await supertokens.getAccessTokenPayloadSecurely();
-                assertEqual(data.key, "data");
-
-                // get jwt data
-                let testResponse2 = await axios.get(`${BASE_URL}/update-jwt`);
-                assertEqual(testResponse2.data.key, "data");
-
-                // update jwt data
-                let testResponse3 = await axios.post(`${BASE_URL}/update-jwt`, { key1: "data1" });
-                assertEqual(testResponse3.data.key1, "data1");
-                assertEqual(testResponse3.data.key, undefined);
-
-                data = await supertokens.getAccessTokenPayloadSecurely();
-                assertEqual(data.key1, "data1");
-                assertEqual(data.key, undefined);
-
-                // get jwt data
-                let testResponse4 = await axios.get(`${BASE_URL}/update-jwt`);
-                assertEqual(testResponse4.data.key1, "data1");
-                assertEqual(testResponse4.data.key, undefined);
-            });
-        } finally {
-            await browser.close();
-        }
-    });
-
     //test custom headers are being sent when logged in and when not*****
     it("test that custom headers are being sent when logged in", async function () {
         await startST();
