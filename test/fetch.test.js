@@ -1285,6 +1285,43 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
     });
 
+    it("test with fetch interception should happen if api domain and website domain are the same and URL object is used", async function () {
+        await startST(5);
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await fetch(new URL(BASE_URL + `/login`), {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                assertEqual(await supertokens.doesSessionExist(), true);
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
     it("test with fetch interception should not happen if api domain and website domain are different and relative path is used", async function () {
         await startST(5);
 
@@ -1305,6 +1342,43 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                 // send api request to login
                 let loginResponse = await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                assertEqual(document.cookie, "");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test with fetch interception should not happen if api domain and website domain are different and URL object is used", async function () {
+        await startST(5);
+
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
+
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: "https://google.com"
+                });
+                let userId = "testing-supertokens-website";
+
+                // send api request to login
+                let loginResponse = await fetch(new URL(BASE_URL + `/login`), {
                     method: "post",
                     headers: {
                         Accept: "application/json",
