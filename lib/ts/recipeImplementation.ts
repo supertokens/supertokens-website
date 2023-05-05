@@ -33,7 +33,7 @@ export default function RecipeImplementation(recipeImplInput: {
             return async function (url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
-                        return input.originalFetch(typeof url === "string" ? url : (url as Request).clone(), {
+                        return input.originalFetch(typeof url === "object" && "clone" in url ? url.clone() : url, {
                             ...config
                         });
                     },
