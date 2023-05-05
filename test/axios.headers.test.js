@@ -49,6 +49,10 @@ AuthHttpRequest.addAxiosInterceptors(axios);
     - Refresh API custom headers are working
     - allow-credentials should not be sent by our SDK by default.
 */
+
+// this is intentionally skipped cause these tests should be in the interception.basic1.test.js test
+// file so these are not needed, but we need to double check that these tests are all
+// in there.
 describe.skip("Axios AuthHttpRequest class tests header", function () {
     jsdom({
         url: "http://localhost.org"
