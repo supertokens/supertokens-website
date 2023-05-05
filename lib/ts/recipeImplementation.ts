@@ -30,7 +30,7 @@ export default function RecipeImplementation(recipeImplInput: {
             userContext: any;
         }): typeof fetch {
             logDebugMessage("addFetchInterceptorsAndReturnModifiedFetch: called");
-            return async function (url: RequestInfo | URL, config?: RequestInit): Promise<Response> {
+            return async function (url: string | RequestInfo | URL, config?: RequestInit): Promise<Response> {
                 return await AuthHttpRequest.doRequest(
                     (config?: RequestInit) => {
                         return input.originalFetch(typeof url === "object" && "clone" in url ? url.clone() : url, {

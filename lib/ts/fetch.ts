@@ -213,20 +213,21 @@ export default class AuthHttpRequest {
         logDebugMessage("doRequest: start of fetch interception");
         let doNotDoInterception = false;
         try {
-            doNotDoInterception =
-                (typeof url === "string" &&
-                    !shouldDoInterceptionBasedOnUrl(
-                        url,
-                        AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.sessionTokenBackendDomain
-                    )) ||
-                (url !== undefined &&
-                    typeof url.url === "string" && // this is because url can be an object like {method: ..., url: ...}
-                    !shouldDoInterceptionBasedOnUrl(
-                        url.url,
-                        AuthHttpRequest.config.apiDomain,
-                        AuthHttpRequest.config.sessionTokenBackendDomain
-                    ));
+            let finalURL;
+            if (typeof url === "string") {
+                finalURL = url;
+            } else if (typeof url === "object") {
+                if (typeof url.url === "string") {
+                    finalURL = url.url;
+                } else if (typeof url.url === "string") {
+                    finalURL = url.href;
+                }
+            }
+            doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                finalURL,
+                AuthHttpRequest.config.apiDomain,
+                AuthHttpRequest.config.sessionTokenBackendDomain
+            );
         } catch (err) {
             if ((err as any).message === "Please provide a valid domain name") {
                 logDebugMessage("doRequest: Trying shouldDoInterceptionBasedOnUrl with location.origin");
