@@ -125,7 +125,6 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
             recipeList: [
                 Session.init({
                     getTokenTransferMethod: process.env.TRANSFER_METHOD ? () => process.env.TRANSFER_METHOD : undefined,
-                    exposeAccessTokenToFrontendInCookieBasedAuth: true,
                     jwt: {
                         enable: true,
                         propertyNameInAccessTokenPayload: jwtPropertyName
