@@ -219,7 +219,7 @@ export default class AuthHttpRequest {
             } else if (typeof url === "object") {
                 if (typeof url.url === "string") {
                     finalURL = url.url;
-                } else if (typeof url.url === "string") {
+                } else if (typeof url.href === "string") {
                     finalURL = url.href;
                 }
             }
