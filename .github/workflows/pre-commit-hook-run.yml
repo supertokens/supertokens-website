@@ -16,10 +16,9 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - run: git init && git add --all && git -c user.name='test' -c user.email='test@example.com' commit -m 'init for pr action'
-            - run: npm i
-
             # the below command is there cause otherwise running npm run check-circular-dependencies gives an error like:
             #   Your cache folder contains root-owned files, due to a bug in
             #   npm ERR! previous versions of npm which has since been addressed.
             - run: chown -R 1001:121 "/github/home/.npm"
+            - run: npm i
             - run: ./hooks/pre-commit.sh
