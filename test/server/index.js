@@ -84,25 +84,13 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                         functions: function (oI) {
                             return {
                                 ...oI,
-                                createNewSession: async function ({
-                                    req,
-                                    res,
-                                    userId,
-                                    accessTokenPayload,
-                                    sessionData
-                                }) {
-                                    accessTokenPayload = {
-                                        ...accessTokenPayload,
+                                createNewSession: async function (input) {
+                                    input.accessTokenPayload = {
+                                        ...input.accessTokenPayload,
                                         customClaim: "customValue"
                                     };
 
-                                    return await oI.createNewSession({
-                                        req,
-                                        res,
-                                        userId,
-                                        accessTokenPayload,
-                                        sessionData
-                                    });
+                                    return await oI.createNewSession(input);
                                 }
                             };
                         }
@@ -146,25 +134,13 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
                         functions: function (oI) {
                             return {
                                 ...oI,
-                                createNewSession: async function ({
-                                    req,
-                                    res,
-                                    userId,
-                                    accessTokenPayload,
-                                    sessionData
-                                }) {
-                                    accessTokenPayload = {
-                                        ...accessTokenPayload,
+                                createNewSession: async function (input) {
+                                    input.accessTokenPayload = {
+                                        ...input.accessTokenPayload,
                                         customClaim: "customValue"
                                     };
 
-                                    return await oI.createNewSession({
-                                        req,
-                                        res,
-                                        userId,
-                                        accessTokenPayload,
-                                        sessionData
-                                    });
+                                    return await oI.createNewSession(input);
                                 }
                             };
                         }
