@@ -118,6 +118,8 @@ export class FrontToken {
     static async removeToken() {
         logDebugMessage("FrontToken.removeToken: called");
         await setFrontToken(undefined);
+        await setToken("access", "");
+        await setToken("refresh", "");
         FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
     }
