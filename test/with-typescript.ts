@@ -206,3 +206,5 @@ supertokens.validateClaims((oc) => [...oc, boolValidator, customValidator],
         refreshCalled: 0,
     },
 );
+
+supertokens.validateClaims((oc) => [...oc, {...boolValidator}]);
