@@ -118,6 +118,10 @@ export class FrontToken {
     static async removeToken() {
         logDebugMessage("FrontToken.removeToken: called");
         await setFrontToken(undefined);
+        // We are clearing all stored tokens here, because:
+        // 1. removing FrontToken signals that the session is being cleared
+        // 2. you can only have a single active session - this means that all tokens can be cleared from all auth-modes if one is being cleared
+        // 3. some proxies remove the empty headers used to clear the other tokens (i.e.: https://github.com/supertokens/supertokens-website/issues/218)
         await setToken("access", "");
         await setToken("refresh", "");
         FrontToken.waiters.forEach(f => f(undefined));
