@@ -213,7 +213,14 @@ export default class AuthHttpRequest {
                         url.url,
                         AuthHttpRequest.config.apiDomain,
                         AuthHttpRequest.config.cookieDomain
-                    ));
+                    )) ||
+                    (url !== undefined &&
+                        typeof url.href === "string" && // this is because url can be an object like {method: ..., href: ...}
+                            !shouldDoInterceptionBasedOnUrl(
+                                url.href,
+                                AuthHttpRequest.config.apiDomain,
+                                AuthHttpRequest.config.cookieDomain
+                            ));
         } catch (err) {
             if ((err as any).message === "Please provide a valid domain name") {
                 logDebugMessage("doRequest: Trying shouldDoInterceptionBasedOnUrl with location.origin");
