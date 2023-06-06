@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [17.0.0] - 2023-06-07
+
+### Breaking changes
+
+- Made SessionClaimValidator a type instead of an abstract class
+
 ## [16.0.10] - 2023-05-19
 
 ### Fixes

@@ -152,28 +152,25 @@ export type ClaimValidationError = {
     reason?: any;
 };
 
-export abstract class SessionClaimValidator {
-    constructor(public readonly id: string) {}
+export type SessionClaimValidator = {
+    readonly id: string;
 
     /**
      * Makes an API call that will refresh the claim in the token.
      */
-    abstract refresh(userContext: any): Promise<void>;
+    refresh(userContext: any): Promise<void>;
 
     /**
      * Decides if we need to refresh the claim value before checking the payload with `validate`.
      * E.g.: if the information in the payload is expired, or is not sufficient for this validator.
      */
-    abstract shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
+    shouldRefresh(accessTokenPayload: any, userContext: any): Promise<boolean> | boolean;
 
     /**
      * Decides if the claim is valid based on the accessTokenPayload object (and not checking DB or anything else)
      */
-    abstract validate(
-        accessTokenPayload: any,
-        userContext: any
-    ): Promise<ClaimValidationResult> | ClaimValidationResult;
-}
+    validate(accessTokenPayload: any, userContext: any): Promise<ClaimValidationResult> | ClaimValidationResult;
+};
 
 export type SessionClaim<ValueType> = {
     refresh(userContext: any): Promise<void>;
