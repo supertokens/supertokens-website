@@ -400,6 +400,61 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
         });
 
+        it("signout without empty headers in response", async function () {
+            if (transferMethod !== "header") {
+                return;
+            }
+
+            await startST();
+            await setup();
+
+            await page.setRequestInterception(true);
+
+            page.on("request", async req => {
+                const url = req.url();
+                if (url.endsWith("signout")) {
+                    req.respond({
+                        status: 200,
+                        headers: {
+                            "front-token": "remove"
+                        },
+                        body: "{}"
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+
+            await page.evaluate(async () => {
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+                await supertokens.signOut();
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                assert.strictEqual(await supertokens.getAccessToken(), undefined);
+                assert.strictEqual(await supertokens.doesSessionExist(), false);
+
+                const getSessionResponse = await toTest({ url: `${BASE_URL}/` });
+
+                //check that the response to getSession after signout is 401
+                assert.strictEqual(getSessionResponse.statusCode, 401);
+                assert.strictEqual(getSessionResponse.url, `${BASE_URL}/`);
+                assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
+            });
+        });
+
         it("test update jwt data ", async function () {
             await startST(3);
             await setup();

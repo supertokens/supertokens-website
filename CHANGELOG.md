@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Made SessionClaimValidator a type instead of an abstract class
 
+## [16.0.10] - 2023-05-19
+
+### Fixes
+
+- Always clearing locally stored access and refresh tokens if the front-token is removed to handle proxies omitting empty headers
+
 ## [16.0.9] - 2023-05-05
 
 ### Changes

@@ -56,7 +56,7 @@ export declare type LocalSessionState = {
     lastAccessTokenUpdate: string;
 };
 export declare function getLocalSessionState(tryRefresh: boolean): Promise<LocalSessionState>;
-export declare function getStorageNameForToken(tokenType: TokenType): "st-refresh-token" | "st-access-token";
+export declare function getStorageNameForToken(tokenType: TokenType): "st-access-token" | "st-refresh-token";
 export declare function setToken(tokenType: TokenType, value: string): Promise<void>;
 export declare function getTokenForHeaderAuth(tokenType: TokenType): Promise<string | undefined>;
 export declare function saveLastAccessTokenUpdate(): Promise<void>;
