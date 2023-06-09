@@ -179,7 +179,7 @@ export default class AuthHttpRequest {
         try {
             // This is to make sure we only try to get the session token frontend domain for environments where the window is
             // available. This makes it possible for init to be called in SSR environments.
-            WindowHandlerReference.getReferenceOrThrow();
+            WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
             logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.getSessionTokenFrontendDomain());
             fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
         } catch (_) {}
