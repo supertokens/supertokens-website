@@ -45,7 +45,7 @@ export declare type InputType = {
 export declare type NormalisedInputType = {
     apiDomain: string;
     apiBasePath: string;
-    sessionTokenFrontendDomain: string;
+    getSessionTokenFrontendDomain: () => string;
     sessionExpiredStatusCode: number;
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;

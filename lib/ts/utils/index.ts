@@ -84,14 +84,16 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         apiBasePath = normaliseURLPathOrThrowError(options.apiBasePath);
     }
 
-    let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
-
     // See https://github.com/supertokens/supertokens-website/issues/98
-    let sessionTokenFrontendDomain = normaliseSessionScopeOrThrowError(
-        options !== undefined && options.sessionTokenFrontendDomain !== undefined
-            ? options.sessionTokenFrontendDomain
-            : defaultSessionScope
-    );
+    let getSessionTokenFrontendDomain = () => {
+        let defaultSessionScope = WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName();
+
+        return normaliseSessionScopeOrThrowError(
+            options !== undefined && options.sessionTokenFrontendDomain !== undefined
+                ? options.sessionTokenFrontendDomain
+                : defaultSessionScope
+        );
+    };
 
     let sessionExpiredStatusCode = 401;
     if (options.sessionExpiredStatusCode !== undefined) {
@@ -155,7 +157,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
     return {
         apiDomain,
         apiBasePath,
-        sessionTokenFrontendDomain,
+        getSessionTokenFrontendDomain,
         sessionExpiredStatusCode,
         invalidClaimStatusCode,
         autoAddCredentials,

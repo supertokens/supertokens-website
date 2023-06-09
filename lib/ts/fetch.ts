@@ -174,7 +174,14 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input sessionTokenBackendDomain: " + config.sessionTokenBackendDomain);
         logDebugMessage("init: Input isInIframe: " + config.isInIframe);
         logDebugMessage("init: Input sessionExpiredStatusCode: " + config.sessionExpiredStatusCode);
-        logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.sessionTokenFrontendDomain);
+
+        try {
+            // This is to make sure we only try to get the session token frontend domain for environments where the window is
+            // available. This makes it possible for init to be called in SSR environments.
+            WindowHandlerReference.getReferenceOrThrow();
+            logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.getSessionTokenFrontendDomain());
+        } catch (_) {}
+
         logDebugMessage("init: Input tokenTransferMethod: " + config.tokenTransferMethod);
 
         const fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
@@ -680,7 +687,7 @@ function storeInCookies(name: string, value: string, expiry: number) {
         // We check them locally in case of front-token, and on the backend enforces the validity period for access and refresh tokens.
         expires = new Date(expiry).toUTCString();
     }
-    const domain = AuthHttpRequest.config.sessionTokenFrontendDomain;
+    const domain = AuthHttpRequest.config.getSessionTokenFrontendDomain();
     if (
         domain === "localhost" ||
         domain === WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getHostName()
