@@ -46,6 +46,10 @@ const XHR_EVENTS = [
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
+    if (typeof XMLHttpRequest === "undefined") {
+        return;
+    }
+
     const firstEventLoopDone = new Promise(res => setTimeout(res, 0));
 
     const oldXMLHttpRequest = XMLHttpRequest;
