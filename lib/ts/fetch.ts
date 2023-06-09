@@ -175,16 +175,16 @@ export default class AuthHttpRequest {
         logDebugMessage("init: Input isInIframe: " + config.isInIframe);
         logDebugMessage("init: Input sessionExpiredStatusCode: " + config.sessionExpiredStatusCode);
 
+        let fetchedWindow: Window | undefined = undefined;
         try {
             // This is to make sure we only try to get the session token frontend domain for environments where the window is
             // available. This makes it possible for init to be called in SSR environments.
             WindowHandlerReference.getReferenceOrThrow();
             logDebugMessage("init: Input sessionTokenFrontendDomain: " + config.getSessionTokenFrontendDomain());
+            fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
         } catch (_) {}
 
         logDebugMessage("init: Input tokenTransferMethod: " + config.tokenTransferMethod);
-
-        const fetchedWindow = WindowHandlerReference.getReferenceOrThrow().windowHandler.getWindowUnsafe();
         AuthHttpRequest.env = fetchedWindow === undefined || fetchedWindow.fetch === undefined ? global : fetchedWindow;
 
         AuthHttpRequest.refreshTokenUrl = config.apiDomain + config.apiBasePath + "/session/refresh";
