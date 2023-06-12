@@ -46,6 +46,7 @@ const XHR_EVENTS = [
 ] as const;
 
 export function addInterceptorsToXMLHttpRequest() {
+    // This is to prevent errors in server side environments where XMLHttpRequest is not defined
     if (typeof XMLHttpRequest === "undefined") {
         return;
     }
