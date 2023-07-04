@@ -571,9 +571,10 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
 
 async function removeAuthHeaderIfMatchesLocalToken(config: AxiosRequestConfig<any>) {
     const accessToken = await getTokenForHeaderAuth("access");
+    const refreshToken = await getTokenForHeaderAuth("refresh");
     const authHeader = config.headers!.Authorization || config.headers!.authorization;
 
-    if (accessToken !== undefined) {
+    if (accessToken !== undefined && refreshToken !== undefined) {
         if (authHeader === `Bearer ${accessToken}` || "__supertokensAddedAuthHeader" in config) {
             // We are ignoring the Authorization header set by the user in this case, because it would cause issues
             // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.

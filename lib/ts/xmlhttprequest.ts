@@ -291,7 +291,8 @@ export function addInterceptorsToXMLHttpRequest() {
                         "XHRInterceptor.setRequestHeader: checking if user provided auth header matches local token"
                     );
                     const accessToken = await getTokenForHeaderAuth("access");
-                    if (value === `Bearer ${accessToken}`) {
+                    const refreshToken = await getTokenForHeaderAuth("refresh");
+                    if (accessToken !== undefined && refreshToken !== undefined && value === `Bearer ${accessToken}`) {
                         // We are ignoring the Authorization header set by the user in this case, because it would cause issues
                         // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
                         // This causes an infinite refresh loop.

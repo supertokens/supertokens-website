@@ -260,7 +260,12 @@ export default class AuthHttpRequest {
 
         if (origHeaders.has("Authorization")) {
             const accessToken = await getTokenForHeaderAuth("access");
-            if (accessToken !== undefined && origHeaders.get("Authorization") === `Bearer ${accessToken}`) {
+            const refreshToken = await getTokenForHeaderAuth("refresh");
+            if (
+                accessToken !== undefined &&
+                refreshToken !== undefined &&
+                origHeaders.get("Authorization") === `Bearer ${accessToken}`
+            ) {
                 // We are ignoring the Authorization header set by the user in this case, because it would cause issues
                 // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
                 // This causes an infinite refresh loop.
