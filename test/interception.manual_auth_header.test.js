@@ -419,6 +419,67 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
                 assert.strictEqual(calledWithCustomHeader, true);
             });
+
+            it("should not ignore the auth header even if it matches the stored access token", async function () {
+                await startST();
+
+                let calledWithCustomHeader = false;
+                await page.setRequestInterception(true);
+                page.on("request", req => {
+                    const url = req.url();
+                    if (url === BASE_URL + "/") {
+                        if (req.headers()["authorization"] === `Bearer myOwnHehe`) {
+                            calledWithCustomHeader = true;
+                            req.respond({
+                                status: 200,
+                                body: JSON.stringify({
+                                    message: "OK"
+                                })
+                            });
+                        } else {
+                            req.respond({
+                                status: 500,
+                                body: JSON.stringify({
+                                    message: "Bad auth header"
+                                })
+                            });
+                        }
+                    } else {
+                        req.continue();
+                    }
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assert.strictEqual(loginResponse.responseText, userId);
+
+                    await delay(5);
+                    document.cookie = "st-access-token=myOwnHehe";
+                    const resp = await toTest({
+                        url: `${BASE_URL}/`,
+                        method: "GET",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer myOwnHehe`
+                        }
+                    });
+                    assert.strictEqual(resp.statusCode, 200);
+                });
+                assert.strictEqual(calledWithCustomHeader, true);
+            });
         }
     });
 });

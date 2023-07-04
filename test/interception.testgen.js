@@ -4,9 +4,28 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "fetch using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                let overrideFunctions = [];
+                if (config.override) {
+                    for (const reqOverride of config.override) {
+                        if (reqOverride === "shouldDoInterceptionBasedOnUrl") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                    }
+                }
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
                     ...config,
+                    override: {
+                        functions: (oI, builder) => {
+                            for (const layer of overrideFunctions) {
+                                builder.override(layer);
+                            }
+                            return oI;
+                        }
+                    },
                     apiDomain: BASE_URL,
                     tokenTransferMethod
                 });
@@ -29,9 +48,28 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "XHR using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                let overrideFunctions = [];
+                if (config.override) {
+                    for (const reqOverride of config.override) {
+                        if (reqOverride === "shouldDoInterceptionBasedOnUrl") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                    }
+                }
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
                     ...config,
+                    override: {
+                        functions: (oI, builder) => {
+                            for (const layer of overrideFunctions) {
+                                builder.override(layer);
+                            }
+                            return oI;
+                        }
+                    },
                     apiDomain: BASE_URL,
                     tokenTransferMethod
                 });
@@ -83,6 +121,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "axios with axios interceptor using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                let overrideFunctions = [];
+                if (config.override) {
+                    for (const reqOverride of config.override) {
+                        if (reqOverride === "shouldDoInterceptionBasedOnUrl") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                    }
+                }
+
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
@@ -90,10 +140,15 @@ module.exports.addGenericTestCases = function (getTestCases) {
                     apiDomain: BASE_URL,
                     tokenTransferMethod,
                     override: {
-                        functions: oI => ({
-                            ...oI,
-                            addXMLHttpRequestInterceptor: () => {}
-                        })
+                        functions: (oI, builder) => {
+                            for (const layer of overrideFunctions) {
+                                builder.override(layer);
+                            }
+                            return {
+                                ...oI,
+                                addXMLHttpRequestInterceptor: () => {}
+                            };
+                        }
                     }
                 });
                 window.toTest = async config => {
@@ -125,9 +180,28 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "axios using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                let overrideFunctions = [];
+                if (config.override) {
+                    for (const reqOverride of config.override) {
+                        if (reqOverride === "shouldDoInterceptionBasedOnUrl") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                    }
+                }
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
                     ...config,
+                    override: {
+                        functions: (oI, builder) => {
+                            for (const layer of overrideFunctions) {
+                                builder.override(layer);
+                            }
+                            return oI;
+                        }
+                    },
                     apiDomain: BASE_URL,
                     tokenTransferMethod
                 });
@@ -162,9 +236,28 @@ module.exports.addGenericTestCases = function (getTestCases) {
             async (config, tokenTransferMethod) => {
                 await loadAngular();
 
+                let overrideFunctions = [];
+                if (config.override) {
+                    for (const reqOverride of config.override) {
+                        if (reqOverride === "shouldDoInterceptionBasedOnUrl") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                    }
+                }
                 supertokens.init({
                     onHandleEvent: ev => console.log(`TEST_EV$${JSON.stringify(ev)}`),
                     ...config,
+                    override: {
+                        functions: (oI, builder) => {
+                            for (const layer of overrideFunctions) {
+                                builder.override(layer);
+                            }
+                            return oI;
+                        }
+                    },
                     apiDomain: BASE_URL,
                     tokenTransferMethod
                 });
