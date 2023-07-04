@@ -3528,5 +3528,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
             await page.setRequestInterception(false);
         });
+
+        it("test that interception doesn't happen if the shouldDoInterceptionBasedOnUrl override returns false", async function () {
+            await setup({
+                override: ["shouldDoInterceptionBasedOnUrl"]
+            });
+
+            await page.evaluate(async () => {
+                let getResponse = await toTest({ url: `${BASE_URL}/check-rid-no-session` });
+                assert.strictEqual(getResponse.responseText, "fail");
+
+                let getWithOverrideResponse = await toTest({ url: `${BASE_URL}/check-rid-no-session?doOverride` });
+                assert.strictEqual(getWithOverrideResponse.responseText, "success");
+            });
+        });
     });
 });

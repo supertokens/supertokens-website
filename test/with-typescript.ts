@@ -128,7 +128,8 @@ supertokens.init({
                 ...oI,
                 signOut: async (config) => {
                     return oI.signOut(config);
-                }
+                },
+                shouldDoInterceptionBasedOnUrl: () => true,
             }
         }
     },

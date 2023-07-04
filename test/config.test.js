@@ -19,8 +19,7 @@ let AuthHttpRequest = require("../index.js").default;
 let {
     normaliseSessionScopeOrThrowError,
     normaliseURLPathOrThrowError,
-    normaliseURLDomainOrThrowError,
-    shouldDoInterceptionBasedOnUrl
+    normaliseURLDomainOrThrowError
 } = require("../lib/build/utils");
 let assert = require("assert");
 const { resetAuthHttpRequestFetch } = require("./utils.js");
@@ -37,6 +36,14 @@ describe("Config tests", function () {
     });
 
     it("testing shouldDoInterceptionBasedOnUrl", async function () {
+        AuthHttpRequest.init({
+            apiDomain: "example.com",
+            apiBasePath: "/"
+        });
+        const shouldDoInterceptionBasedOnUrl = AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl.bind(
+            AuthHttpRequestFetch.recipeImpl
+        );
+
         // true cases without cookieDomain
         assert(shouldDoInterceptionBasedOnUrl("api.example.com", "https://api.example.com", undefined));
         assert(shouldDoInterceptionBasedOnUrl("http://api.example.com", "http://api.example.com", undefined));
