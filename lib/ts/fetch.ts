@@ -14,7 +14,6 @@
  */
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
-import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -229,7 +228,7 @@ export default class AuthHttpRequest {
                     finalURL = url.href;
                 }
             }
-            doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+            doNotDoInterception = !AuthHttpRequest.recipeImpl.shouldDoInterceptionBasedOnUrl(
                 finalURL,
                 AuthHttpRequest.config.apiDomain,
                 AuthHttpRequest.config.sessionTokenBackendDomain
@@ -238,7 +237,7 @@ export default class AuthHttpRequest {
             if ((err as any).message === "Please provide a valid domain name") {
                 logDebugMessage("doRequest: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                 // .origin gives the port as well..
-                doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                doNotDoInterception = !AuthHttpRequest.recipeImpl.shouldDoInterceptionBasedOnUrl(
                     WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                     AuthHttpRequest.config.apiDomain,
                     AuthHttpRequest.config.sessionTokenBackendDomain
@@ -260,7 +259,12 @@ export default class AuthHttpRequest {
 
         if (origHeaders.has("Authorization")) {
             const accessToken = await getTokenForHeaderAuth("access");
-            if (accessToken !== undefined && origHeaders.get("Authorization") === `Bearer ${accessToken}`) {
+            const refreshToken = await getTokenForHeaderAuth("refresh");
+            if (
+                accessToken !== undefined &&
+                refreshToken !== undefined &&
+                origHeaders.get("Authorization") === `Bearer ${accessToken}`
+            ) {
                 // We are ignoring the Authorization header set by the user in this case, because it would cause issues
                 // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
                 // This causes an infinite refresh loop.

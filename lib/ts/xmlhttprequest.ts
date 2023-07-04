@@ -13,7 +13,6 @@
  * under the License.
  */
 
-import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
     FrontToken,
@@ -234,13 +233,13 @@ export function addInterceptorsToXMLHttpRequest() {
             try {
                 doNotDoInterception =
                     (typeof url === "string" &&
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             url,
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
                         )) ||
                     (typeof url !== "string" &&
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             url.toString(),
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -249,7 +248,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 if ((err as any).message === "Please provide a valid domain name") {
                     logDebugMessage("XHRInterceptor.open: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
-                    doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                    doNotDoInterception = !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
                         AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -291,7 +290,8 @@ export function addInterceptorsToXMLHttpRequest() {
                         "XHRInterceptor.setRequestHeader: checking if user provided auth header matches local token"
                     );
                     const accessToken = await getTokenForHeaderAuth("access");
-                    if (value === `Bearer ${accessToken}`) {
+                    const refreshToken = await getTokenForHeaderAuth("refresh");
+                    if (accessToken !== undefined && refreshToken !== undefined && value === `Bearer ${accessToken}`) {
                         // We are ignoring the Authorization header set by the user in this case, because it would cause issues
                         // If we do not ignore this, then this header would be used even if the request is being retried after a refresh, even though it contains an outdated access token.
                         // This causes an infinite refresh loop.

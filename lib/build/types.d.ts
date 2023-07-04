@@ -122,6 +122,7 @@ export declare type RecipeInterface = {
         claimValidatorsAddedByOtherRecipes: SessionClaimValidator[];
         userContext: any;
     }): SessionClaimValidator[];
+    shouldDoInterceptionBasedOnUrl(toCheckUrl: string, apiDomain: string, sessionTokenBackendDomain: string | undefined): boolean;
 };
 export declare type ClaimValidationResult = {
     isValid: true;
