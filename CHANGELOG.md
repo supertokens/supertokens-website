@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [17.0.1] - 2023-07-04
 
+### Changes
+
+- Added `shouldDoInterceptionBasedOnUrl` as an overrideable function to the recipe interface
+
 ### Fixes
 
 - Fixed an issue where the Authorization header was getting removed unnecessarily

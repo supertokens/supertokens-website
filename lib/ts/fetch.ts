@@ -14,7 +14,6 @@
  */
 import { PROCESS_STATE, ProcessState } from "./processState";
 import { supported_fdi } from "./version";
-import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import { RecipeInterface, NormalisedInputType, ResponseWithBody, TokenType } from "./types";
 import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -229,7 +228,7 @@ export default class AuthHttpRequest {
                     finalURL = url.href;
                 }
             }
-            doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+            doNotDoInterception = !AuthHttpRequest.recipeImpl.shouldDoInterceptionBasedOnUrl(
                 finalURL,
                 AuthHttpRequest.config.apiDomain,
                 AuthHttpRequest.config.sessionTokenBackendDomain
@@ -238,7 +237,7 @@ export default class AuthHttpRequest {
             if ((err as any).message === "Please provide a valid domain name") {
                 logDebugMessage("doRequest: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                 // .origin gives the port as well..
-                doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                doNotDoInterception = !AuthHttpRequest.recipeImpl.shouldDoInterceptionBasedOnUrl(
                     WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                     AuthHttpRequest.config.apiDomain,
                     AuthHttpRequest.config.sessionTokenBackendDomain

@@ -13,7 +13,6 @@
  * under the License.
  */
 
-import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import AuthHttpRequestFetch, {
     AntiCsrfToken,
     FrontToken,
@@ -234,13 +233,13 @@ export function addInterceptorsToXMLHttpRequest() {
             try {
                 doNotDoInterception =
                     (typeof url === "string" &&
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             url,
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
                         )) ||
                     (typeof url !== "string" &&
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             url.toString(),
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -249,7 +248,7 @@ export function addInterceptorsToXMLHttpRequest() {
                 if ((err as any).message === "Please provide a valid domain name") {
                     logDebugMessage("XHRInterceptor.open: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
-                    doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+                    doNotDoInterception = !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
                         AuthHttpRequestFetch.config.sessionTokenBackendDomain
