@@ -13,6 +13,7 @@ import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
 import { STGeneralError } from "./error";
 import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
+import { normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -253,6 +254,60 @@ export default function RecipeImplementation(recipeImplInput: {
             }
 
             return errors;
+        },
+
+        shouldDoInterceptionBasedOnUrl: function (
+            toCheckUrl: string,
+            apiDomain: string,
+            sessionTokenBackendDomain: string | undefined
+        ): boolean {
+            logDebugMessage(
+                "shouldDoInterceptionBasedOnUrl: toCheckUrl: " +
+                    toCheckUrl +
+                    " apiDomain: " +
+                    apiDomain +
+                    " sessionTokenBackendDomain: " +
+                    sessionTokenBackendDomain
+            );
+            function isNumeric(str: any) {
+                if (typeof str != "string") return false; // we only process strings!
+                return (
+                    !isNaN(str as any) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+                ); // ...and ensure strings of whitespace fail
+            }
+
+            // The safest/best way to add this is the hash as the browser strips it before sending
+            // but we don't have a reason to limit checking to that part.
+            if (toCheckUrl.includes("superTokensDoNotDoInterception")) {
+                return false;
+            }
+
+            toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
+            let urlObj = new URL(toCheckUrl);
+            let domain = urlObj.hostname;
+            if (sessionTokenBackendDomain === undefined) {
+                domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
+                apiDomain = normaliseURLDomainOrThrowError(apiDomain);
+                let apiUrlObj = new URL(apiDomain);
+                return (
+                    domain === (apiUrlObj.port === "" ? apiUrlObj.hostname : apiUrlObj.hostname + ":" + apiUrlObj.port)
+                );
+            } else {
+                let normalisedsessionDomain = normaliseSessionScopeOrThrowError(sessionTokenBackendDomain);
+                if (sessionTokenBackendDomain.split(":").length > 1) {
+                    // means port may provided
+                    let portStr = sessionTokenBackendDomain.split(":")[sessionTokenBackendDomain.split(":").length - 1];
+                    if (isNumeric(portStr)) {
+                        normalisedsessionDomain += ":" + portStr;
+                        domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
+                    }
+                }
+                if (sessionTokenBackendDomain.startsWith(".")) {
+                    return ("." + domain).endsWith(normalisedsessionDomain);
+                } else {
+                    return domain === normalisedsessionDomain;
+                }
+            }
         }
     };
 }

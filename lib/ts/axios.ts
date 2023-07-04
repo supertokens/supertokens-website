@@ -26,7 +26,6 @@ import AuthHttpRequestFetch, {
     getTokenForHeaderAuth
 } from "./fetch";
 import { PROCESS_STATE, ProcessState } from "./processState";
-import { shouldDoInterceptionBasedOnUrl } from "./utils";
 import WindowHandlerReference from "./utils/windowHandler";
 import { logDebugMessage } from "./logger";
 
@@ -53,7 +52,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
     try {
         doNotDoInterception =
             typeof url === "string" &&
-            !shouldDoInterceptionBasedOnUrl(
+            !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                 url,
                 AuthHttpRequestFetch.config.apiDomain,
                 AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -64,7 +63,7 @@ export async function interceptorFunctionRequestFulfilled(config: AxiosRequestCo
                 "interceptorFunctionRequestFulfilled: Trying shouldDoInterceptionBasedOnUrl with location.origin"
             );
             // .origin gives the port as well..
-            doNotDoInterception = !shouldDoInterceptionBasedOnUrl(
+            doNotDoInterception = !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                 WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                 AuthHttpRequestFetch.config.apiDomain,
                 AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -155,7 +154,7 @@ export function responseInterceptor(axiosInstance: any) {
             try {
                 doNotDoInterception =
                     (typeof url === "string" &&
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             url,
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -166,7 +165,7 @@ export function responseInterceptor(axiosInstance: any) {
                     logDebugMessage("responseInterceptor: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                     // .origin gives the port as well..
                     doNotDoInterception =
-                        !shouldDoInterceptionBasedOnUrl(
+                        !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                             WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                             AuthHttpRequestFetch.config.apiDomain,
                             AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -304,7 +303,7 @@ export default class AuthHttpRequest {
         try {
             doNotDoInterception =
                 typeof url === "string" &&
-                !shouldDoInterceptionBasedOnUrl(
+                !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                     url,
                     AuthHttpRequestFetch.config.apiDomain,
                     AuthHttpRequestFetch.config.sessionTokenBackendDomain
@@ -315,7 +314,7 @@ export default class AuthHttpRequest {
                 logDebugMessage("doRequest: Trying shouldDoInterceptionBasedOnUrl with location.origin");
                 // .origin gives the port as well..
                 doNotDoInterception =
-                    !shouldDoInterceptionBasedOnUrl(
+                    !AuthHttpRequestFetch.recipeImpl.shouldDoInterceptionBasedOnUrl(
                         WindowHandlerReference.getReferenceOrThrow().windowHandler.location.getOrigin(),
                         AuthHttpRequestFetch.config.apiDomain,
                         AuthHttpRequestFetch.config.sessionTokenBackendDomain
