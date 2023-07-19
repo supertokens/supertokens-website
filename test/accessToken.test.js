@@ -23,10 +23,13 @@ describe("access token update", function () {
     let browser;
     let v3AccessTokenSupported;
     before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
+        spawn(
+            "./test/startServer",
+            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
+            {
+                // stdio: "inherit"
+            }
+        );
         await new Promise(r => setTimeout(r, 1000));
         v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
     });
@@ -101,6 +104,11 @@ describe("access token update", function () {
                     "antiCsrfToken",
                     "iss"
                 ];
+
+                if (payload["tId"]) {
+                    expectedKeys.push("tId");
+                }
+
                 assert.strictEqual(Object.keys(payload).length, expectedKeys.length);
                 for (const key of Object.keys(payload)) {
                     assert(expectedKeys.includes(key));
@@ -164,6 +172,11 @@ describe("access token update", function () {
                     "antiCsrfToken",
                     "asdf"
                 ];
+
+                if (v3Payload["tId"]) {
+                    expectedKeys.push("tId");
+                }
+
                 assert.strictEqual(Object.keys(v3Payload).length, expectedKeys.length);
                 for (const key of Object.keys(v3Payload)) {
                     assert(expectedKeys.includes(key));

@@ -36,6 +36,14 @@ let {
 let { package_version } = require("../../lib/build/version");
 let { middleware, errorHandler } = require("supertokens-node/framework/express");
 let { verifySession } = require("supertokens-node/recipe/session/framework/express");
+
+let MultiTenancyRecipeRaw;
+try {
+    MultiTenancyRecipeRaw = require("supertokens-node/lib/build/recipe/multitenancy/recipe").default;
+} catch {
+    // Ignored
+}
+
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 let noOfTimesRefreshAttemptedDuringTest = 0;
@@ -197,7 +205,10 @@ app.use(middleware());
 
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
-    let session = await Session.createNewSession(req, res, userId);
+    let session =
+        MultiTenancyRecipeRaw !== undefined
+            ? await Session.createNewSession(req, res, "public", userId)
+            : await Session.createNewSession(req, res, userId);
     res.send(session.getUserId());
 });
 
@@ -254,6 +265,9 @@ app.post("/startST", async (req, res) => {
     if (enableAntiCsrf !== undefined) {
         SuperTokensRaw.reset();
         SessionRecipeRaw.reset();
+        if (MultiTenancyRecipeRaw) {
+            MultiTenancyRecipeRaw.reset();
+        }
         SuperTokens.init(getConfig(enableAntiCsrf, enableJWT));
     }
     let pid = await startST();
@@ -277,6 +291,9 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
 
     SuperTokensRaw.reset();
     SessionRecipeRaw.reset();
+    if (MultiTenancyRecipeRaw) {
+        MultiTenancyRecipeRaw.reset();
+    }
     SuperTokens.init(getConfig(lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
 
     res.send("");
