@@ -476,7 +476,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(loginResponse.responseText, userId);
                 let data = await supertokens.getAccessTokenPayloadSecurely();
 
-                assert.strictEqual(Object.keys(data).length, v3AccessTokenSupported ? 8 : 0);
+                assert.strictEqual(
+                    Object.keys(data).length,
+                    v3AccessTokenSupported ? (data["tId"] !== undefined ? 9 : 8) : 0
+                );
 
                 // update jwt data
                 let testResponse1 = await toTest({
