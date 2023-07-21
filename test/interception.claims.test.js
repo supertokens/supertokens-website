@@ -66,28 +66,30 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                         args: ["--no-sandbox", "--disable-setuid-sandbox"],
                         headless: true
                     });
+
+                    page = await browser.newPage();
+
+                    page.on("console", ev => {
+                        const text = ev.text();
+                        // console.log(text);
+                        if (text.startsWith("TEST_EV$")) {
+                            loggedEvents.push(JSON.parse(text.substr(8)));
+                        }
+                    });
+                    await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+                    await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+                    page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+
+                    await page.evaluate(
+                        setupFunc,
+                        {
+                            // enableDebugLogs: true
+                        },
+                        ...setupArgs
+                    );
                 } catch {}
             }
-            page = await browser.newPage();
 
-            page.on("console", ev => {
-                const text = ev.text();
-                // console.log(text);
-                if (text.startsWith("TEST_EV$")) {
-                    loggedEvents.push(JSON.parse(text.substr(8)));
-                }
-            });
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
-
-            await page.evaluate(
-                setupFunc,
-                {
-                    // enableDebugLogs: true
-                },
-                ...setupArgs
-            );
             loggedEvents = [];
         });
 

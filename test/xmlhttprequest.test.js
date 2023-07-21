@@ -53,13 +53,14 @@ describe("Axios AuthHttpRequest class tests header", function () {
                     args: ["--no-sandbox", "--disable-setuid-sandbox"],
                     headless: true
                 });
+
+                page = await browser.newPage();
+
+                await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+                await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+                page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
             } catch {}
         }
-        page = await browser.newPage();
-
-        await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-        await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
     });
 
     afterEach(async function () {
