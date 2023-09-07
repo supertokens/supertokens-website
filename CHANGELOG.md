@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [17.0.3] - 2023-09-XX
+
+### Changes
+
+- Added `1.18` to supported FDI versions
+
 ## [17.0.2] - 2023-07-19
 
 ### Changes
