@@ -108,6 +108,9 @@ describe("access token update", function () {
                 if (payload["tId"]) {
                     expectedKeys.push("tId");
                 }
+                if (payload["rsub"]) {
+                    expectedKeys.push("rsub");
+                }
 
                 assert.strictEqual(Object.keys(payload).length, expectedKeys.length);
                 for (const key of Object.keys(payload)) {
@@ -175,6 +178,9 @@ describe("access token update", function () {
 
                 if (v3Payload["tId"]) {
                     expectedKeys.push("tId");
+                }
+                if (v3Payload["rsub"]) {
+                    expectedKeys.push("rsub");
                 }
 
                 assert.strictEqual(Object.keys(v3Payload).length, expectedKeys.length);
