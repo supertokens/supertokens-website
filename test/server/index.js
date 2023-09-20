@@ -59,7 +59,7 @@ app.use(cookieParser());
 
 let lastSetEnableAntiCSRF = false;
 let lastSetEnableJWT = false;
-let accountLinkingSupported = maxVersion(supertokens_node_version, "15.0") === supertokens_node_version;
+let accountLinkingSupported = maxVersion(supertokens_node_version, "16.0") === supertokens_node_version;
 
 function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
     if (enableJWT && maxVersion(supertokens_node_version, "14.0") === supertokens_node_version) {
