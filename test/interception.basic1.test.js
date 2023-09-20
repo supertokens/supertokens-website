@@ -479,7 +479,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(
                     Object.keys(data).length,
-                    v3AccessTokenSupported ? (data["tId"] !== undefined ? 9 : 8) : 0
+                    v3AccessTokenSupported ? (data["rsub"] !== undefined ? 10 : data["tId"] !== undefined ? 9 : 8) : 0
                 );
 
                 // update jwt data
