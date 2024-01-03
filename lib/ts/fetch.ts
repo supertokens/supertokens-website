@@ -424,7 +424,7 @@ export async function onUnauthorisedResponse(
                         postLockLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate)
                 ) {
                     logDebugMessage(
-                        "onUnauthorisedResponse: Retrying early because pre and post id refresh tokens don't match"
+                        "onUnauthorisedResponse: Retrying early because pre and post lastAccessTokenUpdate don't match"
                     );
                     // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
@@ -565,7 +565,7 @@ export async function onUnauthorisedResponse(
                     postRequestLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate)
             ) {
                 logDebugMessage(
-                    "onUnauthorisedResponse: lock acquired failed and retrying early because pre and post id refresh tokens don't match"
+                    "onUnauthorisedResponse: lock acquired failed and retrying early because pre and post lastAccessTokenUpdate don't match"
                 );
                 return { result: "RETRY" };
             }
