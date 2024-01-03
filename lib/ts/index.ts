@@ -22,6 +22,7 @@ import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
+import { enableLogging } from "./logger";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -35,6 +36,10 @@ export default class AuthHttpRequest {
         );
 
         let config = validateAndNormaliseInputOrThrowError(options);
+
+        if (options.enableDebugLogs !== undefined && options.enableDebugLogs) {
+            enableLogging();
+        }
         const recipeImpl = new OverrideableBuilder(
             RecipeImplementation({
                 onHandleEvent: config.onHandleEvent,

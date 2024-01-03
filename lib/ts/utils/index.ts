@@ -24,7 +24,6 @@ import {
     RecipePreAPIHookFunction
 } from "../types";
 import WindowHandlerReference from "../utils/windowHandler";
-import { enableLogging } from "../logger";
 
 export function normaliseURLDomainOrThrowError(input: string): string {
     let str = new NormalisedURLDomain(input).getAsStringDangerous();
@@ -147,10 +146,6 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         functions: oI => oI,
         ...options.override
     };
-
-    if (options.enableDebugLogs !== undefined && options.enableDebugLogs) {
-        enableLogging();
-    }
 
     return {
         apiDomain,
