@@ -1,4 +1,5 @@
 import { SessionClaimValidator } from "../types";
+import DateProviderReference from "../utils/dateProvider";
 
 export type PrimitiveArrayClaimConfig = {
     id: string;
@@ -31,13 +32,14 @@ export class PrimitiveArrayClaim<ValueType> {
             maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
                 validate: async (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {
@@ -46,7 +48,7 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
+                    const ageInSeconds = (DateProvider.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
                     if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
                         return {
                             isValid: false,
@@ -72,13 +74,14 @@ export class PrimitiveArrayClaim<ValueType> {
             maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
                 validate: async (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {
@@ -91,7 +94,7 @@ export class PrimitiveArrayClaim<ValueType> {
                             }
                         };
                     }
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
+                    const ageInSeconds = (DateProvider.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
                     if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
                         return {
                             isValid: false,
@@ -117,13 +120,14 @@ export class PrimitiveArrayClaim<ValueType> {
             maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
                 validate: async (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {
@@ -132,7 +136,7 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
+                    const ageInSeconds = (DateProvider.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
                     if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
                         return {
                             isValid: false,
@@ -159,13 +163,14 @@ export class PrimitiveArrayClaim<ValueType> {
             maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
                 validate: async (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {
@@ -174,7 +179,7 @@ export class PrimitiveArrayClaim<ValueType> {
                             reason: { message: "value does not exist", expectedToInclude: val, actualValue: claimVal }
                         };
                     }
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
+                    const ageInSeconds = (DateProvider.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
                     if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
                         return {
                             isValid: false,
@@ -205,13 +210,14 @@ export class PrimitiveArrayClaim<ValueType> {
             maxAgeInSeconds: number | undefined = this.defaultMaxAgeInSeconds,
             id?: string
         ): SessionClaimValidator => {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
                 shouldRefresh: (payload, ctx) =>
                     this.getValueFromPayload(payload, ctx) === undefined ||
                     // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < Date.now() - maxAgeInSeconds * 1000),
+                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
                 validate: async (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {
@@ -225,7 +231,7 @@ export class PrimitiveArrayClaim<ValueType> {
                         };
                     }
 
-                    const ageInSeconds = (Date.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
+                    const ageInSeconds = (DateProvider.now() - this.getLastFetchedTime(payload, ctx)!) / 1000;
                     if (maxAgeInSeconds !== undefined && ageInSeconds > maxAgeInSeconds) {
                         return {
                             isValid: false,

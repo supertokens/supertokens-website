@@ -150,6 +150,8 @@ export type RecipeInterface = {
         apiDomain: string,
         sessionTokenBackendDomain: string | undefined
     ): boolean;
+
+    updateClientClockDeviation(clientClockDeviationInMillis: number): void;
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };

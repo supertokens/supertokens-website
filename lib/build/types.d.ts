@@ -123,6 +123,7 @@ export declare type RecipeInterface = {
         userContext: any;
     }): SessionClaimValidator[];
     shouldDoInterceptionBasedOnUrl(toCheckUrl: string, apiDomain: string, sessionTokenBackendDomain: string | undefined): boolean;
+    updateClientClockDeviation(clientClockDeviationInMillis: number): void;
 };
 export declare type ClaimValidationResult = {
     isValid: true;

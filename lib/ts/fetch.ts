@@ -327,16 +327,21 @@ export default class AuthHttpRequest {
                 await setAuthorizationHeaderIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
+                const clientTimeBeforeRequest = Date.now();
                 let response = await httpCall(configWithAntiCsrf);
+                const clientTimeAfterRequest = Date.now();
                 logDebugMessage("doRequest: User's http call ended");
 
                 await saveTokensFromHeaders(response);
 
-                fireSessionUpdateEventsIfNecessary(
-                    preRequestLSS.status === "EXISTS",
-                    response.status,
-                    response.headers.get("front-token")
-                );
+                const frontToken = response.headers.get("front-token");
+
+                updateClientClockUsingFrontToken({
+                    frontToken,
+                    roundTripTime: clientTimeAfterRequest - clientTimeBeforeRequest
+                });
+
+                fireSessionUpdateEventsIfNecessary(preRequestLSS.status === "EXISTS", response.status, frontToken);
 
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
@@ -926,3 +931,43 @@ export function fireSessionUpdateEventsIfNecessary(
         });
     }
 }
+
+/**
+ * Updates the client clock deviation based on the provided frontToken and round-trip time.
+ *
+ * @param {Object} params - The parameters for updating the client clock deviation.
+ * @param {string | null} params.frontToken - The frontToken containing issued timestamp.
+ * @param {number} params.roundTripTime - The round-trip time between the client and server.
+ */
+export const updateClientClockUsingFrontToken = ({
+    frontToken,
+    roundTripTime
+}: {
+    frontToken: string | null;
+    roundTripTime: number;
+}): void => {
+    logDebugMessage("updateClientClockUsingFrontToken: frontToken: " + frontToken + " roundTripTime: " + roundTripTime);
+
+    if (frontToken === null || frontToken === "remove") {
+        logDebugMessage(
+            "updateClientClockUsingFrontToken: frontToken is either null or is being removed, skipping update"
+        );
+        return;
+    }
+
+    const tokenIssuedAt = parseFrontToken(frontToken).up?.iat;
+
+    if (tokenIssuedAt === undefined || typeof tokenIssuedAt !== "number") {
+        logDebugMessage(
+            "updateClientClockUsingFrontToken: FrontToken iat is undefined or not a number, skipping update"
+        );
+        return;
+    }
+
+    const estimatedServerTimeNow = tokenIssuedAt * 1000 + Math.floor(roundTripTime / 2);
+    const clientClockDeviationInMillis = estimatedServerTimeNow - Date.now();
+
+    AuthHttpRequest.recipeImpl.updateClientClockDeviation(clientClockDeviationInMillis);
+
+    logDebugMessage("updateClientClockUsingFrontToken: Client clock synchronized successfully");
+};

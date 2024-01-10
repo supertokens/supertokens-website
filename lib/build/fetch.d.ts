@@ -64,3 +64,14 @@ export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
 export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeaderFromResponse: string | null | undefined): void;
+/**
+ * Updates the client clock deviation based on the provided frontToken and round-trip time.
+ *
+ * @param {Object} params - The parameters for updating the client clock deviation.
+ * @param {string | null} params.frontToken - The frontToken containing issued timestamp.
+ * @param {number} params.roundTripTime - The round-trip time between the client and server.
+ */
+export declare const updateClientClockUsingFrontToken: ({ frontToken, roundTripTime }: {
+    frontToken: string | null;
+    roundTripTime: number;
+}) => void;

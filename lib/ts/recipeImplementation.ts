@@ -14,6 +14,7 @@ import { logDebugMessage } from "./logger";
 import { STGeneralError } from "./error";
 import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
 import { normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
+import DateProviderReference from "./utils/dateProvider";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -308,6 +309,16 @@ export default function RecipeImplementation(recipeImplInput: {
                     return domain === normalisedsessionDomain;
                 }
             }
+        },
+
+        updateClientClockDeviation: function (clientClockDeviationInMillis: number): void {
+            logDebugMessage(
+                "updateClientClockDeviation: clientClockDeviationInMillis: " + clientClockDeviationInMillis
+            );
+
+            DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockDeviationInMillis(
+                clientClockDeviationInMillis
+            );
         }
     };
 }
