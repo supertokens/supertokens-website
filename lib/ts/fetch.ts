@@ -19,6 +19,7 @@ import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
+import DateProviderReference from "./utils/dateProvider";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -327,19 +328,14 @@ export default class AuthHttpRequest {
                 await setAuthorizationHeaderIfRequired(clonedHeaders);
 
                 logDebugMessage("doRequest: Making user's http call");
-                const clientTimeBeforeRequest = Date.now();
                 let response = await httpCall(configWithAntiCsrf);
-                const clientTimeAfterRequest = Date.now();
                 logDebugMessage("doRequest: User's http call ended");
 
                 await saveTokensFromHeaders(response);
 
                 const frontToken = response.headers.get("front-token");
 
-                updateClientClockUsingFrontToken({
-                    frontToken,
-                    roundTripTime: clientTimeAfterRequest - clientTimeBeforeRequest
-                });
+                updateClockSkewUsingFrontToken({ frontToken, responseHeaders: response.headers });
 
                 fireSessionUpdateEventsIfNecessary(preRequestLSS.status === "EXISTS", response.status, frontToken);
 
@@ -933,41 +929,36 @@ export function fireSessionUpdateEventsIfNecessary(
 }
 
 /**
- * Updates the client clock deviation based on the provided frontToken and round-trip time.
+ * Updates the clock skew based on the provided frontToken and theround-trip time.
  *
- * @param {Object} params - The parameters for updating the client clock deviation.
+ * @param {Object} params - The parameters for updating the clock skew.
  * @param {string | null} params.frontToken - The frontToken containing issued timestamp.
- * @param {number} params.roundTripTime - The round-trip time between the client and server.
+ * @param {string | null} params.responseHeaders - The headers for the response that returned the frontToken.
  */
-export const updateClientClockUsingFrontToken = ({
+export const updateClockSkewUsingFrontToken = ({
     frontToken,
-    roundTripTime
+    responseHeaders
 }: {
     frontToken: string | null;
-    roundTripTime: number;
+    responseHeaders: Headers;
 }): void => {
-    logDebugMessage("updateClientClockUsingFrontToken: frontToken: " + frontToken + " roundTripTime: " + roundTripTime);
+    logDebugMessage("updateClockSkewUsingFrontToken: frontToken: " + frontToken);
 
     if (frontToken === null || frontToken === "remove") {
         logDebugMessage(
-            "updateClientClockUsingFrontToken: frontToken is either null or is being removed, skipping update"
+            "updateClockSkewUsingFrontToken: frontToken is either null or is being removed, skipping update"
         );
         return;
     }
 
-    const tokenIssuedAt = parseFrontToken(frontToken).up?.iat;
+    const frontTokenPayload = parseFrontToken(frontToken);
+    const clockSkewInMillis = AuthHttpRequest.recipeImpl.getClockSkewInMillis({
+        accessTokenPayload: frontTokenPayload.up,
+        responseHeaders
+    });
 
-    if (tokenIssuedAt === undefined || typeof tokenIssuedAt !== "number") {
-        logDebugMessage(
-            "updateClientClockUsingFrontToken: FrontToken iat is undefined or not a number, skipping update"
-        );
-        return;
-    }
+    console.log("clockSkewInMillis", clockSkewInMillis);
+    DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockSkewInMillis(clockSkewInMillis);
 
-    const estimatedServerTimeNow = tokenIssuedAt * 1000 + Math.floor(roundTripTime / 2);
-    const clientClockDeviationInMillis = estimatedServerTimeNow - Date.now();
-
-    AuthHttpRequest.recipeImpl.updateClientClockDeviation(clientClockDeviationInMillis);
-
-    logDebugMessage("updateClientClockUsingFrontToken: Client clock synchronized successfully");
+    logDebugMessage("updateClockSkewUsingFrontToken: Client clock synchronized successfully");
 };

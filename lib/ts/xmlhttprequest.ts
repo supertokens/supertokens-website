@@ -22,7 +22,8 @@ import AuthHttpRequestFetch, {
     getTokenForHeaderAuth,
     getLocalSessionState,
     LocalSessionState,
-    fireSessionUpdateEventsIfNecessary
+    fireSessionUpdateEventsIfNecessary,
+    updateClockSkewUsingFrontToken
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -170,11 +171,11 @@ export function addInterceptorsToXMLHttpRequest() {
 
                     await saveTokensFromHeaders(headers);
 
-                    fireSessionUpdateEventsIfNecessary(
-                        preRequestLSS!.status === "EXISTS",
-                        status,
-                        headers.get("front-token")
-                    );
+                    const frontToken = headers.get("front-token");
+
+                    updateClockSkewUsingFrontToken({ frontToken, responseHeaders: headers });
+
+                    fireSessionUpdateEventsIfNecessary(preRequestLSS!.status === "EXISTS", status, frontToken);
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();

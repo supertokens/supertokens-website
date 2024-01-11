@@ -65,7 +65,7 @@ describe("SessionClaimValidator Refresh", () => {
             DateProviderReference.init();
         });
 
-        it("SessionClaimValidator.shouldRefresh should return true even after refreshing", function () {
+        it("SessionClaimValidator.shouldRefresh should return true even after calling refresh without adjusting for DateProvider clock skew", function () {
             const tokenPayload = {
                 "st-test": {
                     v: false,
@@ -94,7 +94,7 @@ describe("SessionClaimValidator Refresh", () => {
             });
         });
 
-        it("SessionClaimValidator.shouldRefresh should return false after refreshing", function () {
+        it("SessionClaimValidator.shouldRefresh should return false after calling refresh once - after adjusting for DateProvider clock skew", function () {
             const tokenPayload = {
                 "st-test": {
                     v: false,
@@ -105,15 +105,16 @@ describe("SessionClaimValidator Refresh", () => {
             const testClaim = new BooleanClaim({
                 id: "st-test",
                 refresh: () => {
+                    // Adjust DateProvider clock skew
+                    DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockSkewInMillis(
+                        -ONE_HOUR_IN_MS
+                    );
                     tokenPayload["st-test"].t = Date.now();
                 },
                 defaultMaxAgeInSeconds: 10 /* 10 seconds */
             });
 
             const testClaimValidator = testClaim.validators.isTrue();
-
-            // Adjust DateProvider clientClockDeviation
-            DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockDeviationInMillis(-ONE_HOUR_IN_MS);
 
             withFakeClock(Date.now() + ONE_HOUR_IN_MS, () => {
                 assert(testClaimValidator.shouldRefresh(tokenPayload) === true);

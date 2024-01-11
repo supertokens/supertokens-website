@@ -1,7 +1,7 @@
 declare class DateProvider {
-    private clientClockDeviationInMillis;
-    setClientClockDeviationInMillis(deviation: number): void;
-    getClientClockDeviationInMills(): number;
+    private static readonly CLOCK_SKEW_KEY;
+    setClientClockSkewInMillis(clockSkewInMillis: number): void;
+    getClientClockSkewInMillis(): number;
     now(): number;
 }
 export declare const defaultDateProviderImplementation: DateProvider;

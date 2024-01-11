@@ -1,6 +1,6 @@
 export interface DateProviderInterface {
     now(): number;
-    setClientClockDeviationInMillis(deviation: number): void;
-    getClientClockDeviationInMills(): number;
+    setClientClockSkewInMillis(clockSkewInMillis: number): void;
+    getClientClockSkewInMillis(): number;
 }
 export declare type DateProviderInput = (original: DateProviderInterface) => DateProviderInterface;

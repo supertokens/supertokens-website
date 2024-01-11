@@ -2,6 +2,7 @@ import OverrideableBuilder from "supertokens-js-override";
 import { CookieHandlerInput } from "./utils/cookieHandler/types";
 import { WindowHandlerInput } from "./utils/windowHandler/types";
 import { LockFactory } from "./utils/lockFactory/types";
+import { DateProviderInput } from "./utils/dateProvider/types";
 export declare type Event = {
     action: "SIGN_OUT" | "REFRESH_SESSION" | "SESSION_CREATED" | "ACCESS_TOKEN_PAYLOAD_UPDATED";
     userContext: any;
@@ -35,6 +36,7 @@ export declare type InputType = {
     sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
     windowHandler?: WindowHandlerInput;
+    dateProvider?: DateProviderInput;
     preAPIHook?: RecipePreAPIHookFunction;
     postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;
@@ -123,7 +125,10 @@ export declare type RecipeInterface = {
         userContext: any;
     }): SessionClaimValidator[];
     shouldDoInterceptionBasedOnUrl(toCheckUrl: string, apiDomain: string, sessionTokenBackendDomain: string | undefined): boolean;
-    updateClientClockDeviation(clientClockDeviationInMillis: number): void;
+    getClockSkewInMillis(params: {
+        accessTokenPayload: any;
+        responseHeaders: Headers;
+    }): number;
 };
 export declare type ClaimValidationResult = {
     isValid: true;

@@ -13,6 +13,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
                         }
+                        if (reqOverride === "getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: () => 0
+                            }));
+                        }
                     }
                 }
                 supertokens.init({
@@ -55,6 +61,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             overrideFunctions.push(oI => ({
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                        if (reqOverride === "getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: () => 0
                             }));
                         }
                     }
@@ -130,6 +142,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
                         }
+                        if (reqOverride === "getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: () => 0
+                            }));
+                        }
                     }
                 }
 
@@ -189,6 +207,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
                         }
+                        if (reqOverride === "getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: () => 0
+                            }));
+                        }
                     }
                 }
                 supertokens.init({
@@ -243,6 +267,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             overrideFunctions.push(oI => ({
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        }
+                        if (reqOverride === "getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: () => 0
                             }));
                         }
                     }

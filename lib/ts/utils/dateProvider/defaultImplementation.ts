@@ -13,19 +13,25 @@
  * under the License.
  */
 
-class DateProvider {
-    private clientClockDeviationInMillis: number = 0;
+import WindowHandlerReference from "../windowHandler";
 
-    setClientClockDeviationInMillis(deviation: number): void {
-        this.clientClockDeviationInMillis = deviation;
+// To avoid potential issues with initializing clockSkewInMillis as a class variable in the constructor due to WindowHandlerReference not being initialized at DateProvider instance creation,
+// we read from localStorage each time `getClientClockSkewInMillis` is called.
+class DateProvider {
+    private static readonly CLOCK_SKEW_KEY = "__st_clockSkewInMillis";
+
+    setClientClockSkewInMillis(clockSkewInMillis: number): void {
+        const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
+        localStorage.setItemSync(DateProvider.CLOCK_SKEW_KEY, String(clockSkewInMillis));
     }
 
-    getClientClockDeviationInMills(): number {
-        return this.clientClockDeviationInMillis;
+    getClientClockSkewInMillis(): number {
+        const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
+        return parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
     }
 
     now(): number {
-        return Date.now() + this.clientClockDeviationInMillis;
+        return Date.now() + this.getClientClockSkewInMillis();
     }
 }
 

@@ -191,5 +191,234 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 await browser.close();
             }
         });
+
+        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew", async function () {
+            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                // Override Date.now() to return the current time plus 1 hour
+                await page.evaluate(() => {
+                    class MockDate extends Date {
+                        constructor(...args) {
+                            super(...args);
+                        }
+
+                        static now() {
+                            return super.now() + 60 * 60 * 1000;
+                        }
+                    }
+
+                    globalThis.__originalDate = globalThis.Date;
+                    globalThis.Date = MockDate;
+                });
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/refresh-custom-claim`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            const resp = await toTest({
+                                url: `${BASE_URL}/refresh-custom-claim`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                }
+                            });
+                        },
+                        defaultMaxAgeInSeconds: 300 /* 300 seconds */
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 1);
+            } finally {
+                await browser.close();
+            }
+        });
+    });
+});
+
+addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
+    describe(`${name}: SessionClaimValidator Refresh With Clock Skew`, function () {
+        let browser;
+        let page;
+
+        let skipped = false;
+        let loggedEvents = [];
+
+        before(async function () {
+            spawn(
+                "./test/startServer",
+                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
+                {
+                    // stdio: "inherit"
+                }
+            );
+            await new Promise(r => setTimeout(r, 1000));
+            if (!(await checkSessionClaimsSupport())) {
+                skipped = true;
+                this.skip();
+            }
+        });
+
+        after(async function () {
+            let instance = axios.create();
+            if (!skipped) {
+                await instance.post(BASE_URL_FOR_ST + "/after");
+            }
+            try {
+                await instance.get(BASE_URL_FOR_ST + "/stop");
+            } catch (err) {}
+        });
+
+        beforeEach(async function () {
+            let instance = axios.create();
+            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
+            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
+            await instance.post(BASE_URL + "/beforeeach");
+
+            let launchRetries = 0;
+            while (browser === undefined && launchRetries++ < 3) {
+                try {
+                    browser = await puppeteer.launch({
+                        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+                        headless: true
+                    });
+
+                    page = await browser.newPage();
+
+                    page.on("console", ev => {
+                        const text = ev.text();
+                        if (text.startsWith("TEST_EV$")) {
+                            loggedEvents.push(JSON.parse(text.substr(8)));
+                        }
+                    });
+                    await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+                    await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+                    page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+
+                    await page.evaluate(
+                        setupFunc,
+                        {
+                            override: ["getClockSkewInMillis"]
+                        },
+                        ...setupArgs
+                    );
+                } catch {}
+            }
+
+            loggedEvents = [];
+        });
+
+        afterEach(async function () {
+            if (browser) {
+                await browser.close();
+                browser = undefined;
+            }
+        });
+
+        it("Should call the claim refresh endpoint for each `shouldRefresh` call without adjusting for DateProvider clock skew", async function () {
+            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                // Override Date.now() to return the current time plus 1 hour
+                await page.evaluate(() => {
+                    class MockDate extends Date {
+                        constructor(...args) {
+                            super(...args);
+                        }
+
+                        static now() {
+                            return super.now() + 60 * 60 * 1000;
+                        }
+                    }
+
+                    globalThis.__originalDate = globalThis.Date;
+                    globalThis.Date = MockDate;
+                });
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/refresh-custom-claim`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            const resp = await toTest({
+                                url: `${BASE_URL}/refresh-custom-claim`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                }
+                            });
+                        },
+                        defaultMaxAgeInSeconds: 300 /* 300 seconds */
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 3);
+            } finally {
+                await browser.close();
+            }
+        });
     });
 });
