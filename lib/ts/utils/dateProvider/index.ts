@@ -13,8 +13,7 @@
  * under the License.
  */
 
-import WindowHandlerReference from "../windowHandler";
-import { DateProvider, defaultDateProviderImplementation } from "./defaultImplementation";
+import { DateProvider } from "./defaultImplementation";
 import { DateProviderInterface, DateProviderInput } from "./types";
 
 /**
@@ -33,14 +32,13 @@ export default class DateProviderReference {
         let dateProviderFunc: DateProviderInput = original => original;
         if (dateProviderInput !== undefined) {
             dateProviderFunc = dateProviderInput;
-            this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
-        } else {
-            this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
-            // Initialise the clockSkewInMillis from localStorage for the default implementation.
-            const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
-            const clockSkewInMillis = parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
-            this.dateProvider.setClientClockSkewInMillis(clockSkewInMillis);
         }
+
+        // Initialize the DateProvider implementation by calling the init method.
+        // This is done to ensure that the WindowHandler is initialized before we instantiate the DateProvider.
+        DateProvider.init();
+        const defaultDateProviderImplementation = DateProvider.getReferenceOrThrow();
+        this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
     }
 
     static init(dateProviderInput?: DateProviderInput): void {

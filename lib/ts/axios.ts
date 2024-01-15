@@ -189,18 +189,6 @@ export function responseInterceptor(axiosInstance: any) {
             const preRequestLSS = await getLocalSessionState(false);
             await saveTokensFromHeaders(response);
 
-            const frontToken = response.headers["front-token"];
-
-            // Converting axios headers to fetch headers to pass to updateClockSkewUsingFrontToken
-            const responseHeaders = new Headers();
-            Object.entries(response.headers).forEach(([key, value]) => {
-                Array.isArray(value)
-                    ? value.forEach(item => responseHeaders.append(key, item))
-                    : responseHeaders.append(key, value);
-            });
-
-            updateClockSkewUsingFrontToken({ frontToken, responseHeaders });
-
             fireSessionUpdateEventsIfNecessary(
                 preRequestLSS.status === "EXISTS",
                 response.status,
@@ -569,6 +557,15 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
     if (frontToken !== undefined) {
         logDebugMessage("doRequest: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
+
+        // Converting axios headers to fetch headers to pass to updateClockSkewUsingFrontToken
+        const responseHeaders = new Headers();
+        Object.entries(response.headers).forEach(([key, value]) => {
+            Array.isArray(value)
+                ? value.forEach(item => responseHeaders.append(key, item))
+                : responseHeaders.append(key, value);
+        });
+        updateClockSkewUsingFrontToken({ frontToken, responseHeaders });
     }
 
     const antiCsrfToken = response.headers["anti-csrf"];

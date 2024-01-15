@@ -171,11 +171,11 @@ export function addInterceptorsToXMLHttpRequest() {
 
                     await saveTokensFromHeaders(headers);
 
-                    const frontToken = headers.get("front-token");
-
-                    updateClockSkewUsingFrontToken({ frontToken, responseHeaders: headers });
-
-                    fireSessionUpdateEventsIfNecessary(preRequestLSS!.status === "EXISTS", status, frontToken);
+                    fireSessionUpdateEventsIfNecessary(
+                        preRequestLSS!.status === "EXISTS",
+                        status,
+                        headers.get("front-token")
+                    );
                     if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
                         logDebugMessage("responseInterceptor: Status code is: " + status);
                         return await handleRetryPostRefreshing();
@@ -599,6 +599,7 @@ async function saveTokensFromHeaders(headers: Headers) {
     if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
+        updateClockSkewUsingFrontToken({ frontToken, responseHeaders: headers });
     }
 
     const antiCsrfToken = headers.get("anti-csrf");

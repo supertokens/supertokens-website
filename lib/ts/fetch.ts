@@ -333,11 +333,11 @@ export default class AuthHttpRequest {
 
                 await saveTokensFromHeaders(response);
 
-                const frontToken = response.headers.get("front-token");
-
-                updateClockSkewUsingFrontToken({ frontToken, responseHeaders: response.headers });
-
-                fireSessionUpdateEventsIfNecessary(preRequestLSS.status === "EXISTS", response.status, frontToken);
+                fireSessionUpdateEventsIfNecessary(
+                    preRequestLSS.status === "EXISTS",
+                    response.status,
+                    response.headers.get("front-token")
+                );
 
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
@@ -771,6 +771,7 @@ async function saveTokensFromHeaders(response: Response) {
     if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
+        updateClockSkewUsingFrontToken({ frontToken, responseHeaders: response.headers });
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
     if (antiCsrfToken !== null) {

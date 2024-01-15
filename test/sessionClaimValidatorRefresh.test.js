@@ -15,7 +15,9 @@
 
 const assert = require("assert");
 const sinon = require("sinon");
+let jsdom = require("mocha-jsdom");
 const { BooleanClaim } = require("../lib/build");
+const { WindowHandlerReference } = require("../lib/build/utils/windowHandler");
 const { DateProviderReference } = require("../lib/build/utils/dateProvider");
 
 const ONE_HOUR_IN_MS = 3600000;
@@ -31,8 +33,11 @@ function withFakeClock(now, cb) {
 }
 
 describe("SessionClaimValidator Refresh", () => {
+    jsdom({ url: "http://localhost" });
+
     describe("Client and Server clock are in sync", () => {
         before(function () {
+            WindowHandlerReference.init();
             DateProviderReference.init();
         });
 
@@ -62,6 +67,7 @@ describe("SessionClaimValidator Refresh", () => {
 
     describe("Client Clock is ahead 1 hour of server time", () => {
         before(function () {
+            WindowHandlerReference.init();
             DateProviderReference.init();
         });
 

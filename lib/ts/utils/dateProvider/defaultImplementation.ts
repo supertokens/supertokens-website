@@ -15,10 +15,32 @@
 
 import WindowHandlerReference from "../windowHandler";
 
-// `clockSkewInMillis` will be initialized with the stored localStorage value in `DateProviderReference.init()`.
 export class DateProvider {
+    private static instance?: DateProvider;
     public static readonly CLOCK_SKEW_KEY = "__st_clockSkewInMillis";
     private clockSkewInMillis: number = 0;
+
+    // The static init method is used to create a singleton instance of DateProvider,
+    // as we require access to localStorage for initializing clockSkewInMillis.
+    // Access to localStorage is available only after WindowHandlerReference is initialized.
+    static init() {
+        if (DateProvider.instance !== undefined) {
+            return;
+        }
+
+        DateProvider.instance = new DateProvider();
+        const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
+        const clockSkewInMillis = parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
+        DateProvider.instance.setClientClockSkewInMillis(clockSkewInMillis);
+    }
+
+    static getReferenceOrThrow(): DateProvider {
+        if (DateProvider.instance === undefined) {
+            throw new Error("DateProvider must be initialized before calling this method.");
+        }
+
+        return DateProvider.instance;
+    }
 
     setClientClockSkewInMillis(clockSkewInMillis: number): void {
         this.clockSkewInMillis = clockSkewInMillis;
@@ -34,5 +56,3 @@ export class DateProvider {
         return Date.now() + this.getClientClockSkewInMillis();
     }
 }
-
-export const defaultDateProviderImplementation = new DateProvider();
