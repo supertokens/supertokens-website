@@ -18,7 +18,6 @@ let SessionRecipeRaw = require("supertokens-node/lib/build/recipe/session/recipe
 let Querier = require("supertokens-node/lib/build/querier").Querier;
 let NormalisedURLPath = require("supertokens-node/lib/build/normalisedURLPath").default;
 let Session = require("supertokens-node/recipe/session");
-let { BooleanClaim } = require("supertokens-node/recipe/session/claims");
 let express = require("express");
 let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
