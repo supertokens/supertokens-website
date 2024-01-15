@@ -438,16 +438,6 @@ app.post(
     }
 );
 
-app.post("/refresh-custom-claim", verifySession(), async (req, res) => {
-    const session = req.session;
-    const customSessionClaim = new BooleanClaim({
-        key: "st-custom",
-        fetch: async () => true
-    });
-    await session.setClaimValue(customSessionClaim, true);
-    res.json({});
-});
-
 app.post("/403-without-body", async (req, res) => {
     res.sendStatus(403);
 });

@@ -15,19 +15,19 @@
 
 import WindowHandlerReference from "../windowHandler";
 
-// To avoid potential issues with initializing clockSkewInMillis as a class variable in the constructor due to WindowHandlerReference not being initialized at DateProvider instance creation,
-// we read from localStorage each time `getClientClockSkewInMillis` is called.
-class DateProvider {
-    private static readonly CLOCK_SKEW_KEY = "__st_clockSkewInMillis";
+// `clockSkewInMillis` will be initialized with the stored localStorage value in `DateProviderReference.init()`.
+export class DateProvider {
+    public static readonly CLOCK_SKEW_KEY = "__st_clockSkewInMillis";
+    private clockSkewInMillis: number = 0;
 
     setClientClockSkewInMillis(clockSkewInMillis: number): void {
+        this.clockSkewInMillis = clockSkewInMillis;
         const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
         localStorage.setItemSync(DateProvider.CLOCK_SKEW_KEY, String(clockSkewInMillis));
     }
 
     getClientClockSkewInMillis(): number {
-        const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
-        return parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
+        return this.clockSkewInMillis;
     }
 
     now(): number {

@@ -320,8 +320,7 @@ export default function RecipeImplementation(recipeImplInput: {
 
             const tokenIssuedAt = accessTokenPayload?.iat;
             if (tokenIssuedAt === undefined || typeof tokenIssuedAt !== "number") {
-                logDebugMessage("getClockSkewInMillis: payload iat is undefined or not a number, returning 0");
-                return 0;
+                throw new Error("payload iat is undefined or not a number");
             }
 
             const estimatedServerTimeNow = tokenIssuedAt * 1000;

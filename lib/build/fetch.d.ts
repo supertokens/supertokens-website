@@ -65,13 +65,9 @@ export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
 export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeaderFromResponse: string | null | undefined): void;
 /**
- * Updates the clock skew based on the provided frontToken and theround-trip time.
- *
- * @param {Object} params - The parameters for updating the clock skew.
- * @param {string | null} params.frontToken - The frontToken containing issued timestamp.
- * @param {string | null} params.responseHeaders - The headers for the response that returned the frontToken.
+ * Updates the clock skew based on the provided frontToken and responseHeaders.
  */
 export declare const updateClockSkewUsingFrontToken: ({ frontToken, responseHeaders }: {
-    frontToken: string | null;
+    frontToken: string | undefined | null;
     responseHeaders: Headers;
 }) => void;

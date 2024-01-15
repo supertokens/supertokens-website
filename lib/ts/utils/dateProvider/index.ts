@@ -13,7 +13,8 @@
  * under the License.
  */
 
-import { defaultDateProviderImplementation } from "./defaultImplementation";
+import WindowHandlerReference from "../windowHandler";
+import { DateProvider, defaultDateProviderImplementation } from "./defaultImplementation";
 import { DateProviderInterface, DateProviderInput } from "./types";
 
 /**
@@ -32,9 +33,14 @@ export default class DateProviderReference {
         let dateProviderFunc: DateProviderInput = original => original;
         if (dateProviderInput !== undefined) {
             dateProviderFunc = dateProviderInput;
+            this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
+        } else {
+            this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
+            // Initialise the clockSkewInMillis from localStorage for the default implementation.
+            const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
+            const clockSkewInMillis = parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
+            this.dateProvider.setClientClockSkewInMillis(clockSkewInMillis);
         }
-
-        this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
     }
 
     static init(dateProviderInput?: DateProviderInput): void {

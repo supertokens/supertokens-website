@@ -929,24 +929,20 @@ export function fireSessionUpdateEventsIfNecessary(
 }
 
 /**
- * Updates the clock skew based on the provided frontToken and theround-trip time.
- *
- * @param {Object} params - The parameters for updating the clock skew.
- * @param {string | null} params.frontToken - The frontToken containing issued timestamp.
- * @param {string | null} params.responseHeaders - The headers for the response that returned the frontToken.
+ * Updates the clock skew based on the provided frontToken and responseHeaders.
  */
 export const updateClockSkewUsingFrontToken = ({
     frontToken,
     responseHeaders
 }: {
-    frontToken: string | null;
+    frontToken: string | undefined | null;
     responseHeaders: Headers;
 }): void => {
     logDebugMessage("updateClockSkewUsingFrontToken: frontToken: " + frontToken);
 
-    if (frontToken === null || frontToken === "remove") {
+    if (frontToken === null || frontToken === undefined || frontToken === "remove") {
         logDebugMessage(
-            "updateClockSkewUsingFrontToken: frontToken is either null or is being removed, skipping update"
+            "updateClockSkewUsingFrontToken: the access token payload wasn't updated or is being removed, skipping clock skew update"
         );
         return;
     }
@@ -957,7 +953,6 @@ export const updateClockSkewUsingFrontToken = ({
         responseHeaders
     });
 
-    console.log("clockSkewInMillis", clockSkewInMillis);
     DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockSkewInMillis(clockSkewInMillis);
 
     logDebugMessage("updateClockSkewUsingFrontToken: Client clock synchronized successfully");
