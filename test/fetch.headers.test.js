@@ -1257,7 +1257,8 @@ describe("Fetch AuthHttpRequest class tests with headers", function () {
                 });
 
                 assertEqual(await loginResponse.text(), userId);
-                assertEqual(localStorage.length, 0);
+                const keysInLocalStorage = Object.keys(localStorage).filter(key => key !== "__st_clockSkewInMillis"); // __st_clockSkewInMillis will be set on supertokens init
+                assertEqual(keysInLocalStorage.length, 0);
             });
         } finally {
             await browser.close();
@@ -1525,7 +1526,8 @@ describe("Fetch AuthHttpRequest class tests with headers", function () {
 
                 let userId = "testing-supertokens-website";
 
-                assertEqual(localStorage.length, 0);
+                const keysInLocalStorage = Object.keys(localStorage).filter(key => key !== "__st_clockSkewInMillis"); // __st_clockSkewInMillis will be set on supertokens init
+                assertEqual(keysInLocalStorage.length, 0);
 
                 // call sessionDoesExist
                 assertEqual(await supertokens.doesSessionExist(), false);
@@ -1580,7 +1582,8 @@ describe("Fetch AuthHttpRequest class tests with headers", function () {
                 });
                 let userId = "testing-supertokens-website";
 
-                assertEqual(localStorage.length, 0);
+                const keysInLocalStorage = Object.keys(localStorage).filter(key => key !== "__st_clockSkewInMillis"); // __st_clockSkewInMillis will be set on supertokens init
+                assertEqual(keysInLocalStorage.length, 0);
 
                 await fetch(`/login`, {
                     method: "post",
