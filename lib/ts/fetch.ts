@@ -671,6 +671,7 @@ export function setToken(tokenType: TokenType, value: string) {
     if (value !== "") {
         logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
         // We save the tokens with a 100-year expiration time
+        // We have to use the client side system clock here, because the cookie expiration will be counted based on that
         return storeInCookies(name, value, Date.now() + 3153600000);
     } else {
         logDebugMessage(`setToken: cleared ${tokenType} token from cookies`);
@@ -786,6 +787,7 @@ async function saveTokensFromHeaders(response: Response) {
 export async function saveLastAccessTokenUpdate() {
     logDebugMessage("saveLastAccessTokenUpdate: called");
 
+    // We are saving the client side time here, but the actual value doesn't matter.
     const now = Date.now().toString();
     logDebugMessage("saveLastAccessTokenUpdate: setting " + now);
     await storeInCookies(LAST_ACCESS_TOKEN_UPDATE, now, Number.MAX_SAFE_INTEGER);
