@@ -83,7 +83,9 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     await page.evaluate(
                         setupFunc,
                         {
-                            // enableDebugLogs: true
+                            // enableDebugLogs: true,
+                            // This isn't used in all tests but it only produces some extra logs
+                            override: ["log_getClockSkewInMillis"]
                         },
                         ...setupArgs
                     );
@@ -261,6 +263,67 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(customClaimRefreshCalledCount, 1);
             } finally {
                 await browser.close();
+            }
+        });
+
+        it("should call getClockSkewInMillis with appropriate headers", async function () {
+            await startST();
+            let clockSkewParams = [];
+            page.on("console", ev => {
+                const text = ev.text();
+                // console.log(text);
+                const key = "TEST_getClockSkewInMillis$";
+                if (text.startsWith(key)) {
+                    clockSkewParams.push(JSON.parse(text.substr(key.length)));
+                }
+            });
+            const accessTokenPayload = await page.evaluate(async () => {
+                const userId = "testing-supertokens-website";
+
+                // Create a session
+                await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                return await supertokens.getAccessTokenPayloadSecurely();
+            });
+
+            assert.strictEqual(clockSkewParams.length, 1);
+            assert.deepStrictEqual(clockSkewParams[0].accessTokenPayload, accessTokenPayload);
+            const expectedHeaders = [
+                "access-control-allow-credentials",
+                "access-control-allow-origin",
+                "access-control-expose-headers",
+                "connection",
+                "content-length",
+                "content-type",
+                "date",
+                "etag",
+                "front-token",
+                "keep-alive",
+                "vary",
+                "x-powered-by",
+                ...(transferMethod === "header" ? [
+                    "st-access-token",
+                    "st-refresh-token",
+                ] : [
+                    "anti-csrf"
+                ])
+            ];
+
+            assert.deepStrictEqual(
+                new Set(clockSkewParams[0].responseHeaders.map(([key]) => key)),
+                new Set(expectedHeaders)
+            );
+
+            for (const name of expectedHeaders) {
+                assert.ok(clockSkewParams[0].responseHeaders.find(([headerName]) => name === headerName), name + " is undefined in headers");
             }
         });
     });
