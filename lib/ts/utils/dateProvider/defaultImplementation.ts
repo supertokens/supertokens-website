@@ -30,7 +30,8 @@ export class DateProvider {
 
         DateProvider.instance = new DateProvider();
         const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
-        const clockSkewInMillis = parseInt(localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY) || "0", 10);
+        const stored = localStorage.getItemSync(DateProvider.CLOCK_SKEW_KEY);
+        const clockSkewInMillis = stored !== null ? parseInt(stored, 10) : 0;
         DateProvider.instance.setClientClockSkewInMillis(clockSkewInMillis);
     }
 

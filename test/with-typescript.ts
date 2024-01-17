@@ -1,12 +1,14 @@
 import supertokens, { addAxiosInterceptors, signOut, getUserId, BooleanClaim, PrimitiveClaim, SessionClaimValidator, validateClaims } from "../";
 import axios from "axios";
 import { STGeneralError } from '../utils/error';
+import { DateProviderReference } from '../utils/dateProvider';
 
 STGeneralError.isThisError(new Error())
 
 supertokens.addAxiosInterceptors(axios, {});
 addAxiosInterceptors(axios, undefined);
 
+DateProviderReference.getReferenceOrThrow().dateProvider.now();
 
 supertokens.attemptRefreshingSession().then((b: boolean) => {
     console.log(b);

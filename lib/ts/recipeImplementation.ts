@@ -322,7 +322,7 @@ export default function RecipeImplementation(recipeImplInput: {
             const tokenIssuedAt = accessTokenPayload?.iat;
             if (tokenIssuedAt === undefined || typeof tokenIssuedAt !== "number") {
                 logDebugMessage(
-                    `getClockSkewInMillis: payload iat is undefined or not a number. This may happen due to an unsupported st-node sdk. Returning 0`
+                    `getClockSkewInMillis: payload iat is undefined or not a number. This may happen due to an unsupported backend sdk. Returning 0`
                 );
                 return 0;
             }

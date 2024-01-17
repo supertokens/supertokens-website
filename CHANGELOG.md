@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [17.1.0] - 2024-01-11
+## [17.1.0] - 2024-01-18
 
 ### Changes
 
-- Added `getClockSkewInMillis` as an overrideable function in the recipe interface and dateProvider as config option, both aimed at resolving clock skew issues.
+- Added a `DateProvider`, that both built-in and custom validators can use instead of `Date.now` to get an estimate of the server clock.
+- Added the `dateProvider` prop to the configuration that can be used to customize the built-in `DateProvider`.
+- Added `getClockSkewInMillis` as an overrideable function that estimates the time difference between the backend and the client.
 
 ## [17.0.5] - 2024-01-03
 

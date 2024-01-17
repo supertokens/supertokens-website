@@ -309,12 +309,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 "keep-alive",
                 "vary",
                 "x-powered-by",
-                ...(transferMethod === "header" ? [
-                    "st-access-token",
-                    "st-refresh-token",
-                ] : [
-                    "anti-csrf"
-                ])
+                ...(transferMethod === "header" ? ["st-access-token", "st-refresh-token"] : ["anti-csrf"])
             ];
 
             assert.deepStrictEqual(
@@ -323,7 +318,10 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             );
 
             for (const name of expectedHeaders) {
-                assert.ok(clockSkewParams[0].responseHeaders.find(([headerName]) => name === headerName), name + " is undefined in headers");
+                assert.ok(
+                    clockSkewParams[0].responseHeaders.find(([headerName]) => name === headerName),
+                    name + " is undefined in headers"
+                );
             }
         });
     });
