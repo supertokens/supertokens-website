@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [17.1.0] - 2024-01-18
+## [18.0.0] - 2024-01-18
 
-### Changes
+## Breaking Changes
+
+- The default `DateProvider` implementation relies on `localStorage`. If your environment lacks support for `localStorage`, you must provide custom implementations for either the `DateProvider` or `localStorage`.
+
+### Added
 
 - Added a `DateProvider`, that both built-in and custom validators can use instead of `Date.now` to get an estimate of the server clock.
 - Added the `dateProvider` prop to the configuration that can be used to customize the built-in `DateProvider`.
