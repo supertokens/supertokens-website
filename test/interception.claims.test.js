@@ -83,7 +83,9 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     await page.evaluate(
                         setupFunc,
                         {
-                            // enableDebugLogs: true
+                            // enableDebugLogs: true,
+                            // This isn't used in all tests but it only produces some extra logs
+                            override: ["log_getClockSkewInMillis"]
                         },
                         ...setupArgs
                     );
@@ -189,6 +191,137 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 );
             } finally {
                 await browser.close();
+            }
+        });
+
+        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew", async function () {
+            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                // Override Date.now() to return the current time plus 1 hour
+                await page.evaluate(() => {
+                    globalThis.originalNow = Date.now;
+                    Date.now = function () {
+                        return originalNow() + 60 * 60 * 1000;
+                    };
+                });
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            const resp = await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: originalNow()
+                                    }
+                                })
+                            });
+                        },
+                        defaultMaxAgeInSeconds: 300 /* 300 seconds */
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 1);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should call getClockSkewInMillis with appropriate headers", async function () {
+            await startST();
+            let clockSkewParams = [];
+            page.on("console", ev => {
+                const text = ev.text();
+                // console.log(text);
+                const key = "TEST_getClockSkewInMillis$";
+                if (text.startsWith(key)) {
+                    clockSkewParams.push(JSON.parse(text.substr(key.length)));
+                }
+            });
+            const accessTokenPayload = await page.evaluate(async () => {
+                const userId = "testing-supertokens-website";
+
+                // Create a session
+                await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                return await supertokens.getAccessTokenPayloadSecurely();
+            });
+
+            assert.strictEqual(clockSkewParams.length, 1);
+            assert.deepStrictEqual(clockSkewParams[0].accessTokenPayload, accessTokenPayload);
+            const expectedHeaders = [
+                "access-control-allow-credentials",
+                "access-control-allow-origin",
+                "access-control-expose-headers",
+                "connection",
+                "content-length",
+                "content-type",
+                "date",
+                "etag",
+                "front-token",
+                "keep-alive",
+                "vary",
+                "x-powered-by",
+                ...(transferMethod === "header" ? ["st-access-token", "st-refresh-token"] : ["anti-csrf"])
+            ];
+
+            assert.deepStrictEqual(
+                new Set(clockSkewParams[0].responseHeaders.map(([key]) => key)),
+                new Set(expectedHeaders)
+            );
+
+            for (const name of expectedHeaders) {
+                assert.ok(
+                    clockSkewParams[0].responseHeaders.find(([headerName]) => name === headerName),
+                    name + " is undefined in headers"
+                );
             }
         });
     });

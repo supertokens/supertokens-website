@@ -12,6 +12,20 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
+                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                    console.log(
+                                        "TEST_getClockSkewInMillis$" +
+                                            JSON.stringify({
+                                                accessTokenPayload,
+                                                responseHeaders: Array.from(responseHeaders.entries())
+                                            })
+                                    );
+                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                }
+                            }));
                         }
                     }
                 }
@@ -55,6 +69,20 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             overrideFunctions.push(oI => ({
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                    console.log(
+                                        "TEST_getClockSkewInMillis$" +
+                                            JSON.stringify({
+                                                accessTokenPayload,
+                                                responseHeaders: Array.from(responseHeaders.entries())
+                                            })
+                                    );
+                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                }
                             }));
                         }
                     }
@@ -129,6 +157,20 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
+                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                    console.log(
+                                        "TEST_getClockSkewInMillis$" +
+                                            JSON.stringify({
+                                                accessTokenPayload,
+                                                responseHeaders: Array.from(responseHeaders.entries())
+                                            })
+                                    );
+                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                }
+                            }));
                         }
                     }
                 }
@@ -188,6 +230,20 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
+                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                    console.log(
+                                        "TEST_getClockSkewInMillis$" +
+                                            JSON.stringify({
+                                                accessTokenPayload,
+                                                responseHeaders: Array.from(responseHeaders.entries())
+                                            })
+                                    );
+                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                }
+                            }));
                         }
                     }
                 }
@@ -243,6 +299,20 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             overrideFunctions.push(oI => ({
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
+                            }));
+                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                            overrideFunctions.push(oI => ({
+                                ...oI,
+                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                    console.log(
+                                        "TEST_getClockSkewInMillis$" +
+                                            JSON.stringify({
+                                                accessTokenPayload,
+                                                responseHeaders: Array.from(responseHeaders.entries())
+                                            })
+                                    );
+                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                }
                             }));
                         }
                     }
