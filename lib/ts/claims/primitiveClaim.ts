@@ -33,6 +33,11 @@ export class PrimitiveClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
+            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+                throw new Error(
+                    `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                );
+            }
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),

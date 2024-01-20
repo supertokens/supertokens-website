@@ -194,7 +194,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew", async function () {
+        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew (client clock ahead)", async function () {
             await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
             try {
                 let customClaimRefreshCalledCount = 0;
@@ -204,6 +204,78 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     globalThis.originalNow = Date.now;
                     Date.now = function () {
                         return originalNow() + 60 * 60 * 1000;
+                    };
+                });
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            const resp = await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: originalNow()
+                                    }
+                                })
+                            });
+                        },
+                        defaultMaxAgeInSeconds: 300 /* 300 seconds */
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 1);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
+            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                // Override Date.now() to return the current time minus 1 hour
+                await page.evaluate(() => {
+                    globalThis.originalNow = Date.now;
+                    Date.now = function () {
+                        return originalNow() - 60 * 60 * 1000;
                     };
                 });
 

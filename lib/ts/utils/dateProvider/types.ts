@@ -14,9 +14,10 @@
  */
 
 export interface DateProviderInterface {
+    getThresholdInSeconds(): number;
     now(): number;
     setClientClockSkewInMillis(clockSkewInMillis: number): void;
     getClientClockSkewInMillis(): number;
 }
 
-export type DateProviderInput = (original: DateProviderInterface) => DateProviderInterface;
+export type DateProviderInput = () => DateProviderInterface;

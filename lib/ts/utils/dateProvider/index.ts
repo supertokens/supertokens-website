@@ -29,16 +29,14 @@ export default class DateProviderReference {
     dateProvider: DateProviderInterface;
 
     constructor(dateProviderInput?: DateProviderInput) {
-        let dateProviderFunc: DateProviderInput = original => original;
         if (dateProviderInput !== undefined) {
-            dateProviderFunc = dateProviderInput;
+            this.dateProvider = dateProviderInput();
+        } else {
+            // Initialize the DateProvider implementation by calling the init method.
+            // This is done to ensure that the WindowHandler is initialized before we instantiate the DateProvider.
+            DateProvider.init();
+            this.dateProvider = DateProvider.getReferenceOrThrow();
         }
-
-        // Initialize the DateProvider implementation by calling the init method.
-        // This is done to ensure that the WindowHandler is initialized before we instantiate the DateProvider.
-        DateProvider.init();
-        const defaultDateProviderImplementation = DateProvider.getReferenceOrThrow();
-        this.dateProvider = dateProviderFunc(defaultDateProviderImplementation);
     }
 
     static init(dateProviderInput?: DateProviderInput): void {
