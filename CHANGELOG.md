@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Added a test to check that relative URLs get intercepted correctly
+
 ## [17.0.5] - 2024-01-03
 
 ### Fixes
