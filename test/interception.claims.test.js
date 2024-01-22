@@ -85,7 +85,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                         {
                             // enableDebugLogs: true,
                             // This isn't used in all tests but it only produces some extra logs
-                            override: ["log_getClockSkewInMillis"]
+                            override: ["log_calculateClockSkewInMillis"]
                         },
                         ...setupArgs
                     );
@@ -338,13 +338,12 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should call getClockSkewInMillis with appropriate headers", async function () {
+        it("should call calculateClockSkewInMillis with appropriate headers", async function () {
             await startST();
             let clockSkewParams = [];
             page.on("console", ev => {
                 const text = ev.text();
-                // console.log(text);
-                const key = "TEST_getClockSkewInMillis$";
+                const key = "TEST_calculateClockSkewInMillis$";
                 if (text.startsWith(key)) {
                     clockSkewParams.push(JSON.parse(text.substr(key.length)));
                 }

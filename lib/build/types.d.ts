@@ -125,7 +125,7 @@ export declare type RecipeInterface = {
         userContext: any;
     }): SessionClaimValidator[];
     shouldDoInterceptionBasedOnUrl(toCheckUrl: string, apiDomain: string, sessionTokenBackendDomain: string | undefined): boolean;
-    getClockSkewInMillis(params: {
+    calculateClockSkewInMillis(params: {
         accessTokenPayload: any;
         responseHeaders: Headers;
     }): number;

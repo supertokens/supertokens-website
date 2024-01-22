@@ -33,7 +33,7 @@ export class PrimitiveArrayClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
-            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+            if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                 throw new Error(
                     `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                 );
@@ -80,7 +80,7 @@ export class PrimitiveArrayClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
-            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+            if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                 throw new Error(
                     `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                 );
@@ -131,7 +131,7 @@ export class PrimitiveArrayClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
-            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+            if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                 throw new Error(
                     `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                 );
@@ -179,7 +179,7 @@ export class PrimitiveArrayClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
-            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+            if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                 throw new Error(
                     `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                 );
@@ -231,7 +231,7 @@ export class PrimitiveArrayClaim<ValueType> {
             id?: string
         ): SessionClaimValidator => {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
-            if (maxAgeInSeconds && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+            if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                 throw new Error(
                     `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                 );

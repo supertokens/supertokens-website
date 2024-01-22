@@ -12,18 +12,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
-                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                        } else if (reqOverride === "log_calculateClockSkewInMillis") {
                             overrideFunctions.push(oI => ({
                                 ...oI,
-                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                calculateClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
                                     console.log(
-                                        "TEST_getClockSkewInMillis$" +
+                                        "TEST_calculateClockSkewInMillis$" +
                                             JSON.stringify({
                                                 accessTokenPayload,
                                                 responseHeaders: Array.from(responseHeaders.entries())
                                             })
                                     );
-                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                    return oI.calculateClockSkewInMillis({ accessTokenPayload, responseHeaders });
                                 }
                             }));
                         }
@@ -70,18 +70,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
-                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                        } else if (reqOverride === "log_calculateClockSkewInMillis") {
                             overrideFunctions.push(oI => ({
                                 ...oI,
-                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                calculateClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
                                     console.log(
-                                        "TEST_getClockSkewInMillis$" +
+                                        "TEST_calculateClockSkewInMillis$" +
                                             JSON.stringify({
                                                 accessTokenPayload,
                                                 responseHeaders: Array.from(responseHeaders.entries())
                                             })
                                     );
-                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                    return oI.calculateClockSkewInMillis({ accessTokenPayload, responseHeaders });
                                 }
                             }));
                         }
@@ -157,18 +157,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
-                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                        } else if (reqOverride === "log_calculateClockSkewInMillis") {
                             overrideFunctions.push(oI => ({
                                 ...oI,
-                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                calculateClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
                                     console.log(
-                                        "TEST_getClockSkewInMillis$" +
+                                        "TEST_calculateClockSkewInMillis$" +
                                             JSON.stringify({
                                                 accessTokenPayload,
                                                 responseHeaders: Array.from(responseHeaders.entries())
                                             })
                                     );
-                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                    return oI.calculateClockSkewInMillis({ accessTokenPayload, responseHeaders });
                                 }
                             }));
                         }
@@ -230,18 +230,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
-                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                        } else if (reqOverride === "log_calculateClockSkewInMillis") {
                             overrideFunctions.push(oI => ({
                                 ...oI,
-                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                calculateClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
                                     console.log(
-                                        "TEST_getClockSkewInMillis$" +
+                                        "TEST_calculateClockSkewInMillis$" +
                                             JSON.stringify({
                                                 accessTokenPayload,
                                                 responseHeaders: Array.from(responseHeaders.entries())
                                             })
                                     );
-                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                    return oI.calculateClockSkewInMillis({ accessTokenPayload, responseHeaders });
                                 }
                             }));
                         }
@@ -300,18 +300,18 @@ module.exports.addGenericTestCases = function (getTestCases) {
                                 ...oI,
                                 shouldDoInterceptionBasedOnUrl: url => url.includes("doOverride")
                             }));
-                        } else if (reqOverride === "log_getClockSkewInMillis") {
+                        } else if (reqOverride === "log_calculateClockSkewInMillis") {
                             overrideFunctions.push(oI => ({
                                 ...oI,
-                                getClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
+                                calculateClockSkewInMillis: ({ accessTokenPayload, responseHeaders }) => {
                                     console.log(
-                                        "TEST_getClockSkewInMillis$" +
+                                        "TEST_calculateClockSkewInMillis$" +
                                             JSON.stringify({
                                                 accessTokenPayload,
                                                 responseHeaders: Array.from(responseHeaders.entries())
                                             })
                                     );
-                                    return oI.getClockSkewInMillis({ accessTokenPayload, responseHeaders });
+                                    return oI.calculateClockSkewInMillis({ accessTokenPayload, responseHeaders });
                                 }
                             }));
                         }

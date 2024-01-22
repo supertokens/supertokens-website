@@ -63,6 +63,10 @@ export class DateProvider {
         return this.thresholdInSeconds;
     }
 
+    setThresholdInSeconds(thresholdInSeconds: number): void {
+        this.thresholdInSeconds = thresholdInSeconds;
+    }
+
     setClientClockSkewInMillis(clockSkewInMillis: number): void {
         this.clockSkewInMillis = Math.abs(clockSkewInMillis) > this.thresholdInSeconds * 1000 ? clockSkewInMillis : 0;
         const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;

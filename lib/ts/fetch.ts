@@ -951,7 +951,7 @@ export const updateClockSkewUsingFrontToken = ({
     }
 
     const frontTokenPayload = parseFrontToken(frontToken);
-    const clockSkewInMillis = AuthHttpRequest.recipeImpl.getClockSkewInMillis({
+    const clockSkewInMillis = AuthHttpRequest.recipeImpl.calculateClockSkewInMillis({
         accessTokenPayload: frontTokenPayload.up,
         responseHeaders
     });
