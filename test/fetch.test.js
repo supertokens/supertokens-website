@@ -118,6 +118,19 @@ describe("Fetch AuthHttpRequest class tests", function () {
         }
     });
 
+    it("correctly intercepts requests with relative URLs", async function () {
+        AuthHttpRequest.init({
+            apiDomain: "http://localhost"
+        });
+
+        let getResponse = await fetch(`/interception`, {
+            method: "GET"
+        });
+
+        const res = await getResponse.json();
+        assert.strictEqual(res.doNotDoInterception, false);
+    });
+
     it("testing with fetch api methods without config", async function () {
         AuthHttpRequest.init({
             apiDomain: BASE_URL
