@@ -14,6 +14,7 @@ import { logDebugMessage } from "./logger";
 import { STGeneralError } from "./error";
 import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
 import { normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
+import DateProviderReference from "./utils/dateProvider";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -99,7 +100,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 throw new Error("No session exists");
             }
 
-            if (tokenInfo.ate < Date.now()) {
+            if (tokenInfo.ate < DateProviderReference.getReferenceOrThrow().dateProvider.now()) {
                 logDebugMessage("getAccessTokenPayloadSecurely: access token expired. Refreshing session");
                 let retry = await AuthHttpRequest.attemptRefreshingSession();
                 if (retry) {
@@ -124,7 +125,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 return false;
             }
 
-            if (tokenInfo.ate < Date.now()) {
+            if (tokenInfo.ate < DateProviderReference.getReferenceOrThrow().dateProvider.now()) {
                 logDebugMessage("doesSessionExist: access token expired. Refreshing session");
 
                 const preRequestLSS = await getLocalSessionState(false);
@@ -308,6 +309,29 @@ export default function RecipeImplementation(recipeImplInput: {
                     return domain === normalisedsessionDomain;
                 }
             }
+        },
+
+        getClockSkewInMillis: function ({
+            accessTokenPayload
+        }: {
+            accessTokenPayload: any;
+            responseHeaders: Headers;
+        }): number {
+            logDebugMessage("getClockSkewInMillis: called");
+
+            const tokenIssuedAt = accessTokenPayload?.iat;
+            if (tokenIssuedAt === undefined || typeof tokenIssuedAt !== "number") {
+                logDebugMessage(
+                    `getClockSkewInMillis: payload iat is undefined or not a number. This may happen due to an unsupported backend sdk. Returning 0`
+                );
+                return 0;
+            }
+
+            const estimatedServerTimeNow = tokenIssuedAt * 1000;
+            const clockSkewInMillis = estimatedServerTimeNow - Date.now();
+            logDebugMessage("getClockSkewInMillis: returning " + clockSkewInMillis);
+
+            return clockSkewInMillis;
         }
     };
 }

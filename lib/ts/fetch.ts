@@ -19,6 +19,7 @@ import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
+import DateProviderReference from "./utils/dateProvider";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -670,6 +671,7 @@ export function setToken(tokenType: TokenType, value: string) {
     if (value !== "") {
         logDebugMessage(`setToken: saved ${tokenType} token into cookies`);
         // We save the tokens with a 100-year expiration time
+        // We have to use the client side system clock here, because the cookie expiration will be counted based on that
         return storeInCookies(name, value, Date.now() + 3153600000);
     } else {
         logDebugMessage(`setToken: cleared ${tokenType} token from cookies`);
@@ -770,6 +772,7 @@ async function saveTokensFromHeaders(response: Response) {
     if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
+        updateClockSkewUsingFrontToken({ frontToken, responseHeaders: response.headers });
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
     if (antiCsrfToken !== null) {
@@ -784,6 +787,7 @@ async function saveTokensFromHeaders(response: Response) {
 export async function saveLastAccessTokenUpdate() {
     logDebugMessage("saveLastAccessTokenUpdate: called");
 
+    // We are saving the client side time here, but the actual value doesn't matter.
     const now = Date.now().toString();
     logDebugMessage("saveLastAccessTokenUpdate: setting " + now);
     await storeInCookies(LAST_ACCESS_TOKEN_UPDATE, now, Number.MAX_SAFE_INTEGER);
@@ -926,3 +930,33 @@ export function fireSessionUpdateEventsIfNecessary(
         });
     }
 }
+
+/**
+ * Updates the clock skew based on the provided frontToken and responseHeaders.
+ */
+export const updateClockSkewUsingFrontToken = ({
+    frontToken,
+    responseHeaders
+}: {
+    frontToken: string | undefined | null;
+    responseHeaders: Headers;
+}): void => {
+    logDebugMessage("updateClockSkewUsingFrontToken: frontToken: " + frontToken);
+
+    if (frontToken === null || frontToken === undefined || frontToken === "remove") {
+        logDebugMessage(
+            "updateClockSkewUsingFrontToken: the access token payload wasn't updated or is being removed, skipping clock skew update"
+        );
+        return;
+    }
+
+    const frontTokenPayload = parseFrontToken(frontToken);
+    const clockSkewInMillis = AuthHttpRequest.recipeImpl.getClockSkewInMillis({
+        accessTokenPayload: frontTokenPayload.up,
+        responseHeaders
+    });
+
+    DateProviderReference.getReferenceOrThrow().dateProvider.setClientClockSkewInMillis(clockSkewInMillis);
+
+    logDebugMessage("updateClockSkewUsingFrontToken: Client clock synchronized successfully");
+};

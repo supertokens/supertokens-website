@@ -22,7 +22,8 @@ import AuthHttpRequestFetch, {
     getTokenForHeaderAuth,
     getLocalSessionState,
     LocalSessionState,
-    fireSessionUpdateEventsIfNecessary
+    fireSessionUpdateEventsIfNecessary,
+    updateClockSkewUsingFrontToken
 } from "./fetch";
 import { logDebugMessage } from "./logger";
 import WindowHandlerReference from "./utils/windowHandler";
@@ -598,6 +599,7 @@ async function saveTokensFromHeaders(headers: Headers) {
     if (frontToken !== null) {
         logDebugMessage("saveTokensFromHeaders: Setting sFrontToken: " + frontToken);
         await FrontToken.setItem(frontToken);
+        updateClockSkewUsingFrontToken({ frontToken, responseHeaders: headers });
     }
 
     const antiCsrfToken = headers.get("anti-csrf");

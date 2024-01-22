@@ -64,3 +64,10 @@ export declare function setAntiCSRF(antiCSRFToken: string | undefined): Promise<
 export declare function getFrontToken(): Promise<string | null>;
 export declare function setFrontToken(frontToken: string | undefined): Promise<void>;
 export declare function fireSessionUpdateEventsIfNecessary(wasLoggedIn: boolean, status: number, frontTokenHeaderFromResponse: string | null | undefined): void;
+/**
+ * Updates the clock skew based on the provided frontToken and responseHeaders.
+ */
+export declare const updateClockSkewUsingFrontToken: ({ frontToken, responseHeaders }: {
+    frontToken: string | undefined | null;
+    responseHeaders: Headers;
+}) => void;

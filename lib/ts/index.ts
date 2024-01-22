@@ -23,6 +23,7 @@ import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { SessionClaimValidatorStore } from "./utils/sessionClaimValidatorStore";
 import { enableLogging } from "./logger";
+import DateProviderReference from "./utils/dateProvider";
 
 export default class AuthHttpRequest {
     private static axiosInterceptorQueue: (() => void)[] = [];
@@ -30,6 +31,7 @@ export default class AuthHttpRequest {
     static init(options: InputType) {
         CookieHandlerReference.init(options.cookieHandler);
         WindowHandlerReference.init(options.windowHandler);
+        DateProviderReference.init(options.dateProvider);
         LockFactoryReference.init(
             options.lockFactory,
             WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage
