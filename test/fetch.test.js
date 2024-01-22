@@ -2353,9 +2353,9 @@ describe("Fetch AuthHttpRequest class tests", function () {
 
                 assertEqual(await loginResponse.text(), userId);
 
-                let getResponse = await fetch(`/check-rid`);
+                let checkRidResponse = await fetch(`/check-rid`);
 
-                assertEqual(await getResponse.text(), "success");
+                assertEqual(await checkRidResponse.text(), "success");
             });
         } finally {
             await browser.close();
