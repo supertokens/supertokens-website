@@ -215,8 +215,6 @@ export default class AuthHttpRequest {
             throw Error("init function not called");
         }
 
-        // url = url.replace("http://localhost.org:8080", "");
-
         logDebugMessage("doRequest: start of fetch interception");
         let doNotDoInterception = false;
         try {
