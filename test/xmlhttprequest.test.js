@@ -16,10 +16,10 @@ const axios = require("axios");
 
 const puppeteer = require("puppeteer");
 const assert = require("assert");
-const { BASE_URL, BASE_URL_FOR_ST } = require("./utils.js");
+const { BASE_URL, BASE_URL_FOR_ST, startST } = require("./utils.js");
 const { spawn } = require("child_process");
 
-describe("Axios AuthHttpRequest class tests header", function () {
+describe("XmlHttpRequest tests", function () {
     let browser, page;
     before(async function () {
         spawn(
@@ -122,5 +122,44 @@ describe("Axios AuthHttpRequest class tests header", function () {
             await new Promise(res => setTimeout(res, 500));
             assert.strictEqual(errors.length, 0);
         });
+    });
+
+    it("test that relative URLs get intercepted if frontend and backend are on same domain", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginRequest = new XMLHttpRequest();
+                loginRequest.open("POST", `/login`);
+                loginRequest.setRequestHeader("Content-Type", "application/json");
+                loginRequest.setRequestHeader("Accept", "application/json");
+                loginRequest.send(JSON.stringify({ userId }));
+                await new Promise(res => {
+                    loginRequest.onload = res;
+                });
+                assertEqual(loginRequest.responseText, userId);
+
+                let checkRidRequest = new XMLHttpRequest();
+                checkRidRequest.open("GET", `/check-rid`);
+                checkRidRequest.send();
+                await new Promise(res => {
+                    checkRidRequest.onload = res;
+                });
+                assertEqual(checkRidRequest.responseText, "success");
+            });
+        } finally {
+            await browser.close();
+        }
     });
 });
