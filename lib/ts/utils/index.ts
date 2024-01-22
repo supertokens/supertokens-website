@@ -171,12 +171,3 @@ export function getNormalisedUserContext(userContext?: any): any {
 
     return userContext;
 }
-
-export function isTest(): boolean {
-    try {
-        return process.env.TEST_MODE === "testing";
-    } catch (err) {
-        // can get Uncaught ReferenceError: process is not defined error
-        return false;
-    }
-}

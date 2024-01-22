@@ -19,7 +19,6 @@ import CookieHandlerReference from "./utils/cookieHandler";
 import WindowHandlerReference from "./utils/windowHandler";
 import LockFactoryReference from "./utils/lockFactory";
 import { logDebugMessage } from "./logger";
-import { isTest } from "./utils";
 
 export class AntiCsrfToken {
     private static tokenInfo:
@@ -251,14 +250,6 @@ export default class AuthHttpRequest {
         }
 
         logDebugMessage("doRequest: Value of doNotDoInterception: " + doNotDoInterception);
-
-        // isomorphic-fetch uses node-fetch during tests and node-fetch does not work with relative URLs
-        // so if we are in test mode and the URL is a relative URL that starts with /interception we just directly
-        // return the value doNotDoInterception
-        if (isTest() && typeof url === "string" && url.startsWith("/interception")) {
-            return new Response(`{"doNotDoInterception": ${doNotDoInterception}}`);
-        }
-
         if (doNotDoInterception) {
             logDebugMessage("doRequest: Returning without interception");
             return await httpCall(config);
