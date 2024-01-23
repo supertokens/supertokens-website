@@ -36,10 +36,19 @@ export class PrimitiveClaim<ValueType> {
             return {
                 id: id !== undefined ? id : this.id,
                 refresh: ctx => this.refresh(ctx),
-                shouldRefresh: (payload, ctx) =>
-                    this.getValueFromPayload(payload, ctx) === undefined ||
-                    // We know payload[this.id] is defined since the value is not undefined in this branch
-                    (maxAgeInSeconds !== undefined && payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000),
+                shouldRefresh: (payload, ctx) => {
+                    if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
+                        throw new Error(
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                        );
+                    }
+                    return (
+                        this.getValueFromPayload(payload, ctx) === undefined ||
+                        // We know payload[this.id] is defined since the value is not undefined in this branch
+                        (maxAgeInSeconds !== undefined &&
+                            payload[this.id].t < DateProvider.now() - maxAgeInSeconds * 1000)
+                    );
+                },
                 validate: (payload, ctx) => {
                     const claimVal = this.getValueFromPayload(payload, ctx);
                     if (claimVal === undefined) {

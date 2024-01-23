@@ -19,6 +19,9 @@ export class DateProvider {
     private static instance?: DateProvider;
     public static readonly CLOCK_SKEW_KEY = "__st_clockSkewInMillis";
     private clockSkewInMillis: number = 0;
+    // Ensure a meaningful clock skew value by setting a threshold. Omitting a threshold would invariably lead to some
+    // clock skew due to server-client latency, arising from the time it takes for the token to arrive after being issued.
+    private thresholdInSeconds = 7;
 
     // The static init method is used to create a singleton instance of DateProvider,
     // as we require access to localStorage for initializing clockSkewInMillis.
@@ -56,8 +59,16 @@ export class DateProvider {
         return DateProvider.instance;
     }
 
+    getThresholdInSeconds(): number {
+        return this.thresholdInSeconds;
+    }
+
+    setThresholdInSeconds(thresholdInSeconds: number): void {
+        this.thresholdInSeconds = thresholdInSeconds;
+    }
+
     setClientClockSkewInMillis(clockSkewInMillis: number): void {
-        this.clockSkewInMillis = clockSkewInMillis;
+        this.clockSkewInMillis = Math.abs(clockSkewInMillis) >= this.thresholdInSeconds * 1000 ? clockSkewInMillis : 0;
         const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
         localStorage.setItemSync(DateProvider.CLOCK_SKEW_KEY, String(clockSkewInMillis));
     }

@@ -153,7 +153,7 @@ export type RecipeInterface = {
         sessionTokenBackendDomain: string | undefined
     ): boolean;
 
-    getClockSkewInMillis(params: { accessTokenPayload: any; responseHeaders: Headers }): number;
+    calculateClockSkewInMillis(params: { accessTokenPayload: any; responseHeaders: Headers }): number;
 };
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };

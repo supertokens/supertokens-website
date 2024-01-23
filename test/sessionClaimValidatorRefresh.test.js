@@ -35,6 +35,31 @@ function withFakeClock(now, cb) {
 describe("SessionClaimValidator Refresh", () => {
     jsdom({ url: "http://localhost" });
 
+    describe("SessionClaimValidator:shouldRefresh", () => {
+        before(function () {
+            WindowHandlerReference.init();
+            DateProviderReference.init();
+        });
+
+        it("SessionClaimValidator shouldRefresh should throw if maxAgeInSeconds is lower than DateProvider threshold", function () {
+            const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
+
+            const claim = new BooleanClaim({
+                id: "st-test",
+                refresh: () => {},
+                defaultMaxAgeInSeconds: DateProvider.getThresholdInSeconds()
+            });
+
+            assert.throws(() => {
+                claim.validators.isTrue(DateProvider.getThresholdInSeconds() - 1).shouldRefresh({});
+            });
+
+            assert.doesNotThrow(() => {
+                claim.validators.isTrue(DateProvider.getThresholdInSeconds()).shouldRefresh({});
+            });
+        });
+    });
+
     describe("Client and Server clock are in sync", () => {
         before(function () {
             WindowHandlerReference.init();

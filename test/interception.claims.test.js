@@ -85,7 +85,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                         {
                             // enableDebugLogs: true,
                             // This isn't used in all tests but it only produces some extra logs
-                            override: ["log_getClockSkewInMillis"]
+                            override: ["log_calculateClockSkewInMillis"]
                         },
                         ...setupArgs
                     );
@@ -194,7 +194,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew", async function () {
+        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew (client clock ahead)", async function () {
             await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
             try {
                 let customClaimRefreshCalledCount = 0;
@@ -266,13 +266,89 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should call getClockSkewInMillis with appropriate headers", async function () {
+        it("should call the claim refresh endpoint as many times as `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
+            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                // Override Date.now() to return the current time minus 1 hour
+                await page.evaluate(() => {
+                    globalThis.originalNow = Date.now;
+                    Date.now = function () {
+                        return originalNow() - 60 * 60 * 1000;
+                    };
+                });
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            const resp = await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        // We intentionally expire the claim during an update. In an ideal scenario,
+                                        // the `shouldRefresh` function would consistently return true as the claim is expired.
+                                        // However, if the client clock is behind, the `shouldRefresh` function may erroneously return false.
+                                        // The responsibility of handling this situation lies with the DateProvider,
+                                        // ensuring that `shouldRefresh` correctly returns true regardless of potential clock discrepancies.
+                                        t: originalNow() - 10 * 60 * 1000
+                                    }
+                                })
+                            });
+                        },
+                        defaultMaxAgeInSeconds: 300 /* 300 seconds */
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 3);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should call calculateClockSkewInMillis with appropriate headers", async function () {
             await startST();
             let clockSkewParams = [];
             page.on("console", ev => {
                 const text = ev.text();
-                // console.log(text);
-                const key = "TEST_getClockSkewInMillis$";
+                const key = "TEST_calculateClockSkewInMillis$";
                 if (text.startsWith(key)) {
                     clockSkewParams.push(JSON.parse(text.substr(key.length)));
                 }
