@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `DateProvider`, that both built-in and custom validators can use instead of `Date.now` to get an estimate of the server clock.
 - Added the `dateProvider` prop to the configuration that can be used to customize the built-in `DateProvider`.
 - Added `getClockSkewInMillis` as an overrideable function that estimates the time difference between the backend and the client.
+- Added a test to check that relative URLs get intercepted correctly
 
 ## [17.0.5] - 2024-01-03
 

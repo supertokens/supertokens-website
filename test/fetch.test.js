@@ -2325,4 +2325,40 @@ describe("Fetch AuthHttpRequest class tests", function () {
             await browser.close();
         }
     });
+
+    it("test that relative URLs get intercepted if frontend and backend are on same domain", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+
+                let checkRidResponse = await fetch(`/check-rid`);
+
+                assertEqual(await checkRidResponse.text(), "success");
+            });
+        } finally {
+            await browser.close();
+        }
+    });
 });
