@@ -39,7 +39,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 shouldRefresh: (payload, ctx) => {
                     if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                         throw new Error(
-                            `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                         );
                     }
 
@@ -91,7 +91,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 shouldRefresh: (payload, ctx) => {
                     if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                         throw new Error(
-                            `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                         );
                     }
                     return (
@@ -146,7 +146,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 shouldRefresh: (payload, ctx) => {
                     if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                         throw new Error(
-                            `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                         );
                     }
                     return (
@@ -198,7 +198,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 shouldRefresh: (payload, ctx) => {
                     if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                         throw new Error(
-                            `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                         );
                     }
 
@@ -255,7 +255,7 @@ export class PrimitiveArrayClaim<ValueType> {
                 shouldRefresh: (payload, ctx) => {
                     if (maxAgeInSeconds !== undefined && maxAgeInSeconds < DateProvider.getThresholdInSeconds()) {
                         throw new Error(
-                            `maxAgeInSeconds must be greater than the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
+                            `maxAgeInSeconds must be greater than or equal to the DateProvider threshold value -> ${DateProvider.getThresholdInSeconds()}`
                         );
                     }
 

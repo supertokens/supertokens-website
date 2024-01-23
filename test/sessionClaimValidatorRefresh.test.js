@@ -35,7 +35,7 @@ function withFakeClock(now, cb) {
 describe("SessionClaimValidator Refresh", () => {
     jsdom({ url: "http://localhost" });
 
-    describe("SessionClaimValidator Instantiation ", () => {
+    describe("SessionClaimValidator:shouldRefresh", () => {
         before(function () {
             WindowHandlerReference.init();
             DateProviderReference.init();

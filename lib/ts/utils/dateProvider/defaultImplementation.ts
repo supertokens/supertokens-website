@@ -68,7 +68,7 @@ export class DateProvider {
     }
 
     setClientClockSkewInMillis(clockSkewInMillis: number): void {
-        this.clockSkewInMillis = Math.abs(clockSkewInMillis) > this.thresholdInSeconds * 1000 ? clockSkewInMillis : 0;
+        this.clockSkewInMillis = Math.abs(clockSkewInMillis) >= this.thresholdInSeconds * 1000 ? clockSkewInMillis : 0;
         const localStorage = WindowHandlerReference.getReferenceOrThrow().windowHandler.localStorage;
         localStorage.setItemSync(DateProvider.CLOCK_SKEW_KEY, String(clockSkewInMillis));
     }
