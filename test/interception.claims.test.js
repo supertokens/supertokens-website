@@ -266,7 +266,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
-        it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
+        it("should call the claim refresh endpoint as many times as `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
             await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
             try {
                 let customClaimRefreshCalledCount = 0;
@@ -317,7 +317,12 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                                 body: JSON.stringify({
                                     "st-custom": {
                                         v: true,
-                                        t: originalNow()
+                                        // We intentionally expire the claim during an update. In an ideal scenario,
+                                        // the `shouldRefresh` function would consistently return true as the claim is expired.
+                                        // However, if the client clock is behind, the `shouldRefresh` function may erroneously return false.
+                                        // The responsibility of handling this situation lies with the DateProvider,
+                                        // ensuring that `shouldRefresh` correctly returns true regardless of potential clock discrepancies.
+                                        t: originalNow() - 10 * 60 * 1000
                                     }
                                 })
                             });
@@ -332,7 +337,7 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     await supertokens.validateClaims(() => [customSessionClaimValidator]);
                 });
 
-                assert.strictEqual(customClaimRefreshCalledCount, 1);
+                assert.strictEqual(customClaimRefreshCalledCount, 3);
             } finally {
                 await browser.close();
             }
