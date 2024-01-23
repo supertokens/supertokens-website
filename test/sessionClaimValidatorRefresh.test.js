@@ -41,7 +41,7 @@ describe("SessionClaimValidator Refresh", () => {
             DateProviderReference.init();
         });
 
-        it("SessionClaimValidator instantiation should throw if maxAgeInSeconds is lower than DateProvider threshold", function () {
+        it("SessionClaimValidator shouldRefresh should throw if maxAgeInSeconds is lower than DateProvider threshold", function () {
             const DateProvider = DateProviderReference.getReferenceOrThrow().dateProvider;
 
             const claim = new BooleanClaim({
@@ -51,11 +51,11 @@ describe("SessionClaimValidator Refresh", () => {
             });
 
             assert.throws(() => {
-                claim.validators.isTrue(DateProvider.getThresholdInSeconds() - 1);
+                claim.validators.isTrue(DateProvider.getThresholdInSeconds() - 1).shouldRefresh({});
             });
 
             assert.doesNotThrow(() => {
-                claim.validators.isTrue(DateProvider.getThresholdInSeconds());
+                claim.validators.isTrue(DateProvider.getThresholdInSeconds()).shouldRefresh({});
             });
         });
     });
