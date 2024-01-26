@@ -376,7 +376,6 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 "access-control-allow-credentials",
                 "access-control-allow-origin",
                 "access-control-expose-headers",
-                "connection",
                 "content-length",
                 "content-type",
                 "date",
