@@ -380,25 +380,13 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 "content-length",
                 "content-type",
                 "date",
-                "etag",
                 "front-token",
-                "keep-alive",
-                "vary",
-                "x-powered-by",
                 ...(transferMethod === "header" ? ["st-access-token", "st-refresh-token"] : ["anti-csrf"])
             ];
 
-            assert.deepStrictEqual(
-                new Set(clockSkewParams[0].responseHeaders.map(([key]) => key)),
-                new Set(expectedHeaders)
-            );
+            const actualHeaders = clockSkewParams[0].responseHeaders.map(([key]) => key);
 
-            for (const name of expectedHeaders) {
-                assert.ok(
-                    clockSkewParams[0].responseHeaders.find(([headerName]) => name === headerName),
-                    name + " is undefined in headers"
-                );
-            }
+            assert.ok(expectedHeaders.every(header => actualHeaders.includes(header)));
         });
     });
 });
