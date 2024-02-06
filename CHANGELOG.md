@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [18.0.1] - 2024-02-06
+
+### Fixes
+
+- Fix an issue that caused `attemptRefreshingSession` to throw in some cases when getting a 401 response from the refresh endpoint
+
 ## [18.0.0] - 2024-01-18
 
 ## Breaking Changes
