@@ -477,7 +477,7 @@ export async function onUnauthorisedResponse(
                 // There is a case where the FE thinks the session is valid, but backend doesn't get the tokens.
                 // In this event, session expired error will be thrown and the frontend should remove this token
                 if (isUnauthorised && response.headers.get("front-token") === null) {
-                    FrontToken.setItem("remove");
+                    await FrontToken.setItem("remove");
                 }
 
                 fireSessionUpdateEventsIfNecessary(

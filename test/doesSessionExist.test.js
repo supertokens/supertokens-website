@@ -126,6 +126,50 @@ describe("doesSessionExist", function () {
         });
     });
 
+    it("should not throw if refresh returns a 401 with a session previously existing", async () => {
+        await startST(2);
+        const page = await browser.newPage();
+
+        await page.setRequestInterception(true);
+
+        page.on("request", req => {
+            const url = req.url();
+
+            if (url === BASE_URL + "/auth/session/refresh") {
+                return req.respond({
+                    status: 401
+                });
+            }
+
+            req.continue();
+        });
+
+        await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+        await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+        await page.evaluate(async () => {
+            let BASE_URL = "http://localhost.org:8080";
+            supertokens.init({
+                apiDomain: BASE_URL
+            });
+            let userId = "testing-supertokens-website";
+
+            // Create a session
+            let loginResponse = await fetch(`${BASE_URL}/login`, {
+                method: "post",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId })
+            });
+
+            await delay(3);
+
+            const res = await supertokens.doesSessionExist();
+            assert.strictEqual(res, false);
+        });
+    });
+
     it("should call refresh and return true if the access token expired", async () => {
         await startST(2);
         const page = await browser.newPage();
