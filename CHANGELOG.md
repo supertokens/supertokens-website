@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [18.0.2] - 2024-02-23
+
+### Fixes
+
+- Fix the type of the `builder` object the function override callback gets. It is not longer optional.
+
 ## [18.0.1] - 2024-02-06
 
 ### Fixes

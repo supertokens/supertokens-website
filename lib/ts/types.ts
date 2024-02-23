@@ -65,7 +65,7 @@ export type InputType = {
     override?: {
         functions?: (
             originalImplementation: RecipeInterface,
-            builder?: OverrideableBuilder<RecipeInterface>
+            builder: OverrideableBuilder<RecipeInterface>
         ) => RecipeInterface;
     };
 };
@@ -86,7 +86,7 @@ export type NormalisedInputType = {
     override: {
         functions: (
             originalImplementation: RecipeInterface,
-            builder?: OverrideableBuilder<RecipeInterface>
+            builder: OverrideableBuilder<RecipeInterface>
         ) => RecipeInterface;
     };
 };
