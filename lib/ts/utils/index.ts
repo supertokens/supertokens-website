@@ -140,10 +140,8 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         onHandleEvent = options.onHandleEvent;
     }
 
-    let override: {
-        functions: (originalImplementation: RecipeInterface) => RecipeInterface;
-    } = {
-        functions: oI => oI,
+    let override = {
+        functions: (oI: RecipeInterface) => oI,
         ...options.override
     };
 

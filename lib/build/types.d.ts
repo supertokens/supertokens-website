@@ -41,7 +41,7 @@ export declare type InputType = {
     postAPIHook?: RecipePostAPIHookFunction;
     onHandleEvent?: EventHandler;
     override?: {
-        functions?: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
+        functions?: (originalImplementation: RecipeInterface, builder: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
     };
 };
 export declare type NormalisedInputType = {
@@ -58,7 +58,7 @@ export declare type NormalisedInputType = {
     postAPIHook: RecipePostAPIHookFunction;
     onHandleEvent: EventHandler;
     override: {
-        functions: (originalImplementation: RecipeInterface, builder?: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
+        functions: (originalImplementation: RecipeInterface, builder: OverrideableBuilder<RecipeInterface>) => RecipeInterface;
     };
 };
 export declare type PreAPIHookContext = {
