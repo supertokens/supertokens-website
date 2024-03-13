@@ -14,4 +14,4 @@
  */
 export const package_version = "19.0.0";
 
-export const supported_fdi = ["1.16", "1.17", "1.18"];
+export const supported_fdi = ["1.16", "1.17", "1.18", "1.19"];
