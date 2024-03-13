@@ -158,7 +158,7 @@ export type RecipeInterface = {
 
 export type ClaimValidationResult = { isValid: true } | { isValid: false; reason?: any };
 export type ClaimValidationError = {
-    validatorId: string;
+    id: string;
     reason?: any;
 };
 

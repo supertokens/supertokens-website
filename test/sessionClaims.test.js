@@ -89,7 +89,7 @@ describe("AuthHttpRequest claim handling", function () {
 
                 assert.deepEqual(await AuthHttpRequest.validateClaims(), [
                     {
-                        validatorId: failingValidator.id,
+                        id: failingValidator.id,
                         reason: {
                             message: "testReason"
                         }
@@ -116,7 +116,7 @@ describe("AuthHttpRequest claim handling", function () {
                 SessionClaimValidatorStore.addClaimValidatorFromOtherRecipe(passingValidator);
                 assert.deepEqual(await AuthHttpRequest.validateClaims(() => [failingValidator]), [
                     {
-                        validatorId: failingValidator.id,
+                        id: failingValidator.id,
                         reason: {
                             message: "testReason"
                         }
@@ -144,19 +144,19 @@ describe("AuthHttpRequest claim handling", function () {
                     ]),
                     [
                         {
-                            validatorId: failingValidator.id,
+                            id: failingValidator.id,
                             reason: {
                                 message: "testReason"
                             }
                         },
                         {
-                            validatorId: "test-validator-fail2",
+                            id: "test-validator-fail2",
                             reason: {
                                 message: "testReason"
                             }
                         },
                         {
-                            validatorId: "test-validator-fail3",
+                            id: "test-validator-fail3",
                             reason: {
                                 message: "testReason"
                             }

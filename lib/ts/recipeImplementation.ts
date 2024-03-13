@@ -248,7 +248,7 @@ export default function RecipeImplementation(recipeImplInput: {
                 const validationRes = await validator.validate(accessTokenPayload, input.userContext);
                 if (!validationRes.isValid) {
                     errors.push({
-                        validatorId: validator.id,
+                        id: validator.id,
                         reason: validationRes.reason
                     });
                 }

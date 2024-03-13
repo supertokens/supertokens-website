@@ -137,7 +137,7 @@ export declare type ClaimValidationResult = {
     reason?: any;
 };
 export declare type ClaimValidationError = {
-    validatorId: string;
+    id: string;
     reason?: any;
 };
 export declare type SessionClaimValidator = {

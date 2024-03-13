@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [19.0.0] - 2024-03-14
+
+### Breaking changes
+
+- Rename `validatorId` in claim validation errors to `id` to match the backend SDKs
+
+### Changes
+
+- Added `1.19` to the list of supported FDIs
+
 ## [18.0.2] - 2024-02-23
 
 ### Fixes
