@@ -44,6 +44,12 @@ try {
     // Ignored
 }
 
+let UserMetaDataRecipeRaw;
+try {
+    UserMetaDataRecipeRaw = require("supertokens-node/lib/build/recipe/usermetadata/recipe").default;
+} catch {
+    // Ignored
+}
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 let noOfTimesRefreshAttemptedDuringTest = 0;
@@ -274,6 +280,10 @@ app.post("/startST", async (req, res) => {
         if (MultiTenancyRecipeRaw) {
             MultiTenancyRecipeRaw.reset();
         }
+        if (UserMetaDataRecipeRaw !== undefined) {
+            UserMetaDataRecipeRaw.reset();
+        }
+
         SuperTokens.init(getConfig(enableAntiCsrf, enableJWT));
     }
     let pid = await startST();
@@ -299,6 +309,9 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
     SessionRecipeRaw.reset();
     if (MultiTenancyRecipeRaw) {
         MultiTenancyRecipeRaw.reset();
+    }
+    if (UserMetaDataRecipeRaw !== undefined) {
+        UserMetaDataRecipeRaw.reset();
     }
     SuperTokens.init(getConfig(lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
 
