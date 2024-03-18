@@ -129,7 +129,7 @@ describe("access token update", function () {
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
 
-        if (v3AccessTokenSupported) {
+        if (!v3AccessTokenSupported) {
             return;
         }
 
