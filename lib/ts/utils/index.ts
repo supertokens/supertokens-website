@@ -169,3 +169,23 @@ export function getNormalisedUserContext(userContext?: any): any {
 
     return userContext;
 }
+
+/**
+ * Checks if a given string matches any subdomain or the main domain of a specified hostname.
+ *
+ * @param {string} hostname - The hostname to derive subdomains from.
+ * @param {string} str - The string to compare against the subdomains.
+ * @returns {boolean} True if the string matches any subdomain or the main domain, otherwise false.
+ */
+export function matchesDomainOrSubdomain(hostname: string, str: string): boolean {
+    const parts = hostname.split(".");
+
+    for (let i = 0; i < parts.length; i++) {
+        const subdomainCandidate = parts.slice(i).join(".");
+        if (subdomainCandidate === str || `.${subdomainCandidate}` === str) {
+            return true;
+        }
+    }
+
+    return false;
+}

@@ -13,7 +13,7 @@ import { supported_fdi } from "./version";
 import { logDebugMessage } from "./logger";
 import { STGeneralError } from "./error";
 import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
-import { normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
+import { matchesDomainOrSubdomain, normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
 import DateProviderReference from "./utils/dateProvider";
 
 export default function RecipeImplementation(recipeImplInput: {
@@ -303,11 +303,7 @@ export default function RecipeImplementation(recipeImplInput: {
                         domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
                     }
                 }
-                if (sessionTokenBackendDomain.startsWith(".")) {
-                    return ("." + domain).endsWith(normalisedsessionDomain);
-                } else {
-                    return domain === normalisedsessionDomain;
-                }
+                return matchesDomainOrSubdomain(domain, normalisedsessionDomain);
             }
         },
 

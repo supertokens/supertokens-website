@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [20.0.0] - 2024-04-03
+
+### Breaking changes
+
+- The `shouldDoInterceptionBasedOnUrl` function now returns true if `sessionTokenBackendDomain` is a valid subdomain of the URL's domain. This aligns with the behavior of browsers when sending cookies to subdomains.
+
+**Before:**
+
+  ```javascript
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "api.example.com") // false
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "example.com") // false
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".example.com") // true
+  ```
+
+**After:**
+  
+  ```javascript
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".example.com") // true
+  ```
+
+The behavior in previous versions differed, as `shouldDoInterceptionBasedOnUrl` returned `false` unless `sessionTokenBackendDomain` had an explicit leading dot. This breaking change now assumes any subdomain is valid, making the interception consistent with browser cookie policies.
+
 ## [19.0.1] - 2024-03-18
 - Fixes test server
 
