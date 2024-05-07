@@ -180,7 +180,7 @@ describe("Config tests", function () {
             normaliseSessionScopeOrThrowError("http://");
             assert(false);
         } catch (err) {
-            assert(err.message === "Please provide a valid sessionTokenFrontendDomain");
+            assert(err.message === "Please provide a valid sessionScope");
         }
     });
 
