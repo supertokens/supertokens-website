@@ -270,12 +270,6 @@ export default function RecipeImplementation(recipeImplInput: {
                     " sessionTokenBackendDomain: " +
                     sessionTokenBackendDomain
             );
-            function isNumeric(str: any) {
-                if (typeof str != "string") return false; // we only process strings!
-                return (
-                    !isNaN(str as any) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-                ); // ...and ensure strings of whitespace fail
-            }
 
             // The safest/best way to add this is the hash as the browser strips it before sending
             // but we don't have a reason to limit checking to that part.
@@ -286,23 +280,19 @@ export default function RecipeImplementation(recipeImplInput: {
             toCheckUrl = normaliseURLDomainOrThrowError(toCheckUrl);
             let urlObj = new URL(toCheckUrl);
             let domain = urlObj.hostname;
-            if (sessionTokenBackendDomain === undefined) {
-                domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
+            let apiDomainAndInputDomainMatch = false;
+            if (apiDomain !== "") {
+                // we have the "" check cause in tests, we pass "" in lots of cases.
                 apiDomain = normaliseURLDomainOrThrowError(apiDomain);
                 let apiUrlObj = new URL(apiDomain);
-                return (
-                    domain === (apiUrlObj.port === "" ? apiUrlObj.hostname : apiUrlObj.hostname + ":" + apiUrlObj.port)
-                );
+                apiDomainAndInputDomainMatch = domain === apiUrlObj.hostname;
+            }
+            if (sessionTokenBackendDomain === undefined || apiDomainAndInputDomainMatch) {
+                // even if sessionTokenBackendDomain !== undefined, if there is an exact match
+                // of api domain, ignoring the port, we return true
+                return apiDomainAndInputDomainMatch;
             } else {
                 let normalisedsessionDomain = normaliseSessionScopeOrThrowError(sessionTokenBackendDomain);
-                if (sessionTokenBackendDomain.split(":").length > 1) {
-                    // means port may provided
-                    let portStr = sessionTokenBackendDomain.split(":")[sessionTokenBackendDomain.split(":").length - 1];
-                    if (isNumeric(portStr)) {
-                        normalisedsessionDomain += ":" + portStr;
-                        domain = urlObj.port === "" ? domain : domain + ":" + urlObj.port;
-                    }
-                }
                 return matchesDomainOrSubdomain(domain, normalisedsessionDomain);
             }
         },
