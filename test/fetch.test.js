@@ -24,6 +24,7 @@ let assert = require("assert");
 let {
     delay,
     checkIfIdRefreshIsCleared,
+    checkIfDuplicateCookieHandlingIsEnabled,
     getNumberOfTimesRefreshCalled,
     startST,
     startSTWithJWTEnabled,
@@ -272,6 +273,170 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 //check that the number of time the refreshAPI was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
             });
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test duplicate access cookies makes refresh throw a 500 error in case backend doesn't have olderCookieDomain set", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+            let cookies = await page.cookies();
+            let accessTokenValue = cookies.filter(c => c.name === "sAccessToken")[0].value;
+            await page.setCookie({
+                name: "sAccessToken",
+                path: "/",
+                value: accessTokenValue,
+                domain: ".localhost.org"
+            });
+            if (!(await checkIfDuplicateCookieHandlingIsEnabled())) {
+                await page.evaluate(async () => {
+                    await supertokens.attemptRefreshingSession();
+                });
+            } else {
+                await page.evaluate(async () => {
+                    try {
+                        await supertokens.attemptRefreshingSession();
+                        throw new Error("test failed");
+                    } catch (err) {
+                        assertEqual(err.status, 500);
+                        let responseText = await err.text();
+                        assertEqual(
+                            "The request contains multiple session cookies. This may happen if you've changed the 'cookieDomain' value in your configuration. To clear tokens from the previous domain, set 'olderCookieDomain' in your config.",
+                            responseText
+                        );
+                    }
+                });
+            }
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test duplicate refresh cookies makes refresh throw a 500 error in case backend doesn't have olderCookieDomain set", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+            let cookies = await page.cookies(BASE_URL + "/auth/session/refresh");
+            let refreshTokenValue = cookies.filter(c => c.name === "sRefreshToken")[0].value;
+            await page.setCookie({
+                name: "sRefreshToken",
+                path: "/",
+                value: refreshTokenValue,
+                domain: ".localhost.org"
+            });
+            if (!(await checkIfDuplicateCookieHandlingIsEnabled())) {
+                await page.evaluate(async () => {
+                    await supertokens.attemptRefreshingSession();
+                });
+            } else {
+                await page.evaluate(async () => {
+                    try {
+                        await supertokens.attemptRefreshingSession();
+                        throw new Error("test failed");
+                    } catch (err) {
+                        assertEqual(err.status, 500);
+                        let responseText = await err.text();
+                        assertEqual(
+                            "The request contains multiple session cookies. This may happen if you've changed the 'cookieDomain' value in your configuration. To clear tokens from the previous domain, set 'olderCookieDomain' in your config.",
+                            responseText
+                        );
+                    }
+                });
+            }
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("test refresh session without refresh token and only access token clears all tokens", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(async () => {
+                let BASE_URL = "http://localhost.org:8080";
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+                let userId = "testing-supertokens-website";
+
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assertEqual(await loginResponse.text(), userId);
+            });
+            await page.deleteCookie({
+                name: "sRefreshToken",
+                path: "/auth/session/refresh"
+            });
+            await page.evaluate(async () => {
+                let attemptRefresh = await supertokens.attemptRefreshingSession();
+                assertEqual(attemptRefresh, false);
+            });
+            let cookies = await page.cookies();
+            if (!(await checkIfDuplicateCookieHandlingIsEnabled())) {
+                assert(cookies.length === 2); // just st-las-access-token-update should be there
+            } else {
+                assert(cookies.length === 1); // just st-las-access-token-update should be there
+            }
         } finally {
             await browser.close();
         }

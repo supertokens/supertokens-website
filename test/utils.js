@@ -133,6 +133,12 @@ module.exports.checkIfJWTIsEnabled = async function () {
     return featureFlags !== undefined && featureFlags !== null && featureFlags.sessionJwt === true;
 };
 
+module.exports.checkIfDuplicateCookieHandlingIsEnabled = async function () {
+    let featureFlags = await module.exports.getFeatureFlags();
+
+    return featureFlags !== undefined && featureFlags !== null && featureFlags.duplicateCookieHandling === true;
+};
+
 module.exports.checkIfV3AccessTokenIsSupported = async function () {
     let featureFlags = await module.exports.getFeatureFlags();
 
