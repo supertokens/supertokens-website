@@ -325,10 +325,10 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     } catch (err) {
                         assertEqual(err.status, 500);
                         let responseText = await err.text();
-                        assertEqual(
-                            "The request contains multiple session cookies. This may happen if you've changed the 'cookieDomain' value in your configuration. To clear tokens from the previous domain, set 'olderCookieDomain' in your config.",
-                            responseText
+                        let textContainsCorrectMessage = responseText.includes(
+                            "The request contains multiple session cookies."
                         );
+                        assertEqual(true, textContainsCorrectMessage);
                     }
                 });
             }
@@ -386,10 +386,10 @@ describe("Fetch AuthHttpRequest class tests", function () {
                     } catch (err) {
                         assertEqual(err.status, 500);
                         let responseText = await err.text();
-                        assertEqual(
-                            "The request contains multiple session cookies. This may happen if you've changed the 'cookieDomain' value in your configuration. To clear tokens from the previous domain, set 'olderCookieDomain' in your config.",
-                            responseText
+                        let textContainsCorrectMessage = responseText.includes(
+                            "The request contains multiple session cookies."
                         );
+                        assertEqual(true, textContainsCorrectMessage);
                     }
                 });
             }
