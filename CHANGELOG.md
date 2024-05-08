@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [20.0.0] - 2024-04-03
+
+### Breaking changes
+
+The `shouldDoInterceptionBasedOnUrl` function now returns true: 
+- If `sessionTokenBackendDomain` is a valid subdomain of the URL's domain. This aligns with the behavior of browsers when sending cookies to subdomains.
+- Even if the ports of the URL you are querying are different compared to the `apiDomain`'s port ot the `sessionTokenBackendDomain` port (as long as the hostname is the same, or a subdomain of the `sessionTokenBackendDomain`): https://github.com/supertokens/supertokens-website/issues/217
+
+
+**Before:**
+
+  ```javascript
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "api.example.com") // false
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "example.com") // false
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://api.example.com", "", ".example.com:8080") // false
+    shouldDoInterceptionBasedOnUrl("https://api.example.com", "https://example.com:8080") // false
+  ```
+
+**After:**
+  
+  ```javascript
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".api.example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", "example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://sub.api.example.com", "", ".example.com") // true
+    shouldDoInterceptionBasedOnUrl("https://api.example.com", "", ".example.com:8080") // true
+    shouldDoInterceptionBasedOnUrl("https://api.example.com", "https://example.com:8080") // true
+  ```
+
 ## [19.0.1] - 2024-03-18
 - Fixes test server
 

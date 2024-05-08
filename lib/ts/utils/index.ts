@@ -34,41 +34,36 @@ export function normaliseURLPathOrThrowError(input: string): string {
     return new NormalisedURLPath(input).getAsStringDangerous();
 }
 
-export function normaliseSessionScopeOrThrowError(sessionTokenFrontendDomain: string): string {
-    function helper(sessionTokenFrontendDomain: string): string {
-        sessionTokenFrontendDomain = sessionTokenFrontendDomain.trim().toLowerCase();
+export function normaliseSessionScopeOrThrowError(sessionScope: string): string {
+    function helper(sessionScope: string): string {
+        sessionScope = sessionScope.trim().toLowerCase();
 
         // first we convert it to a URL so that we can use the URL class
-        if (sessionTokenFrontendDomain.startsWith(".")) {
-            sessionTokenFrontendDomain = sessionTokenFrontendDomain.substr(1);
+        if (sessionScope.startsWith(".")) {
+            sessionScope = sessionScope.substr(1);
         }
 
-        if (!sessionTokenFrontendDomain.startsWith("http://") && !sessionTokenFrontendDomain.startsWith("https://")) {
-            sessionTokenFrontendDomain = "http://" + sessionTokenFrontendDomain;
+        if (!sessionScope.startsWith("http://") && !sessionScope.startsWith("https://")) {
+            sessionScope = "http://" + sessionScope;
         }
 
         try {
-            let urlObj = new URL(sessionTokenFrontendDomain);
-            sessionTokenFrontendDomain = urlObj.hostname;
+            let urlObj = new URL(sessionScope);
+            sessionScope = urlObj.hostname;
 
-            // remove leading dot
-            if (sessionTokenFrontendDomain.startsWith(".")) {
-                sessionTokenFrontendDomain = sessionTokenFrontendDomain.substr(1);
-            }
-
-            return sessionTokenFrontendDomain;
+            return sessionScope;
         } catch (err) {
-            throw new Error("Please provide a valid sessionTokenFrontendDomain");
+            throw new Error("Please provide a valid sessionScope");
         }
     }
 
-    let noDotNormalised = helper(sessionTokenFrontendDomain);
+    let noDotNormalised = helper(sessionScope);
 
     if (noDotNormalised === "localhost" || isAnIpAddress(noDotNormalised)) {
         return noDotNormalised;
     }
 
-    if (sessionTokenFrontendDomain.startsWith(".")) {
+    if (sessionScope.startsWith(".")) {
         return "." + noDotNormalised;
     }
 
@@ -168,4 +163,24 @@ export function getNormalisedUserContext(userContext?: any): any {
     }
 
     return userContext;
+}
+
+/**
+ * Checks if a given string matches any subdomain or the main domain of a specified hostname.
+ *
+ * @param {string} hostname - The hostname to derive subdomains from.
+ * @param {string} str - The string to compare against the subdomains.
+ * @returns {boolean} True if the string matches any subdomain or the main domain, otherwise false.
+ */
+export function matchesDomainOrSubdomain(hostname: string, str: string): boolean {
+    const parts = hostname.split(".");
+
+    for (let i = 0; i < parts.length; i++) {
+        const subdomainCandidate = parts.slice(i).join(".");
+        if (subdomainCandidate === str || `.${subdomainCandidate}` === str) {
+            return true;
+        }
+    }
+
+    return false;
 }
