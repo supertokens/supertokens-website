@@ -373,10 +373,12 @@ describe("Fetch AuthHttpRequest class tests", function () {
                 domain: ".localhost.org"
             });
             if (!(await checkIfDuplicateCookieHandlingIsEnabled())) {
+                console.log("Skipping testing with duplicate refresh cookies");
                 await page.evaluate(async () => {
                     await supertokens.attemptRefreshingSession();
                 });
             } else {
+                console.log("Testing duplicate refresh cookies");
                 await page.evaluate(async () => {
                     try {
                         await supertokens.attemptRefreshingSession();
