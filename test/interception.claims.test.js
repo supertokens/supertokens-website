@@ -266,6 +266,357 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             }
         });
 
+        it("should call the claim refresh endpoint once for multiple concurrent validateClaims calls", async function () {
+            await startST();
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        customClaimRefreshCalledCount++;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: Date.now()
+                                    }
+                                })
+                            });
+                        }
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await Promise.all([
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator])
+                    ]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 1);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should retry the refresh endpoint", async function () {
+            await startST();
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        customClaimRefreshCalledCount++;
+                        if (customClaimRefreshCalledCount === 1) {
+                            req.respond({
+                                status: 401,
+                                body: JSON.stringify({
+                                    message: "try refresh token"
+                                })
+                            });
+                        } else {
+                            req.continue();
+                        }
+                    } else {
+                        req.continue();
+                    }
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: Date.now()
+                                    }
+                                })
+                            });
+                        }
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await Promise.all([
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator])
+                    ]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 2);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should work even if the refresh endpoint returns a 500", async function () {
+            await startST();
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        req.respond({
+                            status: 500,
+                            body: "nope"
+                        });
+                        customClaimRefreshCalledCount++;
+                    } else {
+                        req.continue();
+                    }
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: Date.now()
+                                    }
+                                })
+                            });
+                        }
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await Promise.all([
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator])
+                    ]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 3);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        it("should work even if the refresh function throws", async function () {
+            await startST();
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        ++customClaimRefreshCalledCount;
+                        req.abort();
+                    } else {
+                        req.continue();
+                    }
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: Date.now()
+                                    }
+                                })
+                            });
+                        }
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await Promise.all([
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator]),
+                        supertokens.validateClaims(() => [customSessionClaimValidator])
+                    ]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 3);
+            } finally {
+                await browser.close();
+            }
+        });
+
+        // This test is skipped because it takes ~8 mins to run
+        it.skip("should work even if it runs out of retries for the lock", async function () {
+            await startST();
+            try {
+                let customClaimRefreshCalledCount = 0;
+
+                await page.setRequestInterception(true);
+
+                page.on("request", req => {
+                    if (req.url() === `${BASE_URL}/update-jwt`) {
+                        ++customClaimRefreshCalledCount;
+                    }
+                    req.continue();
+                });
+
+                await page.evaluate(async () => {
+                    const userId = "testing-supertokens-website";
+                    localStorage.setItem(
+                        "browser-tabs-lock-key-CLAIM_REFRESH_LOCK",
+                        JSON.stringify({ timeRefreshed: Date.now() })
+                    );
+                    setInterval(
+                        () =>
+                            localStorage.setItem(
+                                "browser-tabs-lock-key-CLAIM_REFRESH_LOCK",
+                                JSON.stringify({ timeRefreshed: Date.now() })
+                            ),
+                        1000
+                    );
+                    // Create a session
+                    const loginResponse = await toTest({
+                        url: `${BASE_URL}/login`,
+                        method: "post",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    assertEqual(loginResponse.responseText, userId);
+
+                    const customSessionClaim = new supertokens.BooleanClaim({
+                        id: "st-custom",
+                        refresh: async () => {
+                            await toTest({
+                                url: `${BASE_URL}/update-jwt`,
+                                method: "post",
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "st-custom": {
+                                        v: true,
+                                        t: Date.now()
+                                    }
+                                })
+                            });
+                        }
+                    });
+
+                    const customSessionClaimValidator = customSessionClaim.validators.isTrue();
+
+                    await supertokens.validateClaims(() => [customSessionClaimValidator]);
+                });
+
+                assert.strictEqual(customClaimRefreshCalledCount, 0);
+            } finally {
+                await browser.close();
+            }
+        });
+
         it("should call the claim refresh endpoint as many times as `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
             await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
             try {
