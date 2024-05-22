@@ -15,6 +15,10 @@ import { STGeneralError } from "./error";
 import { addInterceptorsToXMLHttpRequest } from "./xmlhttprequest";
 import { matchesDomainOrSubdomain, normaliseSessionScopeOrThrowError, normaliseURLDomainOrThrowError } from "./utils";
 import DateProviderReference from "./utils/dateProvider";
+import LockFactoryReference from "./utils/lockFactory";
+
+const MAX_REFRESH_LOCK_TRY_COUNT = 100;
+const CLAIM_REFRESH_LOCK_NAME = "CLAIM_REFRESH_LOCK";
 
 export default function RecipeImplementation(recipeImplInput: {
     preAPIHook: RecipePreAPIHookFunction;
@@ -223,7 +227,8 @@ export default function RecipeImplementation(recipeImplInput: {
             claimValidators: SessionClaimValidator[];
             userContext: any;
         }): Promise<ClaimValidationError[]> {
-            let accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+            // We only load accessTokenPayload after acquiring the lock, since it could change until then
+            let accessTokenPayload;
             // We first refresh all claims that may need to be refreshed, before running any validators,
             // to avoid a situation where:
             // 1. The payload passes claimValidators[0].
@@ -232,15 +237,47 @@ export default function RecipeImplementation(recipeImplInput: {
             // 4. We return no errors since both claimValidators[0] and claimValidators[1] passed (but different states of the payload)
             // Running all refreshes before validation avoids this.
 
-            for (const validator of input.claimValidators) {
-                if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
-                    try {
-                        await validator.refresh(input.userContext);
-                    } catch (err) {
-                        console.error(`Encountered an error while refreshing validator ${validator.id}`, err);
-                    }
+            let tryCount = 0;
+            while (++tryCount < MAX_REFRESH_LOCK_TRY_COUNT) {
+                const lockFactory = await LockFactoryReference.getReferenceOrThrow().lockFactory();
+                logDebugMessage("validateClaims: trying to acquire claim refresh lock");
+                const claimRefreshLock = await lockFactory.acquireLock(CLAIM_REFRESH_LOCK_NAME);
+                if (claimRefreshLock) {
                     accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+                    logDebugMessage("validateClaims: claim refresh lock acquired");
+                    // to sync across tabs. the 1000 ms wait is for how much time to try and acquire the lock
+                    try {
+                        for (const validator of input.claimValidators) {
+                            if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
+                                try {
+                                    await validator.refresh(input.userContext);
+                                } catch (err) {
+                                    console.error(
+                                        `Encountered an error while refreshing validator ${validator.id}`,
+                                        err
+                                    );
+                                }
+                                accessTokenPayload = await this.getAccessTokenPayloadSecurely({
+                                    userContext: input.userContext
+                                });
+                            }
+                        }
+                    } finally {
+                        logDebugMessage("validateClaims: releasing claim refresh lock");
+                        await lockFactory.releaseLock(CLAIM_REFRESH_LOCK_NAME);
+                    }
+                    break;
+                } else {
+                    logDebugMessage(`validateClaims: Retrying refresh lock ${tryCount}/${MAX_REFRESH_LOCK_TRY_COUNT}`);
                 }
+            }
+
+            if (tryCount === MAX_REFRESH_LOCK_TRY_COUNT) {
+                logDebugMessage("validateClaims: ran out of retries while trying to acquire claim refresh lock");
+                // We can just load the access token payload (that doesn't happen above if we never got inside the lock)
+                accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
+                // and let the claim validation proceed. This matches our behaviour of letting the validation proceed
+                // even if a refresh function threw or failed to refresh a claim.
             }
 
             const errors = [];
