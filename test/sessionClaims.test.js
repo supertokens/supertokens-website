@@ -15,7 +15,7 @@
 let AuthHttpRequest = require("../index.js").default;
 let jsdom = require("mocha-jsdom");
 let assert = require("assert");
-let { resetSessionClaimValidatorStore } = require("./utils");
+let { resetSessionClaimValidatorStore, resetAuthHttpRequestFetch } = require("./utils");
 const sinon = require("sinon");
 const { SessionClaimValidatorStore } = require("../lib/build/utils/sessionClaimValidatorStore.js");
 
@@ -41,6 +41,7 @@ describe("AuthHttpRequest claim handling", function () {
     beforeEach(async function () {
         sinon.restore();
         global.document = {};
+        resetAuthHttpRequestFetch();
         resetSessionClaimValidatorStore();
         accessTokenStub = sinon.stub().returns({});
         AuthHttpRequest.init({
