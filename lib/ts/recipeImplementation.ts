@@ -243,10 +243,12 @@ export default function RecipeImplementation(recipeImplInput: {
                 logDebugMessage("validateClaims: trying to acquire claim refresh lock");
                 const claimRefreshLock = await lockFactory.acquireLock(CLAIM_REFRESH_LOCK_NAME);
                 if (claimRefreshLock) {
-                    accessTokenPayload = await this.getAccessTokenPayloadSecurely({ userContext: input.userContext });
-                    logDebugMessage("validateClaims: claim refresh lock acquired");
-                    // to sync across tabs. the 1000 ms wait is for how much time to try and acquire the lock
                     try {
+                        accessTokenPayload = await this.getAccessTokenPayloadSecurely({
+                            userContext: input.userContext
+                        });
+                        logDebugMessage("validateClaims: claim refresh lock acquired");
+                        // to sync across tabs. the 1000 ms wait is for how much time to try and acquire the lock
                         for (const validator of input.claimValidators) {
                             if (await validator.shouldRefresh(accessTokenPayload, input.userContext)) {
                                 try {
