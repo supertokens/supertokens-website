@@ -7,16 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [20.0.2] - 2024-05-23
+## [20.0.1] - 2024-05-24
 
 ### Changes
 
 - Added 2.0 and 3.0 to supported FDIs
-
-## [20.0.1] - 2024-05-22
-
-### Changes
-
 - Now we use the locking to make sure that refreshing claims happens only once even for concurrent validateClaims calls
   - The locking mechanism is configurable through by providing a `lockFactory` function in the configuration
 
