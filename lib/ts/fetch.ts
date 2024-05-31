@@ -280,6 +280,7 @@ export default class AuthHttpRequest {
 
         ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         try {
+            let sessionRefreshAttempts = 0;
             let returnObj = undefined;
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
@@ -341,7 +342,24 @@ export default class AuthHttpRequest {
 
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
+
+                    /**
+                     * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
+                     * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
+                     * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
+                     */
+                    if (sessionRefreshAttempts >= AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh) {
+                        logDebugMessage(
+                            `doRequest: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh}`
+                        );
+                        return response;
+                    }
+
                     let retry = await onUnauthorisedResponse(preRequestLSS);
+
+                    sessionRefreshAttempts++;
+                    logDebugMessage("doRequest: sessionRefreshAttempts: " + sessionRefreshAttempts);
+
                     if (retry.result !== "RETRY") {
                         logDebugMessage("doRequest: Not retrying original request");
                         returnObj = retry.error !== undefined ? retry.error : response;

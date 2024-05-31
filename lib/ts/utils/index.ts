@@ -116,6 +116,14 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         sessionTokenBackendDomain = normaliseSessionScopeOrThrowError(options.sessionTokenBackendDomain);
     }
 
+    let maxRetryAttemptsForSessionRefresh = 3;
+    if (options.maxRetryAttemptsForSessionRefresh !== undefined) {
+        if (options.maxRetryAttemptsForSessionRefresh < 0) {
+            throw new Error("maxRetryAttemptsForSessionRefresh must be greater than or equal to 0.");
+        }
+        maxRetryAttemptsForSessionRefresh = options.maxRetryAttemptsForSessionRefresh;
+    }
+
     let preAPIHook: RecipePreAPIHookFunction = async context => {
         return { url: context.url, requestInit: context.requestInit };
     };
@@ -150,6 +158,7 @@ export function validateAndNormaliseInputOrThrowError(options: InputType): Norma
         isInIframe,
         tokenTransferMethod: options.tokenTransferMethod !== undefined ? options.tokenTransferMethod : "cookie",
         sessionTokenBackendDomain: sessionTokenBackendDomain,
+        maxRetryAttemptsForSessionRefresh,
         preAPIHook,
         postAPIHook,
         onHandleEvent,

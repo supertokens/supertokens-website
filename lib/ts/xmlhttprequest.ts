@@ -76,6 +76,7 @@ export function addInterceptorsToXMLHttpRequest() {
         let doNotDoInterception = false;
         let preRequestLSS: LocalSessionState | undefined = undefined;
         let body: Document | XMLHttpRequestBodyInit | null | undefined;
+        let sessionRefreshAttempts = 0;
 
         // we do not provide onerror cause that is fired only on
         // network level failures and nothing else. If a status code is > 400,
@@ -125,7 +126,26 @@ export function addInterceptorsToXMLHttpRequest() {
                 throw new Error("Should never come here..");
             }
             logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestLSS " + preRequestLSS.status);
+
+            /**
+             * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
+             * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
+             * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
+             */
+            if (sessionRefreshAttempts >= AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh) {
+                logDebugMessage(
+                    `XHRInterceptor.handleRetryPostRefreshing: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh}`
+                );
+                return true;
+            }
+
             const refreshResult = await onUnauthorisedResponse(preRequestLSS);
+
+            sessionRefreshAttempts++;
+            logDebugMessage(
+                "XHRInterceptor.handleRetryPostRefreshing: sessionRefreshAttempts: " + sessionRefreshAttempts
+            );
+
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage(
                     "XHRInterceptor.handleRetryPostRefreshing: Not retrying original request " + !!refreshResult.error
