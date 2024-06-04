@@ -205,7 +205,11 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             responseType: "text"
                         });
                     } catch (err) {
-                        resp = err.response;
+                        if (err.response) {
+                            resp = err.response;
+                        } else {
+                            throw err;
+                        }
                     }
                     return {
                         url: resp.config.url,
@@ -273,7 +277,11 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             responseType: "text"
                         });
                     } catch (err) {
-                        resp = err.response;
+                        if (err.response) {
+                            resp = err.response;
+                        } else {
+                            throw err;
+                        }
                     }
                     return {
                         url: resp.config.url,

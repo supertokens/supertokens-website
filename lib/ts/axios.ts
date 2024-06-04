@@ -473,7 +473,10 @@ export default class AuthHttpRequest {
                                 logDebugMessage(
                                     `doRequest: Maximum session refresh attempts reached. sessionRefreshAttempts: ${config.__supertokensSessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh}`
                                 );
-                                return response;
+
+                                const errorMessage = `Received a 401 response from ${url}. Attempted to refresh the session and retry the request with the updated session tokens ${AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh} times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`;
+                                console.error(errorMessage);
+                                throw new Error(errorMessage);
                             }
 
                             const refreshResult = await onUnauthorisedResponse(preRequestLSS);

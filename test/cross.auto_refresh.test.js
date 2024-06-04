@@ -667,6 +667,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
             let count = 0;
             page.on("request", req => {
                 const url = req.url();
@@ -704,17 +710,20 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 //check that the number of times the refreshAPI was called is 0
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                let getResponse = await toTest({ url: `${BASE_URL}/` });
-
-                assert.strictEqual(getResponse.statusCode, 401);
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
 
                 const numRefreshCalled = await getNumberOfTimesRefreshCalled();
-
-                assert.strictEqual(numRefreshCalled, 3);
-
-                // Check that the last response was returned
-                assert.strictEqual(JSON.parse(getResponse.responseText).count, numRefreshCalled + 1);
+                assert.strictEqual(numRefreshCalled, 10);
             });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 10 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
             await page.setRequestInterception(false);
         });
 
@@ -722,6 +731,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
             let count = 0;
             page.on("request", req => {
                 const url = req.url();
@@ -740,7 +755,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await page.evaluate(async () => {
                 supertokens.init({
                     apiDomain: BASE_URL,
-                    maxRetryAttemptsForSessionRefresh: 10
+                    maxRetryAttemptsForSessionRefresh: 5
                 });
 
                 const userId = "testing-supertokens-website";
@@ -760,17 +775,20 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 //check that the number of times the refreshAPI was called is 0
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                let getResponse = await toTest({ url: `${BASE_URL}/` });
-
-                assert.strictEqual(getResponse.statusCode, 401);
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
 
                 const numRefreshCalled = await getNumberOfTimesRefreshCalled();
-
-                assert.strictEqual(numRefreshCalled, 10);
-
-                // Check that the last response was returned
-                assert.strictEqual(JSON.parse(getResponse.responseText).count, numRefreshCalled + 1);
+                assert.strictEqual(numRefreshCalled, 5);
             });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 5 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
             await page.setRequestInterception(false);
         });
 
@@ -778,6 +796,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await startST();
             await setup();
             await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
             let count = 0;
             page.on("request", req => {
                 const url = req.url();
@@ -816,17 +840,20 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 //check that the number of times the refreshAPI was called is 0
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
 
-                let getResponse = await toTest({ url: `${BASE_URL}/` });
-
-                assert.strictEqual(getResponse.statusCode, 401);
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
 
                 const numRefreshCalled = await getNumberOfTimesRefreshCalled();
-
                 assert.strictEqual(numRefreshCalled, 0);
-
-                // Check that the last response was returned
-                assert.strictEqual(JSON.parse(getResponse.responseText).count, numRefreshCalled + 1);
             });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 0 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
             await page.setRequestInterception(false);
         });
     });
