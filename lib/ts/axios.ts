@@ -441,6 +441,10 @@ export default class AuthHttpRequest {
                     let response =
                         localPrevResponse === undefined ? await httpCall(configWithAntiCsrf) : localPrevResponse;
 
+                    // NOTE: No need to check for unauthorized response status here for session refresh,
+                    // as we only reach this point on a successful response. Axios handles error responses
+                    // by throwing an error, which is handled in the catch block.
+
                     logDebugMessage("doRequest: User's http call ended");
 
                     await saveTokensFromHeaders(response);

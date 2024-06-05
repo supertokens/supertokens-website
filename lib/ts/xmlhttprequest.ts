@@ -249,9 +249,11 @@ export function addInterceptorsToXMLHttpRequest() {
                     // Here we only need to handle fetch related errors, from the refresh endpoint called by the retry
                     // So we should only get network level errors here
 
-                    const ev = new Event("error");
+                    const ev = new ProgressEvent("error");
                     (ev as any).error = err;
-                    self.dispatchEvent(ev);
+                    if (self.onerror !== undefined && self.onerror !== null) {
+                        self.onerror(ev);
+                    }
 
                     redispatchEvent("error", ev);
                 }
