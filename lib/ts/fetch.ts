@@ -280,6 +280,7 @@ export default class AuthHttpRequest {
 
         ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
         try {
+            let sessionRefreshAttempts = 0;
             let returnObj = undefined;
             while (true) {
                 // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
@@ -341,7 +342,27 @@ export default class AuthHttpRequest {
 
                 if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
                     logDebugMessage("doRequest: Status code is: " + response.status);
+
+                    /**
+                     * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
+                     * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
+                     * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
+                     */
+                    if (sessionRefreshAttempts >= AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh) {
+                        logDebugMessage(
+                            `doRequest: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh}`
+                        );
+
+                        const errorMessage = `Received a 401 response from ${url}. Attempted to refresh the session and retry the request with the updated session tokens ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh} times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`;
+                        console.error(errorMessage);
+                        throw new Error(errorMessage);
+                    }
+
                     let retry = await onUnauthorisedResponse(preRequestLSS);
+
+                    sessionRefreshAttempts++;
+                    logDebugMessage("doRequest: sessionRefreshAttempts: " + sessionRefreshAttempts);
+
                     if (retry.result !== "RETRY") {
                         logDebugMessage("doRequest: Not retrying original request");
                         returnObj = retry.error !== undefined ? retry.error : response;

@@ -662,5 +662,199 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
             await page.setRequestInterception(false);
         });
+
+        it("should break out of session refresh loop after default maxRetryAttemptsForSessionRefresh value", async function () {
+            await startST();
+            await setup();
+            await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
+            let count = 0;
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/") {
+                    req.respond({
+                        status: 401,
+                        body: JSON.stringify({
+                            count: ++count,
+                            message: "try refresh token"
+                        })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.evaluate(async () => {
+                supertokens.init({
+                    apiDomain: BASE_URL
+                });
+
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                //check that the number of times the refreshAPI was called is 0
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
+
+                const numRefreshCalled = await getNumberOfTimesRefreshCalled();
+                assert.strictEqual(numRefreshCalled, 10);
+            });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 10 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
+            await page.setRequestInterception(false);
+        });
+
+        it("should break out of session refresh loop after configured maxRetryAttemptsForSessionRefresh value", async function () {
+            await startST();
+            await setup();
+            await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
+            let count = 0;
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/") {
+                    req.respond({
+                        status: 401,
+                        body: JSON.stringify({
+                            count: ++count,
+                            message: "try refresh token"
+                        })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.evaluate(async () => {
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    maxRetryAttemptsForSessionRefresh: 5
+                });
+
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                //check that the number of times the refreshAPI was called is 0
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
+
+                const numRefreshCalled = await getNumberOfTimesRefreshCalled();
+                assert.strictEqual(numRefreshCalled, 5);
+            });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 5 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
+            await page.setRequestInterception(false);
+        });
+
+        it("should not do session refresh if maxRetryAttemptsForSessionRefresh is 0", async function () {
+            await startST();
+            await setup();
+            await page.setRequestInterception(true);
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
+            let count = 0;
+            page.on("request", req => {
+                const url = req.url();
+                if (url === BASE_URL + "/") {
+                    req.respond({
+                        status: 401,
+                        body: JSON.stringify({
+                            count: ++count,
+                            message: "try refresh token"
+                        })
+                    });
+                } else {
+                    req.continue();
+                }
+            });
+            await page.evaluate(async () => {
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    maxRetryAttemptsForSessionRefresh: 0
+                });
+
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                //check that the number of times the refreshAPI was called is 0
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
+
+                const numRefreshCalled = await getNumberOfTimesRefreshCalled();
+                assert.strictEqual(numRefreshCalled, 0);
+            });
+
+            assert(
+                consoleLogs.includes(
+                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 0 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                )
+            );
+
+            await page.setRequestInterception(false);
+        });
     });
 });

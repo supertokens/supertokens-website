@@ -1,4 +1,8 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig as OriginalAxiosRequestConfig, AxiosResponse } from "axios";
+declare type AxiosRequestConfig<T = any> = OriginalAxiosRequestConfig<T> & {
+    __supertokensSessionRefreshAttempts?: number;
+    __supertokensAddedAuthHeader?: boolean;
+};
 export declare function interceptorFunctionRequestFulfilled(config: AxiosRequestConfig): Promise<AxiosRequestConfig<any>>;
 export declare function responseInterceptor(axiosInstance: any): (response: AxiosResponse) => Promise<AxiosResponse<any, any>>;
 export declare function responseErrorInterceptor(axiosInstance: any): (error: any) => Promise<AxiosResponse<any, any>>;
@@ -15,3 +19,4 @@ export default class AuthHttpRequest {
      */
     static doRequest: (httpCall: (config: AxiosRequestConfig) => AxiosPromise<any>, config: AxiosRequestConfig, url?: string, prevResponse?: AxiosResponse, prevError?: any, viaInterceptor?: boolean) => Promise<AxiosResponse<any>>;
 }
+export {};

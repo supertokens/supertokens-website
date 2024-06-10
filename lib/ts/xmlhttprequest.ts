@@ -76,6 +76,7 @@ export function addInterceptorsToXMLHttpRequest() {
         let doNotDoInterception = false;
         let preRequestLSS: LocalSessionState | undefined = undefined;
         let body: Document | XMLHttpRequestBodyInit | null | undefined;
+        let sessionRefreshAttempts = 0;
 
         // we do not provide onerror cause that is fired only on
         // network level failures and nothing else. If a status code is > 400,
@@ -125,7 +126,34 @@ export function addInterceptorsToXMLHttpRequest() {
                 throw new Error("Should never come here..");
             }
             logDebugMessage("XHRInterceptor.handleRetryPostRefreshing: preRequestLSS " + preRequestLSS.status);
+
+            /**
+             * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
+             * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
+             * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
+             */
+            if (sessionRefreshAttempts >= AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh) {
+                logDebugMessage(
+                    `XHRInterceptor.handleRetryPostRefreshing: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh}`
+                );
+
+                // We set these values to prevent XHR from returning any response in this case. This simulates a network error in XHR.
+                customGetterValues["status"] = 0;
+                customGetterValues["statusText"] = "";
+                customGetterValues["responseType"] = "";
+
+                const errorMessage = `Received a 401 response from ${url}. Attempted to refresh the session and retry the request with the updated session tokens ${AuthHttpRequestFetch.config.maxRetryAttemptsForSessionRefresh} times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`;
+                console.error(errorMessage);
+                throw new Error(errorMessage);
+            }
+
             const refreshResult = await onUnauthorisedResponse(preRequestLSS);
+
+            sessionRefreshAttempts++;
+            logDebugMessage(
+                "XHRInterceptor.handleRetryPostRefreshing: sessionRefreshAttempts: " + sessionRefreshAttempts
+            );
+
             if (refreshResult.result !== "RETRY") {
                 logDebugMessage(
                     "XHRInterceptor.handleRetryPostRefreshing: Not retrying original request " + !!refreshResult.error
@@ -220,7 +248,14 @@ export function addInterceptorsToXMLHttpRequest() {
                 } else {
                     // Here we only need to handle fetch related errors, from the refresh endpoint called by the retry
                     // So we should only get network level errors here
-                    redispatchEvent("error", new Event("error"));
+
+                    const ev = new ProgressEvent("error");
+                    (ev as any).error = err;
+                    if (self.onerror !== undefined && self.onerror !== null) {
+                        self.onerror(ev);
+                    }
+
+                    redispatchEvent("error", ev);
                 }
                 return true;
             }

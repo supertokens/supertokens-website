@@ -54,6 +54,13 @@ export type InputType = {
     autoAddCredentials?: boolean;
     isInIframe?: boolean;
 
+    /**
+     * This specifies the maximum number of times the interceptor will attempt to refresh
+     * the session  when a 401 Unauthorized response is received. If the number of retries
+     * exceeds this limit, no further attempts will be made to refresh the session, and
+     * and an error will be thrown.
+     */
+    maxRetryAttemptsForSessionRefresh?: number;
     tokenTransferMethod?: "cookie" | "header";
     sessionTokenBackendDomain?: string;
     cookieHandler?: CookieHandlerInput;
@@ -78,6 +85,7 @@ export type NormalisedInputType = {
     invalidClaimStatusCode: number;
     autoAddCredentials: boolean;
     isInIframe: boolean;
+    maxRetryAttemptsForSessionRefresh: number;
     tokenTransferMethod: "cookie" | "header";
     sessionTokenBackendDomain: string | undefined;
     preAPIHook: RecipePreAPIHookFunction;
