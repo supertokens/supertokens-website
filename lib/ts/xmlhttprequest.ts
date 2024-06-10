@@ -209,9 +209,7 @@ export function addInterceptorsToXMLHttpRequest() {
                         return await handleRetryPostRefreshing();
                     } else {
                         if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                            await onInvalidClaimResponse({
-                                data: JSON.parse(xhr.responseText)
-                            });
+                            await onInvalidClaimResponse({ data: xhr.responseText });
                         }
                     }
                     return true;
