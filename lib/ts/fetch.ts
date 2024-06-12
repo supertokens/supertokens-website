@@ -805,6 +805,8 @@ async function saveTokensFromHeaders(response: Response) {
     }
 }
 
+let successfullySavedToCookies: boolean | undefined = undefined;
+
 export async function saveLastAccessTokenUpdate() {
     logDebugMessage("saveLastAccessTokenUpdate: called");
 
@@ -812,6 +814,16 @@ export async function saveLastAccessTokenUpdate() {
     const now = Date.now().toString();
     logDebugMessage("saveLastAccessTokenUpdate: setting " + now);
     await storeInCookies(LAST_ACCESS_TOKEN_UPDATE, now, Number.MAX_SAFE_INTEGER);
+
+    if (successfullySavedToCookies === undefined) {
+        successfullySavedToCookies = (await getFromCookies(LAST_ACCESS_TOKEN_UPDATE)) === now;
+    }
+
+    if (successfullySavedToCookies === false) {
+        console.warn(
+            "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+        );
+    }
 
     // We clear the sIRTFrontend cookie
     // We are handling this as a special case here because we want to limit the scope of legacy code

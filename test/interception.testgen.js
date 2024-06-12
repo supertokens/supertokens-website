@@ -4,6 +4,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "fetch using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                if (config.disableCookies) {
+                    config.cookieHandler = () => ({
+                        setCookie: () => Promise.resolve(),
+                        getCookie: () => Promise.resolve("")
+                    });
+                }
                 let overrideFunctions = [];
                 if (config.override) {
                     for (const reqOverride of config.override) {
@@ -62,6 +68,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "XHR using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                if (config.disableCookies) {
+                    config.cookieHandler = () => ({
+                        setCookie: () => Promise.resolve(),
+                        getCookie: () => Promise.resolve("")
+                    });
+                }
                 let overrideFunctions = [];
                 if (config.override) {
                     for (const reqOverride of config.override) {
@@ -149,6 +161,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "axios with axios interceptor using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                if (config.disableCookies) {
+                    config.cookieHandler = () => ({
+                        setCookie: () => Promise.resolve(),
+                        getCookie: () => Promise.resolve("")
+                    });
+                }
                 let overrideFunctions = [];
                 if (config.override) {
                     for (const reqOverride of config.override) {
@@ -226,6 +244,12 @@ module.exports.addGenericTestCases = function (getTestCases) {
             "axios using " + tokenTransferMethod,
             tokenTransferMethod,
             (config, tokenTransferMethod) => {
+                if (config.disableCookies) {
+                    config.cookieHandler = () => ({
+                        setCookie: () => Promise.resolve(),
+                        getCookie: () => Promise.resolve("")
+                    });
+                }
                 let overrideFunctions = [];
                 if (config.override) {
                     for (const reqOverride of config.override) {
@@ -299,6 +323,13 @@ module.exports.addGenericTestCases = function (getTestCases) {
             tokenTransferMethod,
             async (config, tokenTransferMethod) => {
                 await loadAngular();
+
+                if (config.disableCookies) {
+                    config.cookieHandler = () => ({
+                        setCookie: () => Promise.resolve(),
+                        getCookie: () => Promise.resolve("")
+                    });
+                }
 
                 let overrideFunctions = [];
                 if (config.override) {
