@@ -1,2 +1,2 @@
 import { AxiosError } from "axios";
-export declare function createAxiosErrorFromFetchResp(response: Response): Promise<AxiosError>;
+export declare function createAxiosErrorFromFetchResp(responseOrError: Response): Promise<AxiosError>;

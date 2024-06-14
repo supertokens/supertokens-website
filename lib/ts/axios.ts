@@ -262,7 +262,7 @@ export function responseErrorInterceptor(axiosInstance: any) {
             "responseErrorInterceptor: already intercepted: " +
                 (error.response && error.response.headers["x-supertokens-xhr-intercepted"])
         );
-        if (error.response.headers["x-supertokens-xhr-intercepted"]) {
+        if (error.response === undefined || error.response.headers["x-supertokens-xhr-intercepted"]) {
             throw error;
         }
         if (
@@ -489,6 +489,7 @@ export default class AuthHttpRequest {
                             logDebugMessage(
                                 "doRequest: sessionRefreshAttempts: " + config.__supertokensSessionRefreshAttempts
                             );
+                            console.log("!!!!", JSON.stringify(refreshResult));
 
                             if (refreshResult.result !== "RETRY") {
                                 logDebugMessage("doRequest: Not retrying original request");
