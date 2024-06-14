@@ -49,10 +49,13 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
+        spawn(
+            "./test/startServer",
+            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT]
+            // {
+            //     stdio: "inherit"
+            // }
+        );
         await new Promise(r => setTimeout(r, 1000));
     });
 
@@ -681,6 +684,85 @@ describe("Axios AuthHttpRequest class tests", function () {
             if (logs.length <= 0) {
                 throw new Error("Test failed");
             }
+        } finally {
+            await browser.close();
+        }
+    });
+
+    it("should throw error if refresh fails with a network error", async function () {
+        await startST(3);
+        const browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+
+        try {
+            const page = await browser.newPage();
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            // const logs = [];
+            // page.on("console", ev => {
+            //     const logText = ev.text();
+            //     // console.log(logText);
+            //     if (logText.startsWith("com.supertokens")) {
+            //         logs.push(logText);
+            //     }
+            // });
+
+            await page.evaluate(async BASE_URL => {
+                const axiosInstance = axios.create({
+                    withCredentials: true
+                });
+                const origFetch = window.fetch;
+                window.fetch = async (...input) => {
+                    try {
+                        if (input[0].endsWith("/auth/session/refresh")) {
+                            input[0] = "http://localhost:1234/nope";
+                        }
+                        return await origFetch(...input);
+                    } catch (err) {
+                        throw err;
+                    }
+                };
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    tokenTransferMethod: "cookie",
+                    // enableDebugLogs: true,
+                    override: {
+                        functions: oI => ({
+                            ...oI,
+                            addXMLHttpRequestInterceptor: () => {}
+                        })
+                    }
+                });
+                supertokens.addAxiosInterceptors(axiosInstance);
+
+                let userId = "testing-supertokens-react-native";
+
+                let loginResponse = await axiosInstance.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                let userIdFromResponse = loginResponse.data;
+                assertEqual(userId, userIdFromResponse);
+
+                //check that the number of times the refreshAPI was called is 0
+                assert((await getNumberOfTimesRefreshCalled()) === 0);
+
+                try {
+                    await axiosInstance("http://localhost:1234/asdf");
+                    await axiosInstance({
+                        url: `${BASE_URL}/`,
+                        method: "GET",
+                        headers: { "Cache-Control": "no-cache, private" }
+                    });
+                } catch (err) {
+                    assert(err.isAxiosError);
+                    assert.strictEqual(err.code, "ERR_NETWORK");
+                    assert.strictEqual(err.response, undefined);
+                }
+            }, BASE_URL);
         } finally {
             await browser.close();
         }

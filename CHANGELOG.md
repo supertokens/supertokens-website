@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a warning if the SDK can't save to cookies to help people notice/debug these issues faster.
 
+### Fixes
+
+- Fixed an issue in the Axios interceptor that caused it to throw when encountering a network error
+
 ## [20.1.0] - 2024-05-31
 
 ### Changes
