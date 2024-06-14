@@ -231,6 +231,43 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert.strictEqual(cookies.length, 0);
         });
 
+        it("test warnings when cookie writes are not successful", async function () {
+            await startST(3);
+            await setup({
+                // enableDebugLogs: true,
+                disableCookies: true
+            });
+            const logs = [];
+            page.on("console", c => logs.push(c.text()));
+            await page.evaluate(async () => {
+                await new Promise(res => setTimeout(res, 5000));
+                const userId = "testing-supertokens-website";
+
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.responseText, userId);
+            });
+            assert(logs.filter(str => str.includes("the server responded with a status of 401")).length, 1);
+            assert(
+                logs.some(str =>
+                    str.includes(
+                        "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+                    )
+                )
+            );
+
+            const cookies = await page.cookies();
+            assert.strictEqual(cookies.length, 0);
+        });
+
         it("test rid is there", async function () {
             await startST(3);
             await setup();

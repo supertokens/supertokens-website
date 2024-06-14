@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [20.1.1] - 2024-07-13
+
+### Changes
+
+- Added a warning if the SDK can't save to cookies to help people notice/debug these issues faster.
+
 ## [20.1.0] - 2024-05-31
 
 ### Changes
