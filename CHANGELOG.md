@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [20.1.1] - 2024-07-13
+## [20.1.2] - 2024-06-26
+
+### Changes
+
+- Fixed a session refresh loop caused by blocked cookie writes. The SDK would throw/log a helpful error message when this happens.
+
+## [20.1.1] - 2024-06-13
 
 ### Changes
 

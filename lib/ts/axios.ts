@@ -243,7 +243,9 @@ export function responseInterceptor(axiosInstance: any) {
                 !doNotDoInterception &&
                 // we do not call doesSessionExist here cause the user might override that
                 // function here and then it may break the logic of our original implementation.
-                !((await getLocalSessionState(true)).status === "EXISTS")
+
+                // Calling getLocalSessionState with tryRefresh: false, since the session would have been refreshed in the try block if expired.
+                (await getLocalSessionState(false)).status === "NOT_EXISTS"
             ) {
                 logDebugMessage(
                     "responseInterceptor: local session doesn't exist, so removing anti-csrf and sFrontToken"
@@ -597,7 +599,10 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
 
     const antiCsrfToken = response.headers["anti-csrf"];
     if (antiCsrfToken !== undefined) {
-        const tok = await getLocalSessionState(true);
+        // Call getLocalSessionState with tryRefresh: false as the session was just refreshed.
+        // If the local session doesn't exist, it means we failed to write to cookies.
+        // Using tryRefresh: true would cause an infinite refresh loop.
+        const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("doRequest: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);

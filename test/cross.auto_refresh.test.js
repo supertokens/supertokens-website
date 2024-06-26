@@ -856,5 +856,54 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             await page.setRequestInterception(false);
         });
+
+        it("should break out of session refresh loop if cookie writes are disabled", async function () {
+            await startST(300, false);
+            await setup({
+                disableCookies: true
+            });
+
+            let consoleLogs = [];
+            page.on("console", message => {
+                consoleLogs.push(message.text());
+            });
+
+            await page.evaluate(async () => {
+                supertokens.init({
+                    apiDomain: BASE_URL,
+                    maxRetryAttemptsForSessionRefresh: 5
+                });
+
+                const userId = "testing-supertokens-website";
+
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+
+                await assert.rejects(async () => {
+                    await toTest({ url: `${BASE_URL}/` });
+                });
+            });
+
+            assert(
+                consoleLogs.includes(
+                    "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+                )
+            );
+            assert(
+                consoleLogs.includes(
+                    "Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes (e.g., incognito mode)."
+                )
+            );
+        });
     });
 });
