@@ -70,6 +70,7 @@ export function addInterceptorsToXMLHttpRequest() {
         function delayIfNecessary(cb: () => void | Promise<void>) {
             delayedQueue = delayedQueue.finally(() =>
                 cb()?.catch(err => {
+                    // Call the onerror handler to ensure XHR throws this error.
                     const ev = new ProgressEvent("error");
                     (ev as any).error = err;
                     if (self.onerror !== undefined && self.onerror !== null) {
@@ -649,7 +650,11 @@ async function saveTokensFromHeaders(headers: Headers) {
 
     const antiCsrfToken = headers.get("anti-csrf");
     if (antiCsrfToken !== null) {
-        const tok = await getLocalSessionState(true);
+        // At this point, the session has either been newly created or refreshed.
+        // Thus, there's no need to call getLocalSessionState with tryRefresh: true.
+        // Calling getLocalSessionState with tryRefresh: true will cause a refresh loop
+        // if cookie writes are disabled.
+        const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);

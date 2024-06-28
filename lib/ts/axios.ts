@@ -599,9 +599,10 @@ async function saveTokensFromHeaders(response: AxiosResponse) {
 
     const antiCsrfToken = response.headers["anti-csrf"];
     if (antiCsrfToken !== undefined) {
-        // Call getLocalSessionState with tryRefresh: false as the session was just refreshed.
-        // If the local session doesn't exist, it means we failed to write to cookies.
-        // Using tryRefresh: true would cause an infinite refresh loop.
+        // At this point, the session has either been newly created or refreshed.
+        // Thus, there's no need to call getLocalSessionState with tryRefresh: true.
+        // Calling getLocalSessionState with tryRefresh: true will cause a refresh loop
+        // if cookie writes are disabled.
         const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("doRequest: Setting anti-csrf token");

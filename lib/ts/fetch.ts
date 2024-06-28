@@ -677,7 +677,7 @@ export async function getLocalSessionState(tryRefresh: boolean): Promise<LocalSe
             // session refresh may work but other SDK functionalities won't work as expected.
             // Therefore, we throw an error here instead of retrying.
             if (!frontTokenExists || lastAccessTokenUpdate === undefined) {
-                const errorMessage = `Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes (e.g., incognito mode).`;
+                const errorMessage = `Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes.`;
                 console.error(errorMessage);
                 throw new Error(errorMessage);
             }
@@ -813,9 +813,10 @@ async function saveTokensFromHeaders(response: Response) {
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
     if (antiCsrfToken !== null) {
-        // Call getLocalSessionState with tryRefresh: false as the session was just refreshed.
-        // If the local session doesn't exist, it means we failed to write to cookies.
-        // Using tryRefresh: true would cause an infinite refresh loop.
+        // At this point, the session has either been newly created or refreshed.
+        // Thus, there's no need to call getLocalSessionState with tryRefresh: true.
+        // Calling getLocalSessionState with tryRefresh: true will cause a refresh loop
+        // if cookie writes are disabled.
         const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
@@ -840,7 +841,7 @@ export async function saveLastAccessTokenUpdate() {
 
     if (successfullySavedToCookies === false) {
         console.warn(
-            "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+            "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies."
         );
     }
 
