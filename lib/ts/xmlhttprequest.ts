@@ -56,10 +56,6 @@ export function addInterceptorsToXMLHttpRequest() {
     // define constructor for my proxy object
     XMLHttpRequest = function (this: XMLHttpRequestType) {
         const actual: XMLHttpRequestType = new oldXMLHttpRequest();
-        let delayedQueue = firstEventLoopDone;
-        function delayIfNecessary(cb: () => void | Promise<void>) {
-            delayedQueue = delayedQueue.finally(() => cb()?.catch(console.error));
-        }
 
         const self = this;
         const listOfFunctionCallsInProxy: { (xhr: XMLHttpRequestType): void }[] = [];
@@ -69,6 +65,22 @@ export function addInterceptorsToXMLHttpRequest() {
         let customResponseHeaders: Headers | undefined;
 
         const eventHandlers: Map<keyof XMLHttpRequestEventMap, Set<XHREventListener<any>>> = new Map();
+
+        let delayedQueue = firstEventLoopDone;
+        function delayIfNecessary(cb: () => void | Promise<void>) {
+            delayedQueue = delayedQueue.finally(() =>
+                cb()?.catch(err => {
+                    // Call the onerror handler to ensure XHR throws this error.
+                    const ev = new ProgressEvent("error");
+                    (ev as any).error = err;
+                    if (self.onerror !== undefined && self.onerror !== null) {
+                        self.onerror(ev);
+                    }
+
+                    redispatchEvent("error", ev);
+                })
+            );
+        }
 
         // We define these during open
         // let method: string = "";
@@ -215,7 +227,8 @@ export function addInterceptorsToXMLHttpRequest() {
                     return true;
                 } finally {
                     logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
-                    if (!((await getLocalSessionState(false)).status === "EXISTS")) {
+                    // Calling getLocalSessionState with tryRefresh: false, since the session would have been refreshed in the try block if expired.
+                    if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
                         logDebugMessage(
                             "XHRInterceptor.handleResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
                         );
@@ -637,7 +650,11 @@ async function saveTokensFromHeaders(headers: Headers) {
 
     const antiCsrfToken = headers.get("anti-csrf");
     if (antiCsrfToken !== null) {
-        const tok = await getLocalSessionState(true);
+        // At this point, the session has either been newly created or refreshed.
+        // Thus, there's no need to call getLocalSessionState with tryRefresh: true.
+        // Calling getLocalSessionState with tryRefresh: true will cause a refresh loop
+        // if cookie writes are disabled.
+        const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);

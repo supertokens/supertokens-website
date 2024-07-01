@@ -668,8 +668,24 @@ export async function getLocalSessionState(tryRefresh: boolean): Promise<LocalSe
                     status: "NOT_EXISTS"
                 };
             }
-            logDebugMessage("getLocalSessionState: Retrying post refresh");
-            return await getLocalSessionState(tryRefresh);
+
+            const lastAccessTokenUpdate = await getFromCookies(LAST_ACCESS_TOKEN_UPDATE);
+            const frontTokenExists = await FrontToken.doesTokenExists();
+
+            // If we fail to retrieve the local session state after a successful refresh,
+            // it indicates an issue with writing to cookies. Without the FrontToken,
+            // session refresh may work but other SDK functionalities won't work as expected.
+            // Therefore, we throw an error here instead of retrying.
+            if (!frontTokenExists || lastAccessTokenUpdate === undefined) {
+                const errorMessage = `Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes.`;
+                console.error(errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            logDebugMessage(
+                "getLocalSessionState: returning EXISTS since both frontToken and lastAccessTokenUpdate exists post refresh"
+            );
+            return { status: "EXISTS", lastAccessTokenUpdate };
         } else {
             logDebugMessage("getLocalSessionState: returning: " + response.status);
             return response;
@@ -797,7 +813,11 @@ async function saveTokensFromHeaders(response: Response) {
     }
     const antiCsrfToken = response.headers.get("anti-csrf");
     if (antiCsrfToken !== null) {
-        const tok = await getLocalSessionState(true);
+        // At this point, the session has either been newly created or refreshed.
+        // Thus, there's no need to call getLocalSessionState with tryRefresh: true.
+        // Calling getLocalSessionState with tryRefresh: true will cause a refresh loop
+        // if cookie writes are disabled.
+        const tok = await getLocalSessionState(false);
         if (tok.status === "EXISTS") {
             logDebugMessage("saveTokensFromHeaders: Setting anti-csrf token");
             await AntiCsrfToken.setItem(tok.lastAccessTokenUpdate, antiCsrfToken);
@@ -821,7 +841,7 @@ export async function saveLastAccessTokenUpdate() {
 
     if (successfullySavedToCookies === false) {
         console.warn(
-            "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+            "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies."
         );
     }
 
