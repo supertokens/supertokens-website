@@ -516,10 +516,12 @@ describe("Axios AuthHttpRequest class tests", function () {
         });
         try {
             const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            // NOTE: Using localhost:8080 as the base URL because browsers ignore
+            // SameSite=None, Secure: true cookies on HTTP non-localhost domains.
+            await page.goto("http://localhost:8080" + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+                let BASE_URL = "http://localhost:8080";
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
@@ -534,8 +536,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
             });
 
+            // Assert that all frontend cookies are sameSite=None and Secure: true
             let cookies = await page.cookies();
-            assert(cookies.length === 0);
+            const frontendCookies = ["sAntiCsrf", "sFrontToken", "st-last-access-token-update"];
+            frontendCookies.forEach(cookieName => {
+                const cookie = cookies.find(cookie => cookie.name === cookieName);
+                assert(cookie.sameSite === "None");
+                assert(cookie.secure === true);
+            });
         } finally {
             await browser.close();
         }

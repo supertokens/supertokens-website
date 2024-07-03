@@ -439,16 +439,32 @@ export async function onUnauthorisedResponse(
                     });
                     return { result: "SESSION_EXPIRED" };
                 }
-                if (
-                    postLockLSS.status !== preRequestLSS.status ||
-                    (postLockLSS.status === "EXISTS" &&
-                        preRequestLSS.status === "EXISTS" &&
-                        postLockLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate)
-                ) {
+
+                const postLockSessionExists = postLockLSS.status === "EXISTS";
+                const preRequestSessionExists = preRequestLSS.status === "EXISTS";
+                const sessionStatusChanged = postLockLSS.status !== preRequestLSS.status;
+                const accessTokenTimestampChanged =
+                    "lastAccessTokenUpdate" in postLockLSS &&
+                    "lastAccessTokenUpdate" in preRequestLSS &&
+                    postLockLSS.lastAccessTokenUpdate !== preRequestLSS.lastAccessTokenUpdate;
+
+                // If the session status has changed, we should return early and retry the request
+                // only if postLockLSS.status is "EXISTS".
+                if (sessionStatusChanged && postLockSessionExists) {
+                    logDebugMessage(
+                        "onUnauthorisedResponse: Retrying early because session status has changed and postLockLSS.status is EXISTS"
+                    );
+                    return { result: "RETRY" };
+                }
+
+                // If the session exists in both postLockLSS and preRequestLSS, we should return early
+                // and retry the request only if the access token timestamp has changed.
+                // This indicates that another process has already called this API and succeeded,
+                // so we don't need to call it again.
+                if (postLockSessionExists && preRequestSessionExists && accessTokenTimestampChanged) {
                     logDebugMessage(
                         "onUnauthorisedResponse: Retrying early because pre and post lastAccessTokenUpdate don't match"
                     );
-                    // means that some other process has already called this API and succeeded. so we need to call it again
                     return { result: "RETRY" };
                 }
 

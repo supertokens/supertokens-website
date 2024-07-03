@@ -210,14 +210,25 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         it("test sameSite is none if using iframe", async function () {
             await startST(3);
+
+            // NOTE: Using localhost:8080 as the base URL because browsers ignore
+            // SameSite=None, Secure: true cookies on HTTP non-localhost domains.
+
+            const BASE_URL = "http://localhost:8080";
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+            await new Promise(r => setTimeout(r, 100));
+
             await setup({
                 isInIframe: true
             });
+
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
 
                 await toTest({
-                    url: `${BASE_URL}/login`,
+                    url: `http://localhost:8080/login`,
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -227,8 +238,23 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            const cookies = await page.cookies();
-            assert.strictEqual(cookies.length, 0);
+            let cookies = await page.cookies();
+
+            // Assert the sameSite=None and Secure: true attributes for sFrontToken as it will be set for both the cookie and header based auth
+            const sFrontToken = cookies.find(cookie => cookie.name === "sFrontToken");
+            assert(sFrontToken.sameSite === "None");
+            assert(sFrontToken.secure === true);
+
+            // The following cookies may or may not be set depending on header or cookie based auth.
+            // We will check the presence of the cookies before asserting the attributes
+            const frontendCookies = ["sAntiCsrf", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
+            frontendCookies.forEach(cookieName => {
+                const cookie = cookies.find(cookie => cookie.name === cookieName);
+                if (cookie) {
+                    assert(cookie.sameSite === "None");
+                    assert(cookie.secure === true);
+                }
+            });
         });
 
         it("test warnings when cookie writes are not successful", async function () {
