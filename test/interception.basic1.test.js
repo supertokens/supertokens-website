@@ -240,20 +240,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             let cookies = await page.cookies();
 
-            // Assert the sameSite=None and Secure: true attributes for sFrontToken as it will be set for both the cookie and header based auth
-            const sFrontToken = cookies.find(cookie => cookie.name === "sFrontToken");
-            assert(sFrontToken.sameSite === "None");
-            assert(sFrontToken.secure === true);
-
-            // The following cookies may or may not be set depending on header or cookie based auth.
-            // We will check the presence of the cookies before asserting the attributes
-            const frontendCookies = ["sAntiCsrf", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
+            // Assert that all frontend cookies are sameSite=None and Secure: true
+            const frontendCookies =
+                transferMethod === "cookie"
+                    ? ["sAntiCsrf", "sFrontToken", "st-last-access-token-update"]
+                    : ["sFrontToken", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
             frontendCookies.forEach(cookieName => {
                 const cookie = cookies.find(cookie => cookie.name === cookieName);
-                if (cookie) {
-                    assert(cookie.sameSite === "None");
-                    assert(cookie.secure === true);
-                }
+                assert(cookie.sameSite === "None");
+                assert(cookie.secure === true);
             });
         });
 
