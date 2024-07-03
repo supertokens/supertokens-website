@@ -210,14 +210,25 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         it("test sameSite is none if using iframe", async function () {
             await startST(3);
+
+            // NOTE: Using localhost:8080 as the base URL because browsers ignore
+            // SameSite=None, Secure: true cookies on HTTP non-localhost domains.
+
+            const BASE_URL = "http://localhost:8080";
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+            await new Promise(r => setTimeout(r, 100));
+
             await setup({
                 isInIframe: true
             });
+
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
 
                 await toTest({
-                    url: `${BASE_URL}/login`,
+                    url: `http://localhost:8080/login`,
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -227,8 +238,18 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            const cookies = await page.cookies();
-            assert.strictEqual(cookies.length, 0);
+            let cookies = await page.cookies();
+
+            // Assert that all frontend cookies are sameSite=None and Secure: true
+            const frontendCookies =
+                transferMethod === "cookie"
+                    ? ["sAntiCsrf", "sFrontToken", "st-last-access-token-update"]
+                    : ["sFrontToken", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
+            frontendCookies.forEach(cookieName => {
+                const cookie = cookies.find(cookie => cookie.name === cookieName);
+                assert(cookie.sameSite === "None");
+                assert(cookie.secure === true);
+            });
         });
 
         it("test warnings when cookie writes are not successful", async function () {

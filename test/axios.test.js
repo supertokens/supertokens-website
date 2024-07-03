@@ -509,38 +509,6 @@ describe("Axios AuthHttpRequest class tests", function () {
         }
     });
 
-    it("test sameSite is none if using iframe axios", async function () {
-        await startST(3);
-        const browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        try {
-            const page = await browser.newPage();
-            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
-            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-                supertokens.addAxiosInterceptors(axios);
-                supertokens.init({
-                    apiDomain: BASE_URL,
-                    isInIframe: true
-                });
-                let userId = "testing-supertokens-website";
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-            });
-
-            let cookies = await page.cookies();
-            assert(cookies.length === 0);
-        } finally {
-            await browser.close();
-        }
-    });
-
     it("test rid is there", async function () {
         await startST(3);
         const browser = await puppeteer.launch({
