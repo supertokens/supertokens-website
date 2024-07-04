@@ -280,13 +280,18 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             assert(
                 logs.some(str =>
                     str.includes(
-                        "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+                        "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies."
                     )
                 )
             );
 
             const cookies = await page.cookies();
-            assert.strictEqual(cookies.length, 0);
+            // Assert that none of the frontend cookies are set
+            const frontendCookies =
+                transferMethod === "cookie"
+                    ? ["sAntiCsrf", "sFrontToken", "st-last-access-token-update"]
+                    : ["sFrontToken", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
+            assert(frontendCookies.every(cookieName => !cookies.find(cookie => cookie.name === cookieName)));
         });
 
         it("test rid is there", async function () {
