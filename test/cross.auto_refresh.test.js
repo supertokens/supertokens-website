@@ -896,12 +896,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert(
                 consoleLogs.includes(
-                    "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies (e.g.: incognito mode)."
+                    "Saving to cookies was not successful, this indicates a configuration error or the browser preventing us from writing the cookies."
                 )
             );
             assert(
                 consoleLogs.includes(
-                    "Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes (e.g., incognito mode)."
+                    "Failed to retrieve local session state from cookies after a successful session refresh. This indicates a configuration error or that the browser is preventing cookie writes."
                 )
             );
         });
