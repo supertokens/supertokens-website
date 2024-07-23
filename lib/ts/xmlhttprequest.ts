@@ -201,41 +201,29 @@ export function addInterceptorsToXMLHttpRequest() {
                 return true;
             }
             try {
-                try {
-                    logDebugMessage("XHRInterceptor.handleResponse: Interception started");
+                logDebugMessage("XHRInterceptor.handleResponse: Interception started");
 
-                    ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
+                ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_RESPONSE);
 
-                    const status = xhr.status;
-                    const headers = getResponseHeadersFromXHR(xhr);
+                const status = xhr.status;
+                const headers = getResponseHeadersFromXHR(xhr);
 
-                    await saveTokensFromHeaders(headers);
+                await saveTokensFromHeaders(headers);
 
-                    fireSessionUpdateEventsIfNecessary(
-                        preRequestLSS!.status === "EXISTS",
-                        status,
-                        headers.get("front-token")
-                    );
-                    if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
-                        logDebugMessage("responseInterceptor: Status code is: " + status);
-                        return await handleRetryPostRefreshing();
-                    } else {
-                        if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
-                            await onInvalidClaimResponse({ data: xhr.responseText });
-                        }
-                    }
-                    return true;
-                } finally {
-                    logDebugMessage("XHRInterceptor.handleResponse: doFinallyCheck running");
-                    // Calling getLocalSessionState with tryRefresh: false, since the session would have been refreshed in the try block if expired.
-                    if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
-                        logDebugMessage(
-                            "XHRInterceptor.handleResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
-                        );
-                        await AntiCsrfToken.removeToken();
-                        await FrontToken.removeToken();
+                fireSessionUpdateEventsIfNecessary(
+                    preRequestLSS!.status === "EXISTS",
+                    status,
+                    headers.get("front-token")
+                );
+                if (status === AuthHttpRequestFetch.config.sessionExpiredStatusCode) {
+                    logDebugMessage("responseInterceptor: Status code is: " + status);
+                    return await handleRetryPostRefreshing();
+                } else {
+                    if (status === AuthHttpRequestFetch.config.invalidClaimStatusCode) {
+                        await onInvalidClaimResponse({ data: xhr.responseText });
                     }
                 }
+                return true;
             } catch (err) {
                 logDebugMessage("XHRInterceptor.handleResponse: caught error");
                 if ((err as any).status !== undefined) {

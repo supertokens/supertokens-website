@@ -123,6 +123,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
                     await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
                     await page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+                    await page.waitForFunction(() => window.supertokens !== undefined);
                     await new Promise(r => setTimeout(r, 100));
                 } catch {}
             }
@@ -218,7 +219,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
             await page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
-            await new Promise(r => setTimeout(r, 100));
+            await page.waitForFunction(() => window.supertokens !== undefined);
+            await new Promise(r => setTimeout(r, 250));
 
             await setup({
                 isInIframe: true

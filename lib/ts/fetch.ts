@@ -124,6 +124,7 @@ export class FrontToken {
         // 3. some proxies remove the empty headers used to clear the other tokens (i.e.: https://github.com/supertokens/supertokens-website/issues/218)
         await setToken("access", "");
         await setToken("refresh", "");
+        await AntiCsrfToken.removeToken();
         FrontToken.waiters.forEach(f => f(undefined));
         FrontToken.waiters = [];
     }
@@ -279,116 +280,105 @@ export default class AuthHttpRequest {
         logDebugMessage("doRequest: Interception started");
 
         ProcessState.getInstance().addState(PROCESS_STATE.CALLING_INTERCEPTION_REQUEST);
-        try {
-            let sessionRefreshAttempts = 0;
-            let returnObj = undefined;
-            while (true) {
-                // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
-                // to avoid race conditions
-                const preRequestLSS = await getLocalSessionState(true);
-                const clonedHeaders = new Headers(origHeaders);
+        let sessionRefreshAttempts = 0;
+        let returnObj = undefined;
+        while (true) {
+            // we read this here so that if there is a session expiry error, then we can compare this value (that caused the error) with the value after the request is sent.
+            // to avoid race conditions
+            const preRequestLSS = await getLocalSessionState(true);
+            const clonedHeaders = new Headers(origHeaders);
 
-                let configWithAntiCsrf: RequestInit | undefined = {
-                    ...config,
-                    headers: clonedHeaders
-                };
-                if (preRequestLSS.status === "EXISTS") {
-                    const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
-                    if (antiCsrfToken !== undefined) {
-                        logDebugMessage("doRequest: Adding anti-csrf token to request");
-                        clonedHeaders.set("anti-csrf", antiCsrfToken);
-                    }
-                }
-
-                if (AuthHttpRequest.config.autoAddCredentials) {
-                    logDebugMessage("doRequest: Adding credentials include");
-                    if (configWithAntiCsrf === undefined) {
-                        configWithAntiCsrf = {
-                            credentials: "include"
-                        };
-                    } else if (configWithAntiCsrf.credentials === undefined) {
-                        configWithAntiCsrf = {
-                            ...configWithAntiCsrf,
-                            credentials: "include"
-                        };
-                    }
-                }
-
-                // adding rid for anti-csrf protection: Anti-csrf via custom header
-                if (!clonedHeaders.has("rid")) {
-                    logDebugMessage("doRequest: Adding rid header: anti-csrf");
-                    clonedHeaders.set("rid", "anti-csrf");
-                } else {
-                    logDebugMessage("doRequest: rid header was already there in request");
-                }
-
-                const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
-                logDebugMessage("doRequest: Adding st-auth-mode header: " + transferMethod);
-                clonedHeaders.set("st-auth-mode", transferMethod);
-
-                await setAuthorizationHeaderIfRequired(clonedHeaders);
-
-                logDebugMessage("doRequest: Making user's http call");
-                let response = await httpCall(configWithAntiCsrf);
-                logDebugMessage("doRequest: User's http call ended");
-
-                await saveTokensFromHeaders(response);
-
-                fireSessionUpdateEventsIfNecessary(
-                    preRequestLSS.status === "EXISTS",
-                    response.status,
-                    response.headers.get("front-token")
-                );
-
-                if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
-                    logDebugMessage("doRequest: Status code is: " + response.status);
-
-                    /**
-                     * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
-                     * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
-                     * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
-                     */
-                    if (sessionRefreshAttempts >= AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh) {
-                        logDebugMessage(
-                            `doRequest: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh}`
-                        );
-
-                        const errorMessage = `Received a 401 response from ${url}. Attempted to refresh the session and retry the request with the updated session tokens ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh} times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`;
-                        console.error(errorMessage);
-                        throw new Error(errorMessage);
-                    }
-
-                    let retry = await onUnauthorisedResponse(preRequestLSS);
-
-                    sessionRefreshAttempts++;
-                    logDebugMessage("doRequest: sessionRefreshAttempts: " + sessionRefreshAttempts);
-
-                    if (retry.result !== "RETRY") {
-                        logDebugMessage("doRequest: Not retrying original request");
-                        returnObj = retry.error !== undefined ? retry.error : response;
-                        break;
-                    }
-                    logDebugMessage("doRequest: Retrying original request");
-                } else {
-                    if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
-                        await onInvalidClaimResponse(response);
-                    }
-                    return response;
+            let configWithAntiCsrf: RequestInit | undefined = {
+                ...config,
+                headers: clonedHeaders
+            };
+            if (preRequestLSS.status === "EXISTS") {
+                const antiCsrfToken = await AntiCsrfToken.getToken(preRequestLSS.lastAccessTokenUpdate);
+                if (antiCsrfToken !== undefined) {
+                    logDebugMessage("doRequest: Adding anti-csrf token to request");
+                    clonedHeaders.set("anti-csrf", antiCsrfToken);
                 }
             }
 
-            // if it comes here, means we breaked. which happens only if we have logged out.
-            return returnObj;
-        } finally {
-            // If we get here we already tried refreshing so we should have the already id refresh token either in EXISTS or NOT_EXISTS, so no need to call the backend
-            // or the backend is down and we don't need to call it.
-            const postRequestIdToken = await getLocalSessionState(false);
-            if (postRequestIdToken.status === "NOT_EXISTS") {
-                logDebugMessage("doRequest: local session doesn't exist, so removing anti-csrf and sFrontToken");
-                await AntiCsrfToken.removeToken();
-                await FrontToken.removeToken();
+            if (AuthHttpRequest.config.autoAddCredentials) {
+                logDebugMessage("doRequest: Adding credentials include");
+                if (configWithAntiCsrf === undefined) {
+                    configWithAntiCsrf = {
+                        credentials: "include"
+                    };
+                } else if (configWithAntiCsrf.credentials === undefined) {
+                    configWithAntiCsrf = {
+                        ...configWithAntiCsrf,
+                        credentials: "include"
+                    };
+                }
+            }
+
+            // adding rid for anti-csrf protection: Anti-csrf via custom header
+            if (!clonedHeaders.has("rid")) {
+                logDebugMessage("doRequest: Adding rid header: anti-csrf");
+                clonedHeaders.set("rid", "anti-csrf");
+            } else {
+                logDebugMessage("doRequest: rid header was already there in request");
+            }
+
+            const transferMethod = AuthHttpRequest.config.tokenTransferMethod;
+            logDebugMessage("doRequest: Adding st-auth-mode header: " + transferMethod);
+            clonedHeaders.set("st-auth-mode", transferMethod);
+
+            await setAuthorizationHeaderIfRequired(clonedHeaders);
+
+            logDebugMessage("doRequest: Making user's http call");
+            let response = await httpCall(configWithAntiCsrf);
+            logDebugMessage("doRequest: User's http call ended");
+
+            await saveTokensFromHeaders(response);
+
+            fireSessionUpdateEventsIfNecessary(
+                preRequestLSS.status === "EXISTS",
+                response.status,
+                response.headers.get("front-token")
+            );
+
+            if (response.status === AuthHttpRequest.config.sessionExpiredStatusCode) {
+                logDebugMessage("doRequest: Status code is: " + response.status);
+
+                /**
+                 * An API may return a 401 error response even with a valid session, causing a session refresh loop in the interceptor.
+                 * To prevent this infinite loop, we break out of the loop after retrying the original request a specified number of times.
+                 * The maximum number of retry attempts is defined by maxRetryAttemptsForSessionRefresh config variable.
+                 */
+                if (sessionRefreshAttempts >= AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh) {
+                    logDebugMessage(
+                        `doRequest: Maximum session refresh attempts reached. sessionRefreshAttempts: ${sessionRefreshAttempts}, maxRetryAttemptsForSessionRefresh: ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh}`
+                    );
+
+                    const errorMessage = `Received a 401 response from ${url}. Attempted to refresh the session and retry the request with the updated session tokens ${AuthHttpRequest.config.maxRetryAttemptsForSessionRefresh} times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`;
+                    console.error(errorMessage);
+                    throw new Error(errorMessage);
+                }
+
+                let retry = await onUnauthorisedResponse(preRequestLSS);
+
+                sessionRefreshAttempts++;
+                logDebugMessage("doRequest: sessionRefreshAttempts: " + sessionRefreshAttempts);
+
+                if (retry.result !== "RETRY") {
+                    logDebugMessage("doRequest: Not retrying original request");
+                    returnObj = retry.error !== undefined ? retry.error : response;
+                    break;
+                }
+                logDebugMessage("doRequest: Retrying original request");
+            } else {
+                if (response.status === AuthHttpRequest.config.invalidClaimStatusCode) {
+                    await onInvalidClaimResponse(response);
+                }
+                return response;
             }
         }
+
+        // if it comes here, means we breaked. which happens only if we have logged out.
+        return returnObj;
     };
 
     static attemptRefreshingSession = async (): Promise<boolean> => {
@@ -498,6 +488,7 @@ export async function onUnauthorisedResponse(
                     userContext: {}
                 });
                 logDebugMessage("onUnauthorisedResponse: Making refresh call");
+
                 const response = await AuthHttpRequest.env.__supertokensOriginalFetch(
                     preAPIResult.url,
                     preAPIResult.requestInit
@@ -575,17 +566,6 @@ export async function onUnauthorisedResponse(
             } finally {
                 await lock.releaseLock("REFRESH_TOKEN_USE");
                 logDebugMessage("onUnauthorisedResponse: Released lock");
-
-                // we do not call doesSessionExist here cause that
-                // may cause an infinite recursive loop when using in an iframe setting
-                // as tokens may not get set at all.
-                if ((await getLocalSessionState(false)).status === "NOT_EXISTS") {
-                    logDebugMessage(
-                        "onUnauthorisedResponse: local session doesn't exist, so removing anti-csrf and sFrontToken"
-                    );
-                    await AntiCsrfToken.removeToken();
-                    await FrontToken.removeToken();
-                }
             }
         }
         let postRequestLSS = await getLocalSessionState(false);
