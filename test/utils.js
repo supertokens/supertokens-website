@@ -99,7 +99,9 @@ module.exports.addBrowserConsole = function (page) {
 
 module.exports.coreTagEqualToOrAfter = function (targetTag) {
     const currTag = process.env.SUPERTOKENS_CORE_TAG;
-    if (currTag === undefined || currTag === targetTag) return true;
+    if (currTag === undefined || currTag === targetTag || (!currTag.startsWith("dev-v") && targetTag.startsWith("v"))) {
+        return true;
+    }
 
     const lparts = currTag.replace(/^(dev-)?v/, "").split(".");
     while (lparts.length < 3) lparts.push("0");
