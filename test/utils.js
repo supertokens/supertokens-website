@@ -99,7 +99,11 @@ module.exports.addBrowserConsole = function (page) {
 
 module.exports.coreTagEqualToOrAfter = function (targetTag) {
     const currTag = process.env.SUPERTOKENS_CORE_TAG;
-    if (currTag === undefined || currTag === targetTag || (!currTag.startsWith("dev-v") && targetTag.startsWith("v"))) {
+    if (
+        currTag === undefined ||
+        currTag === targetTag ||
+        (!currTag.startsWith("dev-v") && !targetTag.startsWith("v"))
+    ) {
         return true;
     }
 
