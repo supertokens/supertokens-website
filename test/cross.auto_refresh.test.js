@@ -53,7 +53,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         let v3AccessTokenSupported;
 
         function setup(config = {}) {
-            page.on("console", c => console.log(c.text()));
+            // page.on("console", c => console.log(c.text()));
             return page.evaluate(
                 setupFunc,
                 {
