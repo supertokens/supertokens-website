@@ -664,6 +664,65 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await page.setRequestInterception(false);
         });
 
+        it("test refresh session with removed front-token header in the response", async function () {
+            await startST(3);
+            await setup();
+            const logs = [];
+            page.on("console", message => {
+                logs.push(message.text());
+            });
+            await page.evaluate(async () => {
+                const originalFetch = window.__supertokensOriginalFetch;
+                // We can't use normal request interception here, because we can't modify the response headers there
+                window.__supertokensOriginalFetch = async (...args) => {
+                    /** @type {Response} */
+                    const res = await originalFetch(...args);
+                    if (res.url === `${BASE_URL}/auth/session/refresh`) {
+                        const moddedHeaders = new Headers(Array.from(res.headers.entries()));
+                        moddedHeaders.delete("front-token");
+                        const text = await res.text();
+                        return new Response(text, {
+                            status: res.status,
+                            statusText: res.statusText,
+                            headers: moddedHeaders
+                        });
+                    }
+                    return res;
+                };
+                const userId = "testing-supertokens-website";
+                const loginResponse = await toTest({
+                    url: `${BASE_URL}/login`,
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                assert.strictEqual(loginResponse.statusCode, 200);
+                assert.strictEqual(loginResponse.responseText, userId);
+                //delay for 5 seconds for access token validity expiry\
+                await delay(5);
+
+                //check that the number of times the refreshAPI was called is 0
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
+
+                try {
+                    await toTest({ url: `${BASE_URL}/` });
+                } catch (err) {
+                    // In some cases (angular), the response doesn't fully error out, it reports as a 401.
+                    // in all other cases, we throw a proper error.
+                    // We check that the root-cause is logged to the console.
+                }
+            });
+            assert(
+                logs.some(msg =>
+                    msg.startsWith("The 'front-token' header is missing from a successful refresh-session response")
+                )
+            );
+        });
+
         it("should break out of session refresh loop after default maxRetryAttemptsForSessionRefresh value", async function () {
             await startST();
             await setup();

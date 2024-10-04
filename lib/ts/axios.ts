@@ -469,7 +469,6 @@ export default class AuthHttpRequest {
                         logDebugMessage(
                             "doRequest: sessionRefreshAttempts: " + config.__supertokensSessionRefreshAttempts
                         );
-                        console.log("!!!!", JSON.stringify(refreshResult));
 
                         if (refreshResult.result !== "RETRY") {
                             logDebugMessage("doRequest: Not retrying original request");

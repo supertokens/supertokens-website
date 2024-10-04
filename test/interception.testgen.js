@@ -125,9 +125,9 @@ module.exports.addGenericTestCases = function (getTestCases) {
                     }
                     const loaded = new Promise((res, rej) => {
                         request.onloadend = res;
-                        request.onerror = rej;
-                        request.ontimeout = rej;
-                        request.onabort = rej;
+                        request.onerror = ev => rej(ev.error ?? ev);
+                        request.ontimeout = ev => rej(ev.error ?? ev);
+                        request.onabort = ev => rej(ev.error ?? ev);
                     });
                     request.send(config.body);
                     await loaded;
@@ -388,6 +388,7 @@ module.exports.addGenericTestCases = function (getTestCases) {
                             // A client-side or network error occurred. Handle it accordingly.
                             throw error;
                         } else {
+                            console.log("$$1$", error, typeof error, JSON.stringify(error));
                             // This mains we have a wrong error code, and this is about the same as resp above
                             resp = error;
                         }

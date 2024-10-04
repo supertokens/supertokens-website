@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changes
 
 - Added `3.1` and `4.0` to the list of supported FDIs
+- Now we throw and log an error if a successful refresh response doesn't have the `front-token` header. This used to break the session state.
 
 ## [20.1.4] - 2024-07-11
 
