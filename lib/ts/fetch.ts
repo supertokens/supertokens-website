@@ -365,7 +365,15 @@ export default class AuthHttpRequest {
 
                 if (retry.result !== "RETRY") {
                     logDebugMessage("doRequest: Not retrying original request");
-                    returnObj = retry.error !== undefined ? retry.error : response;
+                    if (retry.error !== undefined) {
+                        if (retry.error instanceof Response) {
+                            returnObj = retry.error;
+                        } else {
+                            throw retry.error;
+                        }
+                    } else {
+                        returnObj = response;
+                    }
                     break;
                 }
                 logDebugMessage("doRequest: Retrying original request");
@@ -502,10 +510,19 @@ export async function onUnauthorisedResponse(
 
                 const isUnauthorised = response.status === AuthHttpRequest.config.sessionExpiredStatusCode;
 
-                // There is a case where the FE thinks the session is valid, but backend doesn't get the tokens.
-                // In this event, session expired error will be thrown and the frontend should remove this token
-                if (isUnauthorised && response.headers.get("front-token") === null) {
-                    await FrontToken.setItem("remove");
+                if (response.headers.get("front-token") === null) {
+                    if (isUnauthorised) {
+                        // There is a case where the FE thinks the session is valid, but backend doesn't get the tokens.
+                        // In this event, session expired error will be thrown and the frontend should remove this token
+                        await FrontToken.setItem("remove");
+                    } else if (response.status === 200) {
+                        // For all 200 responses, the BE is supposed to set a front-token.
+                        // If there was some issue with the header and the FE doesn't get the error, then we may go into refresh loops.
+                        const errorMessage =
+                            "The 'front-token' header is missing from a successful refresh-session response. The most likely causes are proxy settings (e.g.: 'front-token' missing from 'access-control-expose-headers' or a proxy stripping this header). Please investigate your API.";
+                        console.error(errorMessage);
+                        throw new Error(errorMessage);
+                    }
                 }
 
                 fireSessionUpdateEventsIfNecessary(
