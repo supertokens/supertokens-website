@@ -19,12 +19,9 @@ export class SessionClaimValidatorStore {
     private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
 
     static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
-        let existingBuilderIdIndex: number = -1;
-        SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.forEach((claimValidator, index) => {
-            if (claimValidator.id === builder.id) {
-                existingBuilderIdIndex = index;
-            }
-        });
+        const existingBuilderIdIndex: number = SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.findIndex(
+            claimValidator => claimValidator.id === builder.id
+        );
 
         /*
          * Updating the claim validator in the claimValidatorsAddedByOtherRecipes list if the
