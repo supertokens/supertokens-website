@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixes
+
+- `SessionClaimValidatorStore.addClaimValidatorFromOtherRecipe` now replaces a validator that was already added with the same id instead of adding a duplicate.
+
 ## [20.1.7] - 2025-11-23
 
 ### Changes

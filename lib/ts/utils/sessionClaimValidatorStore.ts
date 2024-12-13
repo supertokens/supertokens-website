@@ -19,7 +19,25 @@ export class SessionClaimValidatorStore {
     private static claimValidatorsAddedByOtherRecipes: SessionClaimValidator[] = [];
 
     static addClaimValidatorFromOtherRecipe = (builder: SessionClaimValidator) => {
-        SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.push(builder);
+        let existingBuilderIdIndex: number = -1;
+        SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.forEach((claimValidator, index) => {
+            if (claimValidator.id === builder.id) {
+                existingBuilderIdIndex = index;
+            }
+        });
+
+        /*
+         * Updating the claim validator in the claimValidatorsAddedByOtherRecipes list if the
+         * validator already exists with the same builder id else we push the new builder in
+         * the claimValidatorsAddedByOtherRecipes.
+         * Hence, always the last added claim validator for the recipe will exist in the
+         * claimValidatorsAddedByOtherRecipes list.
+         */
+        if (existingBuilderIdIndex > -1) {
+            SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes[existingBuilderIdIndex] = builder;
+        } else {
+            SessionClaimValidatorStore.claimValidatorsAddedByOtherRecipes.push(builder);
+        }
     };
 
     static getClaimValidatorsAddedByOtherRecipes = (): SessionClaimValidator[] => {
