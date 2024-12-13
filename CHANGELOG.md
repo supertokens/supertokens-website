@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Updated the `SessionClaimValidatorStore.addClaimValidatorFromOtherRecipe` function to update the claimValidator to the latest if added again with the same id instead of adding a new claimValidator.
+
 ## [20.1.5] - 2024-10-03
 
 ### Changes
