@@ -14,8 +14,14 @@
  */
 
 let axios = require("axios");
-const { spawn } = require("child_process");
-let { BASE_URL_FOR_ST, BASE_URL, startST, checkSessionClaimsSupport } = require("./utils");
+let {
+    BASE_URL_FOR_ST,
+    BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
+    setupCoreApp,
+    setupST,
+    checkSessionClaimsSupport
+} = require("./utils");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
 const { addGenericTestCases } = require("./interception.testgen");
@@ -29,14 +35,6 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         let loggedEvents = [];
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit"
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             if (!(await checkSessionClaimsSupport())) {
                 skipped = true;
                 this.skip();
@@ -46,18 +44,15 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         after(async function () {
             let instance = axios.create();
             if (!skipped) {
-                await instance.post(BASE_URL_FOR_ST + "/after");
+                await instance.post(`${BASE_URL}/after`);
             }
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -103,7 +98,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should return a parseable body and fire an event", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 await page.evaluate(async () => {
                     const userId = "testing-supertokens-website";
@@ -156,7 +152,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should work with 403 responses without a body", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 await page.evaluate(async () => {
                     const userId = "testing-supertokens-website";
@@ -195,7 +192,9 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should call the claim refresh endpoint once for multiple `shouldRefresh` calls with adjusted clock skew (client clock ahead)", async function () {
-            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 2 * 60 * 60 });
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -267,7 +266,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should call the claim refresh endpoint once for multiple concurrent validateClaims calls", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -332,7 +332,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should retry the refresh endpoint", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -408,7 +409,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should work even if the refresh endpoint returns a 500", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -478,7 +480,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should work even if the refresh function throws", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -546,7 +549,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         // This test is skipped because it takes ~8 mins to run
         it.skip("should work even if it runs out of retries for the lock", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -618,7 +622,9 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should call the claim refresh endpoint as many times as `shouldRefresh` calls with adjusted clock skew (client clock behind)", async function () {
-            await startST(2 * 60 * 60); // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            // setting accessTokenValidity to 2 hours to avoid refresh issues due to clock skew
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 2 * 60 * 60 });
+            await setupST({ coreUrl });
             try {
                 let customClaimRefreshCalledCount = 0;
 
@@ -695,7 +701,8 @@ addGenericTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should call calculateClockSkewInMillis with appropriate headers", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             let clockSkewParams = [];
             page.on("console", ev => {
                 const text = ev.text();

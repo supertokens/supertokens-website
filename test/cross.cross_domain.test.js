@@ -21,11 +21,13 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
@@ -65,34 +67,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -121,7 +108,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //cross domain login, userinfo, logout
         it("test cross domain", async () => {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -180,7 +168,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //cross domain login, userinfo, logout
         it("test cross domain, auto add credentials", async () => {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
             await page.evaluate(async () => {
                 let userId = "testing-supertokens-website";
@@ -236,19 +225,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //cross domain login, userinfo, logout
         it("test cross domain, no auto add credentials, fail", async () => {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8082";
+            await page.evaluate(async CROSS_DOMAIN_BASE_URL => {
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: CROSS_DOMAIN_BASE_URL,
                     autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
 
                 // send api request to login
                 let loginResponse = await toTest({
-                    url: `${BASE_URL}/login`,
+                    url: `${CROSS_DOMAIN_BASE_URL}/login`,
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -264,19 +253,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assert.strictEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
 
-                let resp = await toTest({ url: `${BASE_URL}/`, method: "get" });
+                let resp = await toTest({ url: `${CROSS_DOMAIN_BASE_URL}/`, method: "get" });
                 assert.strictEqual(resp.statusCode, 401);
 
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
 
                 await toTest({
-                    url: `${BASE_URL}/login`,
+                    url: `${CROSS_DOMAIN_BASE_URL}/login`,
                     method: "post",
                     credentials: "include",
                     headers: {
@@ -287,17 +276,21 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
 
                 // send a get session request , which should do a refresh session request
-                let getSessionResponse = await toTest({ url: `${BASE_URL}/`, method: "get", credentials: "include" });
+                let getSessionResponse = await toTest({
+                    url: `${CROSS_DOMAIN_BASE_URL}/`,
+                    method: "get",
+                    credentials: "include"
+                });
 
                 // check that the getSession was successfull
                 assert.strictEqual(getSessionResponse.responseText, userId);
 
                 // check that the refresh session was called only once
-                assert.strictEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
 
                 // do logout
                 let logoutResponse = await toTest({
-                    url: `${BASE_URL}/logout`,
+                    url: `${CROSS_DOMAIN_BASE_URL}/logout`,
                     method: "post",
                     credentials: "include",
                     headers: {
@@ -310,7 +303,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 //check that session does not exist
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, CROSS_DOMAIN_BASE_URL);
         });
     });
 });

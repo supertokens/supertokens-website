@@ -21,19 +21,19 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
 } = require("./utils");
-const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 
-/* TODO: 
+/* TODO:
     - User passed config should be sent as well
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
@@ -81,34 +81,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -173,7 +158,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         it("test session after signing key change", async function () {
             // We can have access tokens valid for longer than the signing key update interval
-            await startST(100, true, "0.002");
+            const coreUrl = await setupCoreApp({
+                accessTokenValidity: 100,
+                accessTokenSigningKeyUpdateInterval: "0.002"
+            });
+            await setupST({ coreUrl, enableAntiCsrf: true });
             await setup();
 
             await page.evaluate(async coreSupportsMultipleSignigKeys => {
@@ -209,7 +198,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test sameSite is none if using iframe", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
+
+            // NOTE: Using localhost:8080 as the base URL because browsers ignore
+            // SameSite=None, Secure: true cookies on HTTP non-localhost domains.
+
+            const BASE_URL = "http://localhost:8080";
+            await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
+            await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
+            await page.evaluate(BASE_URL => (window.BASE_URL = BASE_URL), BASE_URL);
+            await page.waitForFunction(() => window.supertokens !== undefined);
+            await new Promise(r => setTimeout(r, 250));
+
             await setup({
                 isInIframe: true
             });
@@ -217,7 +218,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 const userId = "testing-supertokens-website";
 
                 await toTest({
-                    url: `${BASE_URL}/login`,
+                    url: `http://localhost:8080/login`,
                     method: "post",
                     headers: {
                         Accept: "application/json",
@@ -227,12 +228,23 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
             });
 
-            const cookies = await page.cookies();
-            assert.strictEqual(cookies.length, 0);
+            let cookies = await page.cookies();
+
+            // Assert that all frontend cookies are sameSite=None and Secure: true
+            const frontendCookies =
+                transferMethod === "cookie"
+                    ? ["sAntiCsrf", "sFrontToken", "st-last-access-token-update"]
+                    : ["sFrontToken", "st-last-access-token-update", "st-access-token", "st-refresh-token"];
+            frontendCookies.forEach(cookieName => {
+                const cookie = cookies.find(cookie => cookie.name === cookieName);
+                assert(cookie.sameSite === "None");
+                assert(cookie.secure === true);
+            });
         });
 
         it("test rid is there", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -255,7 +267,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("signout with expired access token", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -281,7 +294,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("signout with not expired access token", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -317,7 +331,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 return;
             }
 
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.setRequestInterception(true);
@@ -368,7 +383,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test update jwt data ", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async v3AccessTokenSupported => {
@@ -449,7 +465,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //test custom headers are being sent when logged in and when not*****
         it("test that custom headers are being sent", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -515,7 +532,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //testing doesSessionExist works fine when user is logged in******
         it("test that doesSessionExist works fine when the user is logged in", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -539,9 +557,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //session should not exist when user calls log out - use doesSessionExist & check localstorage is empty
         it("test session should not exist when user calls log out", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 function getAntiCSRFromCookie() {
                     let value = "; " + document.cookie;
                     let parts = value.split("; sAntiCsrf=");
@@ -553,7 +572,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     }
                     return null;
                 }
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -605,12 +623,13 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 } catch (err) {
                     assert.strictEqual(err.message, "No session exists");
                 }
-            });
+            }, BASE_URL);
         });
 
         // testing attemptRefreshingSession works fine******
         it("test that attemptRefreshingSession is working correctly", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -645,7 +664,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         // - Things should work if anti-csrf is disabled.******
         it("test that things should work correctly if anti-csrf is disabled", async function () {
-            await startST(3, false);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl, enableAntiCsrf: false });
             await setup();
 
             await page.evaluate(async () => {
@@ -689,7 +709,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //    - Calling SuperTokens.init more than once works!*******
         it("test that calling SuperTokens.init more than once works", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.evaluate(async () => {
                 supertokens.init({
@@ -743,7 +764,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("check sessionDoes exist calls refresh API just once", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -787,10 +809,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
-            await startST(3, false);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl, enableAntiCsrf: false });
 
             await setup();
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 function deleteAllCookies() {
                     var cookies = document.cookie.split(";");
 
@@ -802,7 +825,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     }
                 }
 
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -839,14 +861,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 2);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         });
 
         it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
 
             await setup();
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 function deleteAllCookies() {
                     var cookies = document.cookie.split(";");
 
@@ -858,7 +881,6 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     }
                 }
 
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -895,20 +917,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 2);
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-            });
+            }, BASE_URL);
         });
 
         it("test that setting headers works", async function () {
             await setup();
             const [_, req2, req3] = await Promise.all([
-                page.evaluate(async () => {
-                    let BASE_URL = "http://localhost.org:8080";
+                page.evaluate(async BASE_URL => {
                     supertokens.init({
                         apiDomain: BASE_URL
                     });
                     await toTest({ url: `${BASE_URL}/test2`, headers: { asdf2: "123" } });
                     await toTest({ url: `${BASE_URL}/test3` });
-                }),
+                }, BASE_URL),
                 page.waitForRequest(`${BASE_URL}/test2`),
                 page.waitForRequest(`${BASE_URL}/test3`)
             ]);
@@ -921,7 +942,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test when ACCESS_TOKEN_PAYLOAD_UPDATED is fired", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
 
             await setup();
             const logs = [];
@@ -1042,7 +1064,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test ACCESS_TOKEN_PAYLOAD_UPDATED when updated with handle", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
 
             await setup();
             const logs = [];
@@ -1138,7 +1161,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("Test that everything works if the user reads the body and headers in the post API hook", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
 
             await setup();
             await page.evaluate(async () => {
@@ -1192,7 +1216,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should work fine if the last header is empty", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
 
@@ -1234,7 +1259,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should log out fine if the last header is an empty access-token", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
 
