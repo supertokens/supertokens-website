@@ -23,20 +23,21 @@ let { interceptorFunctionRequestFulfilled, responseInterceptor } = require("../l
 let assert = require("assert");
 let {
     delay,
-    checkIfIdRefreshIsCleared,
     getNumberOfTimesRefreshCalled,
-    startST,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
     getNumberOfTimesRefreshAttempted,
     resetAuthHttpRequestFetch
 } = require("./utils");
-const { spawn } = require("child_process");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 
 AuthHttpRequest.addAxiosInterceptors(axios);
-/* TODO: 
+/* TODO:
     - session should not exist when user's session fully expires - use doesSessionExist & check localstorage is empty
     - while logged in, test that APIs that there is proper change in id refresh cookie
     - tests APIs that don't require authentication work after logout - with-credentials don't get sent.
@@ -51,26 +52,12 @@ AuthHttpRequest.addAxiosInterceptors(axios);
 */
 describe("Axios AuthHttpRequest class tests", function () {
     jsdom({
-        url: "http://localhost.org"
-    });
-
-    before(async function () {
-        spawn(
-            "./test/startServer",
-            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-            {
-                // stdio: "inherit"
-            }
-        );
-        await new Promise(r => setTimeout(r, 1000));
+        url: "http://localhost"
     });
 
     after(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
@@ -78,9 +65,9 @@ describe("Axios AuthHttpRequest class tests", function () {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
     });
 
     it("testing for init check in doRequest", async function () {
@@ -253,16 +240,17 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("refresh session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
+
         try {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -274,23 +262,26 @@ describe("Axios AuthHttpRequest class tests", function () {
                         "Content-Type": "application/json"
                     }
                 });
+
+                const payload = await supertokens.getAccessTokenPayloadSecurely();
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-                await delay(3);
+                await delay(5);
 
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 let getResponse = await axios({ url: `${BASE_URL}/`, method: "GET" });
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 getResponse = await getResponse.data;
                 assertEqual(getResponse, userId);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("test that unauthorised event is not fired on initial page load", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -304,8 +295,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
@@ -322,7 +312,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-            });
+            }, BASE_URL);
             console.log(consoleLogs);
             assert(consoleLogs.length === 1);
             assert(consoleLogs[0] === "ST_SESSION_CREATED");
@@ -332,7 +322,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("test that unauthorised event is fired when calling protected route without a session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -346,8 +337,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
@@ -360,7 +350,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 } catch (err) {
                     assertEqual(err.response.status, 401);
                 }
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.length === 1);
 
@@ -375,7 +365,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -389,8 +380,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
@@ -407,7 +397,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-            });
+            }, BASE_URL);
 
             const client = await page.target().createCDPSession();
             await client.send("Network.clearBrowserCookies");
@@ -415,14 +405,13 @@ describe("Axios AuthHttpRequest class tests", function () {
             let cookies = await page.cookies();
             assert(cookies.length === 0);
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 try {
                     await axios({ url: `${BASE_URL}/`, method: "GET" });
                 } catch (err) {
                     assertEqual(err.response.status, 401);
                 }
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.length === 2);
 
@@ -438,7 +427,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("test that after login, and clearing only httpOnly cookies, if we query a protected route, it fires unauthorised event", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -452,8 +442,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             });
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL,
@@ -470,7 +459,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-            });
+            }, BASE_URL);
 
             let originalCookies = (await page.cookies()).filter(
                 c => c.name === "sFrontToken" || c.name === "st-last-access-token-update" || c.name === "sAntiCsrf"
@@ -484,8 +473,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             let cookies = await page.cookies();
             assert(cookies.length === 3);
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let caught;
                 try {
                     await axios({ url: `${BASE_URL}/`, method: "GET" });
@@ -494,7 +482,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 }
                 assert.ok(caught);
                 assert.strictEqual(caught.response.status, 401);
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.length === 2);
 
@@ -510,7 +498,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("test rid is there", async function () {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -518,8 +507,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -537,14 +525,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let getResponse = await axios({ url: `${BASE_URL}/check-rid`, method: "GET" });
 
                 assertEqual(await getResponse.data, "success");
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("signout with expired access token", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -552,8 +541,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -573,14 +561,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await supertokens.signOut();
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("signout with not expired access token", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -588,8 +577,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -608,14 +596,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 await supertokens.signOut();
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     // it("refresh session via reading of frontend info", async function () {
-    //     await startST();
+    //     const coreUrl = await setupCoreApp();
+    //     await setupST({ coreUrl });
     //     const browser = await puppeteer.launch({
     //         args: ["--no-sandbox", "--disable-setuid-sandbox"]
     //     });
@@ -623,8 +612,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     //         const page = await browser.newPage();
     //         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
     //         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-    //         await page.evaluate(async () => {
-    //             let BASE_URL = "http://localhost.org:8080";
+    //         await page.evaluate(async (BASE_URL) => {
     //             supertokens.addAxiosInterceptors(axios);
     //             supertokens.init({
     //                 apiDomain: BASE_URL
@@ -651,7 +639,7 @@ describe("Axios AuthHttpRequest class tests", function () {
     //             let data2 = await supertokens.getAccessTokenPayloadSecurely();
     //             assertEqual(data2.key === "data", true);
     //             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-    //         });
+    //         }, BASE_URL);
     //     } finally {
     //         await browser.close();
     //     }
@@ -659,7 +647,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //test custom headers are being sent when logged in and when not*****
     it("test that custom headers are being sent when logged in", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -667,8 +656,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -716,7 +704,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(testResponse2.data, "success");
                 //check that custom headers are present
                 assertEqual(testResponse2.headers["testing"], "testValue");
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -724,7 +712,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //testing doesSessionExist works fine when user is logged in******
     it("test doesSessionExist works fine when user is logged in", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -732,8 +721,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -751,7 +739,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), true);
                 let getSessionResponse = await axios.get(`${BASE_URL}/`);
                 assertEqual(userId, getSessionResponse.data);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -759,7 +747,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     // testing attemptRefreshingSession works fine******
     it("test that attemptRefreshingSession is working correctly", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -767,8 +756,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -796,7 +784,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that the number of times the refresh API called is still 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -804,7 +792,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
     it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
-        await startST(15, true);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 15 });
+        await setupST({ coreUrl, enableAntiCsrf: true });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -812,8 +801,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -856,7 +844,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 //check that the number of times refresh is called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 assertEqual(noOfResponeSuccesses, n);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -864,7 +852,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     // - Things should work if anti-csrf is disabled.******
     it("axios test that things should work correctly if anti-csrf is disabled", async function () {
-        await startST(3, false);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl, enableAntiCsrf: false });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -872,8 +861,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -908,7 +896,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 assertEqual(await supertokens.doesSessionExist(), false);
                 assertEqual(logoutResponse.data, "success");
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -916,7 +904,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //test that calling addAxiosInterceptors many times is not a problem******
     it("test that calling addAxiosInterceptors multiple times is not a problem", async () => {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -924,10 +913,9 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -976,7 +964,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that session does not exist
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -984,7 +972,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //    - User passed config should be sent as well******
     it("test that user passed config should be sent", async () => {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -992,9 +981,8 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -1008,14 +996,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                     timeout: 1000
                 });
                 assertEqual(userConfigResponse.config.timeout, 1000);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
     // if any API throws error, it gets propogated to the user properly (with and without interception)******
     it("test that if an api throws an error it gets propagated to the user with interception", async () => {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1023,8 +1012,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1036,7 +1024,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     assertEqual(error.response.data, "test error message");
                     assertEqual(error.response.status, 500);
                 }
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1044,7 +1032,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     // if any API throws error, it gets propogated to the user properly (with and without interception)******
     it("test that if an api throws an error, it gets propergated to the user without interception", async () => {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1052,8 +1041,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -1064,7 +1052,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     assertEqual(error.response.data, "test error message");
                     assertEqual(error.response.status, 500);
                 }
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1072,7 +1060,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //    - Calling SuperTokens.init more than once works!*******
     it("test that calling SuperTokens.init more than once works", async () => {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1080,8 +1069,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1123,15 +1111,16 @@ describe("Axios AuthHttpRequest class tests", function () {
                     }
                 });
                 assertEqual(userId, loginResponse.data);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
-    it("test that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
-        await startST(3);
+    it("test that if via interception, initially an endpoint is hit just twice in case of access token expiry", async () => {
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1139,8 +1128,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1167,14 +1155,15 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that the number of times refesh session was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("test with axios interception should happen if api domain and website domain are the same and relative path is used", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
 
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1184,9 +1173,8 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
 
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -1202,14 +1190,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(loginResponse.data, userId);
 
                 assertEqual(await supertokens.doesSessionExist(), true);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("test with axios interception should not happen if api domain and website domain are different and relative path is used", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
 
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -1244,7 +1233,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
     it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1252,9 +1242,8 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -1285,7 +1274,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 }
 
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1293,7 +1282,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
     it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
-        await startST(5);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1301,8 +1291,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1326,7 +1315,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that the number of times refresh session was called is 0
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1334,7 +1323,8 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //- if multiple interceptors are there, they should all work*****
     it("test that if multiple interceptors are there, they should all work", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         let testAxios = axios.create();
         addAxiosInterceptorsTest(testAxios);
         AuthHttpRequest.init({
@@ -1358,22 +1348,22 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //cross domain login, userinfo, logout
     it("cross domain", async () => {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
+            await page.goto(`${BASE_URL}/index.html`, { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async CROSS_DOMAIN_BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: CROSS_DOMAIN_BASE_URL
                 });
                 let userId = "testing-supertokens-website";
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                let loginResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1388,13 +1378,13 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
                 // send a get session request , which should do a refresh session request
 
-                let getSessionResponse = await axios.get(`${BASE_URL}/`, {
+                let getSessionResponse = await axios.get(`${CROSS_DOMAIN_BASE_URL}/`, {
                     withCredentials: true
                 });
 
@@ -1402,10 +1392,10 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 1);
 
                 // do logout
-                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                let logoutResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/logout`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1416,7 +1406,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that session does not exist
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, CROSS_DOMAIN_BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1424,23 +1414,23 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //cross domain login, userinfo, logout
     it("cross domain with auto add credentials", async () => {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
+            await page.goto(`${BASE_URL}/index.html`, { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async CROSS_DOMAIN_BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: CROSS_DOMAIN_BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                let loginResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1454,23 +1444,23 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
                 await delay(5);
                 // send a get session request , which should do a refresh session request
 
-                let getSessionResponse = await axios.get(`${BASE_URL}/`);
+                let getSessionResponse = await axios.get(`${CROSS_DOMAIN_BASE_URL}/`);
 
                 // check that the getSession was successfull
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 1);
 
                 // do logout
-                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                let logoutResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/logout`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1480,7 +1470,7 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that session does not exist
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, CROSS_DOMAIN_BASE_URL);
         } finally {
             await browser.close();
         }
@@ -1488,24 +1478,24 @@ describe("Axios AuthHttpRequest class tests", function () {
 
     //cross domain login, userinfo, logout
     it("cross domain with no auto add credentials, fail", async () => {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
+            await page.goto(`${BASE_URL}/index.html`, { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async CROSS_DOMAIN_BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
-                let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL,
+                    apiDomain: CROSS_DOMAIN_BASE_URL,
                     autoAddCredentials: false
                 });
                 let userId = "testing-supertokens-website";
 
-                let loginResponse = await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                let loginResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1518,7 +1508,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assert.strictEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assert.strictEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
@@ -1526,14 +1516,14 @@ describe("Axios AuthHttpRequest class tests", function () {
                 // send a get session request , which should do a refresh session request
 
                 try {
-                    await axios.get(`${BASE_URL}/`, {}, { withCredentials: true });
+                    await axios.get(`${CROSS_DOMAIN_BASE_URL}/`, {}, { withCredentials: true });
                     assert(false);
                 } catch (err) {
                     assert.strictEqual(err.message, "Request failed with status code 401");
                 }
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
 
-                await axios.post(`${BASE_URL}/login`, JSON.stringify({ userId }), {
+                await axios.post(`${CROSS_DOMAIN_BASE_URL}/login`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1541,7 +1531,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                     withCredentials: true
                 });
 
-                let getSessionResponse = await axios.get(`${BASE_URL}/`, {
+                let getSessionResponse = await axios.get(`${CROSS_DOMAIN_BASE_URL}/`, {
                     withCredentials: true
                 });
 
@@ -1549,7 +1539,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assert.strictEqual(getSessionResponse.data, userId);
 
                 // do logout
-                let logoutResponse = await axios.post(`${BASE_URL}/logout`, JSON.stringify({ userId }), {
+                let logoutResponse = await axios.post(`${CROSS_DOMAIN_BASE_URL}/logout`, JSON.stringify({ userId }), {
                     headers: {
                         Accept: "application/json",
                         "Content-Type": "application/json"
@@ -1560,30 +1550,30 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that session does not exist
                 assert.strictEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, CROSS_DOMAIN_BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("cross domain with BaseURL", async () => {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
         try {
             const page = await browser.newPage();
-            await page.goto("http://localhost.org:8080/index.html", { waitUntil: "load" });
+            await page.goto(`${BASE_URL}/index.html`, { waitUntil: "load" });
             await page.addScriptTag({ path: "./bundle/bundle.js", type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async CROSS_DOMAIN_BASE_URL => {
                 const http = axios.create({
-                    baseURL: "http://localhost.org:8082",
+                    baseURL: CROSS_DOMAIN_BASE_URL,
                     withCredentials: true
                 });
                 supertokens.addAxiosInterceptors(http);
-                let BASE_URL = "http://localhost.org:8082";
                 supertokens.init({
-                    apiDomain: BASE_URL
+                    apiDomain: CROSS_DOMAIN_BASE_URL
                 });
                 let userId = "testing-supertokens-website";
 
@@ -1601,7 +1591,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), true);
 
                 // check that the number of times session refresh is called is zero
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 0);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 0);
 
                 //delay for 5 seconds so that we know accessToken expires
 
@@ -1614,7 +1604,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(getSessionResponse.data, userId);
 
                 // check that the refresh session was called only once
-                assertEqual(await getNumberOfTimesRefreshCalled(BASE_URL), 1);
+                assertEqual(await getNumberOfTimesRefreshCalled(CROSS_DOMAIN_BASE_URL), 1);
 
                 // do logout
                 let logoutResponse = await http.post(`/logout`, JSON.stringify({ userId }), {
@@ -1628,14 +1618,15 @@ describe("Axios AuthHttpRequest class tests", function () {
 
                 //check that session does not exist
                 assertEqual(await supertokens.doesSessionExist(), false);
-            });
+            }, CROSS_DOMAIN_BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("refresh session with baseURL", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1643,11 +1634,10 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 const http = axios.create({
-                    baseURL: "http://localhost.org:8080"
+                    baseURL: BASE_URL
                 });
-                let BASE_URL = "http://localhost.org:8080";
                 supertokens.addAxiosInterceptors(http);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1668,14 +1658,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
                 getResponse = await getResponse.data;
                 assertEqual(getResponse, userId);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("check sessionDoes exist calls refresh API just once", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1683,8 +1674,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1724,14 +1714,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 1);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
                 // assertEqual(document.cookie !== "sIRTFrontend=remove", true);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("check clearing all frontend set cookies still works (without anti-csrf)", async function () {
-        await startST(3, false);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl, enableAntiCsrf: false });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1739,8 +1730,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1777,14 +1767,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), true);
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("check clearing all frontend set cookies logs our user (with anti-csrf)", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1792,8 +1783,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1830,14 +1820,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 assertEqual(await supertokens.doesSessionExist(), false);
                 assertEqual(await getNumberOfTimesRefreshAttempted(), 2);
                 assertEqual(await getNumberOfTimesRefreshCalled(), 0);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("refresh session with invalid tokens should clear all cookies", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1845,8 +1836,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1860,16 +1850,15 @@ describe("Axios AuthHttpRequest class tests", function () {
                 });
                 let userIdFromResponse = loginResponse.data;
                 assertEqual(userId, userIdFromResponse);
-            });
+            }, BASE_URL);
 
             // we save the cookies..
             let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             // we logout
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 await axios({ url: `${BASE_URL}/logout`, method: "POST" });
-            });
+            }, BASE_URL);
 
             // we set the old cookies with invalid access token
             originalCookies = originalCookies.map(c =>
@@ -1878,14 +1867,13 @@ describe("Axios AuthHttpRequest class tests", function () {
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 try {
                     await axios({ url: `${BASE_URL}/`, method: "GET" });
                 } catch (err) {
                     assertEqual(err.response.status, 401);
                 }
-            });
+            }, BASE_URL);
 
             // and we assert that the only cookie that exists is the st-last-access-token-update
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
@@ -1898,7 +1886,8 @@ describe("Axios AuthHttpRequest class tests", function () {
     });
 
     it("test that relative URLs get intercepted if frontend and backend are on same domain", async function () {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -1906,8 +1895,7 @@ describe("Axios AuthHttpRequest class tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.addAxiosInterceptors(axios);
                 supertokens.init({
                     apiDomain: BASE_URL
@@ -1925,7 +1913,7 @@ describe("Axios AuthHttpRequest class tests", function () {
                 let checkRidResponse = await axios({ url: `/check-rid`, method: "GET" });
 
                 assertEqual(await checkRidResponse.data, "success");
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }

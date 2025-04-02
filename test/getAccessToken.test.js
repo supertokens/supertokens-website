@@ -14,34 +14,30 @@
  */
 
 const axios = require("axios");
-const { spawn } = require("child_process");
-const { BASE_URL_FOR_ST, BASE_URL, startST, getNumberOfTimesRefreshAttempted } = require("./utils");
+const {
+    BASE_URL_FOR_ST,
+    BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
+    setupCoreApp,
+    setupST,
+    getNumberOfTimesRefreshAttempted
+} = require("./utils");
 const puppeteer = require("puppeteer");
 const { assert } = require("console");
 
 describe("getAccessToken", function () {
     let browser;
-    before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 1000));
-    });
 
     after(async function () {
         const instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
         const instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
 
         browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -57,13 +53,13 @@ describe("getAccessToken", function () {
     });
 
     it("should return undefined without an active session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "header",
                 apiDomain: BASE_URL
@@ -72,17 +68,17 @@ describe("getAccessToken", function () {
             const token = await supertokens.getAccessToken();
 
             assert.strictEqual(token, undefined);
-        });
+        }, BASE_URL);
     });
 
     it("should return a token with an active header-based session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "header",
                 apiDomain: BASE_URL
@@ -105,17 +101,17 @@ describe("getAccessToken", function () {
             const token = await supertokens.getAccessToken();
 
             assert.notStrictEqual(token, undefined);
-        });
+        }, BASE_URL);
     });
 
     it("should not return a token with an active cookie-based session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "cookie",
                 apiDomain: BASE_URL
@@ -138,17 +134,17 @@ describe("getAccessToken", function () {
             const token = await supertokens.getAccessToken();
 
             assert.strictEqual(token, undefined);
-        });
+        }, BASE_URL);
     });
 
     it("should not return a token after signout", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "header",
                 apiDomain: BASE_URL
@@ -173,17 +169,17 @@ describe("getAccessToken", function () {
             const token = await supertokens.getAccessToken();
 
             assert.strictEqual(token, undefined);
-        });
+        }, BASE_URL);
     });
 
     it("should return refreshed token if called with an expired session", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "header",
                 apiDomain: BASE_URL
@@ -211,18 +207,18 @@ describe("getAccessToken", function () {
             assert.notStrictEqual(token, undefined);
             assert.notStrictEqual(token, oldToken);
             assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-        });
+        }, BASE_URL);
     });
 
     it("should return undefined if refresh fails", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
 
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 tokenTransferMethod: "header",
                 apiDomain: BASE_URL
@@ -242,7 +238,7 @@ describe("getAccessToken", function () {
 
             assert.strictEqual(await loginResponse.text(), userId);
             await delay(5);
-        });
+        }, BASE_URL);
 
         await page.setCookie({ name: "st-refresh-token", value: "asdf" });
 

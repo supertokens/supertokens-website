@@ -15,9 +15,8 @@
 let jsdom = require("mocha-jsdom");
 let AuthHttpRequest = require("../index.js").default;
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
-let { BASE_URL, BASE_URL_FOR_ST, startST, resetAuthHttpRequestFetch } = require("./utils");
+let { BASE_URL, BASE_URL_FOR_ST, setupCoreApp, setupST, resetAuthHttpRequestFetch } = require("./utils");
 let { default: CookieHandlerReference } = require("../lib/build/utils/cookieHandler/index");
-const { spawn } = require("child_process");
 let axios = require("axios");
 let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
@@ -30,20 +29,9 @@ describe("Cookie Handler Tests", function () {
         url: "http://localhost"
     });
 
-    before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 1000));
-    });
-
     after(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
@@ -53,8 +41,8 @@ describe("Cookie Handler Tests", function () {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${BASE_URL}/beforeeach`);
     });
 
     it("Test that cookie handler is set when calling init", function () {
@@ -81,7 +69,8 @@ describe("Cookie Handler Tests", function () {
     });
 
     it("Test that using default cookie handlers works fine", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -90,8 +79,7 @@ describe("Cookie Handler Tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -119,14 +107,15 @@ describe("Cookie Handler Tests", function () {
 
                 //check that the number of time the refreshAPI was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("Test that using a custom cookie handler works as expected", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -144,9 +133,7 @@ describe("Cookie Handler Tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
-
+            await page.evaluate(async BASE_URL => {
                 function getCookieNameFromString(cookieString) {
                     return cookieString.split(";")[0].split("=")[0];
                 }
@@ -178,7 +165,7 @@ describe("Cookie Handler Tests", function () {
                 });
 
                 assertEqual(await loginResponse.text(), userId);
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.includes("ST_LOGS GET_COOKIE"));
             assert(consoleLogs.includes("ST_LOGS SET_COOKIE st-last-access-token-update"));
@@ -195,7 +182,8 @@ describe("Cookie Handler Tests", function () {
     });
 
     it("Test that throwing an error in cookie handling gets propogated properly", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -211,8 +199,7 @@ describe("Cookie Handler Tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     cookieHandler: function (original) {
@@ -243,7 +230,7 @@ describe("Cookie Handler Tests", function () {
                 }
 
                 assertEqual(testFailed, false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }

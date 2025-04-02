@@ -15,8 +15,15 @@
 
 let axios = require("axios");
 let jsdom = require("mocha-jsdom");
-const { spawn } = require("child_process");
-let { BASE_URL_FOR_ST, BASE_URL, startST, resetAuthHttpRequestFetch, delay } = require("./utils");
+let {
+    BASE_URL_FOR_ST,
+    BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
+    resetAuthHttpRequestFetch,
+    delay,
+    setupCoreApp,
+    setupST
+} = require("./utils");
 let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
 const assert = require("assert");
@@ -28,20 +35,9 @@ describe("attemptRefreshingSession", function () {
 
     let browser;
 
-    before(async () => {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 1000));
-    });
-
     after(async () => {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async () => {
@@ -49,9 +45,9 @@ describe("attemptRefreshingSession", function () {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
 
         browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -65,7 +61,8 @@ describe("attemptRefreshingSession", function () {
     });
 
     it("should not throw if refresh returns a 401 with a session previously existing", async () => {
-        await startST(2);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 2 });
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.setRequestInterception(true);
@@ -84,8 +81,7 @@ describe("attemptRefreshingSession", function () {
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-        await page.evaluate(async () => {
-            let BASE_URL = "http://localhost.org:8080";
+        await page.evaluate(async BASE_URL => {
             supertokens.init({
                 apiDomain: BASE_URL
             });
@@ -105,6 +101,6 @@ describe("attemptRefreshingSession", function () {
 
             const res = await supertokens.attemptRefreshingSession();
             assert.strictEqual(res, false);
-        });
+        }, BASE_URL);
     });
 });

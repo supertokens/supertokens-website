@@ -45,7 +45,7 @@ describe("AuthHttpRequest claim handling", function () {
         resetSessionClaimValidatorStore();
         accessTokenStub = sinon.stub().returns({});
         AuthHttpRequest.init({
-            apiDomain: "localhost.org",
+            apiDomain: "localhost",
 
             override: {
                 functions: oI => ({

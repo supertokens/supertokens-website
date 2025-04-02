@@ -21,16 +21,16 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupST,
+    setupCoreApp,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
 } = require("./utils");
-const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 
 /* setupFunc is called through page.evaluate at the start of each test
@@ -65,34 +65,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -121,7 +106,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("refresh session with invalid tokens should clear all cookies", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -141,10 +127,9 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             let originalCookies = (await page._client.send("Network.getAllCookies")).cookies;
 
             // we logout
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 await toTest({ url: `${BASE_URL}/logout`, method: "POST" });
-            });
+            }, BASE_URL);
 
             // we set the old cookies with invalid access token
             originalCookies = originalCookies.map(c =>
@@ -153,12 +138,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             await page.setCookie(...originalCookies);
 
             // now we expect a 401.
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let resp = await toTest({ url: `${BASE_URL}/`, method: "GET" });
                 assert.strictEqual(resp.statusCode, 401);
                 // assert.strictEqual(resp.url, `${BASE_URL}/auth/session/refresh`);
-            });
+            }, BASE_URL);
 
             // and we assert that the only cookie that exists is the st-last-access-token-update
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
@@ -168,7 +152,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("refresh session endpoint responding with 500 makes the original call resolve with refresh response", async function () {
-            await startST(100, true, "0.002");
+            const coreUrl = await setupCoreApp({
+                accessTokenValidity: 100,
+                accessTokenSigningKeyUpdateInterval: "0.002"
+            });
+            await setupST({ coreUrl, enableAntiCsrf: true });
             await setup();
 
             await page.setRequestInterception(true);
@@ -216,8 +204,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             });
 
             // page.on("console", l => console.log(l.text()));
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -238,11 +225,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(response.statusCode, 500);
                 const data = JSON.parse(response.responseText);
                 assert.strictEqual(data.message, "test");
-            });
+            }, BASE_URL);
         });
 
         it("no refresh call after 401 response that removes session", async function () {
-            await startST(100, true, "0.002");
+            const coreUrl = await setupCoreApp({
+                accessTokenValidity: 100,
+                accessTokenSigningKeyUpdateInterval: "0.002"
+            });
+            await setupST({ coreUrl, enableAntiCsrf: true });
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
@@ -300,7 +291,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("original endpoint responding with 500 should not call refresh without cookies", async function () {
-            await startST(100, true, "0.002");
+            const coreUrl = await setupCoreApp({
+                accessTokenValidity: 100,
+                accessTokenSigningKeyUpdateInterval: "0.002"
+            });
+            await setupST({ coreUrl, enableAntiCsrf: true });
             await setup();
             await page.setRequestInterception(true);
             let refreshCalled = 0;
@@ -339,10 +334,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         //If via interception, make sure that initially, just an endpoint is just hit twice in case of access token expiry*****
         it("test that if via interception, initially an endpoint is hit just twice in case of access token expiary", async () => {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -372,16 +367,16 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 //check that the number of times refesh session was called is 1
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         });
 
         //- If you make an api call without cookies(logged out) api throws session expired , then make sure that refresh token api is not getting called , get 401 as the output****
         it("test that an api call without cookies throws session expire, refresh api is not called and 401 is the output", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -418,16 +413,16 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(getSessionResponse.url, `${BASE_URL}/`);
                 assert.strictEqual(await getNumberOfTimesRefreshAttempted(), 1);
-            });
+            }, BASE_URL);
         });
 
         //    - If via interception, make sure that initially, just an endpoint is just hit once in case of access token NOT expiry*****
         it("test that via interception initially an endpoint is just hit once in case of valid access token", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -454,12 +449,13 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 //check that the number of times refresh session was called is 0
                 assert.strictEqual(await getNumberOfTimesRefreshCalled(), 0);
-            });
+            }, BASE_URL);
         });
 
         // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
         it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called", async function () {
-            await startST(15);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 15 });
+            await setupST({ coreUrl });
             await setup();
             await page.evaluate(async () => {
                 let userId = "testing-supertokens-website";
@@ -513,7 +509,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
         // multiple API calls in parallel when access token is expired (100 of them) and only 1 refresh should be called*****
         it("test that multiple API calls in parallel when access token is expired, only 1 refresh should be called - with delayed calls", async function () {
-            await startST(15);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 15 });
+            await setupST({ coreUrl });
             await setup();
             await page.evaluate(async () => {
                 let userId = "testing-supertokens-website";
@@ -575,7 +572,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test refresh session", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
             await page.evaluate(async () => {
                 const userId = "testing-supertokens-website";
@@ -608,7 +606,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test refresh session with multiple 401s", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
             let getCount = 0;
@@ -665,7 +664,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test refresh session with removed front-token header in the response", async function () {
-            await startST(3);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+            await setupST({ coreUrl });
             await setup();
             const logs = [];
             page.on("console", message => {
@@ -724,7 +724,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should break out of session refresh loop after default maxRetryAttemptsForSessionRefresh value", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
 
@@ -780,7 +781,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert(
                 consoleLogs.includes(
-                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 10 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                    `Received a 401 response from ${BASE_URL}/. Attempted to refresh the session and retry the request with the updated session tokens 10 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`
                 )
             );
 
@@ -788,7 +789,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should break out of session refresh loop after configured maxRetryAttemptsForSessionRefresh value", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
 
@@ -845,7 +847,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert(
                 consoleLogs.includes(
-                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 5 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                    `Received a 401 response from ${BASE_URL}/. Attempted to refresh the session and retry the request with the updated session tokens 5 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`
                 )
             );
 
@@ -853,7 +855,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should not do session refresh if maxRetryAttemptsForSessionRefresh is 0", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             await page.setRequestInterception(true);
 
@@ -910,7 +913,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
             assert(
                 consoleLogs.includes(
-                    "Received a 401 response from http://localhost.org:8080/. Attempted to refresh the session and retry the request with the updated session tokens 0 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config."
+                    `Received a 401 response from ${BASE_URL}/. Attempted to refresh the session and retry the request with the updated session tokens 0 times, but each attempt resulted in a 401 error. The maximum session refresh limit has been reached. Please investigate your API. To increase the session refresh attempts, update maxRetryAttemptsForSessionRefresh in the config.`
                 )
             );
 
@@ -918,7 +921,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should break out of session refresh loop if cookie writes are disabled", async function () {
-            await startST(300, false);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 300 });
+            await setupST({ coreUrl, enableAntiCsrf: false });
             await setup({
                 disableCookies: true
             });
