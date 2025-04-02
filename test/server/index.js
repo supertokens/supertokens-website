@@ -23,19 +23,12 @@ let cookieParser = require("cookie-parser");
 let bodyParser = require("body-parser");
 let http = require("http");
 let cors = require("cors");
-let {
-    startST,
-    stopST,
-    killAllST,
-    setupST,
-    cleanST,
-    setKeyValueInConfig,
-    maxVersion,
-    isProtectedPropName
-} = require("./utils");
+let { setupST, cleanST, setKeyValueInConfig, maxVersion, isProtectedPropName } = require("./utils");
 let { package_version } = require("../../lib/build/version");
 let { middleware, errorHandler } = require("supertokens-node/framework/express");
 let { verifySession } = require("supertokens-node/recipe/session/framework/express");
+const { randomUUID } = require("node:crypto");
+let assert = require("assert");
 
 let MultiTenancyRecipeRaw;
 try {
@@ -61,16 +54,53 @@ let lastSetEnableAntiCSRF = false;
 let lastSetEnableJWT = false;
 let accountLinkingSupported = maxVersion(supertokens_node_version, "16.0") === supertokens_node_version;
 
-function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
+const getCoreUrl = () => {
+    const host = process.env?.SUPERTOKENS_CORE_HOST ?? "localhost";
+    const port = process.env?.SUPERTOKENS_CORE_PORT ?? "3567";
+
+    const coreUrl = `http://${host}:${port}`;
+
+    return coreUrl;
+};
+
+const setupCoreApplication = async function ({ appId, coreConfig } = {}) {
+    const coreUrl = getCoreUrl();
+
+    if (!appId) {
+        appId = randomUUID();
+    }
+
+    if (!coreConfig) {
+        coreConfig = {};
+    }
+
+    const createAppResp = await fetch(`${coreUrl}/recipe/multitenancy/app/v2`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            appId,
+            coreConfig
+        })
+    });
+
+    const respBody = await createAppResp.json();
+    assert.strictEqual(respBody.status, "OK");
+
+    return `${coreUrl}/appid-${appId}`;
+};
+
+function getConfig(coreUrl, enableAntiCsrf, enableJWT, jwtPropertyName) {
     if (enableJWT && maxVersion(supertokens_node_version, "14.0") === supertokens_node_version) {
         return {
             appInfo: {
                 appName: "SuperTokens",
                 apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
-                websiteDomain: "http://localhost.org:8080"
+                websiteDomain: "http://localhost:8080"
             },
             supertokens: {
-                connectionURI: "http://localhost:9000"
+                connectionURI: coreUrl
             },
             recipeList: [
                 Session.init({
@@ -114,10 +144,10 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
             appInfo: {
                 appName: "SuperTokens",
                 apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
-                websiteDomain: "http://localhost.org:8080"
+                websiteDomain: "http://localhost:8080"
             },
             supertokens: {
-                connectionURI: "http://localhost:9000"
+                connectionURI: coreUrl
             },
             recipeList: [
                 Session.init({
@@ -163,10 +193,10 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
         appInfo: {
             appName: "SuperTokens",
             apiDomain: "0.0.0.0:" + (process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT),
-            websiteDomain: "http://localhost.org:8080"
+            websiteDomain: "http://localhost:8080"
         },
         supertokens: {
-            connectionURI: "http://localhost:9000"
+            connectionURI: coreUrl
         },
         recipeList: [
             Session.init({
@@ -191,11 +221,11 @@ function getConfig(enableAntiCsrf, enableJWT, jwtPropertyName) {
     };
 }
 
-SuperTokens.init(getConfig(true, false));
+SuperTokens.init(getConfig(getCoreUrl(), true, false));
 
 app.use(
     cors({
-        origin: "http://localhost.org:8080",
+        origin: "http://localhost:8080",
         allowedHeaders: ["content-type", ...SuperTokens.getAllCORSHeaders()],
         methods: ["GET", "PUT", "POST", "DELETE"],
         credentials: true
@@ -203,6 +233,43 @@ app.use(
 );
 
 app.use(middleware());
+
+app.post("/test/setup/app", async (req, res) => {
+    try {
+        res.send(await setupCoreApplication(req.body));
+    } catch (err) {
+        console.log(err);
+        res.status(500).send(err.toString());
+    }
+});
+
+app.post("/test/setup/st", async (req, res) => {
+    try {
+        if (req.body.enableAntiCsrf !== undefined) {
+            SuperTokensRaw.reset();
+            SessionRecipeRaw.reset();
+            if (MultiTenancyRecipeRaw) {
+                MultiTenancyRecipeRaw.reset();
+            }
+        }
+
+        const stConfig = getConfig(
+            req.body.coreUrl,
+            req.body.enableAntiCsrf,
+            req.body.enableJWT,
+            req.body.jwtPropertyName
+        );
+
+        lastSetEnableAntiCSRF = req.body.enableAntiCsrf;
+        lastSetEnableJWT = req.body.enableJWT;
+
+        await SuperTokens.init(stConfig);
+        res.send();
+    } catch (err) {
+        console.log(err);
+        res.status(500).send(err.toString());
+    }
+});
 
 app.post("/login", async (req, res) => {
     let userId = req.body.userId;
@@ -253,33 +320,6 @@ app.post("/login-2.18", async (req, res) => {
         .send();
 });
 
-app.post("/startST", async (req, res) => {
-    let accessTokenValidity = req.body.accessTokenValidity === undefined ? 1 : req.body.accessTokenValidity;
-    let enableAntiCsrf = req.body.enableAntiCsrf === undefined ? true : req.body.enableAntiCsrf;
-    let enableJWT = req.body.enableJWT === undefined ? false : req.body.enableJWT;
-
-    lastSetEnableAntiCSRF = enableAntiCsrf;
-    lastSetEnableJWT = enableJWT;
-
-    await setKeyValueInConfig("access_token_validity", accessTokenValidity);
-    if (req.body.accessTokenSigningKeyUpdateInterval !== undefined) {
-        await setKeyValueInConfig(
-            "access_token_signing_key_update_interval",
-            req.body.accessTokenSigningKeyUpdateInterval
-        );
-    }
-    if (enableAntiCsrf !== undefined) {
-        SuperTokensRaw.reset();
-        SessionRecipeRaw.reset();
-        if (MultiTenancyRecipeRaw) {
-            MultiTenancyRecipeRaw.reset();
-        }
-        SuperTokens.init(getConfig(enableAntiCsrf, enableJWT));
-    }
-    let pid = await startST();
-    res.send(pid + "");
-});
-
 app.get("/featureFlags", async (req, res) => {
     let currentEnableJWT = lastSetEnableJWT;
 
@@ -300,7 +340,7 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
     if (MultiTenancyRecipeRaw) {
         MultiTenancyRecipeRaw.reset();
     }
-    SuperTokens.init(getConfig(lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
+    SuperTokens.init(getConfig(req.body.coreUrl, lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
 
     res.send("");
 });
@@ -309,19 +349,14 @@ app.post("/beforeeach", async (req, res) => {
     noOfTimesRefreshCalledDuringTest = 0;
     noOfTimesGetSessionCalledDuringTest = 0;
     noOfTimesRefreshAttemptedDuringTest = 0;
-    await killAllST();
-    await setupST();
     res.send();
 });
 
 app.post("/after", async (req, res) => {
-    await killAllST();
-    await cleanST();
     res.send();
 });
 
 app.post("/stopst", async (req, res) => {
-    await stopST(req.body.pid);
     res.send("");
 });
 
@@ -532,10 +567,6 @@ app.get("/testError", (req, res) => {
         code = Number.parseInt(req.query.code);
     }
     res.status(code).send("test error message");
-});
-
-app.get("/stop", async (req, res) => {
-    process.exit();
 });
 
 app.use("*", async (req, res, next) => {
