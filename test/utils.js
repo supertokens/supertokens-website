@@ -14,10 +14,16 @@
  */
 let axios = require("axios");
 const { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
+const { randomUUID } = require("node:crypto");
 
-module.exports.BASE_URL = "http://localhost.org:8080";
+module.exports.BASE_URL = "http://localhost:8080";
 module.exports.BASE_URL_FOR_ST =
-    process.env.NODE_PORT === undefined ? "http://localhost.org:8080" : "http://localhost.org:" + process.env.NODE_PORT;
+    process.env.NODE_PORT === undefined ? "http://localhost:8080" : "http://localhost:" + process.env.NODE_PORT;
+
+// These need to be different if using a sub-domain
+// Node Url cannot use a subdomain on `localhost`, website can
+module.exports.CROSS_DOMAIN_NODE_URL = "http://localhost:8082";
+module.exports.CROSS_DOMAIN_BASE_URL = "http://localhost:8082";
 
 module.exports.delay = function (sec) {
     return new Promise(res => setTimeout(res, sec * 1000));
@@ -56,38 +62,61 @@ module.exports.getNumberOfTimesRefreshAttempted = async function (BASE = module.
     return response.data;
 };
 
-module.exports.startST = async function (
+module.exports.setupCoreApp = async function ({
+    appId,
     accessTokenValidity = 3,
-    enableAntiCsrf = true,
-    accessTokenSigningKeyUpdateInterval = undefined,
-    enableJWT = undefined
-) {
-    {
-        if (module.exports.BASE_URL !== module.exports.BASE_URL_FOR_ST) {
-            let instance = axios.create();
-            await instance.post(module.exports.BASE_URL + "/setAntiCsrf", {
-                enableAntiCsrf
-            });
+    accessTokenSigningKeyUpdateInterval
+} = {}) {
+    if (!appId) {
+        appId = randomUUID();
+    }
 
-            await instance.post(module.exports.BASE_URL + "/setEnableJWT", {
-                enableJWT
-            });
-        }
+    let coreConfig = {
+        access_token_validity: accessTokenValidity
+    };
+
+    if (accessTokenSigningKeyUpdateInterval) {
+        coreConfig = {
+            ...coreConfig,
+            access_token_signing_key_update_interval: accessTokenSigningKeyUpdateInterval
+        };
     }
-    {
-        let instance = axios.create();
-        let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/startST", {
-            accessTokenValidity,
-            enableAntiCsrf,
-            accessTokenSigningKeyUpdateInterval,
-            enableJWT
-        });
-        return response.data;
-    }
+
+    let instance = axios.create();
+    let response = await instance.post(module.exports.BASE_URL_FOR_ST + "/test/setup/app", {
+        appId,
+        coreConfig
+    });
+    return response.data;
 };
 
-module.exports.startSTWithJWTEnabled = async function (accessTokenValidity = 1) {
-    return await module.exports.startST(accessTokenValidity, true, undefined, true);
+module.exports.setupST = async function ({
+    coreUrl,
+    enableAntiCsrf = true,
+    enableJWT = undefined,
+    jwtPropertyName = undefined
+}) {
+    let instance = axios.create();
+
+    const appServerUrls = [module.exports.BASE_URL, module.exports.CROSS_DOMAIN_NODE_URL];
+
+    await Promise.all(
+        appServerUrls.map(url => {
+            instance.post(`${url}/test/setup/st`, {
+                coreUrl,
+                enableAntiCsrf,
+                enableJWT,
+                jwtPropertyName
+            });
+        })
+    );
+};
+
+module.exports.setupCoreAppAndSTWithJWTEnabled = async function (accessTokenValidity = 1) {
+    const coreUrl = await module.exports.setupCoreApp({ accessTokenValidity: accessTokenValidity });
+    await module.exports.setupST({ coreUrl, enableAntiCsrf: true, enableJWT: true });
+
+    return coreUrl;
 };
 
 module.exports.addBrowserConsole = function (page) {

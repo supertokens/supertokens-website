@@ -15,8 +15,14 @@
 
 let axios = require("axios");
 let jsdom = require("mocha-jsdom");
-const { spawn } = require("child_process");
-let { BASE_URL_FOR_ST, BASE_URL, startST, resetAuthHttpRequestFetch } = require("./utils");
+let {
+    BASE_URL_FOR_ST,
+    BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
+    setupCoreApp,
+    setupST,
+    resetAuthHttpRequestFetch
+} = require("./utils");
 let { default: AuthHttpRequestFetch } = require("../lib/build/fetch");
 let { ProcessState, PROCESS_STATE } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
@@ -26,20 +32,9 @@ describe("General Error Tests", function () {
         url: "http://localhost"
     });
 
-    before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 1000));
-    });
-
     after(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
@@ -47,13 +42,14 @@ describe("General Error Tests", function () {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
     });
 
     it("Test that signOut throws general error correctly", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -80,8 +76,7 @@ describe("General Error Tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -110,7 +105,7 @@ describe("General Error Tests", function () {
                 }
 
                 assertEqual(testFailed, false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }

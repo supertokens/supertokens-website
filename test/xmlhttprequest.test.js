@@ -16,35 +16,21 @@ const axios = require("axios");
 
 const puppeteer = require("puppeteer");
 const assert = require("assert");
-const { BASE_URL, BASE_URL_FOR_ST, startST } = require("./utils.js");
-const { spawn } = require("child_process");
+const { BASE_URL, BASE_URL_FOR_ST, CROSS_DOMAIN_NODE_URL, setupCoreApp, setupST } = require("./utils.js");
 
 describe("XmlHttpRequest tests", function () {
     let browser, page;
-    before(async function () {
-        spawn(
-            "./test/startServer",
-            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-            {
-                stdio: "inherit"
-            }
-        );
-        await new Promise(r => setTimeout(r, 1000));
-    });
 
     after(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
 
         let launchRetries = 0;
         while (browser === undefined && launchRetries++ < 3) {
@@ -125,7 +111,8 @@ describe("XmlHttpRequest tests", function () {
     });
 
     it("test that relative URLs get intercepted if frontend and backend are on same domain", async function () {
-        await startST(3);
+        const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -133,8 +120,7 @@ describe("XmlHttpRequest tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -157,7 +143,7 @@ describe("XmlHttpRequest tests", function () {
                     checkRidRequest.onload = res;
                 });
                 assertEqual(checkRidRequest.responseText, "success");
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
