@@ -9,16 +9,21 @@ on:
             - synchronize
 
 jobs:
-    pr-title:
+    pre-commit-hook:
         name: Pre commit hook check
         runs-on: ubuntu-latest
-        container: rishabhpoddar/supertokens_website_sdk_testing_node_16
         steps:
-            - uses: actions/checkout@v2
-            - run: git init && git add --all && git -c user.name='test' -c user.email='test@example.com' commit -m 'init for pr action'
-            - run: npm i || chown -R 1001:121 "/github/home/.npm" && npm i
-            # the below command is there cause otherwise running npm run check-circular-dependencies gives an error like:
-            #   Your cache folder contains root-owned files, due to a bug in
-            #   npm ERR! previous versions of npm which has since been addressed.
-            - run: chown -R 1001:121 "/github/home/.npm"
-            - run: ./hooks/pre-commit.sh
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 20
+
+            - name: Install dependencies
+              run: npm i
+
+            - name: Create empty commit
+              run: git -c user.name='test' -c user.email='test@example.com' commit -m 'init for pr action' --allow-empty
+
+            - name: Run pre-commit hook
+              run: ./hooks/pre-commit.sh

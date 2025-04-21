@@ -14,9 +14,8 @@
  */
 let jsdom = require("mocha-jsdom");
 let AuthHttpRequest = require("../index.js").default;
-let { BASE_URL, BASE_URL_FOR_ST, startST, resetAuthHttpRequestFetch } = require("./utils");
+let { BASE_URL, BASE_URL_FOR_ST, setupCoreApp, setupST, resetAuthHttpRequestFetch } = require("./utils");
 let { default: WindowHandlerReference } = require("../lib/build/utils/windowHandler/index");
-const { spawn } = require("child_process");
 let axios = require("axios");
 let { ProcessState } = require("../lib/build/processState");
 let puppeteer = require("puppeteer");
@@ -29,20 +28,9 @@ describe("Window handler tests", function () {
         url: "http://localhost"
     });
 
-    before(async function () {
-        spawn("./test/startServer", [
-            process.env.INSTALL_PATH,
-            process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT
-        ]);
-        await new Promise(r => setTimeout(r, 1000));
-    });
-
     after(async function () {
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
@@ -52,8 +40,8 @@ describe("Window handler tests", function () {
         global.document = {};
         ProcessState.getInstance().reset();
         let instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${BASE_URL}/beforeeach`);
     });
 
     it("Test that window handler is set when calling init", function () {
@@ -80,7 +68,8 @@ describe("Window handler tests", function () {
     });
 
     it("Test that using default window handlers works fine", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -89,8 +78,7 @@ describe("Window handler tests", function () {
             const page = await browser.newPage();
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -118,14 +106,15 @@ describe("Window handler tests", function () {
 
                 //check that the number of time the refreshAPI was called is 1
                 assertEqual(await getNumberOfTimesRefreshCalled(), 1);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("Test that using custom window handler works as expected", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -143,8 +132,7 @@ describe("Window handler tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     windowHandler: function (original) {
@@ -176,7 +164,7 @@ describe("Window handler tests", function () {
                 });
 
                 assertEqual(await loginResponse.text(), userId);
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.includes("ST_LOGS GET_HOST_NAME"));
             // Get origin only gets called when the request url is a path
@@ -187,7 +175,8 @@ describe("Window handler tests", function () {
     });
 
     it("Test that making a request with only path results in getOrigin being called", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -205,8 +194,7 @@ describe("Window handler tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     windowHandler: function (original) {
@@ -238,7 +226,7 @@ describe("Window handler tests", function () {
                 });
 
                 assertEqual(await loginResponse.text(), userId);
-            });
+            }, BASE_URL);
 
             assert(consoleLogs.includes("ST_LOGS GET_HOST_NAME"));
             assert(consoleLogs.includes("ST_LOGS GET_ORIGIN"));
@@ -248,7 +236,8 @@ describe("Window handler tests", function () {
     });
 
     it("Test that errors thrown in custom handlers get propogated correctly", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -266,8 +255,7 @@ describe("Window handler tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let testFailed = true;
 
                 try {
@@ -295,14 +283,15 @@ describe("Window handler tests", function () {
                 }
 
                 assertEqual(testFailed, false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
     });
 
     it("Test that errors thrown in custom handlers get propogated correctly (getOrigin)", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
@@ -320,8 +309,7 @@ describe("Window handler tests", function () {
 
             await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
             await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let testFailed = true;
 
                 try {
@@ -357,7 +345,7 @@ describe("Window handler tests", function () {
                 }
 
                 assertEqual(testFailed, false);
-            });
+            }, BASE_URL);
         } finally {
             await browser.close();
         }
