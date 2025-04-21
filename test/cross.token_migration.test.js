@@ -21,16 +21,16 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
 } = require("./utils");
-const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 
 /* setupFunc is called through page.evaluate at the start of each test
@@ -65,34 +65,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -126,7 +111,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 this.skip();
             }
 
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -151,11 +137,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 undefined
             );
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let resp = await toTest({ url: `${BASE_URL}/`, method: "GET" });
                 assert.strictEqual(resp.statusCode, 200);
-            });
+            }, BASE_URL);
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
             assert.strictEqual(
@@ -170,7 +155,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 this.skip();
             }
 
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -197,11 +183,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 undefined
             );
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let resp = await toTest({ url: `${BASE_URL}/`, method: "GET" });
                 assert.strictEqual(resp.statusCode, 200);
-            });
+            }, BASE_URL);
             assert.strictEqual(await getNumberOfTimesRefreshCalled(), 1);
             let newCookies = (await page._client.send("Network.getAllCookies")).cookies;
             assert.notStrictEqual(
@@ -228,12 +213,13 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 this.skip();
             }
 
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
+            await page.evaluate(async BASE_URL => {
                 window.userId = "testing-supertokens";
-                window.BASE_URL = "http://localhost.org:8080";
+                window.BASE_URL = BASE_URL;
 
                 // send api request to login
                 let loginResponse = await toTest({
@@ -261,7 +247,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(getSessionResponse.statusCode, 200);
                 assert.strictEqual(getSessionResponse.responseText, userId);
-            });
+            }, BASE_URL);
 
             // This would work even without sIdRefreshToken since we don't actually check the body of the response, just call refresh on all 401s
             await page.setCookie({ name: "sIdRefreshToken", value: "asdf" });

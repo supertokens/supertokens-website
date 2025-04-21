@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+- Updated tests to use containerized core
+  - Changed domain from `localhost.org` to `localhost`
+- Added workflow to run tests in Github Actions
+
 ## [20.1.6] - 2025-03-13
 
 ### Changes

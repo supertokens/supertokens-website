@@ -21,11 +21,12 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
@@ -65,34 +66,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -121,11 +107,11 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test interception should happen if api domain and website domain are the same and relative path is used", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -145,11 +131,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 assert.strictEqual(loginResponse.responseText, userId);
 
                 assert.strictEqual(await supertokens.doesSessionExist(), true);
-            });
+            }, BASE_URL);
         });
 
         it("test interception should not happen if api domain and website domain are different and relative path is used", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -177,7 +164,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("should not intercept if url contains superTokensDoNotDoInterception", async function () {
-            await startST(5);
+            const coreUrl = await setupCoreApp({ accessTokenValidity: 5 });
+            await setupST({ coreUrl });
             await setup();
 
             await page.evaluate(async () => {
@@ -201,7 +189,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test disabled interception", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
 
             await setup();
             await page.evaluate(async () => {

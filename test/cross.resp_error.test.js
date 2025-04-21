@@ -21,11 +21,12 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
@@ -65,34 +66,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -121,10 +107,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test that if an api throws an error it gets propagated to the user with interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -132,14 +118,14 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 let val = await toTest({ url: `${BASE_URL}/testError` });
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 500);
-            });
+            }, BASE_URL);
         });
 
         it("test that if an api throws a 400 error it gets propagated to the user with interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -147,14 +133,14 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 let val = await toTest({ url: `${BASE_URL}/testError?code=400` });
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 400);
-            });
+            }, BASE_URL);
         });
 
         it("test that if an api throws a 405 error it gets propagated to the user with interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -162,15 +148,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 let val = await toTest({ url: `${BASE_URL}/testError?code=405` });
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 405);
-            });
+            }, BASE_URL);
         });
 
         it("test that if an api throws an error it gets propagated to the user without interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -179,15 +165,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 500);
-            });
+            }, BASE_URL);
         });
 
         it("test that if an api throws a 400 error it gets propagated to the user without interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -199,15 +185,15 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 400);
-            });
+            }, BASE_URL);
         });
 
         it("test that if an api throws a 405 error it gets propagated to the user without interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -216,11 +202,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
 
                 assert.strictEqual(val.responseText, "test error message");
                 assert.strictEqual(val.statusCode, 405);
-            });
+            }, BASE_URL);
         });
 
         it("test that network errors are propagated to the user with interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.setRequestInterception(true);
@@ -233,8 +220,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
             });
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -247,11 +233,12 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
 
                 assert.ok(caught);
-            });
+            }, BASE_URL);
         });
 
         it("test that network errors are propagated to the user without interception", async () => {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             await page.setRequestInterception(true);
@@ -264,8 +251,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
             });
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL
                 });
@@ -278,7 +264,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 }
 
                 assert.ok(caught);
-            });
+            }, BASE_URL);
         });
     });
 });

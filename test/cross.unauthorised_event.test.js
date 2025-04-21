@@ -21,16 +21,16 @@ let assert = require("assert");
 let {
     delay,
     getNumberOfTimesRefreshCalled,
-    startST,
-    startSTWithJWTEnabled,
+    setupCoreApp,
+    setupST,
     getNumberOfTimesGetSessionCalled,
     BASE_URL,
     BASE_URL_FOR_ST,
+    CROSS_DOMAIN_NODE_URL,
     coreTagEqualToOrAfter,
     checkIfJWTIsEnabled,
     checkIfV3AccessTokenIsSupported
 } = require("./utils");
-const { spawn } = require("child_process");
 const { addGenericTestCases: addTestCases } = require("./interception.testgen");
 
 /* setupFunc is called through page.evaluate at the start of each test
@@ -65,34 +65,19 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         }
 
         before(async function () {
-            spawn(
-                "./test/startServer",
-                [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-                {
-                    // stdio: "inherit",
-                    // env: {
-                    //     ...process.env,
-                    //     DEBUG: "com.supertokens",
-                    // }
-                }
-            );
-            await new Promise(r => setTimeout(r, 1000));
             v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
         });
 
         after(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/after");
-            try {
-                await instance.get(BASE_URL_FOR_ST + "/stop");
-            } catch (err) {}
+            await instance.post(`${BASE_URL}/after`);
         });
 
         beforeEach(async function () {
             let instance = axios.create();
-            await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-            await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-            await instance.post(BASE_URL + "/beforeeach");
+            await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+            await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+            await instance.post(`${BASE_URL}/beforeeach`);
 
             let launchRetries = 0;
             while (browser === undefined && launchRetries++ < 3) {
@@ -121,7 +106,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test that after login, and clearing all cookies, if we query a protected route, it fires unauthorised event", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
 
             let consoleLogs = [];
@@ -130,8 +116,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     consoleLogs.push(message.text());
                 }
             });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
@@ -151,7 +136,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
-            });
+            }, BASE_URL);
 
             const client = await page.target().createCDPSession();
             await client.send("Network.clearBrowserCookies");
@@ -159,11 +144,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             let cookies = await page.cookies();
             assert.strictEqual(cookies.length, 0);
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let response = await toTest({ url: `${BASE_URL}/` });
                 assert.strictEqual(response.statusCode, 401);
-            });
+            }, BASE_URL);
 
             assert.strictEqual(consoleLogs.length, 2);
 
@@ -180,7 +164,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 // We skip this in header mode: it should work the same without httpOnly cookies
                 this.skip();
             }
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             let consoleLogs = [];
             page.on("console", message => {
@@ -188,8 +173,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     consoleLogs.push(message.text());
                 }
             });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
@@ -209,7 +193,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
-            });
+            }, BASE_URL);
 
             let originalCookies = (await page.cookies()).filter(c => !c.httpOnly);
 
@@ -221,11 +205,10 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
             let cookies = await page.cookies();
             assert.strictEqual(cookies.length, 3);
 
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 let response = await toTest({ url: `${BASE_URL}/` });
                 assert.strictEqual(response.statusCode, 401);
-            });
+            }, BASE_URL);
 
             assert.strictEqual(consoleLogs.length, 2);
 
@@ -238,7 +221,8 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
         });
 
         it("test that unauthorised event is not fired on initial page load", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             let consoleLogs = [];
             page.on("console", message => {
@@ -246,8 +230,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     consoleLogs.push(message.text());
                 }
             });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
@@ -267,13 +250,14 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
 
                 assert.strictEqual(loginResponse.responseText, userId);
-            });
+            }, BASE_URL);
             assert.strictEqual(consoleLogs.length, 1);
             assert.strictEqual(consoleLogs[0], "ST_SESSION_CREATED");
         });
 
         it("test that unauthorised event is fired when calling protected route without a session", async function () {
-            await startST();
+            const coreUrl = await setupCoreApp();
+            await setupST({ coreUrl });
             await setup();
             let consoleLogs = [];
             page.on("console", message => {
@@ -281,8 +265,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                     consoleLogs.push(message.text());
                 }
             });
-            await page.evaluate(async () => {
-                let BASE_URL = "http://localhost.org:8080";
+            await page.evaluate(async BASE_URL => {
                 supertokens.init({
                     apiDomain: BASE_URL,
                     onHandleEvent: event => {
@@ -291,7 +274,7 @@ addTestCases((name, transferMethod, setupFunc, setupArgs = []) => {
                 });
                 let response = await toTest({ url: `${BASE_URL}/` });
                 assert.strictEqual(response.statusCode, 401);
-            });
+            }, BASE_URL);
 
             assert.strictEqual(consoleLogs.length, 1);
 
