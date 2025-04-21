@@ -14,8 +14,14 @@
  */
 
 const axios = require("axios");
-const { spawn } = require("child_process");
-const { BASE_URL_FOR_ST, BASE_URL, startST, checkIfV3AccessTokenIsSupported } = require("./utils");
+const {
+    BASE_URL_FOR_ST,
+    BASE_URL,
+    CROSS_DOMAIN_NODE_URL,
+    checkIfV3AccessTokenIsSupported,
+    setupCoreApp,
+    setupST
+} = require("./utils");
 const puppeteer = require("puppeteer");
 const { assert } = require("console");
 
@@ -23,30 +29,19 @@ describe("access token update", function () {
     let browser;
     let v3AccessTokenSupported;
     before(async function () {
-        spawn(
-            "./test/startServer",
-            [process.env.INSTALL_PATH, process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT],
-            {
-                // stdio: "inherit"
-            }
-        );
-        await new Promise(r => setTimeout(r, 1000));
         v3AccessTokenSupported = await checkIfV3AccessTokenIsSupported();
     });
 
     after(async function () {
         const instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/after");
-        try {
-            await instance.get(BASE_URL_FOR_ST + "/stop");
-        } catch (err) {}
+        await instance.post(`${BASE_URL}/after`);
     });
 
     beforeEach(async function () {
         const instance = axios.create();
-        await instance.post(BASE_URL_FOR_ST + "/beforeeach");
-        await instance.post("http://localhost.org:8082/beforeeach"); // for cross domain
-        await instance.post(BASE_URL + "/beforeeach");
+        await instance.post(`${BASE_URL_FOR_ST}/beforeeach`);
+        await instance.post(`${CROSS_DOMAIN_NODE_URL}/beforeeach`); // for cross domain
+        await instance.post(`${BASE_URL}/beforeeach`);
 
         browser = await puppeteer.launch({
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -55,75 +50,79 @@ describe("access token update", function () {
 
     afterEach(async function () {
         try {
-            if (browser) {
-                await browser.close();
-            }
+            await browser?.close();
         } catch {}
     });
 
     it("should return the appropriate access token payload", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
+
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
         await page.addScriptTag({ path: `./bundle/bundle.js`, type: "text/javascript" });
 
-        await page.evaluate(async v3AccessTokenSupported => {
-            let BASE_URL = "http://localhost.org:8080";
-            supertokens.init({
-                tokenTransferMethod: "header",
-                apiDomain: BASE_URL
-            });
+        await page.evaluate(
+            async (v3AccessTokenSupported, BASE_URL) => {
+                supertokens.init({
+                    tokenTransferMethod: "header",
+                    apiDomain: BASE_URL
+                });
 
-            let userId = "testing-supertokens-website";
+                let userId = "testing-supertokens-website";
 
-            // Create a session
-            let loginResponse = await fetch(`${BASE_URL}/login`, {
-                method: "post",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ userId })
-            });
+                // Create a session
+                let loginResponse = await fetch(`${BASE_URL}/login`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
 
-            assert.strictEqual(await loginResponse.text(), userId);
+                assert.strictEqual(await loginResponse.text(), userId);
 
-            const payload = await supertokens.getAccessTokenPayloadSecurely();
+                const payload = await supertokens.getAccessTokenPayloadSecurely();
 
-            assert.notStrictEqual(payload, undefined);
-            if (v3AccessTokenSupported) {
                 assert.notStrictEqual(payload, undefined);
-                const expectedKeys = [
-                    "sub",
-                    "exp",
-                    "iat",
-                    "sessionHandle",
-                    "refreshTokenHash1",
-                    "parentRefreshTokenHash1",
-                    "antiCsrfToken",
-                    "iss"
-                ];
+                if (v3AccessTokenSupported) {
+                    assert.notStrictEqual(payload, undefined);
+                    const expectedKeys = [
+                        "sub",
+                        "exp",
+                        "iat",
+                        "sessionHandle",
+                        "refreshTokenHash1",
+                        "parentRefreshTokenHash1",
+                        "antiCsrfToken",
+                        "iss"
+                    ];
 
-                if (payload["tId"]) {
-                    expectedKeys.push("tId");
-                }
-                if (payload["rsub"]) {
-                    expectedKeys.push("rsub");
-                }
+                    if (payload["tId"]) {
+                        expectedKeys.push("tId");
+                    }
+                    if (payload["rsub"]) {
+                        expectedKeys.push("rsub");
+                    }
 
-                assert.strictEqual(Object.keys(payload).length, expectedKeys.length);
-                for (const key of Object.keys(payload)) {
-                    assert(expectedKeys.includes(key));
+                    assert.strictEqual(Object.keys(payload).length, expectedKeys.length);
+                    for (const key of Object.keys(payload)) {
+                        assert(expectedKeys.includes(key));
+                    }
+                } else {
+                    assert.deepStrictEqual(payload, {});
                 }
-            } else {
-                assert.deepStrictEqual(payload, {});
-            }
-        }, v3AccessTokenSupported);
+            },
+            v3AccessTokenSupported,
+            BASE_URL
+        );
     });
 
     it("should be able to refresh a session started w/ CDI 2.18", async function () {
-        await startST();
+        const coreUrl = await setupCoreApp();
+        await setupST({ coreUrl });
         const page = await browser.newPage();
 
         await page.goto(BASE_URL + "/index.html", { waitUntil: "load" });
@@ -133,66 +132,69 @@ describe("access token update", function () {
             return;
         }
 
-        await page.evaluate(async v3AccessTokenSupported => {
-            let BASE_URL = "http://localhost.org:8080";
-            supertokens.init({
-                tokenTransferMethod: "header",
-                apiDomain: BASE_URL
-            });
+        await page.evaluate(
+            async (v3AccessTokenSupported, BASE_URL) => {
+                supertokens.init({
+                    tokenTransferMethod: "header",
+                    apiDomain: BASE_URL
+                });
 
-            let userId = "testing-supertokens-website";
+                let userId = "testing-supertokens-website";
 
-            // Create a session
-            await fetch(`${BASE_URL}/login-2.18`, {
-                method: "post",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ userId, payload: { asdf: 1 } })
-            });
+                // Create a session
+                await fetch(`${BASE_URL}/login-2.18`, {
+                    method: "post",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId, payload: { asdf: 1 } })
+                });
 
-            assert.notStrictEqual(await supertokens.getAccessToken(), undefined);
+                assert.notStrictEqual(await supertokens.getAccessToken(), undefined);
 
-            const payload218 = await supertokens.getAccessTokenPayloadSecurely();
+                const payload218 = await supertokens.getAccessTokenPayloadSecurely();
 
-            assert.deepStrictEqual(payload218, { asdf: 1 });
+                assert.deepStrictEqual(payload218, { asdf: 1 });
 
-            await supertokens.attemptRefreshingSession();
+                await supertokens.attemptRefreshingSession();
 
-            if (v3AccessTokenSupported) {
-                const v3Payload = await supertokens.getAccessTokenPayloadSecurely();
+                if (v3AccessTokenSupported) {
+                    const v3Payload = await supertokens.getAccessTokenPayloadSecurely();
 
-                assert.notStrictEqual(v3Payload, undefined);
-                // The `iss` is not added in migrated sessions
-                const expectedKeys = [
-                    "sub",
-                    "exp",
-                    "iat",
-                    "sessionHandle",
-                    "refreshTokenHash1",
-                    "parentRefreshTokenHash1",
-                    "antiCsrfToken",
-                    "asdf"
-                ];
+                    assert.notStrictEqual(v3Payload, undefined);
+                    // The `iss` is not added in migrated sessions
+                    const expectedKeys = [
+                        "sub",
+                        "exp",
+                        "iat",
+                        "sessionHandle",
+                        "refreshTokenHash1",
+                        "parentRefreshTokenHash1",
+                        "antiCsrfToken",
+                        "asdf"
+                    ];
 
-                if (v3Payload["tId"]) {
-                    expectedKeys.push("tId");
+                    if (v3Payload["tId"]) {
+                        expectedKeys.push("tId");
+                    }
+                    if (v3Payload["rsub"]) {
+                        expectedKeys.push("rsub");
+                    }
+
+                    assert.strictEqual(Object.keys(v3Payload).length, expectedKeys.length);
+                    for (const key of Object.keys(v3Payload)) {
+                        assert(expectedKeys.includes(key));
+                    }
+                    assert.strictEqual(v3Payload.asdf, 1);
+                } else {
+                    const v2Payload = await supertokens.getAccessTokenPayloadSecurely();
+
+                    assert.deepStrictEqual(v2Payload, { asdf: 1 });
                 }
-                if (v3Payload["rsub"]) {
-                    expectedKeys.push("rsub");
-                }
-
-                assert.strictEqual(Object.keys(v3Payload).length, expectedKeys.length);
-                for (const key of Object.keys(v3Payload)) {
-                    assert(expectedKeys.includes(key));
-                }
-                assert.strictEqual(v3Payload.asdf, 1);
-            } else {
-                const v2Payload = await supertokens.getAccessTokenPayloadSecurely();
-
-                assert.deepStrictEqual(v2Payload, { asdf: 1 });
-            }
-        }, v3AccessTokenSupported);
+            },
+            v3AccessTokenSupported,
+            BASE_URL
+        );
     });
 });
