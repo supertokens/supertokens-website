@@ -7,20 +7,11 @@ services:
       - ${SUPERTOKENS_CORE_PORT:-3567}:3567
     platform: linux/amd64
     depends_on: [oauth]
-    deploy:
-      resources:
-        limits:
-          memory: 128m
     environment:
       OAUTH_PROVIDER_PUBLIC_SERVICE_URL: http://oauth:4444
       OAUTH_PROVIDER_ADMIN_SERVICE_URL: http://oauth:4445
       OAUTH_PROVIDER_CONSENT_LOGIN_BASE_URL: http://localhost:3001/auth
       OAUTH_CLIENT_SECRET_ENCRYPTION_KEY: asdfasdfasdfasdfasdf
-    healthcheck:
-      test: bash -c 'curl -s "http://127.0.0.1:3567/hello" | grep "Hello"'
-      interval: 10s
-      timeout: 5s
-      retries: 5
     entrypoint: [
       "/usr/lib/supertokens/jre/bin/java", 
       "-classpath", "/usr/lib/supertokens/core/*:/usr/lib/supertokens/plugin-interface/*:/usr/lib/supertokens/ee/*", 
