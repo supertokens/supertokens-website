@@ -7,6 +7,10 @@ services:
       - ${SUPERTOKENS_CORE_PORT:-3567}:3567
     platform: linux/amd64
     depends_on: [oauth]
+    deploy:
+      resources:
+        limits:
+          memory: 128m
     environment:
       OAUTH_PROVIDER_PUBLIC_SERVICE_URL: http://oauth:4444
       OAUTH_PROVIDER_ADMIN_SERVICE_URL: http://oauth:4445
