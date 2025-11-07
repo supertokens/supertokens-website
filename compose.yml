@@ -1,7 +1,7 @@
 services:
   core:
     # Uses `$SUPERTOKENS_CORE_VERSION` when available, else latest
-    image: supertokens/supertokens-dev-postgresql:feat_saml_impl-1
+    image: supertokens/supertokens-dev-postgresql:experiment_deadlock_detector
     ports:
       # Uses `$SUPERTOKENS_CORE_PORT` when available, else 3567 for local port
       - ${SUPERTOKENS_CORE_PORT:-3567}:3567
