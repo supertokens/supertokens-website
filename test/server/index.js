@@ -360,6 +360,7 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
 });
 
 app.post("/beforeeach", async (req, res) => {
+    console.log("beforeeach");
     noOfTimesRefreshCalledDuringTest = 0;
     noOfTimesGetSessionCalledDuringTest = 0;
     noOfTimesRefreshAttemptedDuringTest = 0;
@@ -375,6 +376,7 @@ app.post("/stopst", async (req, res) => {
 });
 
 app.post("/testUserConfig", async (req, res) => {
+    console.log("testUserConfig");
     res.status(200).send();
 });
 
@@ -594,4 +596,6 @@ app.use(async (err, req, res, next) => {
 });
 
 let server = http.createServer(app);
-server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "::");
+server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "::", () => {
+    console.log(`Server is running on port ${process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT}`);
+});

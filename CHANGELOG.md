@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [20.1.7] - 2025-11-23
+
+### Changes
+
+- Added `4.2` to the list of supported FDIs
 - Updated tests to use containerized core
   - Changed domain from `localhost.org` to `localhost`
 - Added workflow to run tests in Github Actions
