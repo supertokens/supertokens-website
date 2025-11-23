@@ -594,4 +594,6 @@ app.use(async (err, req, res, next) => {
 });
 
 let server = http.createServer(app);
-server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "::");
+server.listen(process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT, "::", () => {
+    console.log(`Server is running on port ${process.env.NODE_PORT === undefined ? 8080 : process.env.NODE_PORT}`);
+});

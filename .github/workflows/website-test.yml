@@ -58,7 +58,7 @@ jobs:
       - name: Start core
         run: docker compose up --wait
 
-      - uses: sattvikc/website-testing-action@patch-1
+      - uses: supertokens/website-testing-action@main
         with:
           should-clone: 'false'
           version: '' # Not required since we have already cloned the repo
