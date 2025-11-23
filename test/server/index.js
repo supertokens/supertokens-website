@@ -360,7 +360,6 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
 });
 
 app.post("/beforeeach", async (req, res) => {
-    console.log("beforeeach");
     noOfTimesRefreshCalledDuringTest = 0;
     noOfTimesGetSessionCalledDuringTest = 0;
     noOfTimesRefreshAttemptedDuringTest = 0;
@@ -376,7 +375,6 @@ app.post("/stopst", async (req, res) => {
 });
 
 app.post("/testUserConfig", async (req, res) => {
-    console.log("testUserConfig");
     res.status(200).send();
 });
 
