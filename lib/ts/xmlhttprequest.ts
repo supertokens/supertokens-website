@@ -68,18 +68,16 @@ export function addInterceptorsToXMLHttpRequest() {
 
         let delayedQueue = firstEventLoopDone;
         function delayIfNecessary(cb: () => void | Promise<void>) {
-            delayedQueue = delayedQueue.finally(() =>
-                cb()?.catch(err => {
-                    // Call the onerror handler to ensure XHR throws this error.
-                    const ev = new ProgressEvent("error");
-                    (ev as any).error = err;
-                    if (self.onerror !== undefined && self.onerror !== null) {
-                        self.onerror(ev);
-                    }
+            delayedQueue = delayedQueue.finally(cb).catch(err => {
+                // Call the onerror handler to ensure XHR throws this error.
+                const ev = new ProgressEvent("error");
+                (ev as any).error = err;
+                if (self.onerror !== undefined && self.onerror !== null) {
+                    self.onerror(ev);
+                }
 
-                    redispatchEvent("error", ev);
-                })
-            );
+                redispatchEvent("error", ev);
+            });
         }
 
         // We define these during open
