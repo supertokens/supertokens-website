@@ -110,6 +110,61 @@ describe("XmlHttpRequest tests", function () {
         });
     });
 
+    it("does not create unhandled rejections when wrapped XHR methods return non-Promise values", async function () {
+        const result = await page.evaluate(async BASE_URL => {
+            const NativeXMLHttpRequest = window.XMLHttpRequest;
+            const originalSetRequestHeader = NativeXMLHttpRequest.prototype.setRequestHeader;
+            const originalSend = NativeXMLHttpRequest.prototype.send;
+            const calls = { setRequestHeader: 0, send: 0 };
+            const unhandledRejections = [];
+            const onUnhandledRejection = event => {
+                event.preventDefault();
+                unhandledRejections.push(String(event.reason));
+            };
+
+            window.addEventListener("unhandledrejection", onUnhandledRejection);
+
+            try {
+                NativeXMLHttpRequest.prototype.setRequestHeader = function () {
+                    calls.setRequestHeader++;
+                    originalSetRequestHeader.apply(this, arguments);
+                    return true;
+                };
+                NativeXMLHttpRequest.prototype.send = function () {
+                    calls.send++;
+                    originalSend.apply(this, arguments);
+                    return true;
+                };
+
+                supertokens.init({ apiDomain: "https://api.example.com" });
+
+                const request = new XMLHttpRequest();
+                const completed = new Promise((resolve, reject) => {
+                    request.onloadend = resolve;
+                    request.onerror = () => reject(new Error("The non-intercepted XHR failed"));
+                });
+
+                request.open("GET", BASE_URL + "/testing");
+                request.setRequestHeader("x-test-header", "test");
+                request.send();
+
+                await completed;
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                return { calls, unhandledRejections };
+            } finally {
+                NativeXMLHttpRequest.prototype.setRequestHeader = originalSetRequestHeader;
+                NativeXMLHttpRequest.prototype.send = originalSend;
+                window.removeEventListener("unhandledrejection", onUnhandledRejection);
+            }
+        }, BASE_URL);
+
+        assert.deepStrictEqual(result, {
+            calls: { setRequestHeader: 1, send: 1 },
+            unhandledRejections: []
+        });
+    });
+
     it("test that relative URLs get intercepted if frontend and backend are on same domain", async function () {
         const coreUrl = await setupCoreApp({ accessTokenValidity: 3 });
         await setupST({ coreUrl });
