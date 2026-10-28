@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixes
+
+- Fixed unhandled promise rejections in the XMLHttpRequest interceptor when another XHR wrapper returns a non-Promise value from `send` or `setRequestHeader`.
+
 ## [20.1.7] - 2025-11-23
 
 ### Changes
