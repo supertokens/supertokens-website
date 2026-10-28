@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- Fixed unhandled promise rejections in the XMLHttpRequest interceptor when another XHR wrapper returns a non-Promise value from `send` or `setRequestHeader`.
 - `SessionClaimValidatorStore.addClaimValidatorFromOtherRecipe` now replaces a validator that was already added with the same id instead of adding a duplicate.
+- Fixed unhandled promise rejections in the XMLHttpRequest interceptor when another XHR wrapper returns a non-Promise value from `send` or `setRequestHeader`.
 - CI: the website tests run against the current core dev image, and the test server resets the AccountLinking recipe when it re-initialises the SDK (every job using supertokens-node >= 21 failed before).
 
 ## [20.1.7] - 2025-11-23
