@@ -43,6 +43,15 @@ try {
 } catch {
     // Ignored
 }
+
+// Auto-initialised by SuperTokens.init since supertokens-node 21.0 and not covered by SuperTokens.reset(),
+// so a re-init without resetting it throws "AccountLinking recipe has already been initialised".
+let AccountLinkingRecipeRaw;
+try {
+    AccountLinkingRecipeRaw = require("supertokens-node/lib/build/recipe/accountlinking/recipe").default;
+} catch {
+    // Ignored
+}
 let noOfTimesRefreshCalledDuringTest = 0;
 let noOfTimesGetSessionCalledDuringTest = 0;
 let noOfTimesRefreshAttemptedDuringTest = 0;
@@ -260,6 +269,9 @@ app.post("/test/setup/st", async (req, res) => {
             if (UserMetaDataRecipeRaw !== undefined) {
                 UserMetaDataRecipeRaw.reset();
             }
+            if (AccountLinkingRecipeRaw !== undefined) {
+                AccountLinkingRecipeRaw.reset();
+            }
         }
 
         const stConfig = getConfig(
@@ -353,6 +365,9 @@ app.post("/reinitialiseBackendConfig", async (req, res) => {
     }
     if (UserMetaDataRecipeRaw !== undefined) {
         UserMetaDataRecipeRaw.reset();
+    }
+    if (AccountLinkingRecipeRaw !== undefined) {
+        AccountLinkingRecipeRaw.reset();
     }
     SuperTokens.init(getConfig(req.body.coreUrl, lastSetEnableAntiCSRF, currentEnableJWT, jwtPropertyName));
 
