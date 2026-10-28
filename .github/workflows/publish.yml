@@ -1,0 +1,65 @@
+name: Publish to npm
+
+# Publishes the package when a release tag (vX.Y.Z) is pushed: ./addReleaseTag pushes it after
+# marking the release on api.supertokens.io. Replaces the publish job of CircleCI's tagged-build.
+#
+# npm trusted publishing: npm exchanges this job's GitHub OIDC token for a short-lived publish
+# token. npmjs.com -> supertokens-website -> Settings -> Trusted publisher: GitHub Actions,
+# supertokens / supertokens-website, workflow publish.yml, environment publish. With OIDC, npm
+# also attaches a provenance attestation.
+
+on:
+    push:
+        tags:
+            - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+    contents: read
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        environment: publish
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "24"
+                  registry-url: "https://registry.npmjs.org/"
+
+            # Trusted publishing needs npm 11.5.1 or newer.
+            - run: npm install -g npm@^11.5.1 && npm --version
+
+            - name: Publish
+              run: |
+                  version=$(jq -r .version package.json)
+                  if [[ "v$version" != "$GITHUB_REF_NAME" ]]
+                  then
+                      echo "::error::The tag $GITHUB_REF_NAME doesn't match the package.json version $version"
+                      exit 1
+                  fi
+
+                  isLatest=$(curl -sSf -H 'api-version: 0' \
+                      "https://api.supertokens.io/0/frontend/latest/check?password=$SUPERTOKENS_API_KEY&version=$version&name=website" |
+                      jq -r .isLatest)
+
+                  if [[ "$isLatest" == "true" ]]
+                  then
+                      npm publish --tag latest
+                  elif [[ "$isLatest" == "false" ]]
+                  then
+                      npm publish --tag "version-$version"
+                  else
+                      echo "::error::Unexpected answer from the latest-version check: $isLatest"
+                      exit 1
+                  fi
+              env:
+                  SUPERTOKENS_API_KEY: ${{ secrets.SUPERTOKENS_API_KEY }}
+                  # Fallback while the trusted publisher isn't set up on npm; npm tries OIDC first.
+                  # Remove it together with the NPM_TOKEN secret after the first trusted publish.
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
